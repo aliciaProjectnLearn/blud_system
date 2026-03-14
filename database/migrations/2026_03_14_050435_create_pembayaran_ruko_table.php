@@ -16,7 +16,7 @@ return new class extends Migration
             $table->dateTime('tgl_jatuh_tempo')->nullable();
             $table->integer('jumlah_tagihan');
             $table->dateTime('tgl_bayar')->nullable();
-            $table->enum('status', ['menunggu', 'verifikasi'])->default('menunggu');
+            $table->enum('status', ['menunggu', 'verifikasi', 'dibatalkan'])->default('menunggu');
             $table->string('no_kwitansi')->nullable();
             $table->timestamps();
         });

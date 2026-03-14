@@ -13,7 +13,7 @@ return new class extends Migration
             $table->foreignId('booking_id')->constrained('booking')->onDelete('restrict');
             $table->foreignId('tipe_pembayaran_id')->constrained('tipe_pembayaran')->onDelete('restrict');
             $table->integer('jumlah_bayar');
-            $table->enum('status', ['menunggu', 'verifikasi'])->default('menunggu');
+            $table->enum('status', ['menunggu', 'verifikasi', 'dibatalkan'])->default('menunggu');
             $table->string('bukti')->nullable();
             $table->dateTime('tgl_bayar')->nullable();
             $table->timestamps();

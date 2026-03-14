@@ -2,24 +2,46 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Database\Seeders\RoleTableSeeder;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // Tabel master (tanpa foreign key)
+        $this->call(RoleTableSeeder::class);           // asumsi ada RoleTableSeeder
+        $this->call(UsersTableSeeder::class);
+        $this->call(TipePembayaranTableSeeder::class);
+        $this->call(KategoriTableSeeder::class);
+        $this->call(LapanganTableSeeder::class);
+        $this->call(KomponenTableSeeder::class);
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        // Tabel dengan foreign key ke tabel di atas
+        $this->call(RolesUsersTableSeeder::class);    // pastikan nama tepat
+        $this->call(RukoTableSeeder::class);
+        $this->call(LayananAcTableSeeder::class);     // pastikan nama tepat
+        $this->call(MembershipTableSeeder::class);
+
+        // Booking (tergantung users)
+        $this->call(BookingTableSeeder::class);       // pastikan ada BookingTableSeeder, bukan Bookings
+
+        // Detail booking
+        $this->call(BookingFutsalTableSeeder::class);
+        $this->call(BookingAcTableSeeder::class);
+        $this->call(SewaRukoTableSeeder::class);
+
+        // Fasilitas dan detail lainnya
+        $this->call(FasilitasLapanganTableSeeder::class);
+        $this->call(DetailServisTableSeeder::class);
+        $this->call(PembatalanTableSeeder::class);
+
+        // Pembayaran
+        $this->call(PembayaranFutsalTableSeeder::class);
+        $this->call(PembayaranAcTableSeeder::class);
+        $this->call(PembayaranRukoTableSeeder::class);
+
+        // Detail komponen servis
+        $this->call(DetailKomponenServisTableSeeder::class);
     }
 }
