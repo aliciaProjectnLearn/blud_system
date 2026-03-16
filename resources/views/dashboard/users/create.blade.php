@@ -4,7 +4,7 @@
 
 <div class="container-fluid">
 
-    <h1 class="h3 mb-4 text-gray-800">Tambah User</h1>
+    <h1 class="h3 mb-4 text-gray-800">Tambah Admin Sistem</h1>
 
     <div class="card shadow">
         <div class="card-body">
@@ -35,8 +35,14 @@
                 <div class="form-group">
                     <label>Role</label>
                     <select name="role" class="form-control">
-                        <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin</option>
-                        <option value="user" {{ old('role') == 'user' ? 'selected' : '' }}>User</option>
+                        <option value="">-- Pilih Role --</option>
+
+                        @foreach($roles as $role)
+                            <option value="{{ $role }}" {{ old('role') == $role ? 'selected' : '' }}>
+                                {{ $role }}
+                            </option>
+                        @endforeach
+
                     </select>
                 </div>
                 <button class="btn btn-primary mt-3">Simpan</button>

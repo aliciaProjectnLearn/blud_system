@@ -4,10 +4,12 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\SuperAdmin\DashboardController;
+use App\Http\Controllers\SuperAdmin\TransaksiController;
 
 // ── Halaman Welcome ──────────────────────────────────────
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('login');
 });
 
 // ── Auth Routes (Login & Register) ───────────────────────
@@ -21,9 +23,7 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::middleware(['auth'])->group(function () {
 
     // Dashboard
-    Route::get('/dashboard', function () {
-        return view('dashboard.index');
-    })->name('dashboard');
+    Route::get('/dashboard', [App\Http\Controllers\SuperAdmin\DashboardController::class, 'index'])->name('dashboard');
 
     // Profile
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -32,6 +32,8 @@ Route::middleware(['auth'])->group(function () {
 
     // User Management
     Route::resource('users', UserController::class);
+    Route::get('/pelanggan', [UserController::class, 'indexPelanggan'])->name('users.pelanggan');
 
+    Route::get('/transaksi', [TransaksiController::class, 'index'])->name('transaksi.index');
 
 });
