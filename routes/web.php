@@ -4,7 +4,13 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\AdminLogActivityController; // ← nama controller yang benar
 
+Route::middleware(['auth', 'role:Superadmin'])->group(function () {
+    Route::get('/superadmin/monitoring', [AdminLogActivityController::class, 'index'])->name('monitoring.index');
+});
+
+// route lain...
 // ── Halaman Welcome ──────────────────────────────────────
 Route::get('/', function () {
     return view('welcome');
