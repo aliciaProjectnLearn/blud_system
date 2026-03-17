@@ -4,27 +4,28 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class CheckRole
 {
-    public function handle(Request $request, Closure $next, ...$roles)
+    public function handle(Request $request, Closure $next, string $role): mixed
     {
-        if (!Auth::check()) {
+        $user = $request->user();
+
+        if (!$user) {
             return redirect()->route('login');
         }
 
-        $user = Auth::user();
-        // Ambil daftar nama role user
-        $userRoles = $user->roles->pluck('nama')->toArray();
+        $hasRole = DB::table('roles_users')
+            ->join('roles', 'roles.id', '=', 'roles_users.role_id')
+            ->where('roles_users.user_id', $user->id)
+            ->where('roles.nama', $role)
+            ->exists();
 
-        // Cek apakah user memiliki salah satu role yang diizinkan
-        foreach ($roles as $role) {
-            if (in_array($role, $userRoles)) {
-                return $next($request);
-            }
+        if (!$hasRole) {
+            abort(403, 'Akses ditolak.');
         }
 
-        abort(403, 'Unauthorized - Anda tidak memiliki akses ke halaman ini.');
+        return $next($request);
     }
 }
