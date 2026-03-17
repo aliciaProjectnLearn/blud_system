@@ -20,8 +20,6 @@ return new class extends Migration
         $table->text('deskripsi_aktivitas')->nullable();
         $table->timestamps();
 
-        // optional: foreign key ke users, tapi jika user dihapus, log tetap ada
-        $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');
     });
 }
 

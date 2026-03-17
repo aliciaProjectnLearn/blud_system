@@ -16,7 +16,6 @@ class DatabaseSeeder extends Seeder
         $this->call(TipePembayaranTableSeeder::class);
         $this->call(KategoriTableSeeder::class);
         $this->call(LapanganTableSeeder::class);
-        $this->call(KomponenTableSeeder::class);
 
         // Tabel dengan foreign key ke tabel di atas
         $this->call(RolesUsersTableSeeder::class);    // pastikan nama tepat
@@ -41,8 +40,5 @@ class DatabaseSeeder extends Seeder
         $this->call(PembayaranFutsalTableSeeder::class);
         $this->call(PembayaranAcTableSeeder::class);
         $this->call(PembayaranRukoTableSeeder::class);
-
-        // Detail komponen servis
-        $this->call(DetailKomponenServisTableSeeder::class);
     }
 }

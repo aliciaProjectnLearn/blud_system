@@ -12,7 +12,7 @@ class LapanganTableSeeder extends Seeder
         DB::table('lapangan')->insert([
             [
                 'nama' => 'Lapangan Utama',
-                'ukuran' => '25x15',
+                'spesifikasi' => 'lapangan ini memiliki ukuran25x15',
                 'deskripsi' => 'Lapangan Futsal dengan fasilitas lengkap',
                 'foto' => 'lapangan_a.jpg',
                 'created_at' => now(),
