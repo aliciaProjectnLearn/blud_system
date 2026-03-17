@@ -18,7 +18,14 @@
             <i class="fas fa-fw fa-tachometer-alt"></i>
             <span>Dashboard</span>
         </a>
+        
     </li>
+    <li class="nav-item">
+    <a class="nav-link" href="{{ route('monitoring.index') }}">
+        <i class="fas fa-fw fa-eye"></i>
+        <span>Monitoring Aktivitas</span>
+    </a>
+    </li>   
 
     {{-- Divider --}}
     <hr class="sidebar-divider">
