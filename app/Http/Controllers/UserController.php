@@ -10,13 +10,38 @@ class UserController extends Controller
 {
     public function index()
     {
-        $users = User::paginate(5);
-        return view('dashboard.users.index', compact('users'));
+        $search = request('search');
+
+        $users = User::with('roles')
+            ->whereHas('roles', function ($query) {
+                $query->where('name','like','Admin%');
+            })
+            ->when($search, function($query) use ($search){
+                $query->where('name','like',"%$search%");
+            })
+            ->paginate(10);
+        return view('dashboard.users.index', compact('users', 'search'));
+    }
+
+    public function indexPelanggan()
+    {
+        $search = request('search');
+
+        $users = User::with('roles')
+            ->whereHas('roles', function ($query) {
+                $query->where('name','like','Pelanggan%');
+            })
+            ->when($search, function($query) use ($search){
+                $query->where('name','like',"%$search%");
+            })
+            ->paginate(10);
+        return view('dashboard.users.pelanggan', compact('users', 'search'));
     }
 
     public function create()
     {
-        return view('dashboard.users.create');
+        $roles = ['Adminac', 'Adminfutsal', 'Adminkantin', 'Superadmin'];
+        return view('dashboard.users.create', compact('roles'));
     }
 
     public function store(Request $request) 
