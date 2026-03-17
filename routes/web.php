@@ -6,6 +6,8 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\SuperAdmin\DashboardController;
 use App\Http\Controllers\SuperAdmin\TransaksiController;
+use App\Http\Controllers\AdminFutsal\DashboardController as AdminFutsalDashboardController;
+
 
 // ── Halaman Welcome ──────────────────────────────────────
 Route::get('/', function () {
@@ -20,7 +22,7 @@ Route::get('/register', [AuthController::class, 'showRegister'])->name('register
 Route::post('/register', [AuthController::class, 'register']);
 
 // ── Protected Routes (perlu login) ───────────────────────
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth','role:Superadmin'])->group(function () {
 
     // Dashboard
     Route::get('/dashboard', [App\Http\Controllers\SuperAdmin\DashboardController::class, 'index'])->name('dashboard');
@@ -36,4 +38,9 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/transaksi', [TransaksiController::class, 'index'])->name('transaksi.index');
 
+});
+
+// ── Admin Futsal ───────────────────────
+Route::middleware(['auth', 'role:Adminfutsal'])->prefix('adminfutsal')->name('adminfutsal.')->group(function () {
+    Route::get('/dashboard', [AdminFutsalDashboardController::class, 'index'])->name('dashboard');
 });

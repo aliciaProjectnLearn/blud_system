@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 use App\Models\User;
 
 class AuthController extends Controller
@@ -30,12 +31,23 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials, $request->remember)) {
             $request->session()->regenerate();
-            return redirect()->intended('/dashboard')->with('success', 'Login berhasil!');
+
+            $role = DB::table('roles_users')
+                ->join('roles', 'roles.id', '=', 'roles_users.role_id')
+                ->where('roles_users.user_id', auth()->id())
+                ->value('roles.nama');
+
+            return match(strtolower($role ?? '')) {
+                'superadmin'  => redirect()->route('dashboard'),
+                'adminfutsal' => redirect()->route('adminfutsal.dashboard'),
+                'adminkantin' => redirect()->route('dashboard'), // sesuaikan nanti
+                'adminac'     => redirect()->route('dashboard'), // sesuaikan nanti
+                default       => redirect()->route('dashboard'),
+            };
         }
 
         return back()->with('error', 'Email atau password salah.')->withInput($request->only('email'));
     }
-
     public function logout(Request $request)
     {
         Auth::logout();
