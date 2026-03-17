@@ -7,9 +7,12 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use App\Models\User;
+use App\Traits\Loggable; // <-- tambahkan ini
 
 class AuthController extends Controller
 {
+    use Loggable; // <-- gunakan trait
+
     // ── LOGIN ─────────────────────────────────────────────
 
     public function showLogin()
@@ -44,12 +47,21 @@ class AuthController extends Controller
                 'adminac'     => redirect()->route('dashboard'), // sesuaikan nanti
                 default       => redirect()->route('dashboard'),
             };
+            // Catat log login
+            $this->function_log('Auth', 'login', 'User ' . Auth::user()->name . ' login');
+
+            return redirect()->intended('/dashboard')->with('success', 'Login berhasil!');
         }
 
         return back()->with('error', 'Email atau password salah.')->withInput($request->only('email'));
     }
     public function logout(Request $request)
     {
+        // Catat log logout sebelum session dihapus
+        if (Auth::check()) {
+            $this->function_log('Auth', 'logout', 'User ' . Auth::user()->name . ' logout');
+        }
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
@@ -81,6 +93,9 @@ class AuthController extends Controller
         ]);
 
         Auth::login($user);
+
+        // Catat log register
+        $this->function_log('Auth', 'register', 'User baru terdaftar: ' . $user->name);
 
         return redirect('/dashboard')->with('success', 'Akun berhasil dibuat!');
     }

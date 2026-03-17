@@ -9,6 +9,7 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        $this->call(LogActivityTableSeeder::class);
         // Tabel master (tanpa foreign key)
         $this->call(RoleTableSeeder::class);           // asumsi ada RoleTableSeeder
         $this->call(UsersTableSeeder::class);
