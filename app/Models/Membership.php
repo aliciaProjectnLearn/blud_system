@@ -1,0 +1,57 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
+
+class Membership extends Model
+{
+    protected $table = 'membership';
+
+    protected $fillable = [
+        'user_id',
+        'paket_membership_id',
+        'transaksi_id',
+        'total_kuota',
+        'sisa_kuota',
+        'status',
+    ];
+
+    // Relasi
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function paket()
+    {
+        return $this->belongsTo(PaketMembership::class, 'paket_membership_id');
+    }
+
+    public function transaksi()
+    {
+        return $this->belongsTo(PembayaranFutsal::class, 'transaksi_id');
+    }
+
+    // Logic penggunaan kuota (dipanggil saat booking)
+    public function gunakanKuota(): void
+    {
+        if ($this->status !== 'aktif') {
+            throw new \Exception('Membership tidak aktif.');
+        }
+
+        if ($this->sisa_kuota <= 0) {
+            throw new \Exception('Kuota membership sudah habis.');
+        }
+
+        DB::transaction(function () {
+            $this->decrement('sisa_kuota');
+            $this->refresh();
+
+            if ($this->sisa_kuota === 0) {
+                $this->update(['status' => 'tidak aktif']);
+            }
+        });
+    }
+}

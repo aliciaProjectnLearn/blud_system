@@ -34,12 +34,15 @@ class User extends Authenticatable
     // ── Helper Methods ────────────────────────────────────
 
     public function roles()
-{
-    return $this->belongsToMany(Role::class, 'roles_users', 'user_id', 'role_id');
-}
+    {
+        return $this->belongsToMany(Role::class, 'roles_users', 'user_id', 'role_id');
+    }
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
     }
-
+    public function hasRole(string $role): bool
+    {
+        return $this->roles->contains('nama', $role);
+    }
 }

@@ -21,7 +21,9 @@ class DatabaseSeeder extends Seeder
         $this->call(RolesUsersTableSeeder::class);    // pastikan nama tepat
         $this->call(RukoTableSeeder::class);
         $this->call(LayananAcTableSeeder::class);     // pastikan nama tepat
+        $this->call(PaketMembershipSeeder::class);
         $this->call(MembershipTableSeeder::class);
+
 
         // Booking (tergantung users)
         $this->call(BookingTableSeeder::class);       // pastikan ada BookingTableSeeder, bukan Bookings
