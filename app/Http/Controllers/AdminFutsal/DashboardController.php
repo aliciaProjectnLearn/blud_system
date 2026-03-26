@@ -45,19 +45,9 @@ class DashboardController extends Controller
             ->get();
 
         // ── Jadwal Lapangan Hari Ini ────────────────────────
-        $jadwalHariIni = DB::table('booking_futsal')
-            ->join('users', 'booking_futsal.user_id', '=', 'users.id')
-            ->join('lapangan', 'booking_futsal.lapangan_id', '=', 'lapangan.id')
-            ->select(
-                'users.name as nama_user',
-                'lapangan.nama',
-                'booking_futsal.tgl_main',
-                'booking_futsal.jam_mulai',
-                'booking_futsal.jam_selesai',
-                'booking_futsal.durasi_main'
-            )
-            ->whereDate('booking_futsal.tgl_main', $today)
-            ->orderBy('booking_futsal.jam_mulai', 'asc')
+        $jadwalHariIni = \App\Models\JadwalLapangan::with('lapangan')
+            ->whereDate('tanggal', $today)
+            ->orderBy('jam_mulai', 'asc')
             ->get();
 
         // ── Pendapatan Per Bulan (12 bulan terakhir) ────────

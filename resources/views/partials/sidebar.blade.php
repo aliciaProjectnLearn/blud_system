@@ -47,7 +47,14 @@
         </div>
     </li>
    
-        <li class="nav-item {{ request()->routeIs('transaksi.index') ? 'active' : '' }}">
+    <li class="nav-item {{ request()->routeIs('adminfutsal.jadwal-lapangan.index') ? 'active' : '' }}">
+        <a class="nav-link" href="{{ route('adminfutsal.jadwal-lapangan.index') }}">
+            <i class="fas fa-fw fa-calendar-alt"></i>
+            <span>Jadwal Lapangan</span>
+        </a>
+    </li>
+
+    <li class="nav-item {{ request()->routeIs('transaksi.index') ? 'active' : '' }}">
         <a class="nav-link" href="{{ route('transaksi.index') }}">
             <i class="fas fa-clipboard-list"></i>
             <span>Monitoring Transaksi</span>

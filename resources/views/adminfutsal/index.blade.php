@@ -187,34 +187,34 @@
         <div class="card shadow mb-4">
             <div class="card-header py-3">
                 <h6 class="m-0 font-weight-bold text-primary">
-                    Jadwal Lapangan Hari Ini — {{ \Carbon\Carbon::today()->translatedFormat('l, d F Y') }}
+                    Ringkasan Jadwal Lapangan Hari Ini — {{ \Carbon\Carbon::today()->translatedFormat('l, d F Y') }}
                 </h6>
             </div>
             <div class="card-body">
                 @if($jadwalHariIni->isEmpty())
-                    <p class="text-center text-muted">Tidak ada jadwal lapangan hari ini.</p>
+                    <p class="text-center text-muted">Belum ada slot jadwal tergenerate untuk hari ini.</p>
                 @else
                 <div class="table-responsive">
-                    <table class="table table-bordered">
+                    <table class="table table-bordered table-striped">
                         <thead>
                             <tr>
-                                <th>Nama Pelanggan</th>
-                                <th>Lapangan</th>
-                                <th>Tanggal Main</th>
-                                <th>Jam Mulai</th>
-                                <th>Jam Selesai</th>
-                                <th>Durasi</th>
+                                <th width="30%">Jam</th>
+                                <th width="40%">Nama Lapangan</th>
+                                <th width="30%" class="text-center">Status</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach($jadwalHariIni as $j)
                             <tr>
-                                <td>{{ $j->nama_user }}</td>
-                                <td>{{ $j->nama_lapangan }}</td>
-                                <td>{{ \Carbon\Carbon::parse($j->tgl_main)->format('d/m/Y') }}</td>
-                                <td>{{ $j->jam_mulai }}</td>
-                                <td>{{ $j->jam_selesai }}</td>
-                                <td>{{ $j->durasi_main }} jam</td>
+                                <td class="align-middle font-weight-bold">{{ substr($j->jam_mulai, 0, 5) }} - {{ substr($j->jam_selesai, 0, 5) }}</td>
+                                <td class="align-middle">{{ $j->lapangan->nama ?? 'Unknown' }}</td>
+                                <td class="align-middle text-center">
+                                    @if($j->status === 'tersedia')
+                                        <span class="badge badge-success px-2 py-1"><i class="fas fa-check-circle mr-1"></i> Tersedia</span>
+                                    @else
+                                        <span class="badge badge-danger px-2 py-1"><i class="fas fa-times-circle mr-1"></i> Terisi</span>
+                                    @endif
+                                </td>
                             </tr>
                             @endforeach
                         </tbody>

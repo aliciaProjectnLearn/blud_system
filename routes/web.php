@@ -8,7 +8,9 @@ use App\Http\Controllers\AdminLogActivityController; // ← nama controller yang
 use App\Http\Controllers\SuperAdmin\DashboardController;
 use App\Http\Controllers\SuperAdmin\TransaksiController;
 use App\Http\Controllers\AdminFutsal\DashboardController as AdminFutsalDashboardController;
-
+use App\Http\Controllers\AdminFutsal\PaketMembershipController;
+use App\Http\Controllers\AdminFutsal\MembershipController;
+use App\Http\Controllers\AdminFutsal\JadwalLapanganController;
 
 Route::middleware(['auth', 'role:Superadmin'])->group(function () {
     Route::get('/superadmin/monitoring', [AdminLogActivityController::class, 'index'])->name('monitoring.index');
@@ -49,4 +51,26 @@ Route::middleware(['auth','role:Superadmin'])->group(function () {
 // ── Admin Futsal ───────────────────────
 Route::middleware(['auth', 'role:Adminfutsal'])->prefix('adminfutsal')->name('adminfutsal.')->group(function () {
     Route::get('/dashboard', [AdminFutsalDashboardController::class, 'index'])->name('dashboard');
+
+    // Paket Membership
+    Route::resource('paket-membership', PaketMembershipController::class)
+        ->only(['index', 'store', 'update', 'destroy']);
+
+    // Monitoring Membership
+    Route::get('monitoring-membership', [MembershipController::class, 'index'])
+        ->name('monitoring-membership.index');
+    Route::post('monitoring-membership', [MembershipController::class, 'store'])
+        ->name('monitoring-membership.store');
+
+    // Frontend Jadwal Lapangan
+    Route::get('jadwal-lapangan', [JadwalLapanganController::class, 'index'])
+        ->name('jadwal-lapangan.index');
+
+    // Jadwal Lapangan API Internal
+    Route::get('jadwal-lapangan/api-by-tanggal', [JadwalLapanganController::class, 'getJadwalByTanggal'])
+        ->name('jadwal-lapangan.api');
+    Route::post('jadwal-lapangan/booking', [JadwalLapanganController::class, 'updateStatusBooking'])
+        ->name('jadwal-lapangan.booking');
+    Route::post('jadwal-lapangan/batal', [JadwalLapanganController::class, 'batalBooking'])
+        ->name('jadwal-lapangan.batal');
 });
