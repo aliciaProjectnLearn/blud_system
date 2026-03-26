@@ -185,6 +185,15 @@ class BookingController extends Controller
                 'deskripsi_aktivitas' => "Menambahkan booking untuk UserID: {$request->user_id} di LapanganID: {$lapangan->id}",
             ]);
 
+            // UPDATE JADWAL LAPANGAN FRONTEND CALENDAR KE TERISI
+            for ($i = 0; $i < $durasi; $i++) {
+                $slotStart = $jamMulai->copy()->addHours($i)->format('H:i:s');
+                JadwalLapangan::where('lapangan_id', $lapangan->id)
+                    ->where('tanggal', $request->tgl_main)
+                    ->where('jam_mulai', $slotStart)
+                    ->update(['status' => 'terisi']);
+            }
+
             DB::commit();
             return back()->with('success', 'Booking berhasil ditambahkan.');
 
@@ -228,6 +237,16 @@ class BookingController extends Controller
                 'aktivitas' => 'Batal Booking',
                 'deskripsi_aktivitas' => 'Membatalkan booking futsal BookingID: ' . $booking->id,
             ]);
+
+            // KEMBALIKAN JADWAL LAPANGAN FRONTEND CALENDAR KE TERSEDIA
+            $jamBatal = Carbon::parse($bookingFutsal->jam_mulai);
+            for ($i = 0; $i < $bookingFutsal->durasi_main; $i++) {
+                $slotStart = $jamBatal->copy()->addHours($i)->format('H:i:s');
+                JadwalLapangan::where('lapangan_id', $bookingFutsal->lapangan_id)
+                    ->where('tanggal', $bookingFutsal->tgl_main)
+                    ->where('jam_mulai', $slotStart)
+                    ->update(['status' => 'tersedia']);
+            }
 
             DB::commit();
             return back()->with('success', 'Booking berhasil dibatalkan.');
@@ -290,6 +309,25 @@ class BookingController extends Controller
                 if ($pembayaran) {
                     $pembayaran->update(['jumlah_bayar' => $harga * $durasiBaru]);
                 }
+            }
+
+            // KEMBALIKAN JADWAL LAMA KE TERSEDIA
+            $oldJamMulai = Carbon::parse($bookingFutsal->jam_mulai);
+            for ($i = 0; $i < $bookingFutsal->durasi_main; $i++) {
+                $slotStart = $oldJamMulai->copy()->addHours($i)->format('H:i:s');
+                JadwalLapangan::where('lapangan_id', $bookingFutsal->lapangan_id)
+                    ->where('tanggal', $bookingFutsal->tgl_main)
+                    ->where('jam_mulai', $slotStart)
+                    ->update(['status' => 'tersedia']);
+            }
+
+            // UPDATE SLOT JADWAL BARU KE TERISI
+            for ($i = 0; $i < $durasiBaru; $i++) {
+                $slotStart = $jamMulai->copy()->addHours($i)->format('H:i:s');
+                JadwalLapangan::where('lapangan_id', $lapangan->id)
+                    ->where('tanggal', $request->tgl_main)
+                    ->where('jam_mulai', $slotStart)
+                    ->update(['status' => 'terisi']);
             }
 
             $bookingFutsal->update([
