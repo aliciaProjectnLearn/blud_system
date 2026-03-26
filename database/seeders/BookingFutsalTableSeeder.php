@@ -18,6 +18,7 @@ class BookingFutsalTableSeeder extends Seeder
                 'jam_mulai_efektif'   => '15:00:00',
                 'jam_selesai'         => '16:00:00',
                 'durasi_main'         => 1,
+                'jenis_pembayaran'    => 'reguler',
                 'created_at' => now(),
                  'updated_at' => now()
             ],
@@ -30,6 +31,7 @@ class BookingFutsalTableSeeder extends Seeder
                 'jam_mulai_efektif'   => '16:00:00',
                 'jam_selesai'         => '18:00:00',
                 'durasi_main'         => 2,
+                'jenis_pembayaran'    => 'reguler',
                 'created_at' => now(),
                  'updated_at' => now()
             ],
@@ -42,6 +44,7 @@ class BookingFutsalTableSeeder extends Seeder
                 'jam_mulai_efektif'   => '19:00:00',
                 'jam_selesai'         => '20:00:00',
                 'durasi_main'         => 1,
+                'jenis_pembayaran'    => 'reguler',
                 'created_at' => now(),
                  'updated_at' => now()
             ],
