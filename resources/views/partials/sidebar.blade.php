@@ -13,36 +13,51 @@
     <hr class="sidebar-divider my-0">
 
     {{-- Dashboard --}}
-    <li class="nav-item {{ request()->routeIs('dashboard') ? 'active' : '' }}">
-        <a class="nav-link" href="{{ route('dashboard') }}">
-            <i class="fas fa-fw fa-tachometer-alt"></i>
-            <span>Dashboard</span>
-        </a>
-        
-    </li>
-      
+    @if (auth()->user()->hasRole('Superadmin'))
+        <li class="nav-item {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('dashboard') }}">
+                <i class="fas fa-fw fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            </a>
+        </li>
+    @elseif(auth()->user()->hasRole('Adminfutsal'))
+        <li class="nav-item {{ request()->routeIs('adminfutsal.dashboard') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('adminfutsal.dashboard') }}">
+                <i class="fas fa-fw fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            </a>
+        </li>
+    @endif
 
     {{-- Divider --}}
     <hr class="sidebar-divider">
 
-    {{-- Heading --}}
-    <div class="sidebar-heading">
-        Menu Utama
-    </div>
-    <li class="nav-item">
-        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseContoh"
-            aria-expanded="true" aria-controls="collapseContoh">
-            <i class="fas fa-users"></i>
-            <span>Manajemen User</span>
-        </a>
-        <div id="collapseContoh" class="collapse"
-            aria-labelledby="headingContoh" data-parent="#accordionSidebar">
-            <div class="bg-white py-2 collapse-inner rounded">
-                <h6 class="collapse-header"></h6>
-                    <a class="collapse-item" href="{{ route('users.index') }}">                                            
-                    <span>Manajemen Admin</span></a>
-                    <a class="collapse-item" href="{{ route('users.pelanggan') }}">                                            
-                    <span>Manajemen Pelanggan</span></a>
+    {{-- ================================================ --}}
+    {{-- MENU SUPERADMIN --}}
+    {{-- ================================================ --}}
+    @if (auth()->user()->hasRole('Superadmin'))
+        <div class="sidebar-heading">Menu Utama</div>
+
+        {{-- Manajemen User --}}
+        <li class="nav-item {{ request()->routeIs('users.*') ? 'active' : '' }}">
+            <a class="nav-link {{ request()->routeIs('users.*') ? '' : 'collapsed' }}" href="#"
+                data-toggle="collapse" data-target="#collapseUsers"
+                aria-expanded="{{ request()->routeIs('users.*') ? 'true' : 'false' }}" aria-controls="collapseUsers">
+                <i class="fas fa-fw fa-users"></i>
+                <span>Manajemen User</span>
+            </a>
+            <div id="collapseUsers" class="collapse {{ request()->routeIs('users.*') ? 'show' : '' }}"
+                data-parent="#accordionSidebar">
+                <div class="bg-white py-2 collapse-inner rounded">
+                    <a class="collapse-item {{ request()->routeIs('users.index') ? 'active' : '' }}"
+                        href="{{ route('users.index') }}">
+                        <span>Manajemen Admin</span>
+                    </a>
+                    <a class="collapse-item {{ request()->routeIs('users.pelanggan') ? 'active' : '' }}"
+                        href="{{ route('users.pelanggan') }}">
+                        <span>Manajemen Pelanggan</span>
+                    </a>
+                </div>
             </div>
         </div>
     </li>
@@ -61,12 +76,6 @@
         </a>
     </li>
 
-    <li class="nav-item">
-    <a class="nav-link" href="{{ route('monitoring.index') }}">
-        <i class="fas fa-fw fa-eye"></i>
-        <span>Monitoring Aktivitas</span>
-    </a>
-    </li> 
     {{-- Divider --}}
     <hr class="sidebar-divider d-none d-md-block">
 
