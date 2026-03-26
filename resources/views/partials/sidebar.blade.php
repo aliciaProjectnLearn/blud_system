@@ -33,7 +33,7 @@
     <hr class="sidebar-divider">
 
     {{-- ================================================ --}}
-    {{-- MENU SUPERADMIN --}}
+    {{-- MENU SUPERADMIN (ONLY) --}}
     {{-- ================================================ --}}
     @if (auth()->user()->hasRole('Superadmin'))
         <div class="sidebar-heading">Menu Utama</div>
@@ -59,13 +59,23 @@
                     </a>
                 </div>
             </div>
-        </div>
-    </li>
-   
+        </li>
+    @endif {{-- End Superadmin-only menu --}}
+
+    {{-- ================================================ --}}
+    {{-- MENU ACCESSIBLE BY ALL ADMINS --}}
+    {{-- ================================================ --}}
     <li class="nav-item {{ request()->routeIs('adminfutsal.jadwal-lapangan.index') ? 'active' : '' }}">
         <a class="nav-link" href="{{ route('adminfutsal.jadwal-lapangan.index') }}">
             <i class="fas fa-fw fa-calendar-alt"></i>
             <span>Jadwal Lapangan</span>
+        </a>
+    </li>
+
+    <li class="nav-item {{ request()->routeIs('adminfutsal.booking.*') ? 'active' : '' }}">
+        <a class="nav-link" href="{{ route('adminfutsal.booking.index') }}">
+            <i class="fas fa-fw fa-calendar-check"></i>
+            <span>Manajemen Booking</span>
         </a>
     </li>
 

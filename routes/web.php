@@ -73,4 +73,18 @@ Route::middleware(['auth', 'role:Adminfutsal'])->prefix('adminfutsal')->name('ad
         ->name('jadwal-lapangan.booking');
     Route::post('jadwal-lapangan/batal', [JadwalLapanganController::class, 'batalBooking'])
         ->name('jadwal-lapangan.batal');
+
+    // Manajemen Booking Futsal
+    Route::get('booking/jadwal-tersedia', [\App\Http\Controllers\AdminFutsal\BookingController::class, 'getAvailableSlots'])
+        ->name('booking.jadwal_tersedia');
+    Route::get('booking', [\App\Http\Controllers\AdminFutsal\BookingController::class, 'index'])
+        ->name('booking.index');
+    Route::post('booking', [\App\Http\Controllers\AdminFutsal\BookingController::class, 'store'])
+        ->name('booking.store');
+    Route::patch('booking/{id}', [\App\Http\Controllers\AdminFutsal\BookingController::class, 'update'])
+        ->name('booking.update');
+    Route::patch('booking/{id}/cancel', [\App\Http\Controllers\AdminFutsal\BookingController::class, 'cancel'])
+        ->name('booking.cancel');
+    Route::patch('booking/{id}/selesai', [\App\Http\Controllers\AdminFutsal\BookingController::class, 'selesai'])
+        ->name('booking.selesai');
 });
