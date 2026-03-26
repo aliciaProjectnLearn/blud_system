@@ -59,56 +59,22 @@
                     </a>
                 </div>
             </div>
-        </li>
+        </div>
+    </li>
+   
+    <li class="nav-item {{ request()->routeIs('adminfutsal.jadwal-lapangan.index') ? 'active' : '' }}">
+        <a class="nav-link" href="{{ route('adminfutsal.jadwal-lapangan.index') }}">
+            <i class="fas fa-fw fa-calendar-alt"></i>
+            <span>Jadwal Lapangan</span>
+        </a>
+    </li>
 
-        {{-- Monitoring Transaksi --}}
-        <li class="nav-item {{ request()->routeIs('transaksi.index') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('transaksi.index') }}">
-                <i class="fas fa-fw fa-clipboard-list"></i>
-                <span>Monitoring Transaksi</span>
-            </a>
-        </li>
-
-        {{-- Monitoring Aktivitas --}}
-        <li class="nav-item {{ request()->routeIs('monitoring.index') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('monitoring.index') }}">
-                <i class="fas fa-fw fa-eye"></i>
-                <span>Monitoring Aktivitas</span>
-            </a>
-        </li>
-
-        {{-- ================================================ --}}
-        {{-- MENU ADMINFUTSAL --}}
-        {{-- ================================================ --}}
-    @elseif(auth()->user()->hasRole('Adminfutsal'))
-        <div class="sidebar-heading">Menu Utama</div>
-
-        {{-- Manajemen Membership --}}
-        <li
-            class="nav-item {{ request()->routeIs('adminfutsal.paket-membership.*') || request()->routeIs('adminfutsal.monitoring-membership.*') ? 'active' : '' }}">
-            <a class="nav-link {{ request()->routeIs('adminfutsal.paket-membership.*') || request()->routeIs('adminfutsal.monitoring-membership.*') ? '' : 'collapsed' }}"
-                href="#" data-toggle="collapse" data-target="#collapseMembership"
-                aria-expanded="{{ request()->routeIs('adminfutsal.paket-membership.*') || request()->routeIs('adminfutsal.monitoring-membership.*') ? 'true' : 'false' }}"
-                aria-controls="collapseMembership">
-                <i class="fas fa-fw fa-id-card"></i>
-                <span>Manajemen Member</span>
-            </a>
-            <div id="collapseMembership"
-                class="collapse {{ request()->routeIs('adminfutsal.paket-membership.*') || request()->routeIs('adminfutsal.monitoring-membership.*') ? 'show' : '' }}"
-                data-parent="#accordionSidebar">
-                <div class="bg-white py-2 collapse-inner rounded">
-                    <a class="collapse-item {{ request()->routeIs('adminfutsal.paket-membership.*') ? 'active' : '' }}"
-                        href="{{ route('adminfutsal.paket-membership.index') }}">
-                        <span>Paket Membership</span>
-                    </a>
-                    <a class="collapse-item {{ request()->routeIs('adminfutsal.monitoring-membership.*') ? 'active' : '' }}"
-                        href="{{ route('adminfutsal.monitoring-membership.index') }}">
-                        <span>Monitoring Membership</span>
-                    </a>
-                </div>
-            </div>
-        </li>
-    @endif
+    <li class="nav-item {{ request()->routeIs('transaksi.index') ? 'active' : '' }}">
+        <a class="nav-link" href="{{ route('transaksi.index') }}">
+            <i class="fas fa-clipboard-list"></i>
+            <span>Monitoring Transaksi</span>
+        </a>
+    </li>
 
     {{-- Divider --}}
     <hr class="sidebar-divider d-none d-md-block">
