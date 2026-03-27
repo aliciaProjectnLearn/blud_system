@@ -84,12 +84,12 @@
                 href="#" data-toggle="collapse" data-target="#collapseMembership">
 
                 <i class="fas fa-fw fa-id-card"></i>
-                <span>Manajemen Member</span>
+                <span>Manajemen Membership</span>
             </a>
 
             <div id="collapseMembership"
                 class="collapse {{ request()->routeIs('adminfutsal.paket-membership.*') || request()->routeIs('adminfutsal.monitoring-membership.*') ? 'show' : '' }}">
-                
+
                 <div class="bg-white py-2 collapse-inner rounded">
                     <a class="collapse-item" href="{{ route('adminfutsal.paket-membership.index') }}">
                         Paket Membership
