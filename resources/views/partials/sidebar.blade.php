@@ -70,6 +70,14 @@
             </a>
         </li>
 
+        {{-- Transaksi --}}
+        <li class="nav-item {{ request()->routeIs('adminfutsal.transaksi.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('adminfutsal.transaksi.index') }}">
+                <i class="fas fa-fw fa-file-invoice-dollar"></i>
+                <span>Manajemen Transaksi</span>
+            </a>
+        </li>
+
         {{-- Booking --}}
         <li class="nav-item {{ request()->routeIs('adminfutsal.booking.*') ? 'active' : '' }}">
             <a class="nav-link" href="{{ route('adminfutsal.booking.index') }}">

@@ -11,6 +11,7 @@ use App\Http\Controllers\AdminFutsal\DashboardController as AdminFutsalDashboard
 use App\Http\Controllers\AdminFutsal\PaketMembershipController;
 use App\Http\Controllers\AdminFutsal\MembershipController;
 use App\Http\Controllers\AdminFutsal\JadwalLapanganController;
+use App\Http\Controllers\AdminFutsal\TransaksiController as AdminFutsalTransaksiController;
 
 Route::middleware(['auth', 'role:Superadmin'])->group(function () {
     Route::get('/superadmin/monitoring', [AdminLogActivityController::class, 'index'])->name('monitoring.index');
@@ -87,4 +88,12 @@ Route::middleware(['auth', 'role:Adminfutsal'])->prefix('adminfutsal')->name('ad
         ->name('booking.cancel');
     Route::patch('booking/{id}/selesai', [\App\Http\Controllers\AdminFutsal\BookingController::class, 'selesai'])
         ->name('booking.selesai');
+
+    // Manajemen Transaksi Futsal
+    Route::get('transaksi', [AdminFutsalTransaksiController::class, 'index'])
+        ->name('transaksi.index');
+    Route::get('transaksi/{id}', [AdminFutsalTransaksiController::class, 'show'])
+        ->name('transaksi.show');
+    Route::patch('transaksi/{id}/konfirmasi', [AdminFutsalTransaksiController::class, 'konfirmasi'])
+        ->name('transaksi.konfirmasi');
 });
