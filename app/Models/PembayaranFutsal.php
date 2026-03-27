@@ -7,6 +7,11 @@ use Illuminate\Support\Carbon;
 
 class PembayaranFutsal extends Model
 {
+    // Konstanta Status Transaksi
+    public const STATUS_MENUNGGU = 'menunggu';
+    public const STATUS_VERIFIKASI = 'verifikasi';
+    public const STATUS_DIBATALKAN = 'dibatalkan';
+
     protected $table = 'pembayaran_futsal';
 
     protected $fillable = [

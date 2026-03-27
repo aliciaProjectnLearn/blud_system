@@ -11,6 +11,7 @@ use App\Http\Controllers\AdminFutsal\DashboardController as AdminFutsalDashboard
 use App\Http\Controllers\AdminFutsal\PaketMembershipController;
 use App\Http\Controllers\AdminFutsal\MembershipController;
 use App\Http\Controllers\AdminFutsal\JadwalLapanganController;
+use App\Http\Controllers\AdminFutsal\LaporanController;
 use App\Http\Controllers\AdminFutsal\TransaksiController as AdminFutsalTransaksiController;
 
 Route::middleware(['auth', 'role:Superadmin'])->group(function () {
@@ -96,4 +97,12 @@ Route::middleware(['auth', 'role:Adminfutsal'])->prefix('adminfutsal')->name('ad
         ->name('transaksi.show');
     Route::patch('transaksi/{id}/konfirmasi', [AdminFutsalTransaksiController::class, 'konfirmasi'])
         ->name('transaksi.konfirmasi');
+
+    // Laporan Transaksi Futsal
+    Route::get('laporan', [LaporanController::class, 'index'])
+        ->name('laporan.index');
+    Route::get('laporan/export-pdf', [LaporanController::class, 'exportPdf'])
+        ->name('laporan.export.pdf');
+    Route::get('laporan/export-excel', [LaporanController::class, 'exportExcel'])
+        ->name('laporan.export.excel');
 });
