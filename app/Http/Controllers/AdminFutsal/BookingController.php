@@ -49,8 +49,9 @@ class BookingController extends Controller
         $lapangans = Lapangan::all();
         $users = User::all();
         $jadwalLapangan = JadwalLapangan::all();
+        $pengaturan = \App\Models\Pengaturan::first();
 
-        return view('adminfutsal.booking.index', compact('bookings', 'lapangans', 'users', 'jadwalLapangan'));
+        return view('adminfutsal.booking.index', compact('bookings', 'lapangans', 'users', 'jadwalLapangan', 'pengaturan'));
     }
 
     public function getAvailableSlots(Request $request)

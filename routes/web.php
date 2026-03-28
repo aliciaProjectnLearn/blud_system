@@ -105,4 +105,10 @@ Route::middleware(['auth', 'role:Adminfutsal'])->prefix('adminfutsal')->name('ad
         ->name('laporan.export.pdf');
     Route::get('laporan/export-excel', [LaporanController::class, 'exportExcel'])
         ->name('laporan.export.excel');
+
+    // Pengaturan
+    Route::get('pengaturan', [\App\Http\Controllers\AdminFutsal\PengaturanController::class, 'index'])
+        ->name('pengaturan.index');
+    Route::put('pengaturan/{id}', [\App\Http\Controllers\AdminFutsal\PengaturanController::class, 'update'])
+        ->name('pengaturan.update');
 });

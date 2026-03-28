@@ -62,12 +62,22 @@
 
         <div class="sidebar-heading">Menu Utama</div>
 
-        {{-- Jadwal --}}
-        <li class="nav-item {{ request()->routeIs('adminfutsal.jadwal-lapangan.*') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('adminfutsal.jadwal-lapangan.index') }}">
+        {{-- Jadwal Lapangan --}}
+        <li class="nav-item {{ request()->routeIs('adminfutsal.jadwal-lapangan.*') || request()->routeIs('adminfutsal.pengaturan.*') ? 'active' : '' }}">
+            <a class="nav-link {{ request()->routeIs('adminfutsal.jadwal-lapangan.*') || request()->routeIs('adminfutsal.pengaturan.*') ? '' : 'collapsed' }}"
+                href="#" data-toggle="collapse" data-target="#collapseJadwal">
                 <i class="fas fa-fw fa-calendar-alt"></i>
-                <span>Jadwal Lapangan</span>
+                <span>Manajemen Lapangan</span>
             </a>
+
+            <div id="collapseJadwal"
+                class="collapse {{ request()->routeIs('adminfutsal.jadwal-lapangan.*') || request()->routeIs('adminfutsal.pengaturan.*') ? 'show' : '' }}">
+                
+                <div class="bg-white py-2 collapse-inner rounded">
+                    <a class="collapse-item" href="{{ route('adminfutsal.jadwal-lapangan.index') }}"> Jadwal Lapangan</a>
+                    <a class="collapse-item" href="{{ route('adminfutsal.pengaturan.index') }}">Jam Operasional</a>
+                </div>
+            </div>
         </li>
 
         {{-- Transaksi --}}
@@ -116,6 +126,8 @@
                 <span>Laporan Transaksi</span>
             </a>
         </li>
+
+
 
     @endif
 
