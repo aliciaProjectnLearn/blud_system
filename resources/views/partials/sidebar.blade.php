@@ -13,8 +13,8 @@
             $brandLabel = 'Admin AC';
             $brandRoute = route('dashboard'); // sesuaikan jika ada route adminac
         } elseif (auth()->user()->hasRole('Adminkantin')) {
-            $brandLabel = 'Admin Ruko/Kantin';
-            $brandRoute = route('dashboard'); // sesuaikan jika ada route adminkantin
+            $brandLabel = 'Admin Kantin';
+            $brandRoute = route('adminkantin.dashboard');
         }
     @endphp
 
@@ -37,6 +37,13 @@
     @elseif(auth()->user()->hasRole('Adminfutsal'))
         <li class="nav-item {{ request()->routeIs('adminfutsal.dashboard') ? 'active' : '' }}">
             <a class="nav-link" href="{{ route('adminfutsal.dashboard') }}">
+                <i class="fas fa-fw fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            </a>
+        </li>
+    @elseif(auth()->user()->hasRole('Adminkantin'))
+        <li class="nav-item {{ request()->routeIs('adminkantin.dashboard') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('adminkantin.dashboard') }}">
                 <i class="fas fa-fw fa-tachometer-alt"></i>
                 <span>Dashboard</span>
             </a>
@@ -159,7 +166,7 @@
     @endif
 
     {{-- ================================= --}}
-    {{-- GLOBAL MENU (SEMUA ROLE) --}}
+    {{-- ADMIN KANTIN --}}
     {{-- ================================= --}}
 
     <hr class="sidebar-divider d-none d-md-block">

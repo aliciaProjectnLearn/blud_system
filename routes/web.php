@@ -4,7 +4,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\AdminLogActivityController; // ← nama controller yang benar
+use App\Http\Controllers\AdminLogActivityController;
 use App\Http\Controllers\SuperAdmin\DashboardController;
 use App\Http\Controllers\SuperAdmin\TransaksiController;
 use App\Http\Controllers\AdminFutsal\DashboardController as AdminFutsalDashboardController;
@@ -14,6 +14,7 @@ use App\Http\Controllers\AdminFutsal\PelangganController;
 use App\Http\Controllers\AdminFutsal\JadwalLapanganController;
 use App\Http\Controllers\AdminFutsal\LaporanController;
 use App\Http\Controllers\AdminFutsal\TransaksiController as AdminFutsalTransaksiController;
+use App\Http\Controllers\AdminKantin\DashboardController as AdminKantinDashboardController;
 
 Route::middleware(['auth', 'role:Superadmin'])->group(function () {
     Route::get('/superadmin/monitoring', [AdminLogActivityController::class, 'index'])->name('monitoring.index');
@@ -53,6 +54,8 @@ Route::middleware(['auth','role:Superadmin'])->group(function () {
 
 // ── Admin Futsal ───────────────────────
 Route::middleware(['auth', 'role:Adminfutsal'])->prefix('adminfutsal')->name('adminfutsal.')->group(function () {
+
+    // Dashboard
     Route::get('/dashboard', [AdminFutsalDashboardController::class, 'index'])->name('dashboard');
 
     // Paket Membership
@@ -118,4 +121,13 @@ Route::middleware(['auth', 'role:Adminfutsal'])->prefix('adminfutsal')->name('ad
         ->name('pengaturan.index');
     Route::put('pengaturan/{id}', [\App\Http\Controllers\AdminFutsal\PengaturanController::class, 'update'])
         ->name('pengaturan.update');
+});
+
+
+// ── Admin Kantin ───────────────────────
+Route::middleware(['auth', 'role:Adminkantin'])->prefix('adminkantin')->name('adminkantin.')->group(function () {
+
+    // Dashboard
+    Route::get('/dashboard', [AdminKantinDashboardController::class, 'index'])->name('dashboard');
+
 });
