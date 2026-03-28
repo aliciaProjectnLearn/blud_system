@@ -109,6 +109,14 @@
             </div>
         </li>
 
+        {{-- Laporan Transaksi --}}
+        <li class="nav-item {{ request()->routeIs('adminfutsal.laporan.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('adminfutsal.laporan.index') }}">
+                <i class="fas fa-fw fa-file-pdf"></i>
+                <span>Laporan Transaksi</span>
+            </a>
+        </li>
+
     @endif
 
     {{-- ================================= --}}
