@@ -10,6 +10,7 @@ use App\Http\Controllers\SuperAdmin\TransaksiController;
 use App\Http\Controllers\AdminFutsal\DashboardController as AdminFutsalDashboardController;
 use App\Http\Controllers\AdminFutsal\PaketMembershipController;
 use App\Http\Controllers\AdminFutsal\MembershipController;
+use App\Http\Controllers\AdminFutsal\PelangganController;
 use App\Http\Controllers\AdminFutsal\JadwalLapanganController;
 use App\Http\Controllers\AdminFutsal\LaporanController;
 use App\Http\Controllers\AdminFutsal\TransaksiController as AdminFutsalTransaksiController;
@@ -63,6 +64,12 @@ Route::middleware(['auth', 'role:Adminfutsal'])->prefix('adminfutsal')->name('ad
         ->name('monitoring-membership.index');
     Route::post('monitoring-membership', [MembershipController::class, 'store'])
         ->name('monitoring-membership.store');
+
+    // Monitoring Pelanggan Reguler
+    Route::get('pelanggan', [PelangganController::class, 'index'])->name('pelanggan.index');
+    Route::post('pelanggan', [PelangganController::class, 'store'])->name('pelanggan.store');
+    Route::put('pelanggan/{user}', [PelangganController::class, 'update'])->name('pelanggan.update');
+
 
     // Frontend Jadwal Lapangan
     Route::get('jadwal-lapangan', [JadwalLapanganController::class, 'index'])

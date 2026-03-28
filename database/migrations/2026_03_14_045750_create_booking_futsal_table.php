@@ -18,6 +18,7 @@ return new class extends Migration
             $table->time('jam_mulai_efektif')->nullable();
             $table->time('jam_selesai');
             $table->integer('durasi_main')->default(1)->comment('dalam jam');
+            $table->enum('jenis_pembayaran', ['reguler', 'membership'])->default('reguler');
             $table->timestamps();
         });
     }

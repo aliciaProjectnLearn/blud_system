@@ -95,6 +95,18 @@ class UsersTableSeeder extends Seeder
                 'created_at'        => now(),
                 'updated_at'        => now(),
             ],
+            [
+                'name'              => 'Pelanggan 4',
+                'username'          => 'pelanggan4',
+                'nama_lengkap'      => 'Pelanggan 4',
+                'no_hp'             => '081234567897',
+                'email'             => 'pelanggan4@example.com',
+                'email_verified_at' => now(),
+                'password'          => Hash::make('password'),
+                'remember_token'    => null,
+                'created_at'        => now(),
+                'updated_at'        => now(),
+            ],
         ]);
     }
 }
