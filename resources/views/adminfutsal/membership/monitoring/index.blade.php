@@ -91,9 +91,9 @@
             <div class="card-body">
                 <div class="table-responsive">
                     <table class="table table-bordered" width="100%">
-                        <thead>
+                        <thead class="bg-light">
                             <tr>
-                                <th>#</th>
+                                <th>No</th>
                                 <th>Pelanggan</th>
                                 <th>Paket</th>
                                 <th>Total Kuota</th>

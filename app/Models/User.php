@@ -16,6 +16,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'status_futsal',
     ];
 
     protected $hidden = [
@@ -44,5 +45,15 @@ class User extends Authenticatable
     public function hasRole(string $role): bool
     {
         return $this->roles->contains('nama', $role);
+    }
+    public function bookingFutsal()
+    {
+        return $this->hasMany(BookingFutsal::class, 'user_id');
+    }
+    public function isPelangganReguler(): bool
+    {
+        return $this->bookingFutsal()
+            ->where('jenis_pembayaran', 'reguler')
+            ->exists();
     }
 }

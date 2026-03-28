@@ -101,6 +101,14 @@
             </div>
         </li>
 
+        {{-- Manajemen Pelanggan Reguler --}}
+        <li class="nav-item {{ request()->routeIs('adminfutsal.pelanggan.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('adminfutsal.pelanggan.index') }}">
+                <i class="fas fa-fw fa-users"></i>
+                <span>Manajemen Pelanggan Reguler</span>
+            </a>
+        </li>
+
     @endif
 
     {{-- ================================= --}}

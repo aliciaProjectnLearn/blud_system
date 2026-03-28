@@ -62,9 +62,9 @@
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table table-bordered" id="tabelPaket" width="100%">
-                    <thead>
+                    <thead class="bg-light">
                         <tr>
-                            <th>#</th>
+                            <th>No</th>
                             <th>Nama Paket</th>
                             <th>Jumlah Kuota</th>
                             <th>Harga</th>
