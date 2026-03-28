@@ -14,7 +14,8 @@ class JadwalLapanganController extends Controller
      */
     public function index()
     {
-        return view('adminfutsal.jadwal.index');
+        $pengaturan = \App\Models\Pengaturan::first();
+        return view('adminfutsal.jadwal.index', compact('pengaturan'));
     }
 
     /**
@@ -29,6 +30,39 @@ class JadwalLapanganController extends Controller
         if (empty($tanggal)) {
             $tanggal = Carbon::today()->format('Y-m-d');
         }
+
+        // --- Fitur Auto-Generate Jadwal Dinamis ---
+        $pengaturan = \App\Models\Pengaturan::first();
+        $lapangans = \App\Models\Lapangan::all();
+
+        if ($pengaturan && $lapangans->count() > 0) {
+            $jamBuka = Carbon::parse($pengaturan->jam_buka);
+            $jamTutup = Carbon::parse($pengaturan->jam_tutup);
+
+            // Clone/salin waktu mulai agar variabel $jamBuka tidak ikut bergeser secara referensi
+            $currentStart = $jamBuka->copy();
+
+            while ($currentStart < $jamTutup) {
+                $jamMulai = $currentStart->format('H:i:s');
+                $jamSelesai = $currentStart->copy()->addHour()->format('H:i:s');
+
+                foreach ($lapangans as $lapangan) {
+                    // firstOrCreate mengecek apakah kombinasi unik tersebut sudah ada,
+                    // bila belum ada maka otomatis menjalankan JadwalLapangan::create(...)
+                    JadwalLapangan::firstOrCreate([
+                        'tanggal' => $tanggal,
+                        'lapangan_id' => $lapangan->id,
+                        'jam_mulai' => $jamMulai,
+                    ], [
+                        'jam_selesai' => $jamSelesai,
+                        'status' => 'tersedia'
+                    ]);
+                }
+
+                $currentStart->addHour();
+            }
+        }
+        // --- Akhir Fitur Auto-Generate ---
 
         // Query dengan eager loading
         $jadwal = JadwalLapangan::with('lapangan')

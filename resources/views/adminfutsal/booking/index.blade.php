@@ -188,11 +188,17 @@
                                                 <label>Jam Mulai</label>
                                                 <select name="jam_mulai" class="form-control jam-mulai-edit" data-id="{{ $item->id }}" required>
                                                     <option value="">-- Pilih Jam Mulai --</option>
-                                                    @foreach($jadwalLapangan as $jadwal)
-                                                        <option value="{{ \Carbon\Carbon::parse($jadwal->jam_mulai)->format('H:i') }}" {{ \Carbon\Carbon::parse($item->jam_mulai)->format('H:i:s') == $jadwal->jam_mulai || \Carbon\Carbon::parse($item->jam_mulai)->format('H:i') == \Carbon\Carbon::parse($jadwal->jam_mulai)->format('H:i') ? 'selected' : '' }}>
-                                                            {{ \Carbon\Carbon::parse($jadwal->jam_mulai)->format('H:i') }}
+                                                    @php
+                                                        $startEdit = \Carbon\Carbon::parse($pengaturan->jam_buka);
+                                                        $endEdit = \Carbon\Carbon::parse($pengaturan->jam_tutup);
+                                                    @endphp
+                                                    @while($startEdit < $endEdit)
+                                                        @php $formattedStart = $startEdit->format('H:i'); @endphp
+                                                        <option value="{{ $formattedStart }}" {{ \Carbon\Carbon::parse($item->jam_mulai)->format('H:i') == $formattedStart ? 'selected' : '' }}>
+                                                            {{ $formattedStart }}
                                                         </option>
-                                                    @endforeach
+                                                        @php $startEdit->addHour(); @endphp
+                                                    @endwhile
                                                 </select>
                                             </div>
                                             <div class="form-group">
@@ -335,11 +341,14 @@
                                 <label for="jam_mulai">Jam Mulai <span class="text-danger">*</span></label>
                                 <select name="jam_mulai" id="jam_mulai" class="form-control" required>
                                     <option value="">-- Pilih Jam --</option>
-                                    @foreach($jadwalLapangan as $jadwal)
-                                        <option value="{{ \Carbon\Carbon::parse($jadwal->jam_mulai)->format('H:i') }}">
-                                            {{ \Carbon\Carbon::parse($jadwal->jam_mulai)->format('H:i') }}
-                                        </option>
-                                    @endforeach
+                                    @php
+                                        $start = \Carbon\Carbon::parse($pengaturan->jam_buka);
+                                        $end = \Carbon\Carbon::parse($pengaturan->jam_tutup);
+                                    @endphp
+                                    @while($start < $end)
+                                        <option value="{{ $start->format('H:i') }}">{{ $start->format('H:i') }}</option>
+                                        @php $start->addHour(); @endphp
+                                    @endwhile
                                 </select>
                             </div>
                         </div>

@@ -46,6 +46,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const filterForm = document.getElementById('filterForm');
     const tanggalInput = document.getElementById('tanggalFilter');
     const tbody = document.getElementById('jadwalTableBody');
+    
+    // Data Pengaturan
+    const jamBuka = "{{ \Carbon\Carbon::parse($pengaturan->jam_buka)->format('H:i') }}";
+    const jamTutup = "{{ \Carbon\Carbon::parse($pengaturan->jam_tutup)->format('H:i') }}";
 
     // Load initial data
     loadJadwal(tanggalInput.value);
@@ -76,38 +80,49 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function renderTable(data) {
-        if (!data || data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="3" class="text-center text-muted py-4">Tidak ada jadwal lapangan yang ditemukan untuk tanggal ini.</td></tr>';
-            return;
-        }
-
         let html = '';
-        data.forEach(item => {
-            // Cut seconds formatting ('08:00:00' -> '08:00')
-            const jamMulai = item.jam_mulai.substring(0, 5);
-            const jamSelesai = item.jam_selesai.substring(0, 5);
+        
+        // Parse jamBuka and jamTutup
+        let [bukaHour, bukaMin] = jamBuka.split(':').map(Number);
+        let [tutupHour, tutupMin] = jamTutup.split(':').map(Number);
+        
+        let currentHour = bukaHour;
+        
+        while (currentHour < tutupHour) {
+            let nextHour = currentHour + 1;
+            let strJamMulai = ('0' + currentHour).slice(-2) + ':00';
+            let strJamSelesai = ('0' + nextHour).slice(-2) + ':00';
             
-            // Nama Lapangan by relation
-            const namaLapangan = item.lapangan ? item.lapangan.nama : 'Lapangan Tidak Diketahui';
+            // Check if there's any data for this slot from API
+            // Usually data has item.jam_mulai like "08:00:00"
+            let slotData = data ? data.find(item => item.jam_mulai.substring(0, 5) === strJamMulai) : null;
             
-            // Generate visual badges based on status
+            let namaLapangan = slotData && slotData.lapangan ? slotData.lapangan.nama : '-';
+            
             let badgeHtml = '';
-            let rowClass = ''; // optional coloring
-            if (item.status === 'tersedia') {
+            if (!slotData) {
+                badgeHtml = `<span class="badge badge-secondary px-3 py-2" style="font-size: 0.85rem;"><i class="fas fa-minus mr-1"></i> Kosong (Belum Digenerate)</span>`;
+            } else if (slotData.status === 'tersedia') {
                 badgeHtml = `<span class="badge badge-success px-3 py-2" style="font-size: 0.85rem;"><i class="fas fa-check-circle mr-1"></i> Tersedia</span>`;
             } else {
                 badgeHtml = `<span class="badge badge-danger px-3 py-2" style="font-size: 0.85rem;"><i class="fas fa-times-circle mr-1"></i> Terisi</span>`;
             }
 
             html += `
-                <tr class="${rowClass}">
-                    <td class="align-middle font-weight-bold text-gray-800">${jamMulai} - ${jamSelesai}</td>
+                <tr>
+                    <td class="align-middle font-weight-bold text-gray-800">${strJamMulai} - ${strJamSelesai}</td>
                     <td class="align-middle">${namaLapangan}</td>
                     <td class="align-middle text-center">${badgeHtml}</td>
                 </tr>
             `;
-        });
+            
+            currentHour++;
+        }
 
+        if (html === '') {
+            html = '<tr><td colspan="3" class="text-center text-muted py-4">Tidak ada jam operasional.</td></tr>';
+        }
+        
         tbody.innerHTML = html;
     }
 
