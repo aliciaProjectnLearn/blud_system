@@ -43,7 +43,7 @@ class AuthController extends Controller
             return match(strtolower($role ?? '')) {
                 'superadmin'  => redirect()->route('dashboard'),
                 'adminfutsal' => redirect()->route('adminfutsal.dashboard'),
-                'adminkantin' => redirect()->route('dashboard'), // sesuaikan nanti
+                'adminkantin' => redirect()->route('adminkantin.dashboard'),
                 'adminac'     => redirect()->route('dashboard'), // sesuaikan nanti
                 default       => redirect()->route('dashboard'),
             };

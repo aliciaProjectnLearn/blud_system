@@ -11,13 +11,13 @@ class KategoriTableSeeder extends Seeder
     {
         DB::table('kategori')->insert([
             [
-                'nama' => 'Kantor Besar',
+                'nama' => 'Kantin Besar',
                 'harga' => 9000000,
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
-                'nama' => 'Kantor Container',
+                'nama' => 'Kantin Container',
                 'harga' => 6000000,
                 'created_at' => now(),
                 'updated_at' => now(),
