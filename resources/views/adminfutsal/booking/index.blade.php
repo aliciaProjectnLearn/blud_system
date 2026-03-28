@@ -44,7 +44,7 @@
     <div class="card shadow mb-4">
         <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
             <h6 class="m-0 font-weight-bold text-primary">Daftar Booking Futsal</h6>
-            
+
             <!-- Filter Form -->
             <form method="GET" action="{{ route('adminfutsal.booking.index') }}" class="form-inline">
                 <input type="text" name="search" class="form-control form-control-sm mr-2" placeholder="Cari pemesan/email..." value="{{ request('search') }}">
@@ -64,7 +64,7 @@
         </div>
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-bordered text-center" width="100%" cellspacing="0">
+                <table class="table table-bordered text-center" id="dataTable" width="100%" cellspacing="0">
                     <thead class="bg-light">
                         <tr>
                             <th>No</th>
@@ -81,7 +81,7 @@
                     <tbody>
                         @forelse($bookings as $index => $item)
                         <tr>
-                            <td>{{ $bookings->firstItem() + $index }}</td>
+                            <td>{{ $index+1 }}</td>
                             <td>{{ \Carbon\Carbon::parse($item->created_at)->format('d M Y H:i') }}</td>
                             <td>{{ \Carbon\Carbon::parse($item->tgl_main)->format('d M Y') }}<br><strong>{{ \Carbon\Carbon::parse($item->jam_mulai)->format('H:i') }} - {{ \Carbon\Carbon::parse($item->jam_selesai)->format('H:i') }}</strong></td>
                             <td>{{ $item->durasi_main }} Jam</td>
@@ -110,14 +110,14 @@
                                 <button type="button" class="btn btn-info btn-circle btn-sm" title="Detail Booking" data-toggle="modal" data-target="#detailModal{{ $item->id }}">
                                     <i class="fas fa-info-circle"></i>
                                 </button>
-                                
+
                                 @if($item->booking && $item->booking->status != 'dibatalkan')
                                     @if($item->booking->status != 'selesai')
                                         <!-- Edit Reschedule -->
                                         <button type="button" class="btn btn-primary btn-circle btn-sm" title="Edit/Reschedule Booking" data-toggle="modal" data-target="#editModal{{ $item->id }}">
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        
+
                                         <!-- Tandai Selesai -->
                                         <button type="button" class="btn btn-success btn-circle btn-sm" title="Tandai Selesai" data-toggle="modal" data-target="#selesaiModal{{ $item->id }}">
                                             <i class="fas fa-check"></i>
@@ -188,11 +188,17 @@
                                                 <label>Jam Mulai</label>
                                                 <select name="jam_mulai" class="form-control jam-mulai-edit" data-id="{{ $item->id }}" required>
                                                     <option value="">-- Pilih Jam Mulai --</option>
-                                                    @foreach($jadwalLapangan as $jadwal)
-                                                        <option value="{{ \Carbon\Carbon::parse($jadwal->jam_mulai)->format('H:i') }}" {{ \Carbon\Carbon::parse($item->jam_mulai)->format('H:i:s') == $jadwal->jam_mulai || \Carbon\Carbon::parse($item->jam_mulai)->format('H:i') == \Carbon\Carbon::parse($jadwal->jam_mulai)->format('H:i') ? 'selected' : '' }}>
-                                                            {{ \Carbon\Carbon::parse($jadwal->jam_mulai)->format('H:i') }}
+                                                    @php
+                                                        $startEdit = \Carbon\Carbon::parse($pengaturan->jam_buka);
+                                                        $endEdit = \Carbon\Carbon::parse($pengaturan->jam_tutup);
+                                                    @endphp
+                                                    @while($startEdit < $endEdit)
+                                                        @php $formattedStart = $startEdit->format('H:i'); @endphp
+                                                        <option value="{{ $formattedStart }}" {{ \Carbon\Carbon::parse($item->jam_mulai)->format('H:i') == $formattedStart ? 'selected' : '' }}>
+                                                            {{ $formattedStart }}
                                                         </option>
-                                                    @endforeach
+                                                        @php $startEdit->addHour(); @endphp
+                                                    @endwhile
                                                 </select>
                                             </div>
                                             <div class="form-group">
@@ -200,7 +206,7 @@
                                                 <input type="time" name="jam_selesai" id="jam_selesai_edit_{{ $item->id }}" class="form-control" value="{{ \Carbon\Carbon::parse($item->jam_selesai)->format('H:i') }}" readonly required>
                                                 <small class="text-muted">Otomatis 1 jam (berdasarkan jadwal)</small>
                                             </div>
-                                            
+
                                             @if($item->jenis_pembayaran == 'membership')
                                                 <small class="text-warning"><i class="fas fa-exclamation-triangle"></i> Perubahan durasi akan mempengaruhi otomatis sisa kuota membership.</small>
                                             @endif
@@ -280,9 +286,6 @@
                     </tbody>
                 </table>
             </div>
-            <div class="mt-3">
-                {{ $bookings->withQueryString()->links() }}
-            </div>
         </div>
     </div>
 
@@ -335,11 +338,14 @@
                                 <label for="jam_mulai">Jam Mulai <span class="text-danger">*</span></label>
                                 <select name="jam_mulai" id="jam_mulai" class="form-control" required>
                                     <option value="">-- Pilih Jam --</option>
-                                    @foreach($jadwalLapangan as $jadwal)
-                                        <option value="{{ \Carbon\Carbon::parse($jadwal->jam_mulai)->format('H:i') }}">
-                                            {{ \Carbon\Carbon::parse($jadwal->jam_mulai)->format('H:i') }}
-                                        </option>
-                                    @endforeach
+                                    @php
+                                        $start = \Carbon\Carbon::parse($pengaturan->jam_buka);
+                                        $end = \Carbon\Carbon::parse($pengaturan->jam_tutup);
+                                    @endphp
+                                    @while($start < $end)
+                                        <option value="{{ $start->format('H:i') }}">{{ $start->format('H:i') }}</option>
+                                        @php $start->addHour(); @endphp
+                                    @endwhile
                                 </select>
                             </div>
                         </div>
@@ -382,7 +388,7 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    
+
     // Auto fill jam selesai for Edit Modals
     const editJamMulaiSelects = document.querySelectorAll('.jam-mulai-edit');
     editJamMulaiSelects.forEach(select => {
@@ -446,7 +452,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         let timeString = parts[0] + ':' + parts[1];
                         select.innerHTML += `<option value="${timeString}">${timeString}</option>`;
                     });
-                    
+
                     document.getElementById('jam_selesai').value = '';
                 });
         }

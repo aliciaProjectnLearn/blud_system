@@ -11,6 +11,9 @@ class PelangganController extends Controller
 {
     public function index(Request $request)
     {
+        // Auto set inactive saat halaman dibuka
+        $this->updateStatusPelanggan();
+
         // Ambil user yang punya riwayat booking reguler
         $query = User::whereHas('bookingFutsal', function ($q) {
             $q->where('jenis_pembayaran', 'reguler');
@@ -18,15 +21,13 @@ class PelangganController extends Controller
             $q->where('jenis_pembayaran', 'reguler')->latest('tgl_main');
         }]);
 
-        // Search
         if ($request->filled('search')) {
             $query->where(function ($q) use ($request) {
                 $q->where('name', 'like', '%' . $request->search . '%')
-                  ->orWhere('email', 'like', '%' . $request->search . '%');
+                    ->orWhere('email', 'like', '%' . $request->search . '%');
             });
         }
 
-        // Filter status
         if ($request->filled('status')) {
             $query->where('status_futsal', $request->status);
         }
@@ -42,6 +43,27 @@ class PelangganController extends Controller
         return view('adminfutsal.pelanggan.index', compact('pelanggans', 'stats'));
     }
 
+    // Tambahkan method ini di bawahnya
+    private function updateStatusPelanggan(): void
+    {
+        $userIds = BookingFutsal::where('jenis_pembayaran', 'reguler')
+            ->pluck('user_id')
+            ->unique();
+
+        foreach ($userIds as $userId) {
+            $lastBooking = BookingFutsal::where('user_id', $userId)
+                ->where('jenis_pembayaran', 'reguler')
+                ->latest('tgl_main')
+                ->first();
+
+            $status = ($lastBooking && now()->diffInDays($lastBooking->tgl_main, true) > 30)
+                ? 'inactive'
+                : 'active';
+
+            User::where('id', $userId)->update(['status_futsal' => $status]);
+        }
+    }
+
     public function store(Request $request)
     {
         $request->validate([
@@ -49,7 +71,7 @@ class PelangganController extends Controller
             'email'        => 'required|email|unique:users,email',
             'password'     => 'required|min:8',
             'no_hp'        => 'nullable|string|max:20',
-            'status_futsal'=> 'required|in:active,inactive',
+            'status_futsal' => 'required|in:active,inactive',
         ]);
 
         User::create([

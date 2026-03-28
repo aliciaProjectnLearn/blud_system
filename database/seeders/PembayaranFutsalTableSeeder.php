@@ -2,13 +2,13 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
+use App\Models\PembayaranFutsal;
 
 class PembayaranFutsalTableSeeder extends Seeder
 {
     public function run()
     {
-        DB::table('pembayaran_futsal')->insert([
+        $data = [
             [
                 'booking_id'          => 1,
                 'tipe_pembayaran_id'  => 1,
@@ -33,6 +33,10 @@ class PembayaranFutsalTableSeeder extends Seeder
                 'bukti'               => 'bukti3.jpg',
                 'tgl_bayar'           => now()->subDays(2),
             ],
-        ]);
+        ];
+
+        foreach ($data as $item) {
+            PembayaranFutsal::create($item);
+        }
     }
 }

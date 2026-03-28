@@ -44,13 +44,14 @@ class BookingController extends Controller
         // Sort by nearest date and time
         $bookings = $query->orderBy('tgl_main', 'asc')
             ->orderBy('jam_mulai', 'asc')
-            ->paginate(10);
+            ->get();
 
         $lapangans = Lapangan::all();
         $users = User::all();
         $jadwalLapangan = JadwalLapangan::all();
+        $pengaturan = \App\Models\Pengaturan::first();
 
-        return view('adminfutsal.booking.index', compact('bookings', 'lapangans', 'users', 'jadwalLapangan'));
+        return view('adminfutsal.booking.index', compact('bookings', 'lapangans', 'users', 'jadwalLapangan', 'pengaturan'));
     }
 
     public function getAvailableSlots(Request $request)
@@ -219,7 +220,7 @@ class BookingController extends Controller
             if ($bookingFutsal->jenis_pembayaran === 'membership') {
                 $membership = Membership::where('user_id', $bookingFutsal->user_id)
                     ->orderBy('created_at', 'desc')->lockForUpdate()->first();
-                    
+
                 if ($membership) {
                     $membership->kembalikanKuota($bookingFutsal->durasi_main);
                 }
@@ -269,7 +270,7 @@ class BookingController extends Controller
         try {
             $lapangan = Lapangan::where('id', $request->lapangan_id)->lockForUpdate()->firstOrFail();
             $bookingFutsal = BookingFutsal::with('booking')->lockForUpdate()->findOrFail($id);
-            
+
             if ($bookingFutsal->booking->status === 'dibatalkan' || $bookingFutsal->booking->status === 'selesai') {
                 throw new \Exception('Booking sudah selesai/batal, tidak bisa direchedule.');
             }
@@ -360,7 +361,7 @@ class BookingController extends Controller
         try {
             $bookingFutsal = BookingFutsal::with('booking')->lockForUpdate()->findOrFail($id);
             $booking = $bookingFutsal->booking;
-            
+
             if ($booking->status === 'dibatalkan' || $booking->status === 'selesai') {
                  throw new \Exception('Status tidak valid untuk diselesaikan.');
             }
