@@ -33,7 +33,7 @@ class DatabaseSeeder extends Seeder
         // Detail booking
         $this->call(BookingFutsalTableSeeder::class);
         $this->call(BookingAcTableSeeder::class);
-        $this->call(SewaRukoTableSeeder::class);
+        $this->call(PenyewaSeeder::class); // Menggantikan SewaRukoTableSeeder karena relasi DB sudah berubah ke tabel penyewa
 
         // Fasilitas dan detail lainnya
         $this->call(FasilitasLapanganTableSeeder::class);

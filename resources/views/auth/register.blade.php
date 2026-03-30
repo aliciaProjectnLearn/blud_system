@@ -28,17 +28,72 @@
                                 <form class="user" method="POST" action="{{ route('register') }}">
                                     @csrf
 
-                                    {{-- Nama --}}
+                                    {{-- Nama & Nama Lengkap --}}
+                                    <div class="form-group row">
+                                        <div class="col-sm-6 mb-3 mb-sm-0">
+                                            <input
+                                                type="text"
+                                                class="form-control form-control-user @error('name') is-invalid @enderror"
+                                                name="name"
+                                                value="{{ old('name') }}"
+                                                placeholder="Nama Panggilan / Nickname"
+                                                required
+                                                autofocus>
+                                            @error('name')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <input
+                                                type="text"
+                                                class="form-control form-control-user @error('nama_lengkap') is-invalid @enderror"
+                                                name="nama_lengkap"
+                                                value="{{ old('nama_lengkap') }}"
+                                                placeholder="Nama Lengkap (Sesuai KTP)"
+                                                required>
+                                            @error('nama_lengkap')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+
+                                    {{-- Username & No HP --}}
+                                    <div class="form-group row">
+                                        <div class="col-sm-6 mb-3 mb-sm-0">
+                                            <input
+                                                type="text"
+                                                class="form-control form-control-user @error('username') is-invalid @enderror"
+                                                name="username"
+                                                value="{{ old('username') }}"
+                                                placeholder="Username"
+                                                required>
+                                            @error('username')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <input
+                                                type="text"
+                                                class="form-control form-control-user @error('no_hp') is-invalid @enderror"
+                                                name="no_hp"
+                                                value="{{ old('no_hp') }}"
+                                                placeholder="Nomor HP/WhatsApp"
+                                                required>
+                                            @error('no_hp')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+
+                                    {{-- NIK --}}
                                     <div class="form-group">
                                         <input
                                             type="text"
-                                            class="form-control form-control-user @error('name') is-invalid @enderror"
-                                            name="name"
-                                            value="{{ old('name') }}"
-                                            placeholder="Nama Lengkap"
-                                            required
-                                            autofocus>
-                                        @error('name')
+                                            class="form-control form-control-user @error('nik') is-invalid @enderror"
+                                            name="nik"
+                                            value="{{ old('nik') }}"
+                                            placeholder="Nomor Induk Kependudukan (Opsional / Wajib Untuk Sewa Kantin)">
+                                        @error('nik')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                     </div>

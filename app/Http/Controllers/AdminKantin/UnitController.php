@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Ruko;
 use App\Models\DokumentasiUnit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Exception;
 
 class UnitController extends Controller
 {
@@ -15,53 +17,48 @@ class UnitController extends Controller
     // ────────────────────────────────────────────────────────────────
     private function generateKodeUnit(): string
     {
-        // Ambil kode_unit terbesar yang sudah ada
         $last = Ruko::whereNotNull('kode_unit')
             ->orderByRaw("CAST(SUBSTRING(kode_unit, 4) AS UNSIGNED) DESC")
             ->value('kode_unit');
 
         if ($last) {
-            // Ambil angka di belakang prefix "UNT" lalu tambah 1
             $lastNumber = (int) substr($last, 3);
             $nextNumber = $lastNumber + 1;
         } else {
             $nextNumber = 1;
         }
 
-        // Format: UNT + angka 3 digit dengan leading-zero
         return 'UNT' . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
     }
 
     // ────────────────────────────────────────────────────────────────
     //  HELPER: Simpan multiple file dokumentasi
     // ────────────────────────────────────────────────────────────────
-    private function simpanDokumentasi(int $rukoId, array $files): void
+    /**
+     * @param int $rukoId
+     * @param array $files
+     * @return array Mengembalikan array path file yang berhasil diupload (untuk keperluan rollback manual jika terjadi error DB)
+     * @throws Exception
+     */
+    private function simpanDokumentasi(int $rukoId, array $files): array
     {
-        // ── Logic Batch Upload ────────────────────────────────────
-        // 1. Cek apakah SEMUA file yang diupload adalah gambar
-        $allImages = true;
+        $uploadedPaths = [];
         $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
-        
-        foreach ($files as $file) {
-            $ext = strtolower($file->getClientOriginalExtension());
-            if (!in_array($ext, $imageExtensions)) {
-                $allImages = false;
-                break;
-            }
-        }
-
-        // 2. Tentukan apakah paksa 'umum' (jika semua gambar DAN jumlah > 1)
-        $forceUmum = ($allImages && count($files) > 1);
 
         foreach ($files as $file) {
             if ($file->isValid()) {
+                // [OPTIMALISASI] Error checking pada proses upload
                 $path = $file->store('dokumentasi_unit', 'public');
-                $ext  = strtolower($file->getClientOriginalExtension());
-
-                // Jika forceUmum = true, isi 'umum'. Jika tidak, isi ekstensi aslinya.
-                $tipe = $forceUmum ? 'umum' : ($ext ?: 'umum');
                 
-                // Ambil nama asli file tanpa ekstensi untuk judul_dokumen
+                if (!$path) {
+                    throw new Exception("Gagal mengunggah file {$file->getClientOriginalName()}. Pastikan storage dapat ditulis.");
+                }
+                
+                $uploadedPaths[] = $path;
+                
+                $ext = strtolower($file->getClientOriginalExtension());
+                // [OPTIMALISASI] Tipe dokumen disederhanakan: gambar vs dokumen biasa
+                $tipe = in_array($ext, $imageExtensions) ? 'gambar' : 'dokumen';
                 $namaAsli = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
 
                 DokumentasiUnit::create([
@@ -72,6 +69,8 @@ class UnitController extends Controller
                 ]);
             }
         }
+
+        return $uploadedPaths;
     }
 
     // ────────────────────────────────────────────────────────────────
@@ -81,12 +80,10 @@ class UnitController extends Controller
     {
         $query = Ruko::with(['kategori', 'dokumentasiUnit']);
 
-        // Filter Kategori
         if ($request->filled('kategori_id')) {
             $query->where('kategori_id', $request->kategori_id);
         }
 
-        // Filter Status
         if ($request->filled('status_unit')) {
             $query->where('status_unit', $request->status_unit);
         }
@@ -98,7 +95,7 @@ class UnitController extends Controller
     }
 
     // ────────────────────────────────────────────────────────────────
-    //  CREATE  (auto-generate kode_unit, lempar ke view sebagai read-only)
+    //  CREATE
     // ────────────────────────────────────────────────────────────────
     public function create()
     {
@@ -109,7 +106,7 @@ class UnitController extends Controller
     }
 
     // ────────────────────────────────────────────────────────────────
-    //  STORE  (multiple file upload)
+    //  STORE
     // ────────────────────────────────────────────────────────────────
     public function store(Request $request)
     {
@@ -117,28 +114,46 @@ class UnitController extends Controller
             'kode_unit'    => 'required|string|max:10|unique:ruko,kode_unit',
             'kategori_id'  => 'required|exists:kategori,id',
             'status_unit'  => 'required|in:terisi,kosong',
-            // Array file: opsional, maks 10 file, masing-masing maks 5 MB
             'dokumen'      => 'nullable|array|max:10',
             'dokumen.*'    => 'file|mimes:jpg,jpeg,png,pdf|max:5120',
         ]);
 
-        $ruko = Ruko::create([
-            'kode_unit'   => $validated['kode_unit'],
-            'kategori_id' => $validated['kategori_id'],
-            'status_unit' => $validated['status_unit'],
-        ]);
+        $uploadedPaths = [];
 
-        // Simpan multiple file dokumentasi (jika ada)
-        if ($request->hasFile('dokumen')) {
-            $this->simpanDokumentasi(
-                $ruko->id,
-                $request->file('dokumen')
-            );
+        // [OPTIMALISASI] Gunakan DB Transaction agar parent (ruko) dan child (dokumentasi) atomic
+        DB::beginTransaction();
+        try {
+            $ruko = Ruko::create([
+                'kode_unit'   => $validated['kode_unit'],
+                'kategori_id' => $validated['kategori_id'],
+                'status_unit' => $validated['status_unit'],
+            ]);
+
+            if ($request->hasFile('dokumen')) {
+                // Eksekusi Helper yang sudah di-refactor
+                $uploadedPaths = $this->simpanDokumentasi($ruko->id, $request->file('dokumen'));
+            }
+
+            DB::commit();
+
+            return redirect()
+                ->route('adminkantin.unit.index')
+                ->with('success', "Unit {$ruko->kode_unit} berhasil ditambahkan.");
+
+        } catch (Exception $e) {
+            DB::rollBack();
+            
+            // [OPTIMALISASI] Hapus file fisik (Orphan Files) di storage jika proses gagal di tengah jalan
+            foreach ($uploadedPaths as $path) {
+                if (Storage::disk('public')->exists($path)) {
+                    Storage::disk('public')->delete($path);
+                }
+            }
+
+            return back()
+                ->with('error', 'Terjadi kesalahan sistem saat menyimpan data: ' . $e->getMessage())
+                ->withInput();
         }
-
-        return redirect()
-            ->route('adminkantin.unit.index')
-            ->with('success', "Unit {$ruko->kode_unit} berhasil ditambahkan.");
     }
 
     // ────────────────────────────────────────────────────────────────
@@ -147,7 +162,6 @@ class UnitController extends Controller
     public function show(Ruko $unit)
     {
         $unit->load(['kategori', 'sewaRuko', 'dokumentasiUnit']);
-
         return view('adminkantin.unit.show', compact('unit'));
     }
 
@@ -163,77 +177,105 @@ class UnitController extends Controller
     }
 
     // ────────────────────────────────────────────────────────────────
-    //  UPDATE  (multiple file upload + hapus dokumen lama jika diminta)
+    //  UPDATE
     // ────────────────────────────────────────────────────────────────
     public function update(Request $request, Ruko $unit)
     {
         $validated = $request->validate([
             'kategori_id'       => 'required|exists:kategori,id',
             'status_unit'       => 'required|in:terisi,kosong',
-            // Array file baru: opsional
             'dokumen'           => 'nullable|array|max:10',
             'dokumen.*'         => 'file|mimes:jpg,jpeg,png,pdf|max:5120',
-            // ID dokumen lama yang ingin dihapus (checkbox di view)
             'hapus_dokumen'     => 'nullable|array',
             'hapus_dokumen.*'   => 'integer|exists:dokumentasi_unit,id',
         ]);
 
-        $unit->update([
-            'kategori_id' => $validated['kategori_id'],
-            'status_unit' => $validated['status_unit'],
-        ]);
+        $uploadedPaths = [];
 
-        // Hapus dokumen lama yang dipilih user + file fisiknya
-        if (!empty($validated['hapus_dokumen'])) {
-            $dokumenLama = DokumentasiUnit::whereIn('id', $validated['hapus_dokumen'])
-                ->where('ruko_id', $unit->id) // pastikan milik unit ini
-                ->get();
+        DB::beginTransaction();
+        try {
+            $unit->update([
+                'kategori_id' => $validated['kategori_id'],
+                'status_unit' => $validated['status_unit'],
+            ]);
 
-            foreach ($dokumenLama as $dok) {
-                Storage::disk('public')->delete($dok->file);
-                $dok->delete();
+            // Hapus dokumen lama yang dipilih
+            if (!empty($validated['hapus_dokumen'])) {
+                $dokumenLama = DokumentasiUnit::whereIn('id', $validated['hapus_dokumen'])
+                    ->where('ruko_id', $unit->id)
+                    ->get();
+
+                foreach ($dokumenLama as $dok) {
+                    // Cek ketersediaan file sebelum hapus untuk mencegah error Not Found
+                    if (Storage::disk('public')->exists($dok->file)) {
+                        Storage::disk('public')->delete($dok->file);
+                    }
+                    $dok->delete();
+                }
             }
-        }
 
-        // Simpan multiple file dokumentasi baru (jika ada)
-        if ($request->hasFile('dokumen')) {
-            $this->simpanDokumentasi(
-                $unit->id,
-                $request->file('dokumen')
-            );
-        }
+            // Simpan dokumen baru
+            if ($request->hasFile('dokumen')) {
+                $uploadedPaths = $this->simpanDokumentasi($unit->id, $request->file('dokumen'));
+            }
 
-        return redirect()
-            ->route('adminkantin.unit.index')
-            ->with('success', "Unit {$unit->kode_unit} berhasil diperbarui.");
+            DB::commit();
+
+            return redirect()
+                ->route('adminkantin.unit.index')
+                ->with('success', "Unit {$unit->kode_unit} berhasil diperbarui.");
+
+        } catch (Exception $e) {
+            DB::rollBack();
+
+            foreach ($uploadedPaths as $path) {
+                if (Storage::disk('public')->exists($path)) {
+                    Storage::disk('public')->delete($path);
+                }
+            }
+
+            return back()
+                ->with('error', 'Terjadi kesalahan sistem saat memperbarui data: ' . $e->getMessage())
+                ->withInput();
+        }
     }
 
     // ────────────────────────────────────────────────────────────────
-    //  DESTROY  (validasi keamanan: hanya bisa hapus jika status = kosong)
+    //  DESTROY
     // ────────────────────────────────────────────────────────────────
     public function destroy(Ruko $unit)
     {
-        // ── Validasi keamanan bisnis ──────────────────────────────
+        // [OPTIMALISASI] Validasi status_unit dipindah paling atas sebelum DB call berat
         if ($unit->status_unit === 'terisi') {
             return back()->with(
                 'error',
-                "Unit {$unit->kode_unit} tidak dapat dihapus karena sedang berstatus 'Terisi'. " .
-                "Pastikan unit sudah dikosongkan terlebih dahulu."
+                "Unit {$unit->kode_unit} tidak dapat dihapus karena sedang berstatus 'Terisi'. Pastikan unit sudah dikosongkan."
             );
         }
 
-        // Hapus semua file fisik dokumentasi sebelum record-nya dihapus
-        foreach ($unit->dokumentasiUnit as $dok) {
-            Storage::disk('public')->delete($dok->file);
+        DB::beginTransaction();
+        try {
+            // Hapus file fisik dengan mengecek eksistensinya lebih dulu
+            foreach ($unit->dokumentasiUnit as $dok) {
+                if (Storage::disk('public')->exists($dok->file)) {
+                    Storage::disk('public')->delete($dok->file);
+                }
+            }
+
+            $kode = $unit->kode_unit;
+            // Record dokumentasi akan terhapus via CASCADE di database secara efisien
+            $unit->delete();
+
+            DB::commit();
+
+            return redirect()
+                ->route('adminkantin.unit.index')
+                ->with('success', "Unit {$kode} berhasil dihapus.");
+
+        } catch (Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Gagal menghapus unit: ' . $e->getMessage());
         }
-
-        // Record dokumentasi_unit akan terhapus otomatis via CASCADE di DB
-        $kode = $unit->kode_unit;
-        $unit->delete();
-
-        return redirect()
-            ->route('adminkantin.unit.index')
-            ->with('success', "Unit {$kode} berhasil dihapus.");
     }
 
     // ────────────────────────────────────────────────────────────────
@@ -241,21 +283,30 @@ class UnitController extends Controller
     // ────────────────────────────────────────────────────────────────
     public function updateDokumenDetail(Request $request, DokumentasiUnit $dokumen)
     {
-        $validated = $request->validate([
-            'judul_dokumen' => 'required|string|max:150',
-            'deskripsi'     => 'nullable|string',
-        ]);
+        // [OPTIMALISASI] AJAX Error handling (try-catch) pada controller API
+        try {
+            $validated = $request->validate([
+                'judul_dokumen' => 'required|string|max:150',
+                'deskripsi'     => 'nullable|string',
+            ]);
 
-        $dokumen->update([
-            'judul_dokumen' => $validated['judul_dokumen'],
-            'deskripsi'     => $validated['deskripsi'],
-        ]);
+            $dokumen->update([
+                'judul_dokumen' => $validated['judul_dokumen'],
+                'deskripsi'     => $validated['deskripsi'],
+            ]);
 
-        return response()->json([
-            'success'        => true,
-            'judul_dokumen'  => $dokumen->fresh()->judul_dokumen,
-            'deskripsi'      => $dokumen->fresh()->deskripsi ?? '-',
-            'message'        => 'Detail dokumen berhasil diperbarui.',
-        ]);
+            return response()->json([
+                'success'       => true,
+                'judul_dokumen' => $dokumen->fresh()->judul_dokumen,
+                'deskripsi'     => $dokumen->fresh()->deskripsi ?? '-',
+                'message'       => 'Detail dokumen berhasil diperbarui.',
+            ], 200);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memperbarui: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

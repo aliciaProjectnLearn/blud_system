@@ -40,7 +40,7 @@ class DashboardController extends Controller
 
 
         // Transaksi terbaru
-        $transaksiTerbaru = PembayaranRuko::with(['sewaRuko.penyewa', 'sewaRuko.ruko.kategori'])
+        $transaksiTerbaru = PembayaranRuko::with(['sewaRuko.penyewa.user', 'sewaRuko.ruko.kategori'])
             ->latest()
             ->take(5)
             ->get();
