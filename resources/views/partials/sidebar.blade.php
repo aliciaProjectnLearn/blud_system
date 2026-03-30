@@ -168,6 +168,17 @@
     {{-- ================================= --}}
     {{-- ADMIN KANTIN --}}
     {{-- ================================= --}}
+    @if (auth()->user()->hasRole('Adminkantin'))
+        <div class="sidebar-heading">Menu Utama</div>
+
+        {{-- Manajemen Unit --}}
+        <li class="nav-item {{ request()->routeIs('adminkantin.unit.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('adminkantin.unit.index') }}">
+                <i class="fas fa-fw fa-store"></i>
+                <span>Manajemen Unit</span>
+            </a>
+        </li>
+    @endif
 
     <hr class="sidebar-divider d-none d-md-block">
 
