@@ -178,6 +178,13 @@
                 <span>Manajemen Unit</span>
             </a>
         </li>
+        {{-- Manajemen Penyewa --}}
+        <li class="nav-item {{ request()->routeIs('adminkantin.penyewa.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('adminkantin.penyewa.index') }}">
+                <i class="fas fa-fw fa-user-tie"></i>
+                <span>Manajemen Penyewa</span>
+            </a>
+        </li>
     @endif
 
     <hr class="sidebar-divider d-none d-md-block">

@@ -143,8 +143,13 @@
                         @forelse($transaksiTerbaru as $i => $t)
                         <tr>
                             <td>{{ $i + 1 }}</td>
-                            <td>{{ $t->sewaRuko->penyewa->name ?? '-' }}</td>
-                            <td>{{ $t->sewaRuko->ruko->kategori->nama ?? '-' }}</td>
+                            <td>
+                                {{ $t->sewaRuko->penyewa->user->nama_lengkap ?? $t->sewaRuko->penyewa->user->name ?? '-' }}
+                            </td>
+                            <td>
+                                <div class="font-weight-bold text-primary">{{ $t->sewaRuko->ruko->kode_unit ?? '-' }}</div>
+                                <small class="text-muted">{{ $t->sewaRuko->ruko->kategori->nama ?? '-' }}</small>
+                            </td>
                             <td>Termin {{ $t->termin }}</td>
                             <td>Rp {{ number_format($t->jumlah_tagihan, 0, ',', '.') }}</td>
                             <td>{{ $t->tgl_bayar ? \Carbon\Carbon::parse($t->tgl_bayar)->format('d M Y') : '-' }}</td>

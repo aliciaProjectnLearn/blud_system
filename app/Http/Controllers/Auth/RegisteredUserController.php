@@ -31,15 +31,24 @@ class RegisteredUserController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'name'         => ['required', 'string', 'max:255'], // Bisa disamakan dengan nama_lengkap
+            'username'     => ['required', 'string', 'max:50', 'unique:'.User::class],
+            'nama_lengkap' => ['required', 'string', 'max:255'],
+            'no_hp'        => ['required', 'string', 'max:20'],
+            'nik'          => ['nullable', 'string', 'max:20', 'unique:'.User::class],
+            'email'        => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'password'     => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'name'          => $request->name,
+            'username'      => $request->username,
+            'nama_lengkap'  => $request->nama_lengkap,
+            'no_hp'         => $request->no_hp,
+            'nik'           => $request->nik,
+            'email'         => $request->email,
+            'password'      => Hash::make($request->password),
+            'status_futsal' => 'active', // Default role pelengkap aktif
         ]);
 
         event(new Registered($user));
