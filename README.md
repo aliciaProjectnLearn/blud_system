@@ -59,7 +59,6 @@ Repository ini menggunakan strategi branching sebagai berikut:
 
 * `main` : branch utama yang digunakan untuk versi stabil atau produksi.
 * `develop` : branch utama untuk pengembangan fitur.
-* `feature/*` : branch untuk pengembangan fitur baru sebelum digabungkan ke branch `develop`.
 
 ## Catatan
 
