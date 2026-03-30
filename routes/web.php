@@ -15,6 +15,7 @@ use App\Http\Controllers\AdminFutsal\JadwalLapanganController;
 use App\Http\Controllers\AdminFutsal\LaporanController;
 use App\Http\Controllers\AdminFutsal\TransaksiController as AdminFutsalTransaksiController;
 use App\Http\Controllers\AdminKantin\DashboardController as AdminKantinDashboardController;
+use App\Http\Controllers\AdminKantin\UnitController as AdminKantinUnitController;
 
 Route::middleware(['auth', 'role:Superadmin'])->group(function () {
     Route::get('/superadmin/monitoring', [AdminLogActivityController::class, 'index'])->name('monitoring.index');
@@ -129,5 +130,12 @@ Route::middleware(['auth', 'role:Adminkantin'])->prefix('adminkantin')->name('ad
 
     // Dashboard
     Route::get('/dashboard', [AdminKantinDashboardController::class, 'index'])->name('dashboard');
+
+    // Manajemen Unit Kantin
+    Route::resource('unit', AdminKantinUnitController::class);
+
+    // AJAX: Edit detail dokumen unit (Nama & Tipe)
+    Route::patch('dokumentasi/{dokumen}/detail', [AdminKantinUnitController::class, 'updateDokumenDetail'])
+        ->name('unit.dokumen.updateDetail');
 
 });

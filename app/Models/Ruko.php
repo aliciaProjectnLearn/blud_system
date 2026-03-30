@@ -8,7 +8,7 @@ class Ruko extends Model
 {
     protected $table = 'ruko';
 
-    protected $fillable = ['kategori_id', 'status_unit'];
+    protected $fillable = ['kode_unit', 'kategori_id', 'status_unit'];
 
     public function kategori()
     {
@@ -18,5 +18,10 @@ class Ruko extends Model
     public function sewaRuko()
     {
         return $this->hasMany(SewaRuko::class);
+    }
+
+    public function dokumentasiUnit()
+    {
+        return $this->hasMany(DokumentasiUnit::class);
     }
 }
