@@ -10,9 +10,6 @@
         <h1 class="h3 mb-0 text-gray-800">
             <i class="fas fa-users mr-2 text-primary"></i>Manajemen Penyewa
         </h1>
-        <a href="{{ route('adminkantin.penyewa.create') }}" class="btn btn-primary btn-sm shadow-sm">
-            <i class="fas fa-plus fa-sm mr-1"></i> Tambah Penyewa
-        </a>
     </div>
 
     {{-- Alert Success / Error --}}
@@ -147,17 +144,27 @@
                                         <i class="fas fa-pencil-alt"></i>
                                     </a>
 
-                                    <button type="button" class="btn btn-danger btn-sm btn-hapus" 
-                                            data-id="{{ $item->id }}" 
-                                            data-nama="{{ $item->user->nama_lengkap ?? $item->nama_usaha }}"
-                                            title="Hapus">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
+                                    @php
+                                        $isRestricted = $item->sewaRuko->whereIn('status', ['disetujui', 'menunggu'])->isNotEmpty();
+                                    @endphp
 
-                                    <form id="form-hapus-{{ $item->id }}" action="{{ route('adminkantin.penyewa.destroy', $item->id) }}" method="POST" class="d-none">
-                                        @csrf
-                                        @method('DELETE')
-                                    </form>
+                                    @if($isRestricted)
+                                        <button class="btn btn-danger btn-sm" disabled title="Penyewa Sedang Aktif / Menunggu">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    @else
+                                        <button type="button" class="btn btn-danger btn-sm btn-hapus" 
+                                                data-id="{{ $item->id }}" 
+                                                data-nama="{{ $item->user->nama_lengkap ?? $item->nama_usaha }}"
+                                                title="Hapus">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+
+                                        <form id="form-hapus-{{ $item->id }}" action="{{ route('adminkantin.penyewa.destroy', $item->id) }}" method="POST" class="d-none">
+                                            @csrf
+                                            @method('DELETE')
+                                        </form>
+                                    @endif
                                 </td>
                             </tr>
                         @empty

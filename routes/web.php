@@ -139,6 +139,6 @@ Route::middleware(['auth', 'role:Adminkantin'])->prefix('adminkantin')->name('ad
         ->name('unit.dokumen.updateDetail');
 
     // Manajemen Penyewa Kantin/Ruko
-    Route::resource('penyewa', \App\Http\Controllers\AdminKantin\PenyewaController::class);
+    Route::resource('penyewa', \App\Http\Controllers\AdminKantin\PenyewaController::class)->except(['create', 'store']);
 
 });

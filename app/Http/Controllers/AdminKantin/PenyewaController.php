@@ -13,71 +13,13 @@ class PenyewaController extends Controller
 {
     public function index(Request $request)
     {
-        // Fitur pencarian sederhana berdasarkan nama pengguna atau nama usaha
-        $search = $request->query('search');
-
-        $penyewas = Penyewa::with(['user', 'sewaRuko.ruko'])
-            ->when($search, function ($query, $search) {
-                $query->where('nama_usaha', 'like', "%{$search}%")
-                    ->orWhereHas('user', function ($q) use ($search) {
-                        $q->where('name', 'like', "%{$search}%")
-                            ->orWhere('nama_lengkap', 'like', "%{$search}%");
-                    });
-            })
-            ->latest()
+        $penyewas = Penyewa::has('sewaRuko')
+            ->with(['user', 'sewaRuko.ruko'])
             ->paginate(10);
 
-        return view('adminkantin.penyewa.index', compact('penyewas', 'search'));
+        return view('adminkantin.penyewa.index', compact('penyewas'));
     }
 
-    public function create()
-    {
-        return view('adminkantin.penyewa.create');
-    }
-
-    public function store(Request $request)
-    {
-        $request->validate([
-            'nama_lengkap' => 'required|string|max:255',
-            'no_hp' => 'required|string|max:20',
-            'nama_usaha' => 'required|string|max:255',
-            'alamat' => 'required|string',
-            'nik' => 'required|string|max:20|unique:users,nik',
-        ]);
-
-        DB::beginTransaction();
-        try {
-            // Buat dummy email karena di tabel users email bersifat unik
-            $dummyEmail = 'penyewa_' . time() . '@blud.com';
-
-            $user = User::create([
-                'name' => $request->nama_lengkap,
-                'username' => 'penyewa_' . time() . '_' . mt_rand(10, 99),
-                'email' => $dummyEmail,
-                'password' => bcrypt(uniqid()), // default random password
-                'nama_lengkap' => $request->nama_lengkap,
-                'no_hp' => $request->no_hp,
-                'nik' => $request->nik,
-                'status_futsal' => 'active',
-            ]);
-
-            Penyewa::create([
-                'user_id' => $user->id,
-                'nama_usaha' => $request->nama_usaha,
-                'alamat' => $request->alamat,
-            ]);
-
-            DB::commit();
-            return redirect()
-                ->route('adminkantin.penyewa.index')
-                ->with('success', 'Data penyewa berhasil ditambahkan.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return back()
-                ->with('error', 'Gagal menambahkan penyewa: ' . $e->getMessage())
-                ->withInput();
-        }
-    }
 
     public function show(Penyewa $penyewa)
     {
@@ -138,11 +80,11 @@ class PenyewaController extends Controller
     {
         // Validasi: tidak boleh hapus penyewa jika masih memiliki sewa_ruko yang aktif / disetujui / menunggu
         $hasAktifSewa = $penyewa->sewaRuko()
-            ->whereIn('status', ['disetujui', 'menunggu', 'pending'])
+            ->whereIn('status', ['disetujui', 'menunggu'])
             ->exists();
 
         if ($hasAktifSewa) {
-            return back()->with('error', 'Gagal! Penyewa tidak dapat dihapus karena masih memiliki sewa ruko/kantin yang berstatus aktif/berjalan.');
+            abort(403, 'Aksi dilarang! Penyewa masih memiliki status sewa aktif atau sedang menunggu.');
         }
 
         DB::beginTransaction();
