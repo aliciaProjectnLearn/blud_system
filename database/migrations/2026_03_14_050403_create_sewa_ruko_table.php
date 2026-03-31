@@ -15,9 +15,8 @@ return new class extends Migration
             $table->foreignId('ruko_id')->constrained('ruko')->onDelete('restrict');
             $table->date('tgl_mulai');
             $table->date('tgl_selesai');
-            $table->integer('total_biaya_tahunan');
-            $table->string('no_mou')->nullable();
-            $table->enum('status', ['menunggu', 'disetujui', 'pending'])->default('pending');
+            $table->integer('harga_sewa_tahunan');
+            $table->enum('status', ['aktif', 'selesai', 'dibatalkan'])->default('aktif');
             $table->timestamps();
         });
     }
