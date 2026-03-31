@@ -9,9 +9,6 @@ use Carbon\Carbon;
 
 class PenyewaSeeder extends Seeder
 {
-    /**
-     * Helper untuk menjana kode_unit mengikuti logika UnitController
-     */
     private function generateNextKodeUnit()
     {
         $last = DB::table('ruko')
@@ -29,129 +26,137 @@ class PenyewaSeeder extends Seeder
         return 'UNT' . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
     }
 
-    /**
-     * Run the database seeds.
-     *
-     * @return void
-     */
     public function run()
     {
         $dummyUsaha = [
             [
-                'nama' => 'Budi Santoso', 
-                'usaha' => 'Warung Nasi Budi', 
+                'nama' => 'Budi Santoso',
+                'usaha' => 'Warung Nasi Budi',
                 'alamat' => 'Jl. Merdeka No. 10',
-                'status_sewa' => 'disetujui',
-                'status_unit' => 'terisi'
+                'status_sewa' => 'aktif'
             ],
             [
-                'nama' => 'Siti Aminah', 
-                'usaha' => 'Kantin Sehat Siti', 
+                'nama' => 'Siti Aminah',
+                'usaha' => 'Kantin Sehat Siti',
                 'alamat' => 'Kampus Gedung A, Lt. 1',
-                'status_sewa' => 'menunggu',
-                'status_unit' => 'kosong'
+                'status_sewa' => 'selesai'
             ],
             [
-                'nama' => 'Andi Wijaya', 
-                'usaha' => 'Fotocopy & ATK Andi', 
+                'nama' => 'Andi Wijaya',
+                'usaha' => 'Fotocopy & ATK Andi',
                 'alamat' => 'Kantin Blok B',
-                'status_sewa' => 'pending',
-                'status_unit' => 'kosong'
+                'status_sewa' => 'dibatalkan'
             ],
         ];
 
         DB::beginTransaction();
 
         try {
-            // 1. Ambil kategori sedia ada, jika tiada, cipta kategori baharu
+            // KATEGORI
             $kategoriId = DB::table('kategori')->value('id');
             if (!$kategoriId) {
                 $kategoriId = DB::table('kategori')->insertGetId([
                     'nama' => 'Kantin',
-                    'created_at' => Carbon::now(),
-                    'updated_at' => Carbon::now(),
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ]);
             }
 
             foreach ($dummyUsaha as $index => $data) {
-                // Generate NIK 16 digit rawak
-                $nik = mt_rand(10000000, 99999999) . mt_rand(10000000, 99999999);
-                $randomSuffix = mt_rand(1000, 9999);
 
-                // --- 2. Cipta Entiti USER ---
+                // 🔥 SKIP kalau dibatalkan (INI PENTING)
+                if ($data['status_sewa'] == 'dibatalkan') {
+                    continue;
+                }
+
+                // USER
                 $userId = DB::table('users')->insertGetId([
-                    'name'         => $data['nama'],           
-                    'username'     => 'penyewa_' . $index . '_' . $randomSuffix,
+                    'name'         => $data['nama'],
+                    'username'     => 'penyewa_' . $index . '_' . rand(1000,9999),
                     'nama_lengkap' => $data['nama'],
-                    'no_hp'        => '08' . mt_rand(1000000000, 9999999999), 
-                    'nik'          => (string) $nik,
-                    'email'        => 'penyewa_' . $index . '_' . $randomSuffix . '@blud.com',
-                    'password'     => Hash::make('password123'),
+                    'no_hp'        => '08' . rand(1000000000,9999999999),
+                    'nik'          => rand(1000000000000000,9999999999999999),
+                    'email'        => 'user'.$index.'@mail.com',
+                    'password'     => Hash::make('password'),
                     'status_futsal'=> 'active',
-                    'created_at'   => Carbon::now(),
-                    'updated_at'   => Carbon::now(),
+                    'created_at'   => now(),
+                    'updated_at'   => now(),
                 ]);
 
-                // --- 3. Cipta Entiti PENYEWA ---
+                // PENYEWA
                 $penyewaId = DB::table('penyewa')->insertGetId([
                     'user_id'    => $userId,
                     'nama_usaha' => $data['usaha'],
                     'alamat'     => $data['alamat'],
-                    'created_at' => Carbon::now(),
-                    'updated_at' => Carbon::now(),
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ]);
 
-                // --- 4. Cipta Entiti RUKO ---
-                // Gunakan logika generate kode mengikuti UnitController
+                // RUKO (SELALU KOSONG, BIAR CONTROLLER YANG NGATUR)
                 $kodeUnit = $this->generateNextKodeUnit();
-                
+
                 $rukoId = DB::table('ruko')->insertGetId([
                     'kode_unit'   => $kodeUnit,
                     'kategori_id' => $kategoriId,
-                    'status_unit' => $data['status_unit'],
-                    'created_at'  => Carbon::now(),
-                    'updated_at'  => Carbon::now(),
+                    'status_unit' => 'kosong',
+                    'created_at'  => now(),
+                    'updated_at'  => now(),
                 ]);
 
-                // Tambah dokumentasi dummy mengikuti logika simpanDokumentasi di UnitController
+                // DOKUMENTASI UNIT (DUMMY)
                 DB::table('dokumentasi_unit')->insert([
                     'ruko_id'       => $rukoId,
-                    'file'          => 'dokumentasi_unit/dummy_sample.jpg',
+                    'file'          => 'dokumentasi_unit/sample.jpg',
                     'tipe'          => 'gambar',
                     'judul_dokumen' => 'Foto Unit ' . $kodeUnit,
-                    'deskripsi'     => 'Foto dokumentasi unit awal untuk ' . $data['usaha'],
-                    'created_at'    => Carbon::now(),
-                    'updated_at'    => Carbon::now(),
+                    'deskripsi'     => 'Dokumentasi awal unit',
+                    'created_at'    => now(),
+                    'updated_at'    => now(),
                 ]);
 
-                // --- 5. Cipta Entiti BOOKING ---
+                // BOOKING (LANGSUNG IKUT STATUS)
                 $bookingId = DB::table('booking')->insertGetId([
                     'user_id'    => $userId,
-                    'status'     => ($data['status_sewa'] == 'disetujui') ? 'selesai' : 'menunggu',
-                    'created_at' => Carbon::now(),
-                    'updated_at' => Carbon::now(),
+                    'status'     => $data['status_sewa'] == 'aktif' ? 'selesai' : $data['status_sewa'],
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ]);
 
-                // --- 6. Cipta Entiti SEWA RUKO ---
-                DB::table('sewa_ruko')->insert([
-                    'booking_id'          => $bookingId,
-                    'penyewa_id'          => $penyewaId,
-                    'ruko_id'             => $rukoId,
-                    'tgl_mulai'           => Carbon::now()->format('Y-m-d'),
-                    'tgl_selesai'         => Carbon::now()->addYear()->format('Y-m-d'),
-                    'total_biaya_tahunan' => 15000000,
-                    'no_mou'              => 'MOU/123/' . Carbon::now()->year . '/' . ($index + 1),
-                    'status'              => $data['status_sewa'],
-                    'created_at'          => Carbon::now(),
-                    'updated_at'          => Carbon::now(),
+                // LOGIC TANGGAL
+                $start = Carbon::now();
+                $end = $data['status_sewa'] == 'selesai'
+                    ? Carbon::now()->subDays(1)
+                    : Carbon::now()->addYear();
+
+                // SEWA RUKO
+                $sewaId = DB::table('sewa_ruko')->insertGetId([
+                    'booking_id'       => $bookingId,
+                    'penyewa_id'       => $penyewaId,
+                    'ruko_id'          => $rukoId,
+                    'tgl_mulai'    => $start->format('Y-m-d'),
+                    'tgl_selesai'  => $end->format('Y-m-d'),
+                    'harga_sewa_tahunan' => 15000000,
+                    'status'           => 'aktif', // nanti auto sync
+                    'created_at'       => now(),
+                    'updated_at'       => now(),
+                ]);
+
+                // DOKUMEN MOU
+                DB::table('tb_dokumen_penyewaan')->insert([
+                    'no_mou'       => 'MOU-' . time() . '-' . $index,
+                    'sewa_id'      => $sewaId,
+                    'nama_dokumen' => 'contoh_mou.pdf',
+                    'path_file'    => 'dokumen_mou/sample.pdf',
+                    'created_at'   => now(),
+                    'updated_at'   => now(),
                 ]);
             }
 
             DB::commit();
-            $this->command->info('Berjaya menjana 3 set data penyewa dengan pelbagai status mengikuti logika UnitController!');
+            $this->command->info('Seeder penyewaan + dokumen berhasil dijalankan!');
         } catch (\Exception $e) {
             DB::rollBack();
-            $this->command->error('Gagal menjalankan PenyewaSeeder: ' . $e->getMessage());
+            $this->command->error('Seeder gagal: ' . $e->getMessage());
         }
     }
 }

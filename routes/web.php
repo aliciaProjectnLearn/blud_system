@@ -141,4 +141,10 @@ Route::middleware(['auth', 'role:Adminkantin'])->prefix('adminkantin')->name('ad
     // Manajemen Penyewa Kantin/Ruko
     Route::resource('penyewa', \App\Http\Controllers\AdminKantin\PenyewaController::class)->except(['create', 'store']);
 
+    // Manajemen Penyewaan Kantin/Ruko
+    Route::resource('penyewaan', \App\Http\Controllers\AdminKantin\PenyewaanController::class);
+    Route::post('penyewaan/{id}/upload-dokumen', [\App\Http\Controllers\AdminKantin\PenyewaanController::class, 'uploadDokumen'])->name('penyewaan.uploadDokumen');
+    Route::get('dokumen-penyewaan/{id}/download', [\App\Http\Controllers\AdminKantin\PenyewaanController::class, 'downloadDokumen'])->name('penyewaan.downloadDokumen');
+    Route::delete('dokumen-penyewaan/{id}', [\App\Http\Controllers\AdminKantin\PenyewaanController::class, 'hapusDokumen'])->name('penyewaan.hapusDokumen');
+    Route::get('penyewaan/{id}/generate-mou', [\App\Http\Controllers\AdminKantin\PenyewaanController::class, 'generateMOU'])->name('penyewaan.generateMOU');
 });

@@ -37,4 +37,9 @@ class SewaRuko extends Model
     {
         return $this->hasMany(PembayaranRuko::class, 'booking_id', 'booking_id');
     }
+
+    public function dokumen()
+{
+    return $this->hasMany(DokumenPenyewaan::class, 'sewa_id');
+}
 }
