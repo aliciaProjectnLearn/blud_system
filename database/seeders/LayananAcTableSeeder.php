@@ -3,37 +3,50 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
+use App\Models\LayananAc;
+use App\Models\Kategori;
 
 class LayananAcTableSeeder extends Seeder
 {
     public function run(): void
     {
-        DB::table('layanan_ac')->insert([
+        // Ambil kategori Service AC
+        $kategori = Kategori::where('nama', 'LIKE', '%Service AC%')->first();
+
+        // Jika tidak ada, buat baru sebagai fallback
+        if (!$kategori) {
+            $kategori = Kategori::create([
+                'nama' => 'Service AC',
+                'harga' => 0
+            ]);
+        }
+
+        $layanans = [
             [
-                'kategori_id'   => 3,
-                'nama'          => 'Servis AC 1 PK',
-                'kapasitas_ac'  => '1 PK',
-                'harga_jasa'    => 50000,
-                'created_at'    => now(),
-                'updated_at'    => now(),
+                'kategori_id' => $kategori->id,
+                'nama' => 'Cleaning AC',
+                'kapasitas_ac' => '0.5 - 1 PK',
+                'harga_jasa' => 75000,
             ],
             [
-                'kategori_id'   => 3,
-                'nama'          => 'Servis AC 2 PK',
-                'kapasitas_ac'  => '2 PK',
-                'harga_jasa'    => 75000,
-                'created_at'    => now(),
-                'updated_at'    => now(),
+                'kategori_id' => $kategori->id,
+                'nama' => 'Tambah R22',
+                'kapasitas_ac' => '0.5 - 1 PK',
+                'harga_jasa' => 100000,
             ],
             [
-                'kategori_id'   => 3,
-                'nama'          => 'Servis AC 3 PK',
-                'kapasitas_ac'  => '3 PK',
-                'harga_jasa'    => 100000,
-                'created_at'    => now(),
-                'updated_at'    => now(),
+                'kategori_id' => $kategori->id,
+                'nama' => 'Bongkar AC',
+                'kapasitas_ac' => '0.5 - 1 PK',
+                'harga_jasa' => 200000,
             ],
-        ]);
+        ];
+
+        foreach ($layanans as $layanan) {
+            LayananAc::updateOrCreate(
+                ['nama' => $layanan['nama'], 'kapasitas_ac' => $layanan['kapasitas_ac']],
+                $layanan
+            );
+        }
     }
 }

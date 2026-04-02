@@ -18,6 +18,7 @@ use App\Http\Controllers\AdminKantin\DashboardController as AdminKantinDashboard
 use App\Http\Controllers\AdminKantin\UnitController as AdminKantinUnitController;
 use App\Http\Controllers\AdminKantin\PembayaranController;
 use App\Http\Controllers\AdminAc\DashboardController as AdminAcDashboardController;
+use App\Http\Controllers\AdminAc\LayananController as AdminAcLayananController;
 
 
 Route::middleware(['auth', 'role:Superadmin'])->group(function () {
@@ -180,4 +181,6 @@ Route::middleware(['auth', 'role:Adminkantin'])->prefix('adminkantin')->name('ad
 // ── Admin AC ───────────────────────
 Route::middleware(['auth', 'role:Adminac'])->prefix('adminac')->name('adminac.')->group(function () {
     Route::get('/dashboard', [AdminAcDashboardController::class, 'index'])->name('dashboard');
+    Route::post('kategori', [AdminAcLayananController::class, 'storeKategori'])->name('kategori.store');
+    Route::resource('layanan', AdminAcLayananController::class);
 });

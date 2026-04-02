@@ -11,7 +11,7 @@
             $brandRoute = route('adminfutsal.dashboard');
         } elseif (auth()->user()->hasRole('Adminac')) {
             $brandLabel = 'Admin AC';
-            $brandRoute = route('dashboard'); // sesuaikan jika ada route adminac
+            $brandRoute = route('adminac.dashboard');
         } elseif (auth()->user()->hasRole('Adminkantin')) {
             $brandLabel = 'Admin Kantin';
             $brandRoute = route('adminkantin.dashboard');
@@ -37,6 +37,14 @@
     @elseif(auth()->user()->hasRole('Adminfutsal'))
         <li class="nav-item {{ request()->routeIs('adminfutsal.dashboard') ? 'active' : '' }}">
             <a class="nav-link" href="{{ route('adminfutsal.dashboard') }}">
+                <i class="fas fa-fw fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            </a>
+        </li>
+        </li>
+    @elseif(auth()->user()->hasRole('Adminac'))
+        <li class="nav-item {{ request()->routeIs('adminac.dashboard') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('adminac.dashboard') }}">
                 <i class="fas fa-fw fa-tachometer-alt"></i>
                 <span>Dashboard</span>
             </a>
@@ -204,6 +212,20 @@
             <a class="nav-link" href="{{ route('adminkantin.laporan.index') }}">
                 <i class="fas fa-fw fa-file-pdf"></i>
                 <span>Laporan Transaksi</span>
+            </a>
+        </li>
+    @endif
+
+    {{-- ================================= --}}
+    {{-- ADMIN AC --}}
+    {{-- ================================= --}}
+    @if (auth()->user()->hasRole('Adminac'))
+        <div class="sidebar-heading">Menu Utama</div>
+
+        <li class="nav-item {{ request()->routeIs('adminac.layanan.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('adminac.layanan.index') }}">
+                <i class="fas fa-fw fa-wrench"></i>
+                <span>Manajemen Layanan</span>
             </a>
         </li>
     @endif

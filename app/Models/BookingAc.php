@@ -1,0 +1,36 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class BookingAc extends Model
+{
+    protected $table = 'booking_ac';
+
+    protected $fillable = [
+        'booking_id',
+        'user_id',
+        'layanan_id',
+        'tgl_kunjungan',
+        'alamat',
+        'merek_ac',
+        'detail_keluhan',
+        'status',
+    ];
+
+    public function booking()
+    {
+        return $this->belongsTo(Booking::class, 'booking_id');
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function layanan()
+    {
+        return $this->belongsTo(LayananAc::class, 'layanan_id');
+    }
+}
