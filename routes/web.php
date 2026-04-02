@@ -17,6 +17,8 @@ use App\Http\Controllers\AdminFutsal\TransaksiController as AdminFutsalTransaksi
 use App\Http\Controllers\AdminKantin\DashboardController as AdminKantinDashboardController;
 use App\Http\Controllers\AdminKantin\UnitController as AdminKantinUnitController;
 use App\Http\Controllers\AdminKantin\PembayaranController;
+use App\Http\Controllers\AdminAc\DashboardController as AdminAcDashboardController;
+
 
 Route::middleware(['auth', 'role:Superadmin'])->group(function () {
     Route::get('/superadmin/monitoring', [AdminLogActivityController::class, 'index'])->name('monitoring.index');
@@ -164,4 +166,10 @@ Route::middleware(['auth', 'role:Adminkantin'])->prefix('adminkantin')->name('ad
     Route::get('pembayaran/{pembayaran}/kwitansi', [PembayaranController::class, 'downloadKwitansi'])
         ->name('pembayaran.kwitansi');
 
+});
+
+
+// ── Admin AC ───────────────────────
+Route::middleware(['auth', 'role:Adminac'])->prefix('adminac')->name('adminac.')->group(function () {
+    Route::get('/dashboard', [AdminAcDashboardController::class, 'index'])->name('dashboard');
 });

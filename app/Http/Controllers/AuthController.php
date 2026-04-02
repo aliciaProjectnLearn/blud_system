@@ -44,7 +44,7 @@ class AuthController extends Controller
                 'superadmin'  => redirect()->route('dashboard'),
                 'adminfutsal' => redirect()->route('adminfutsal.dashboard'),
                 'adminkantin' => redirect()->route('adminkantin.dashboard'),
-                'adminac'     => redirect()->route('dashboard'), // sesuaikan nanti
+                'adminac'     => redirect()->route('adminac.dashboard'),
                 default       => redirect()->route('dashboard'),
             };
             // Catat log login
