@@ -228,6 +228,12 @@
                 <span>Manajemen Layanan</span>
             </a>
         </li>
+        <li class="nav-item {{ request()->routeIs('adminac.produk.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('adminac.produk.index') }}">
+                <i class="fas fa-fw fa-box"></i>
+                <span>Manajemen Produk</span>
+            </a>
+        </li>
     @endif
 
     <hr class="sidebar-divider d-none d-md-block">
