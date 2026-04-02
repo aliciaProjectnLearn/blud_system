@@ -1,0 +1,102 @@
+<?php
+
+namespace App\Http\Controllers\AdminAc;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
+
+class DashboardController extends Controller
+{
+    public function index()
+    {
+        $today = Carbon::today();
+
+        // ── Total Transaksi AC ──────────────────────────────
+        $totalTransaksi = DB::table('pembayaran_ac')->count();
+
+        // ── Total Pendapatan AC (status verifikasi) ─────────
+        $totalPendapatan = DB::table('pembayaran_ac')
+            ->where('status', 'verifikasi')
+            ->sum('total_biaya');
+
+        // ── Transaksi Hari Ini ──────────────────────────────
+        $transaksiHariIni = DB::table('pembayaran_ac')
+            ->whereDate('tgl_bayar', $today)
+            ->count();
+
+        // ── Status Pembayaran ───────────────────────────────
+        $statusMenunggu   = DB::table('pembayaran_ac')->where('status', 'menunggu')->count();
+        $statusVerifikasi = DB::table('pembayaran_ac')->where('status', 'verifikasi')->count();
+
+        // ── Status Booking AC ───────────────────────────────
+        $bookingMenunggu  = DB::table('booking_ac')->where('status', 'menunggu')->count();
+        $bookingProses    = DB::table('booking_ac')->where('status', 'proses')->count();
+        $bookingSelesai   = DB::table('booking_ac')->where('status', 'selesai')->count();
+
+        // ── Transaksi Terbaru ───────────────────────────────
+        $transaksiTerbaru = DB::table('pembayaran_ac')
+            ->join('booking_ac', 'pembayaran_ac.booking_id', '=', 'booking_ac.id')
+            ->join('users', 'booking_ac.user_id', '=', 'users.id')
+            ->join('layanan_ac', 'pembayaran_ac.layanan_ac_id', '=', 'layanan_ac.id')
+            ->select(
+                'users.name as nama_user',
+                'layanan_ac.nama as nama_layanan',
+                'pembayaran_ac.total_biaya',
+                'pembayaran_ac.status',
+                'pembayaran_ac.tgl_bayar'
+            )
+            ->orderBy('pembayaran_ac.tgl_bayar', 'desc')
+            ->limit(5)
+            ->get();
+
+        // ── Jadwal Kunjungan Hari Ini ───────────────────────
+        $jadwalHariIni = DB::table('booking_ac')
+            ->join('users', 'booking_ac.user_id', '=', 'users.id')
+            ->join('layanan_ac', 'booking_ac.layanan_id', '=', 'layanan_ac.id')
+            ->select(
+                'users.name as nama_user',
+                'layanan_ac.nama as nama_layanan',
+                'booking_ac.tgl_kunjungan',
+                'booking_ac.alamat',
+                'booking_ac.merek_ac',
+                'booking_ac.status'
+            )
+            ->whereDate('booking_ac.tgl_kunjungan', $today)
+            ->orderBy('booking_ac.tgl_kunjungan', 'asc')
+            ->get();
+
+        // ── Pendapatan Per Bulan ────────────────────────────
+        $pendapatanPerBulan = DB::table('pembayaran_ac')
+            ->where('status', 'verifikasi')
+            ->whereYear('tgl_bayar', $today->year)
+            ->select(
+                DB::raw('MONTH(tgl_bayar) as bulan'),
+                DB::raw('SUM(total_biaya) as total')
+            )
+            ->groupBy(DB::raw('MONTH(tgl_bayar)'))
+            ->orderBy('bulan')
+            ->get();
+
+        $labelBulan = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
+        $dataPendapatan = array_fill(0, 12, 0);
+        foreach ($pendapatanPerBulan as $p) {
+            $dataPendapatan[$p->bulan - 1] = $p->total;
+        }
+
+        return view('adminac.index', compact(
+            'totalTransaksi',
+            'totalPendapatan',
+            'transaksiHariIni',
+            'statusMenunggu',
+            'statusVerifikasi',
+            'bookingMenunggu',
+            'bookingProses',
+            'bookingSelesai',
+            'transaksiTerbaru',
+            'jadwalHariIni',
+            'labelBulan',
+            'dataPendapatan'
+        ));
+    }
+}
