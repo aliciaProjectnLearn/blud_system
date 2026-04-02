@@ -192,6 +192,13 @@
                 <span>Manajemen Penyewaan</span>
             </a>
         </li>
+        {{-- Manajemen Pembyaran --}}
+        <li class="nav-item {{ request()->routeIs('adminkantin.pembayaran.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('adminkantin.pembayaran.index') }}">
+                <i class="fas fa-fw fa-file-invoice-dollar"></i>
+                <span>Manajemen Pembayaran</span>
+            </a>
+        </li>
     @endif
 
     <hr class="sidebar-divider d-none d-md-block">

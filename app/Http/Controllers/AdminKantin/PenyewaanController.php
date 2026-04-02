@@ -9,6 +9,7 @@ use App\Models\SewaRuko;
 use App\Models\Ruko;
 use App\Models\Penyewa;
 use App\Models\DokumenPenyewaan;
+use App\Models\PembayaranRuko;
 use App\Http\Requests\AdminKantin\UpdatePenyewaanRequest;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
@@ -79,12 +80,18 @@ class PenyewaanController extends Controller
     public function update(UpdatePenyewaanRequest $request, $id)
     {
         $sewa = SewaRuko::findOrFail($id);
-        
+
         DB::beginTransaction();
         try {
+            $statusLama = $sewa->status;
+
             $sewa->update($request->validated());
 
-            // Trigger re-check status logic
+            // Generate pembayaran saat status berubah jadi disetujui
+            if ($statusLama !== 'disetujui' && $sewa->status === 'disetujui') {
+                $this->generatePembayaranTermin($sewa);
+            }
+
             $this->recalculateStatuses();
 
             DB::commit();
@@ -136,6 +143,45 @@ class PenyewaanController extends Controller
             }
         }
     }
+    private function generatePembayaranTermin(SewaRuko $sewa): void
+{
+    // Cegah duplikat — jangan generate ulang jika sudah ada
+    $sudahAda = \App\Models\PembayaranRuko::where('booking_id', $sewa->booking_id)->exists();
+    if ($sudahAda) return;
+
+    $tglMulai = Carbon::parse($sewa->tgl_mulai);
+
+    // Termin 1: 1 hari setelah tgl_mulai
+    $jatuhTempoTermin1 = $tglMulai->copy()->addDay();
+
+    // Termin 2: 6 bulan setelah jatuh tempo termin 1
+    $jatuhTempoTermin2 = $jatuhTempoTermin1->copy()->addMonths(6);
+
+    $jumlahPerTermin = intdiv($sewa->total_biaya_tahunan, 2);
+
+    \App\Models\PembayaranRuko::insert([
+        [
+            'booking_id'         => $sewa->booking_id,
+            'tipe_pembayaran_id' => 1, // default Transfer Bank, bisa diubah admin
+            'termin'             => 1,
+            'tgl_jatuh_tempo'    => $jatuhTempoTermin1,
+            'jumlah_tagihan'     => $jumlahPerTermin,
+            'status'             => 'menunggu',
+            'created_at'         => now(),
+            'updated_at'         => now(),
+        ],
+        [
+            'booking_id'         => $sewa->booking_id,
+            'tipe_pembayaran_id' => 1,
+            'termin'             => 2,
+            'tgl_jatuh_tempo'    => $jatuhTempoTermin2,
+            'jumlah_tagihan'     => $sewa->total_biaya_tahunan - $jumlahPerTermin,
+            'status'             => 'menunggu',
+            'created_at'         => now(),
+            'updated_at'         => now(),
+        ],
+    ]);
+}
 
     // --- DOCUMENT METHODS ---
 
@@ -172,7 +218,7 @@ class PenyewaanController extends Controller
     public function downloadDokumen($id)
     {
         $doc = DokumenPenyewaan::findOrFail($id);
-        
+
         if (!Storage::disk('public')->exists($doc->path_file)) {
             return redirect()->back()->with('error', 'File tidak ditemukan di storage.');
         }
@@ -221,7 +267,7 @@ class PenyewaanController extends Controller
                 if (Storage::disk('public')->exists($existingDoc->path_file)) {
                     Storage::disk('public')->delete($existingDoc->path_file);
                 }
-                
+
                 // Update record yang ada
                 $existingDoc->update([
                     'no_mou'       => $no_mou,
@@ -245,4 +291,5 @@ class PenyewaanController extends Controller
             return $pdf->download($nama_file);
         });
     }
+
 }

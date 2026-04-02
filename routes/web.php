@@ -16,6 +16,7 @@ use App\Http\Controllers\AdminFutsal\LaporanController;
 use App\Http\Controllers\AdminFutsal\TransaksiController as AdminFutsalTransaksiController;
 use App\Http\Controllers\AdminKantin\DashboardController as AdminKantinDashboardController;
 use App\Http\Controllers\AdminKantin\UnitController as AdminKantinUnitController;
+use App\Http\Controllers\AdminKantin\PembayaranController;
 
 Route::middleware(['auth', 'role:Superadmin'])->group(function () {
     Route::get('/superadmin/monitoring', [AdminLogActivityController::class, 'index'])->name('monitoring.index');
@@ -129,7 +130,8 @@ Route::middleware(['auth', 'role:Adminfutsal'])->prefix('adminfutsal')->name('ad
 Route::middleware(['auth', 'role:Adminkantin'])->prefix('adminkantin')->name('adminkantin.')->group(function () {
 
     // Dashboard
-    Route::get('/dashboard', [AdminKantinDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [AdminKantinDashboardController::class, 'index'])
+        ->name('dashboard');
 
     // Manajemen Unit Kantin
     Route::resource('unit', AdminKantinUnitController::class);
@@ -143,8 +145,23 @@ Route::middleware(['auth', 'role:Adminkantin'])->prefix('adminkantin')->name('ad
 
     // Manajemen Penyewaan Kantin/Ruko
     Route::resource('penyewaan', \App\Http\Controllers\AdminKantin\PenyewaanController::class);
-    Route::post('penyewaan/{id}/upload-dokumen', [\App\Http\Controllers\AdminKantin\PenyewaanController::class, 'uploadDokumen'])->name('penyewaan.uploadDokumen');
-    Route::get('dokumen-penyewaan/{id}/download', [\App\Http\Controllers\AdminKantin\PenyewaanController::class, 'downloadDokumen'])->name('penyewaan.downloadDokumen');
-    Route::delete('dokumen-penyewaan/{id}', [\App\Http\Controllers\AdminKantin\PenyewaanController::class, 'hapusDokumen'])->name('penyewaan.hapusDokumen');
-    Route::get('penyewaan/{id}/generate-mou', [\App\Http\Controllers\AdminKantin\PenyewaanController::class, 'generateMOU'])->name('penyewaan.generateMOU');
+    Route::post('penyewaan/{id}/upload-dokumen', [\App\Http\Controllers\AdminKantin\PenyewaanController::class, 'uploadDokumen'])
+        ->name('penyewaan.uploadDokumen');
+    Route::get('dokumen-penyewaan/{id}/download', [\App\Http\Controllers\AdminKantin\PenyewaanController::class, 'downloadDokumen'])
+        ->name('penyewaan.downloadDokumen');
+    Route::delete('dokumen-penyewaan/{id}', [\App\Http\Controllers\AdminKantin\PenyewaanController::class, 'hapusDokumen'])
+        ->name('penyewaan.hapusDokumen');
+    Route::get('penyewaan/{id}/generate-mou', [\App\Http\Controllers\AdminKantin\PenyewaanController::class, 'generateMOU'])
+        ->name('penyewaan.generateMOU');
+
+    // Pembayaran Kantin
+    Route::get('pembayaran', [PembayaranController::class, 'index'])
+        ->name('pembayaran.index');
+    Route::get('pembayaran/{pembayaran}', [PembayaranController::class, 'show'])
+        ->name('pembayaran.show');
+    Route::put('pembayaran/{pembayaran}', [PembayaranController::class, 'update'])
+        ->name('pembayaran.update');
+    Route::get('pembayaran/{pembayaran}/kwitansi', [PembayaranController::class, 'downloadKwitansi'])
+        ->name('pembayaran.kwitansi');
+
 });
