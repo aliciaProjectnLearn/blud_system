@@ -14,19 +14,18 @@ class KategoriKomponenSeeder extends Seeder
     public function run(): void
     {
         $kategori = [
-            ['nama' => 'Pipa AC', 'harga' => 150000],
-            ['nama' => 'Freon', 'harga' => 300000],
-            ['nama' => 'Kabel', 'harga' => 20000],
-            ['nama' => 'Sparepart', 'harga' => 100000],
-            ['nama' => 'Kapasitor', 'harga' => 50000],
-            ['nama' => 'Bracket AC', 'harga' => 75000],
-            ['nama' => 'Material Umum', 'harga' => 15000],
+            ['nama' => 'Pipa AC'],
+            ['nama' => 'Freon'],
+            ['nama' => 'Kabel'],
+            ['nama' => 'Sparepart'],
+            ['nama' => 'Kapasitor'],
+            ['nama' => 'Bracket AC'],
+            ['nama' => 'Material Umum'],
         ];
 
         foreach ($kategori as $k) {
             KategoriKomponen::updateOrCreate(
-                ['nama' => $k['nama']],
-                ['harga' => $k['harga']]
+                ['nama' => $k['nama']]
             );
         }
     }

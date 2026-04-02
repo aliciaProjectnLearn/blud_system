@@ -30,6 +30,19 @@ class ProdukController extends Controller
         return view('adminac.produk.index', compact('produks', 'kategoris', 'search', 'kategori_id'));
     }
 
+    public function storeKategori(Request $request)
+    {
+        $request->validate([
+            'nama' => 'required|string|max:255',
+        ]);
+
+        KategoriKomponen::create([
+            'nama' => $request->nama,
+        ]);
+
+        return redirect()->back()->with('success', 'Kategori Komponen baru berhasil ditambahkan.');
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
