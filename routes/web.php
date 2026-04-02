@@ -182,6 +182,7 @@ Route::middleware(['auth', 'role:Adminkantin'])->prefix('adminkantin')->name('ad
 Route::middleware(['auth', 'role:Adminac'])->prefix('adminac')->name('adminac.')->group(function () {
     Route::get('/dashboard', [AdminAcDashboardController::class, 'index'])->name('dashboard');
     Route::post('kategori', [AdminAcLayananController::class, 'storeKategori'])->name('kategori.store');
+    Route::post('kategori-komponen', [\App\Http\Controllers\AdminAc\ProdukController::class, 'storeKategori'])->name('kategori_komponen.store');
     Route::resource('layanan', AdminAcLayananController::class);
     Route::resource('produk', \App\Http\Controllers\AdminAc\ProdukController::class)->except(['create', 'show', 'edit']);
     Route::patch('produk/{produk}/stok', [\App\Http\Controllers\AdminAc\ProdukController::class, 'updateStok'])->name('produk.updateStok');

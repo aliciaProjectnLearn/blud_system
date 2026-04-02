@@ -4,9 +4,14 @@
 <div class="container-fluid">
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">Manajemen Produk / Material AC</h1>
-        <button class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" data-toggle="modal" data-target="#tambahModal">
-            <i class="fas fa-plus fa-sm text-white-50"></i> Tambah Produk
-        </button>
+        <div>
+            <button class="d-none d-sm-inline-block btn btn-sm btn-success shadow-sm mr-2" data-toggle="modal" data-target="#tambahKategoriModal">
+                <i class="fas fa-plus fa-sm text-white-50"></i> Tambah Kategori
+            </button>
+            <button class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" data-toggle="modal" data-target="#tambahModal">
+                <i class="fas fa-plus fa-sm text-white-50"></i> Tambah Produk
+            </button>
+        </div>
     </div>
 
     @if(session('success'))
@@ -73,7 +78,8 @@
                                 @endif
                             </td>
                             <td class="text-center">
-                                <button class="btn btn-sm btn-info mb-1" data-toggle="modal" data-target="#editModal{{ $produk->id }}">
+                       
+                            <button class="btn btn-sm btn-info mb-1" data-toggle="modal" data-target="#editModal{{ $produk->id }}">
                                     <i class="fas fa-edit"></i>
                                 </button>
                                 <form action="{{ route('adminac.produk.destroy', $produk->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus produk ini?');">
@@ -206,6 +212,33 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
                     <button type="submit" class="btn btn-primary">Simpan Produk</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Tambah Kategori -->
+<div class="modal fade" id="tambahKategoriModal" tabindex="-1" role="dialog" aria-labelledby="tambahKategoriModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <form action="{{ route('adminac.kategori_komponen.store') }}" method="POST">
+                @csrf
+                <div class="modal-header">
+                    <h5 class="modal-title" id="tambahKategoriModalLabel">Tambah Kategori Komponen Baru</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Nama Kategori</label>
+                        <input type="text" name="nama" class="form-control" placeholder="Contoh: Sensor, Kompresor..." required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-success">Simpan Kategori</button>
                 </div>
             </form>
         </div>
