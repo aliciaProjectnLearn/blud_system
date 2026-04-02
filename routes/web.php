@@ -166,6 +166,14 @@ Route::middleware(['auth', 'role:Adminkantin'])->prefix('adminkantin')->name('ad
     Route::get('pembayaran/{pembayaran}/kwitansi', [PembayaranController::class, 'downloadKwitansi'])
         ->name('pembayaran.kwitansi');
 
+    // Laporan Transaksi Kantin/Ruko
+    Route::get('laporan', [\App\Http\Controllers\AdminKantin\LaporanController::class, 'index'])
+        ->name('laporan.index');
+    Route::get('laporan/export-pdf', [\App\Http\Controllers\AdminKantin\LaporanController::class, 'exportPdf'])
+        ->name('laporan.export.pdf');
+    Route::get('laporan/export-excel', [\App\Http\Controllers\AdminKantin\LaporanController::class, 'exportExcel'])
+        ->name('laporan.export.excel');
+
 });
 
 
