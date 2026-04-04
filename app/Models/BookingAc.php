@@ -39,4 +39,9 @@ class BookingAc extends Model
     {
         return $this->belongsTo(User::class, 'teknisi_id');
     }
+
+    public function detailServis()
+    {
+        return $this->hasMany(DetailServis::class, 'booking_id');
+    }
 }

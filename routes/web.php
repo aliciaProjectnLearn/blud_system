@@ -201,3 +201,10 @@ Route::middleware(['auth', 'role:Adminac'])->prefix('adminac')->name('adminac.')
     Route::patch('booking/{id}/selesai', [AdminAcBookingController::class, 'selesai'])->name('booking.selesai');
     Route::get('booking-teknisi-tersedia', [AdminAcBookingController::class, 'teknisiTersedia'])->name('booking.teknisi_tersedia');
 });
+
+// ── Teknisi AC ───────────────────────
+Route::middleware(['auth', 'role:Teknisi'])->prefix('teknisi')->name('teknisi.')->group(function () {
+    Route::get('/dashboard', [\App\Http\Controllers\TeknisiAc\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/pekerjaan/{id}', [\App\Http\Controllers\TeknisiAc\DashboardController::class, 'show'])->name('pekerjaan.show');
+    Route::post('/pekerjaan/{id}/selesai', [\App\Http\Controllers\TeknisiAc\DashboardController::class, 'selesaikanPekerjaan'])->name('pekerjaan.selesai');
+});
