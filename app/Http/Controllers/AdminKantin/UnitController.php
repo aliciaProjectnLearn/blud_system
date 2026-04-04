@@ -113,6 +113,7 @@ class UnitController extends Controller
         $validated = $request->validate([
             'kode_unit'    => 'required|string|max:10|unique:ruko,kode_unit',
             'kategori_id'  => 'required|exists:kategori,id',
+            'harga'        => 'required|numeric|min:0',
             'status_unit'  => 'required|in:terisi,kosong',
             'dokumen'      => 'nullable|array|max:10',
             'dokumen.*'    => 'file|mimes:jpg,jpeg,png,pdf|max:5120',
@@ -126,6 +127,7 @@ class UnitController extends Controller
             $ruko = Ruko::create([
                 'kode_unit'   => $validated['kode_unit'],
                 'kategori_id' => $validated['kategori_id'],
+                'harga'       => $validated['harga'],
                 'status_unit' => $validated['status_unit'],
             ]);
 
@@ -183,6 +185,7 @@ class UnitController extends Controller
     {
         $validated = $request->validate([
             'kategori_id'       => 'required|exists:kategori,id',
+            'harga'             => 'required|numeric|min:0',
             'status_unit'       => 'required|in:terisi,kosong',
             'dokumen'           => 'nullable|array|max:10',
             'dokumen.*'         => 'file|mimes:jpg,jpeg,png,pdf|max:5120',
@@ -196,6 +199,7 @@ class UnitController extends Controller
         try {
             $unit->update([
                 'kategori_id' => $validated['kategori_id'],
+                'harga'       => $validated['harga'],
                 'status_unit' => $validated['status_unit'],
             ]);
 

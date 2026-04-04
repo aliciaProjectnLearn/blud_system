@@ -8,7 +8,7 @@ class Kategori extends Model
 {
     protected $table = 'kategori';
 
-    protected $fillable = ['nama', 'harga', 'tipe'];
+    protected $fillable = ['nama', 'tipe'];
 
     public function rukos()
     {

@@ -19,6 +19,7 @@ use App\Http\Controllers\AdminKantin\UnitController as AdminKantinUnitController
 use App\Http\Controllers\AdminKantin\PembayaranController;
 use App\Http\Controllers\AdminAc\DashboardController as AdminAcDashboardController;
 use App\Http\Controllers\AdminAc\LayananController as AdminAcLayananController;
+use App\Http\Controllers\AdminAc\PelangganController as AdminAcPelangganController;
 
 
 Route::middleware(['auth', 'role:Superadmin'])->group(function () {
@@ -186,4 +187,8 @@ Route::middleware(['auth', 'role:Adminac'])->prefix('adminac')->name('adminac.')
     Route::resource('layanan', AdminAcLayananController::class);
     Route::resource('produk', \App\Http\Controllers\AdminAc\ProdukController::class)->except(['create', 'show', 'edit']);
     Route::patch('produk/{produk}/stok', [\App\Http\Controllers\AdminAc\ProdukController::class, 'updateStok'])->name('produk.updateStok');
+
+    // Manajemen Pelanggan
+    Route::get('pelanggan', [AdminAcPelangganController::class, 'index'])->name('pelanggan.index');
+    Route::get('pelanggan/{id}', [AdminAcPelangganController::class, 'show'])->name('pelanggan.show');
 });

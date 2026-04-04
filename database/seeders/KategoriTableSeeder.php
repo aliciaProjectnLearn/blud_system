@@ -12,19 +12,19 @@ class KategoriTableSeeder extends Seeder
         DB::table('kategori')->insert([
             [
                 'nama' => 'Kantin Besar',
-                'harga' => 9000000,
+                'tipe' => 'kantin',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
                 'nama' => 'Kantin Container',
-                'harga' => 6000000,
+                'tipe' => 'kantin',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
                 'nama' => 'Service AC',
-                'harga' => 2000000,
+                'tipe' => 'ac',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
