@@ -60,4 +60,9 @@ class User extends Authenticatable
             ->where('jenis_pembayaran', 'reguler')
             ->exists();
     }
+
+    public function bookingAc()
+    {
+        return $this->hasMany(BookingAc::class, 'user_id');
+    }
 }

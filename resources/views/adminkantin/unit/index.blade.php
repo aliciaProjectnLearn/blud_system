@@ -146,11 +146,11 @@
 
                                 {{-- Harga --}}
                                 <td class="text-right">
-                                    @if ($unit->kategori && $unit->kategori->harga)
+                                    @if ($unit->harga)
                                         <span class="font-weight-bold">
-                                            Rp {{ number_format($unit->kategori->harga, 0, ',', '.') }}
+                                            Rp {{ number_format($unit->harga, 0, ',', '.') }}
                                         </span>
-                                        <br><small class="text-muted">/bulan</small>
+                                        <br><small class="text-muted">/tahun</small>
                                     @else
                                         <span class="text-muted">-</span>
                                     @endif

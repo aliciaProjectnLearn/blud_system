@@ -81,13 +81,34 @@
                                         <option value="{{ $kat->id }}"
                                             {{ old('kategori_id') == $kat->id ? 'selected' : '' }}>
                                             {{ $kat->nama }}
-                                            @if($kat->harga)
-                                                — Rp {{ number_format($kat->harga, 0, ',', '.') }}/bln
-                                            @endif
                                         </option>
                                     @endforeach
                                 </select>
                                 @error('kategori_id')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                        
+                        {{-- ── Harga Sewa ── --}}
+                        <div class="form-group row">
+                            <label for="harga" class="col-sm-3 col-form-label font-weight-bold">
+                                Harga Sewa pertahun <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-9">
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">Rp</span>
+                                    </div>
+                                    <input type="number"
+                                           name="harga"
+                                           id="harga"
+                                           class="form-control @error('harga') is-invalid @enderror"
+                                           value="{{ old('harga', 0) }}"
+                                           placeholder="Masukkan nominal harga setahun">
+                                </div>
+                                <small class="text-muted">Gunakan angka saja, tanpa titik atau koma.</small>
+                                @error('harga')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>

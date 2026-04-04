@@ -8,7 +8,7 @@ class Ruko extends Model
 {
     protected $table = 'ruko';
 
-    protected $fillable = ['kode_unit', 'kategori_id', 'status_unit'];
+    protected $fillable = ['kode_unit', 'kategori_id', 'harga', 'status_unit'];
 
     public function kategori()
     {

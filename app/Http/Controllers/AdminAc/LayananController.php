@@ -37,7 +37,6 @@ class LayananController extends Controller
 
         Kategori::create([
             'nama' => $request->nama,
-            'harga' => 0,
             'tipe' => 'ac',
         ]);
 
