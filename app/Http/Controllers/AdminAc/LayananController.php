@@ -44,6 +44,12 @@ class LayananController extends Controller
         return redirect()->back()->with('success', 'Kategori baru berhasil ditambahkan.');
     }
 
+    public function create()
+    {
+        $kategoris = Kategori::where('tipe', 'ac')->get();
+        return view('adminac.layanan.create', compact('kategoris'));
+    }
+
     public function store(Request $request)
     {
         $request->validate([
@@ -55,7 +61,14 @@ class LayananController extends Controller
 
         LayananAc::create($request->all());
 
-        return redirect()->back()->with('success', 'Layanan berhasil ditambahkan.');
+        return redirect()->route('adminac.layanan.index')->with('success', 'Layanan berhasil ditambahkan.');
+    }
+
+    public function edit($id)
+    {
+        $layanan = LayananAc::findOrFail($id);
+        $kategoris = Kategori::where('tipe', 'ac')->get();
+        return view('adminac.layanan.edit', compact('layanan', 'kategoris'));
     }
 
     public function update(Request $request, $id)
@@ -70,7 +83,7 @@ class LayananController extends Controller
         $layanan = LayananAc::findOrFail($id);
         $layanan->update($request->all());
 
-        return redirect()->back()->with('success', 'Layanan berhasil diperbarui.');
+        return redirect()->route('adminac.layanan.index')->with('success', 'Layanan berhasil diperbarui.');
     }
 
     public function destroy($id)

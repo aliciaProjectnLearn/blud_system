@@ -19,6 +19,7 @@ use App\Http\Controllers\AdminKantin\UnitController as AdminKantinUnitController
 use App\Http\Controllers\AdminKantin\PembayaranController;
 use App\Http\Controllers\AdminAc\DashboardController as AdminAcDashboardController;
 use App\Http\Controllers\AdminAc\LayananController as AdminAcLayananController;
+use App\Http\Controllers\AdminAc\TeknisiController as AdminAcTeknisiController;
 
 
 Route::middleware(['auth', 'role:Superadmin'])->group(function () {
@@ -184,6 +185,8 @@ Route::middleware(['auth', 'role:Adminac'])->prefix('adminac')->name('adminac.')
     Route::post('kategori', [AdminAcLayananController::class, 'storeKategori'])->name('kategori.store');
     Route::post('kategori-komponen', [\App\Http\Controllers\AdminAc\ProdukController::class, 'storeKategori'])->name('kategori_komponen.store');
     Route::resource('layanan', AdminAcLayananController::class);
+    Route::resource('teknisi', AdminAcTeknisiController::class);
+    Route::get('teknisi/{id}/cek-ketersediaan', [AdminAcTeknisiController::class, 'cekKetersediaan'])->name('teknisi.cek_ketersediaan');
     Route::resource('produk', \App\Http\Controllers\AdminAc\ProdukController::class)->except(['create', 'show', 'edit']);
     Route::patch('produk/{produk}/stok', [\App\Http\Controllers\AdminAc\ProdukController::class, 'updateStok'])->name('produk.updateStok');
 });

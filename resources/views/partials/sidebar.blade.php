@@ -234,6 +234,12 @@
                 <span>Manajemen Produk</span>
             </a>
         </li>
+        <li class="nav-item {{ request()->routeIs('adminac.teknisi.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('adminac.teknisi.index') }}">
+                <i class="fas fa-fw fa-user-cog"></i>
+                <span>Manajemen Teknisi</span>
+            </a>
+        </li>
     @endif
 
     <hr class="sidebar-divider d-none d-md-block">
