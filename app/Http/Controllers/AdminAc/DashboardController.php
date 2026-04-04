@@ -25,6 +25,20 @@ class DashboardController extends Controller
             ->whereDate('tgl_bayar', $today)
             ->count();
 
+        // ── Total Layanan AC ────────────────────────────────
+        $totalLayanan = DB::table('layanan_ac')->count();
+
+        // ── Total Produk/Alat ───────────────────────────────
+        $totalProduk  = DB::table('produks')->count();
+        $totalStok    = DB::table('produks')->sum('stok');
+
+        // ── Total Teknisi ───────────────────────────────────
+        $totalTeknisi = DB::table('users')
+            ->join('roles_users', 'users.id', '=', 'roles_users.user_id')
+            ->join('roles', 'roles.id', '=', 'roles_users.role_id')
+            ->where('roles.nama', 'Teknisi')
+            ->count();
+
         // ── Status Pembayaran ───────────────────────────────
         $statusMenunggu   = DB::table('pembayaran_ac')->where('status', 'menunggu')->count();
         $statusVerifikasi = DB::table('pembayaran_ac')->where('status', 'verifikasi')->count();
@@ -96,7 +110,11 @@ class DashboardController extends Controller
             'transaksiTerbaru',
             'jadwalHariIni',
             'labelBulan',
-            'dataPendapatan'
+            'dataPendapatan',
+            'totalLayanan',
+            'totalProduk',
+            'totalStok',
+            'totalTeknisi'
         ));
     }
 }

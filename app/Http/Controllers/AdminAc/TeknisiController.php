@@ -17,7 +17,7 @@ class TeknisiController extends Controller
         $filterStatus = $request->status;
 
         $teknisis = User::whereHas('roles', function ($q) {
-            $q->where('nama', 'Teknisiac');
+            $q->where('nama', 'Teknisi');
         })
         ->when($search, function ($query) use ($search) {
             $query->where(function ($q) use ($search) {
@@ -75,7 +75,7 @@ class TeknisiController extends Controller
             'password'     => Hash::make($request->password),
         ]);
 
-        $role = Role::where('nama', 'Teknisiac')->first();
+        $role = Role::where('nama', 'Teknisi')->first();
         if ($role) {
             $user->roles()->attach($role->id);
         }
@@ -87,7 +87,7 @@ class TeknisiController extends Controller
     public function edit($id)
     {
         $teknisi = User::whereHas('roles', function ($q) {
-            $q->where('nama', 'Teknisiac');
+            $q->where('nama', 'Teknisi');
         })->findOrFail($id);
 
         return view('adminac.teknisi.edit', compact('teknisi'));
@@ -96,7 +96,7 @@ class TeknisiController extends Controller
     public function update(Request $request, $id)
     {
         $teknisi = User::whereHas('roles', function ($q) {
-            $q->where('nama', 'Teknisiac');
+            $q->where('nama', 'Teknisi');
         })->findOrFail($id);
 
         $request->validate([
@@ -129,7 +129,7 @@ class TeknisiController extends Controller
     public function destroy($id)
     {
         $teknisi = User::whereHas('roles', function ($q) {
-            $q->where('nama', 'Teknisiac');
+            $q->where('nama', 'Teknisi');
         })->findOrFail($id);
 
         // Cek apakah teknisi sedang punya booking aktif
