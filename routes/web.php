@@ -22,6 +22,7 @@ use App\Http\Controllers\AdminAc\LayananController as AdminAcLayananController;
 use App\Http\Controllers\AdminAc\TeknisiController as AdminAcTeknisiController;
 use App\Http\Controllers\AdminAc\PelangganController as AdminAcPelangganController;
 use App\Http\Controllers\AdminAc\BookingController as AdminAcBookingController;
+use App\Http\Controllers\AdminAc\TransaksiController as AdminAcTransaksiController;
 
 
 
@@ -200,4 +201,9 @@ Route::middleware(['auth', 'role:Adminac'])->prefix('adminac')->name('adminac.')
     Route::post('booking/{id}/approve', [AdminAcBookingController::class, 'approve'])->name('booking.approve');
     Route::patch('booking/{id}/selesai', [AdminAcBookingController::class, 'selesai'])->name('booking.selesai');
     Route::get('booking-teknisi-tersedia', [AdminAcBookingController::class, 'teknisiTersedia'])->name('booking.teknisi_tersedia');
+
+    // Manajemen Transaksi
+    Route::get('transaksi/histori', [AdminAcTransaksiController::class, 'history'])->name('transaksi.history');
+    Route::resource('transaksi', AdminAcTransaksiController::class);
+    Route::patch('transaksi/{id}/status', [AdminAcTransaksiController::class, 'updateStatus'])->name('transaksi.update_status');
 });

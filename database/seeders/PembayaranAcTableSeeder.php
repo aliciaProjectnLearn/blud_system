@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use App\Models\PembayaranAc;
 
 class PembayaranAcTableSeeder extends Seeder
 {
@@ -11,40 +12,34 @@ class PembayaranAcTableSeeder extends Seeder
     {
         DB::table('pembayaran_ac')->insert([
             [
-                'booking_id'          => 1, // dari booking_ac id 1
-                'layanan_ac_id'       => 1,
-                'tgl_servis'          => now()->toDateString(),
-                'total_harga_jasa'    => 50000,
-                'total_biaya'         => 100000,
+                'booking_id'          => 1,
+                'invoice_no'          => 'INV-20260404-0001',
+                'total_harga'         => 300000,
                 'tgl_bayar'           => now(),
                 'tipe_pembayaran_id'  => 1,
-                'status'              => 'verifikasi',
+                'status'              => 'dibayar',
                 'bukti'               => 'bukti_ac1.jpg',
                 'created_at'          => now(),
                 'updated_at'          => now(),
             ],
             [
-                'booking_id'          => 2, // dari booking_ac id 2
-                'layanan_ac_id'       => 2,
-                'tgl_servis'          => now()->addDay()->toDateString(),
-                'total_harga_jasa'    => 75000,
-                'total_biaya'         => 150000,
+                'booking_id'          => 2,
+                'invoice_no'          => 'INV-20260404-0002',
+                'total_harga'         => 350000,
                 'tgl_bayar'           => null,
                 'tipe_pembayaran_id'  => 2,
-                'status'              => 'menunggu',
+                'status'              => 'pending',
                 'bukti'               => null,
                 'created_at'          => now(),
                 'updated_at'          => now(),
             ],
             [
-                'booking_id'          => 3, // dari booking_ac id 3
-                'layanan_ac_id'       => 1,
-                'tgl_servis'          => now()->subDay()->toDateString(),
-                'total_harga_jasa'    => 50000,
-                'total_biaya'         => 100000,
-                'tgl_bayar'           => now()->subDay(),
+                'booking_id'          => 3,
+                'invoice_no'          => 'INV-20260404-0003',
+                'total_harga'         => 100000,
+                'tgl_bayar'           => now(),
                 'tipe_pembayaran_id'  => 1,
-                'status'              => 'verifikasi', // diubah dari 'dibatalkan'
+                'status'              => 'dibayar',
                 'bukti'               => 'bukti_ac3.jpg',
                 'created_at'          => now(),
                 'updated_at'          => now(),
