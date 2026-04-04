@@ -176,7 +176,7 @@
                     <div class="col-sm-5 offset-sm-1 text-center">
                         <div class="mb-5 h-50"></div>
                         <p class="mb-0 text-dark font-weight-bold">( _______________________ )</p>
-                        <small class="text-muted font-weight-bold text-uppercase">Tanda Tangan Adm. Kantin</small>
+                        <small class="text-muted font-weight-bold text-uppercase">Tanda Tangan Adm. AC Service</small>
                     </div>
                 </div>
             </div>

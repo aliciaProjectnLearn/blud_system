@@ -15,10 +15,10 @@ class DashboardController extends Controller
         // ── Total Transaksi AC ──────────────────────────────
         $totalTransaksi = DB::table('pembayaran_ac')->count();
 
-        // ── Total Pendapatan AC (status verifikasi) ─────────
+        // ── Total Pendapatan AC (status dibayar) ─────────
         $totalPendapatan = DB::table('pembayaran_ac')
-            ->where('status', 'verifikasi')
-            ->sum('total_biaya');
+            ->where('status', 'dibayar')
+            ->sum('total_harga');
 
         // ── Transaksi Hari Ini ──────────────────────────────
         $transaksiHariIni = DB::table('pembayaran_ac')
@@ -40,8 +40,8 @@ class DashboardController extends Controller
             ->count();
 
         // ── Status Pembayaran ───────────────────────────────
-        $statusMenunggu   = DB::table('pembayaran_ac')->where('status', 'menunggu')->count();
-        $statusVerifikasi = DB::table('pembayaran_ac')->where('status', 'verifikasi')->count();
+        $statusMenunggu   = DB::table('pembayaran_ac')->where('status', 'pending')->count();
+        $statusVerifikasi = DB::table('pembayaran_ac')->where('status', 'dibayar')->count();
 
         // ── Status Booking AC ───────────────────────────────
         $bookingMenunggu  = DB::table('booking_ac')->where('status', 'menunggu')->count();
@@ -52,11 +52,11 @@ class DashboardController extends Controller
         $transaksiTerbaru = DB::table('pembayaran_ac')
             ->join('booking_ac', 'pembayaran_ac.booking_id', '=', 'booking_ac.id')
             ->join('users', 'booking_ac.user_id', '=', 'users.id')
-            ->join('layanan_ac', 'pembayaran_ac.layanan_ac_id', '=', 'layanan_ac.id')
+            ->join('layanan_ac', 'booking_ac.layanan_id', '=', 'layanan_ac.id')
             ->select(
                 'users.name as nama_user',
                 'layanan_ac.nama as nama_layanan',
-                'pembayaran_ac.total_biaya',
+                'pembayaran_ac.total_harga',
                 'pembayaran_ac.status',
                 'pembayaran_ac.tgl_bayar'
             )
@@ -82,11 +82,11 @@ class DashboardController extends Controller
 
         // ── Pendapatan Per Bulan ────────────────────────────
         $pendapatanPerBulan = DB::table('pembayaran_ac')
-            ->where('status', 'verifikasi')
+            ->where('status', 'dibayar')
             ->whereYear('tgl_bayar', $today->year)
             ->select(
                 DB::raw('MONTH(tgl_bayar) as bulan'),
-                DB::raw('SUM(total_biaya) as total')
+                DB::raw('SUM(total_harga) as total')
             )
             ->groupBy(DB::raw('MONTH(tgl_bayar)'))
             ->orderBy('bulan')
