@@ -12,8 +12,9 @@ class BookingAcTableSeeder extends Seeder
             [
                 'booking_id'      => 4,
                 'user_id'         => 6,
+                'teknisi_id'      => 9,
                 'layanan_id'      => 1,
-                'tgl_kunjungan'   => now()->addDays(1)->toDateString(),
+                'tgl_kunjungan'   => now()->toDateString(),
                 'alamat'          => 'Jl. Merdeka No.1',
                 'merek_ac'        => 'Panasonic',
                 'detail_keluhan'  => 'AC tidak dingin',
@@ -22,6 +23,7 @@ class BookingAcTableSeeder extends Seeder
             [
                 'booking_id'      => 5,
                 'user_id'         => 6,
+                'teknisi_id'      => 10,
                 'layanan_id'      => 2,
                 'tgl_kunjungan'   => now()->addDays(2)->toDateString(),
                 'alamat'          => 'Jl. Merdeka No.2',
@@ -32,6 +34,7 @@ class BookingAcTableSeeder extends Seeder
             [
                 'booking_id'      => 6,
                 'user_id'         => 6,
+                'teknisi_id'      => null,
                 'layanan_id'      => 3,
                 'tgl_kunjungan'   => now()->addDays(3)->toDateString(),
                 'alamat'          => 'Jl. Merdeka No.3',

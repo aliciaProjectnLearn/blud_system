@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('alamat');
             $table->string('merek_ac')->nullable();
             $table->string('detail_keluhan')->nullable();
-            $table->enum('status', ['menunggu', 'proses', 'selesai', 'pending'])->default('pending');
+            $table->enum('status', ['menunggu', 'proses', 'selesai'])->default('menunggu');
             $table->timestamps();
         });
     }

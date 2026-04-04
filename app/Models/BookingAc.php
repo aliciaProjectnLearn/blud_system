@@ -11,6 +11,7 @@ class BookingAc extends Model
     protected $fillable = [
         'booking_id',
         'user_id',
+        'teknisi_id',
         'layanan_id',
         'tgl_kunjungan',
         'alamat',
@@ -32,5 +33,10 @@ class BookingAc extends Model
     public function layanan()
     {
         return $this->belongsTo(LayananAc::class, 'layanan_id');
+    }
+
+    public function teknisi()
+    {
+        return $this->belongsTo(User::class, 'teknisi_id');
     }
 }
