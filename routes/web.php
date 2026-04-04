@@ -21,6 +21,8 @@ use App\Http\Controllers\AdminAc\DashboardController as AdminAcDashboardControll
 use App\Http\Controllers\AdminAc\LayananController as AdminAcLayananController;
 use App\Http\Controllers\AdminAc\TeknisiController as AdminAcTeknisiController;
 use App\Http\Controllers\AdminAc\PelangganController as AdminAcPelangganController;
+use App\Http\Controllers\AdminAc\BookingController as AdminAcBookingController;
+
 
 
 Route::middleware(['auth', 'role:Superadmin'])->group(function () {
@@ -41,7 +43,7 @@ Route::get('/register', [AuthController::class, 'showRegister'])->name('register
 Route::post('/register', [AuthController::class, 'register']);
 
 // ── Protected Routes (perlu login) ───────────────────────
-Route::middleware(['auth','role:Superadmin'])->group(function () {
+Route::middleware(['auth', 'role:Superadmin'])->group(function () {
 
     // Dashboard
     Route::get('/dashboard', [App\Http\Controllers\SuperAdmin\DashboardController::class, 'index'])->name('dashboard');
@@ -56,7 +58,6 @@ Route::middleware(['auth','role:Superadmin'])->group(function () {
     Route::get('/pelanggan', [UserController::class, 'indexPelanggan'])->name('users.pelanggan');
 
     Route::get('/transaksi', [TransaksiController::class, 'index'])->name('transaksi.index');
-
 });
 
 // ── Admin Futsal ───────────────────────
@@ -176,7 +177,6 @@ Route::middleware(['auth', 'role:Adminkantin'])->prefix('adminkantin')->name('ad
         ->name('laporan.export.pdf');
     Route::get('laporan/export-excel', [\App\Http\Controllers\AdminKantin\LaporanController::class, 'exportExcel'])
         ->name('laporan.export.excel');
-
 });
 
 
@@ -194,4 +194,10 @@ Route::middleware(['auth', 'role:Adminac'])->prefix('adminac')->name('adminac.')
     // Manajemen Pelanggan
     Route::get('pelanggan', [AdminAcPelangganController::class, 'index'])->name('pelanggan.index');
     Route::get('pelanggan/{id}', [AdminAcPelangganController::class, 'show'])->name('pelanggan.show');
+
+    // Manajemen Booking
+    Route::get('booking', [AdminAcBookingController::class, 'index'])->name('booking.index');
+    Route::post('booking/{id}/approve', [AdminAcBookingController::class, 'approve'])->name('booking.approve');
+    Route::patch('booking/{id}/selesai', [AdminAcBookingController::class, 'selesai'])->name('booking.selesai');
+    Route::get('booking-teknisi-tersedia', [AdminAcBookingController::class, 'teknisiTersedia'])->name('booking.teknisi_tersedia');
 });

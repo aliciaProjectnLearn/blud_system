@@ -186,6 +186,7 @@
                 <span>Manajemen Unit</span>
             </a>
         </li>
+
         {{-- Manajemen Penyewa --}}
         <li class="nav-item {{ request()->routeIs('adminkantin.penyewa.*') ? 'active' : '' }}">
             <a class="nav-link" href="{{ route('adminkantin.penyewa.index') }}">
@@ -193,6 +194,7 @@
                 <span>Manajemen Penyewa</span>
             </a>
         </li>
+
         {{-- Manajemen Penyewaan --}}
         <li class="nav-item {{ request()->routeIs('adminkantin.penyewaan.*') ? 'active' : '' }}">
             <a class="nav-link" href="{{ route('adminkantin.penyewaan.index') }}">
@@ -200,6 +202,7 @@
                 <span>Manajemen Penyewaan</span>
             </a>
         </li>
+
         {{-- Manajemen Pembyaran --}}
         <li class="nav-item {{ request()->routeIs('adminkantin.pembayaran.*') ? 'active' : '' }}">
             <a class="nav-link" href="{{ route('adminkantin.pembayaran.index') }}">
@@ -207,6 +210,7 @@
                 <span>Manajemen Pembayaran</span>
             </a>
         </li>
+
         {{-- Laporan Transaksi --}}
         <li class="nav-item {{ request()->routeIs('adminkantin.laporan.*') ? 'active' : '' }}">
             <a class="nav-link" href="{{ route('adminkantin.laporan.index') }}">
@@ -222,24 +226,39 @@
     @if (auth()->user()->hasRole('Adminac'))
         <div class="sidebar-heading">Menu Utama</div>
 
+        {{-- Manajemen Layanan  --}}
         <li class="nav-item {{ request()->routeIs('adminac.layanan.*') ? 'active' : '' }}">
             <a class="nav-link" href="{{ route('adminac.layanan.index') }}">
                 <i class="fas fa-fw fa-wrench"></i>
                 <span>Manajemen Layanan</span>
             </a>
         </li>
+
+        {{-- Manajemen Produk --}}
         <li class="nav-item {{ request()->routeIs('adminac.produk.*') ? 'active' : '' }}">
             <a class="nav-link" href="{{ route('adminac.produk.index') }}">
                 <i class="fas fa-fw fa-box"></i>
                 <span>Manajemen Produk</span>
             </a>
         </li>
+
+        {{-- Laporan Transaksi --}}
         <li class="nav-item {{ request()->routeIs('adminac.teknisi.*') ? 'active' : '' }}">
             <a class="nav-link" href="{{ route('adminac.teknisi.index') }}">
                 <i class="fas fa-fw fa-user-cog"></i>
                 <span>Manajemen Teknisi</span>
             </a>
         </li>
+
+        {{-- Manajemen Booking --}}
+        <li class="nav-item {{ request()->routeIs('adminac.booking.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('adminac.booking.index') }}">
+                <i class="fas fa-fw fa-calendar-check"></i>
+                <span>Manajemen Booking</span>
+            </a>
+        </li>
+        
+        {{-- MAnajemen Pelanggan --}}
         <li class="nav-item {{ request()->routeIs('adminac.pelanggan.*') ? 'active' : '' }}">
             <a class="nav-link" href="{{ route('adminac.pelanggan.index') }}">
                 <i class="fas fa-fw fa-users"></i>
