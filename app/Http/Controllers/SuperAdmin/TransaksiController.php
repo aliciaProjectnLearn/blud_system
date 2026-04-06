@@ -21,7 +21,7 @@ class TransaksiController extends Controller
             ->select(
             'id',
             DB::raw("'AC' as sistem"),
-            'total_biaya as total',
+            'total_harga as total',
             'status',
             'tgl_bayar',
             'created_at'

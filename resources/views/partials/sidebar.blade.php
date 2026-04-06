@@ -252,7 +252,7 @@
             </a>
         </li>
 
-        {{-- Laporan Transaksi --}}
+        {{-- Manajemen Teknisi --}}
         <li class="nav-item {{ request()->routeIs('adminac.teknisi.*') ? 'active' : '' }}">
             <a class="nav-link" href="{{ route('adminac.teknisi.index') }}">
                 <i class="fas fa-fw fa-user-cog"></i>
@@ -267,8 +267,8 @@
                 <span>Manajemen Booking</span>
             </a>
         </li>
-        
-        {{-- MAnajemen Pelanggan --}}
+
+        {{-- Manajemen Pelanggan --}}
         <li class="nav-item {{ request()->routeIs('adminac.pelanggan.*') ? 'active' : '' }}">
             <a class="nav-link" href="{{ route('adminac.pelanggan.index') }}">
                 <i class="fas fa-fw fa-users"></i>
@@ -287,6 +287,14 @@
             <a class="nav-link" href="{{ route('teknisi.dashboard') }}">
                 <i class="fas fa-fw fa-tools"></i>
                 <span>Detail Servis</span>
+            </a>
+        </li>
+
+        {{-- Manajemen Transaksi --}}
+        <li class="nav-item {{ request()->routeIs('adminac.transaksi.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('adminac.transaksi.index') }}">
+                <i class="fas fa-fw fa-file-invoice-dollar"></i>
+                <span>Manajemen Transaksi</span>
             </a>
         </li>
     @endif

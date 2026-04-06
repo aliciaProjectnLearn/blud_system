@@ -190,7 +190,7 @@
                     </div>
 
                     <h4 class="small font-weight-bold">
-                        Pembayaran Verifikasi <span class="float-right">{{ $statusVerifikasi }}</span>
+                        Pembayaran Berhasil <span class="float-right">{{ $statusVerifikasi }}</span>
                     </h4>
                     <div class="progress mb-4">
                         <div class="progress-bar bg-primary" role="progressbar"
@@ -229,12 +229,14 @@
                                         <tr>
                                             <td>{{ $t->nama_user }}</td>
                                             <td>{{ $t->nama_layanan }}</td>
-                                            <td>Rp {{ number_format($t->total_biaya, 0, ',', '.') }}</td>
+                                            <td>Rp {{ number_format($t->total_harga, 0, ',', '.') }}</td>
                                             <td>
-                                                @if ($t->status === 'verifikasi')
+                                                @if ($t->status === 'dibayar')
                                                     <span class="badge badge-success">{{ $t->status }}</span>
-                                                @else
+                                                @elseif($t->status === 'pending')
                                                     <span class="badge badge-warning">{{ $t->status }}</span>
+                                                @else
+                                                    <span class="badge badge-danger">{{ $t->status }}</span>
                                                 @endif
                                             </td>
                                             <td>{{ $t->tgl_bayar ?? '-' }}</td>

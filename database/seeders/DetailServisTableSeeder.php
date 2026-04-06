@@ -2,37 +2,49 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
+use App\Models\DetailServis;
 
 class DetailServisTableSeeder extends Seeder
 {
     public function run()
     {
-        DB::table('detail_servis')->insert([
+        $details = [
             [
-                'booking_id'     => 1,
-                'item'      => 'Cek AC',
-                'quantity'  => '2.00',
-                'catatan'        => 'Freon ditambah 0.5 kg',
-                'created_at' => now(),
-                'updated_at' => now(),
+                'booking_id' => 1,
+                'item'       => 'Cuci AC 0.5 - 1 PK',
+                'satuan'     => 'Unit',
+                'quantity'   => 2,
+                'harga'      => 75000,
+                'catatan'    => 'Kondisi awal sangat kotor',
             ],
             [
-                'booking_id'     => 2,
-                'item'      => 'Perbaikan',
-                'quantity'  => '1.00',
-                'catatan'        => 'Freon ditambah 0.5 kg',
-                'created_at' => now(),
-                'updated_at' => now(),
+                'booking_id' => 1,
+                'item'       => 'Isi Freon R32',
+                'satuan'     => 'Psi',
+                'quantity'   => 1,
+                'harga'      => 150000,
+                'catatan'    => 'Pengisian full',
             ],
             [
-                'booking_id'     => 3,
-                'item'      => 'Servis rutin',
-                'quantity'  => '2.00',
-                'catatan'        => 'Bersih-bersih',
-                'created_at' => now(),
-                'updated_at' => now(),
+                'booking_id' => 2,
+                'item'       => 'Perbaikan Modul',
+                'satuan'     => 'Set',
+                'quantity'   => 1,
+                'harga'      => 350000,
+                'catatan'    => 'Ganti kapasitor',
             ],
-        ]);
+            [
+                'booking_id' => 3,
+                'item'       => 'Cuci AC 1.5 - 2 PK',
+                'satuan'     => 'Unit',
+                'quantity'   => 1,
+                'harga'      => 100000,
+                'catatan'    => 'Servis rutin',
+            ],
+        ];
+
+        foreach ($details as $data) {
+            DetailServis::create($data); // Menggunakan model agar subtotal terhitung di boot method
+        }
     }
 }

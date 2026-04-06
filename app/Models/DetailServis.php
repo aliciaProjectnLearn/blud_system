@@ -13,11 +13,28 @@ class DetailServis extends Model
         'item',
         'satuan',
         'quantity',
-        'catatan'
+        'harga',
+        'subtotal',
+        'catatan',
     ];
 
     public function bookingAc()
     {
         return $this->belongsTo(BookingAc::class, 'booking_id');
+    }
+
+    /**
+     * Boot function to auto-calculate subtotal
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::saving(function ($model) {
+            // Kalkulasi otomatis subtotal jika harga dan quantity ada
+            if ($model->quantity && $model->harga) {
+                $model->subtotal = $model->quantity * $model->harga;
+            }
+        });
     }
 }

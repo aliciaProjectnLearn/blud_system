@@ -20,7 +20,7 @@ public function index()
         ->count();
 
         $transaksiAC = DB::table('pembayaran_ac')
-        ->where('status', 'verifikasi')
+        ->where('status', 'dibayar')
         ->count();
 
     $transaksiFutsal = DB::table('pembayaran_futsal')
@@ -34,8 +34,8 @@ public function index()
     $totalTransaksi = $transaksiAC + $transaksiFutsal + $transaksiRuko;
 
     $pendapatanAC = DB::table('pembayaran_ac')
-        ->where('status','verifikasi')
-        ->sum('total_biaya');
+        ->where('status','dibayar')
+        ->sum('total_harga');
 
     $pendapatanFutsal = DB::table('pembayaran_futsal')
         ->where('status','verifikasi')
@@ -56,11 +56,11 @@ public function index()
     $totalBookingPending = Booking::where('status', 'menunggu')->count();
 
 $transaksiAC = DB::table('pembayaran_ac')
-    ->join('booking', 'pembayaran_ac.booking_id', '=', 'booking.id')
-    ->join('users', 'booking.user_id', '=', 'users.id')
+    ->join('booking_ac', 'pembayaran_ac.booking_id', '=', 'booking_ac.id')
+    ->join('users', 'booking_ac.user_id', '=', 'users.id')
     ->select(
         'users.name as nama_user',
-        'pembayaran_ac.total_biaya as jumlah_bayar',
+        'pembayaran_ac.total_harga as jumlah_bayar',
         'pembayaran_ac.status',
         'pembayaran_ac.tgl_bayar',
         DB::raw("'Cuci AC' as layanan")
@@ -99,8 +99,8 @@ $transaksiTerbaru = DB::query()
     ->get();
 
 $aktivitasAC = DB::table('pembayaran_ac')
-    ->join('booking','pembayaran_ac.booking_id','=','booking.id')
-    ->join('users','booking.user_id','=','users.id')
+    ->join('booking_ac','pembayaran_ac.booking_id','=','booking_ac.id')
+    ->join('users','booking_ac.user_id','=','users.id')
     ->select(
         'users.name as nama',
         'pembayaran_ac.created_at',
