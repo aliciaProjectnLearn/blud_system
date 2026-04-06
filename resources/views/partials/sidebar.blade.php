@@ -15,6 +15,9 @@
         } elseif (auth()->user()->hasRole('Adminkantin')) {
             $brandLabel = 'Admin Kantin';
             $brandRoute = route('adminkantin.dashboard');
+        } elseif (auth()->user()->hasRole('Teknisi')) {
+            $brandLabel = 'Teknisi AC';
+            $brandRoute = route('teknisi.dashboard');
         }
     @endphp
 
@@ -52,6 +55,13 @@
     @elseif(auth()->user()->hasRole('Adminkantin'))
         <li class="nav-item {{ request()->routeIs('adminkantin.dashboard') ? 'active' : '' }}">
             <a class="nav-link" href="{{ route('adminkantin.dashboard') }}">
+                <i class="fas fa-fw fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            </a>
+        </li>
+    @elseif(auth()->user()->hasRole('Teknisi'))
+        <li class="nav-item {{ request()->routeIs('teknisi.dashboard') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('teknisi.dashboard') }}">
                 <i class="fas fa-fw fa-tachometer-alt"></i>
                 <span>Dashboard</span>
             </a>
@@ -263,6 +273,20 @@
             <a class="nav-link" href="{{ route('adminac.pelanggan.index') }}">
                 <i class="fas fa-fw fa-users"></i>
                 <span>Manajemen Pelanggan</span>
+        </li>
+    @endif
+
+    {{-- ================================= --}}
+    {{-- TEKNISI AC --}}
+    {{-- ================================= --}}
+    @if (auth()->user()->hasRole('Teknisi'))
+        <div class="sidebar-heading">Menu Pekerjaan</div>
+
+        {{-- Detail Servis --}}
+        <li class="nav-item {{ request()->routeIs('teknisi.pekerjaan.*') || request()->routeIs('teknisi.dashboard*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('teknisi.dashboard') }}">
+                <i class="fas fa-fw fa-tools"></i>
+                <span>Detail Servis</span>
             </a>
         </li>
 

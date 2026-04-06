@@ -35,20 +35,22 @@ class AuthController extends Controller
         if (Auth::attempt($credentials, $request->remember)) {
             $request->session()->regenerate();
 
-            $role = DB::table('roles_users')
-                ->join('roles', 'roles.id', '=', 'roles_users.role_id')
-                ->where('roles_users.user_id', auth()->id())
-                ->value('roles.nama');
+            $user = Auth::user();
 
-            return match(strtolower($role ?? '')) {
-                'superadmin'  => redirect()->route('dashboard'),
-                'adminfutsal' => redirect()->route('adminfutsal.dashboard'),
-                'adminkantin' => redirect()->route('adminkantin.dashboard'),
-                'adminac'     => redirect()->route('adminac.dashboard'),
-                default       => redirect()->route('dashboard'),
-            };
             // Catat log login
-            $this->function_log('Auth', 'login', 'User ' . Auth::user()->name . ' login');
+            $this->function_log('Auth', 'login', 'User ' . $user->name . ' login');
+
+            if ($user->hasRole('Superadmin')) {
+                return redirect()->route('dashboard')->with('success', 'Login berhasil!');
+            } elseif ($user->hasRole('Adminfutsal')) {
+                return redirect()->route('adminfutsal.dashboard')->with('success', 'Login berhasil!');
+            } elseif ($user->hasRole('Adminkantin')) {
+                return redirect()->route('adminkantin.dashboard')->with('success', 'Login berhasil!');
+            } elseif ($user->hasRole('Adminac')) {
+                return redirect()->route('adminac.dashboard')->with('success', 'Login berhasil!');
+            } elseif ($user->hasRole('Teknisi')) {
+                return redirect()->route('teknisi.dashboard')->with('success', 'Login berhasil!');
+            }
 
             return redirect()->intended('/dashboard')->with('success', 'Login berhasil!');
         }
