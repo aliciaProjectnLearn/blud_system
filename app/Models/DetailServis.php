@@ -31,7 +31,10 @@ class DetailServis extends Model
         parent::boot();
 
         static::saving(function ($model) {
-            $model->subtotal = $model->quantity * $model->harga;
+            // Kalkulasi otomatis subtotal jika harga dan quantity ada
+            if ($model->quantity && $model->harga) {
+                $model->subtotal = $model->quantity * $model->harga;
+            }
         });
     }
 }
