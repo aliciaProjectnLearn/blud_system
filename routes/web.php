@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\User\LandingController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
@@ -33,8 +34,15 @@ Route::middleware(['auth', 'role:Superadmin'])->group(function () {
 
 // route lain...
 // ── Halaman Welcome ──────────────────────────────────────
-Route::get('/', function () {
-    return redirect()->route('login');
+Route::middleware(['auth'])->group(function () {
+    Route::get('/', [LandingController::class, 'index'])->name('user.gateway');
+
+    // Rute Layanan Pelanggan (Placeholder)
+    Route::prefix('user')->name('user.')->group(function () {
+        Route::get('/futsal', function () { return 'Halaman Futsal Pelanggan (Belum dibuat)'; })->name('futsal.index');
+        Route::get('/ruko', function () { return 'Halaman Ruko Pelanggan (Belum dibuat)'; })->name('ruko.index');
+        Route::get('/ac', function () { return 'Halaman AC Pelanggan (Belum dibuat)'; })->name('ac.index');
+    });
 });
 
 // ── Auth Routes (Login & Register) ───────────────────────

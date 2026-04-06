@@ -18,7 +18,7 @@ class AuthController extends Controller
     public function showLogin()
     {
         if (Auth::check()) {
-            return redirect('/dashboard');
+            return redirect('/');
         }
         return view('auth.login');
     }
@@ -43,17 +43,7 @@ class AuthController extends Controller
             // Catat log login
             $this->function_log('Auth', 'login', 'User ' . Auth::user()->name . ' login');
 
-            return match (strtolower($role ?? '')) {
-                'superadmin'  => redirect()->route('dashboard'),
-                'adminfutsal' => redirect()->route('adminfutsal.dashboard'),
-                'adminkantin' => redirect()->route('adminkantin.dashboard'),
-                'adminac'     => redirect()->route('adminac.dashboard'),
-                'pelanggan'   => redirect()->route('pelanggan.index'),
-                default       => redirect()->route('dashboard'),
-            };
-
-
-            return redirect()->intended('/dashboard')->with('success', 'Login berhasil!');
+            return redirect()->route('user.gateway');
         }
 
         return back()->with('error', 'Email atau password salah.')->withInput($request->only('email'));
@@ -76,7 +66,7 @@ class AuthController extends Controller
     public function showRegister()
     {
         if (Auth::check()) {
-            return redirect('/dashboard');
+            return redirect('/');
         }
         return view('auth.register');
     }
@@ -116,6 +106,6 @@ class AuthController extends Controller
 
         Auth::login($user);
 
-        return redirect()->route('pelanggan.index');
+        return redirect()->route('user.gateway');
     }
 }
