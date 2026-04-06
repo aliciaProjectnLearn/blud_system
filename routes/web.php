@@ -206,6 +206,14 @@ Route::middleware(['auth', 'role:Adminac'])->prefix('adminac')->name('adminac.')
     Route::get('transaksi/histori', [AdminAcTransaksiController::class, 'history'])->name('transaksi.history');
     Route::resource('transaksi', AdminAcTransaksiController::class);
     Route::patch('transaksi/{id}/status', [AdminAcTransaksiController::class, 'updateStatus'])->name('transaksi.update_status');
+
+    // Laporan Transaksi AC
+    Route::get('laporan', [\App\Http\Controllers\AdminAc\LaporanController::class, 'index'])
+        ->name('laporan.index');
+    Route::get('laporan/export-pdf', [\App\Http\Controllers\AdminAc\LaporanController::class, 'exportPdf'])
+        ->name('laporan.export.pdf');
+    Route::get('laporan/export-excel', [\App\Http\Controllers\AdminAc\LaporanController::class, 'exportExcel'])
+        ->name('laporan.export.excel');
 });
 
 // ── Teknisi AC ───────────────────────
