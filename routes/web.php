@@ -27,7 +27,8 @@ use App\Http\Controllers\AdminAc\TransaksiController as AdminAcTransaksiControll
 
 
 Route::middleware(['auth', 'role:Superadmin'])->group(function () {
-    Route::get('/superadmin/monitoring', [AdminLogActivityController::class, 'index'])->name('monitoring.index');
+    Route::get('/superadmin/monitoring', [AdminLogActivityController::class, 'index'])
+        ->name('monitoring.index');
 });
 
 // route lain...
@@ -37,35 +38,45 @@ Route::get('/', function () {
 });
 
 // ── Auth Routes (Login & Register) ───────────────────────
-Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+Route::get('/login', [AuthController::class, 'showLogin'])
+    ->name('login');
 Route::post('/login', [AuthController::class, 'login']);
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+Route::post('/logout', [AuthController::class, 'logout'])
+    ->name('logout');
+Route::get('/register', [AuthController::class, 'showRegister'])
+    ->name('register');
 Route::post('/register', [AuthController::class, 'register']);
 
 // ── Protected Routes (perlu login) ───────────────────────
 Route::middleware(['auth', 'role:Superadmin'])->group(function () {
 
     // Dashboard
-    Route::get('/dashboard', [App\Http\Controllers\SuperAdmin\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [App\Http\Controllers\SuperAdmin\DashboardController::class, 'index'])
+        ->name('dashboard');
 
     // Profile
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('/profile', [ProfileController::class, 'edit'])
+        ->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])
+        ->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])
+        ->name('profile.destroy');
 
     // User Management
     Route::resource('users', UserController::class);
-    Route::get('/pelanggan', [UserController::class, 'indexPelanggan'])->name('users.pelanggan');
-
-    Route::get('/transaksi', [TransaksiController::class, 'index'])->name('transaksi.index');
+    Route::get('/pelanggan', [UserController::class, 'indexPelanggan'])
+        ->name('users.pelanggan');
+    Route::get('/transaksi', [TransaksiController::class, 'index'])
+        ->name('transaksi.index');
 });
 
 // ── Admin Futsal ───────────────────────
-Route::middleware(['auth', 'role:Adminfutsal'])->prefix('adminfutsal')->name('adminfutsal.')->group(function () {
+Route::middleware(['auth', 'role:Adminfutsal'])->prefix('adminfutsal')
+    ->name('adminfutsal.')->group(function () {
 
     // Dashboard
-    Route::get('/dashboard', [AdminFutsalDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [AdminFutsalDashboardController::class, 'index'])
+        ->name('dashboard');
 
     // Paket Membership
     Route::resource('paket-membership', PaketMembershipController::class)
@@ -78,9 +89,12 @@ Route::middleware(['auth', 'role:Adminfutsal'])->prefix('adminfutsal')->name('ad
         ->name('monitoring-membership.store');
 
     // Monitoring Pelanggan Reguler
-    Route::get('pelanggan', [PelangganController::class, 'index'])->name('pelanggan.index');
-    Route::post('pelanggan', [PelangganController::class, 'store'])->name('pelanggan.store');
-    Route::put('pelanggan/{user}', [PelangganController::class, 'update'])->name('pelanggan.update');
+    Route::get('pelanggan', [PelangganController::class, 'index'])
+        ->name('pelanggan.index');
+    Route::post('pelanggan', [PelangganController::class, 'store'])
+        ->name('pelanggan.store');
+    Route::put('pelanggan/{user}', [PelangganController::class, 'update'])
+        ->name('pelanggan.update');
 
 
     // Frontend Jadwal Lapangan
@@ -183,27 +197,51 @@ Route::middleware(['auth', 'role:Adminkantin'])->prefix('adminkantin')->name('ad
 
 // ── Admin AC ───────────────────────
 Route::middleware(['auth', 'role:Adminac'])->prefix('adminac')->name('adminac.')->group(function () {
-    Route::get('/dashboard', [AdminAcDashboardController::class, 'index'])->name('dashboard');
-    Route::post('kategori', [AdminAcLayananController::class, 'storeKategori'])->name('kategori.store');
-    Route::post('kategori-komponen', [\App\Http\Controllers\AdminAc\ProdukController::class, 'storeKategori'])->name('kategori_komponen.store');
+    Route::get('/dashboard', [AdminAcDashboardController::class, 'index'])
+        ->name('dashboard');
+    Route::post('kategori', [AdminAcLayananController::class, 'storeKategori'])
+        ->name('kategori.store');
+    Route::post('kategori-komponen', [\App\Http\Controllers\AdminAc\ProdukController::class, 'storeKategori'])
+        ->name('kategori_komponen.store');
     Route::resource('layanan', AdminAcLayananController::class);
     Route::resource('teknisi', AdminAcTeknisiController::class);
-    Route::get('teknisi/{id}/cek-ketersediaan', [AdminAcTeknisiController::class, 'cekKetersediaan'])->name('teknisi.cek_ketersediaan');
-    Route::resource('produk', \App\Http\Controllers\AdminAc\ProdukController::class)->except(['create', 'show', 'edit']);
-    Route::patch('produk/{produk}/stok', [\App\Http\Controllers\AdminAc\ProdukController::class, 'updateStok'])->name('produk.updateStok');
+    Route::get('teknisi/{id}/cek-ketersediaan', [AdminAcTeknisiController::class, 'cekKetersediaan'])
+        ->name('teknisi.cek_ketersediaan');
+    Route::resource('produk', \App\Http\Controllers\AdminAc\ProdukController::class)
+        ->except(['create', 'show', 'edit']);
+    Route::patch('produk/{produk}/stok', [\App\Http\Controllers\AdminAc\ProdukController::class, 'updateStok'])
+        ->name('produk.updateStok');
 
     // Manajemen Pelanggan
-    Route::get('pelanggan', [AdminAcPelangganController::class, 'index'])->name('pelanggan.index');
-    Route::get('pelanggan/{id}', [AdminAcPelangganController::class, 'show'])->name('pelanggan.show');
+    Route::get('pelanggan', [AdminAcPelangganController::class, 'index'])
+        ->name('pelanggan.index');
+    Route::get('pelanggan/{id}', [AdminAcPelangganController::class, 'show'])
+        ->name('pelanggan.show');
 
     // Manajemen Booking
-    Route::get('booking', [AdminAcBookingController::class, 'index'])->name('booking.index');
-    Route::post('booking/{id}/approve', [AdminAcBookingController::class, 'approve'])->name('booking.approve');
-    Route::patch('booking/{id}/selesai', [AdminAcBookingController::class, 'selesai'])->name('booking.selesai');
-    Route::get('booking-teknisi-tersedia', [AdminAcBookingController::class, 'teknisiTersedia'])->name('booking.teknisi_tersedia');
+    Route::get('booking', [AdminAcBookingController::class, 'index'])
+        ->name('booking.index');
+    Route::post('booking/{id}/approve', [AdminAcBookingController::class, 'approve'])
+        ->name('booking.approve');
+    Route::patch('booking/{id}/selesai', [AdminAcBookingController::class, 'selesai'])
+        ->name('booking.selesai');
+    Route::get('booking-teknisi-tersedia', [AdminAcBookingController::class, 'teknisiTersedia'])
+        ->name('booking.teknisi_tersedia');
 
     // Manajemen Transaksi
-    Route::get('transaksi/histori', [AdminAcTransaksiController::class, 'history'])->name('transaksi.history');
+    Route::get('transaksi/histori', [AdminAcTransaksiController::class, 'history'])
+        ->name('transaksi.history');
     Route::resource('transaksi', AdminAcTransaksiController::class);
-    Route::patch('transaksi/{id}/status', [AdminAcTransaksiController::class, 'updateStatus'])->name('transaksi.update_status');
+    Route::patch('transaksi/{id}/status', [AdminAcTransaksiController::class, 'updateStatus'])
+        ->name('transaksi.update_status');
 });
+
+// Pelanggan
+Route::middleware(['auth'])->group(function () {
+
+    Route::get('/pelanggan', function () {
+        return view('pelanggan.index');
+    })->name('pelanggan.index');
+
+});
+
