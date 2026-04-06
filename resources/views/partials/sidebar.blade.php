@@ -18,6 +18,9 @@
         } elseif (auth()->user()->hasRole('Teknisi')) {
             $brandLabel = 'Teknisi AC';
             $brandRoute = route('teknisi.dashboard');
+        } elseif (auth()->user()->hasRole('Pelanggan')) {
+            $brandLabel = 'Sistem BLUD';
+            $brandRoute = route('user.dashboard');
         }
     @endphp
 
@@ -305,6 +308,29 @@
                 <span>Laporan Transaksi</span>
             </a>
         </li>
+    @endif
+
+    {{-- ================================= --}}
+    {{-- PELANGGAN --}}
+    {{-- ================================= --}}
+    @if (auth()->user()->hasRole('Pelanggan'))
+        <div class="sidebar-heading">Menu Akun</div>
+
+        <!-- {{-- Profile --}}
+        <li class="nav-item {{ request()->routeIs('user.profile.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('user.profile.index') }}">
+                <i class="fas fa-fw fa-user"></i>
+                <span>Profil Saya</span>
+            </a>
+        </li>
+
+        {{-- Dashboard --}}
+        <li class="nav-item {{ request()->routeIs('user.dashboard') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('user.dashboard') }}">
+                <i class="fas fa-fw fa-tachometer-alt"></i>
+                <span>Dashboard Saya</span>
+            </a>
+        </li> -->
     @endif
 
     <hr class="sidebar-divider d-none d-md-block">
