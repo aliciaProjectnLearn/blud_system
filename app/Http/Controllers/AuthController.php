@@ -35,22 +35,23 @@ class AuthController extends Controller
         if (Auth::attempt($credentials, $request->remember)) {
             $request->session()->regenerate();
 
-            $user = Auth::user();
+            $role = DB::table('roles_users')
+                ->join('roles', 'roles.id', '=', 'roles_users.role_id')
+                ->where('roles_users.user_id', auth()->id())
+                ->value('roles.nama');
 
             // Catat log login
-            $this->function_log('Auth', 'login', 'User ' . $user->name . ' login');
+            $this->function_log('Auth', 'login', 'User ' . Auth::user()->name . ' login');
 
-            if ($user->hasRole('Superadmin')) {
-                return redirect()->route('dashboard')->with('success', 'Login berhasil!');
-            } elseif ($user->hasRole('Adminfutsal')) {
-                return redirect()->route('adminfutsal.dashboard')->with('success', 'Login berhasil!');
-            } elseif ($user->hasRole('Adminkantin')) {
-                return redirect()->route('adminkantin.dashboard')->with('success', 'Login berhasil!');
-            } elseif ($user->hasRole('Adminac')) {
-                return redirect()->route('adminac.dashboard')->with('success', 'Login berhasil!');
-            } elseif ($user->hasRole('Teknisi')) {
-                return redirect()->route('teknisi.dashboard')->with('success', 'Login berhasil!');
-            }
+            return match (strtolower($role ?? '')) {
+                'superadmin'  => redirect()->route('dashboard'),
+                'adminfutsal' => redirect()->route('adminfutsal.dashboard'),
+                'adminkantin' => redirect()->route('adminkantin.dashboard'),
+                'adminac'     => redirect()->route('adminac.dashboard'),
+                'pelanggan'   => redirect()->route('pelanggan.index'),
+                default       => redirect()->route('dashboard'),
+            };
+
 
             return redirect()->intended('/dashboard')->with('success', 'Login berhasil!');
         }
@@ -83,22 +84,38 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users,email',
-            'password' => 'required|min:6|confirmed',
+            'nama_lengkap' => 'required|string|max:255',
+            'username'     => 'required|string|unique:users,username',
+            'no_hp'        => 'required|string|max:20',
+            'nik'          => 'nullable|string|max:20',
+            'email'        => 'required|email|unique:users,email',
+            'password'     => 'required|min:6|confirmed',
         ]);
 
+        // Ambil nama panggilan dari kata pertama
+        $name = explode(' ', trim($request->nama_lengkap))[0];
+
         $user = User::create([
-            'name'     => $request->name,
-            'email'    => $request->email,
-            'password' => Hash::make($request->password),
+            'name'         => $name,
+            'nama_lengkap' => $request->nama_lengkap,
+            'username'     => $request->username,
+            'no_hp'        => $request->no_hp,
+            'nik'          => $request->nik,
+            'email'        => $request->email,
+            'password'     => Hash::make($request->password),
+        ]);
+
+        // ambil role pelanggan
+        $role = DB::table('roles')->where('nama', 'pelanggan')->first();
+
+        // insert ke pivot
+        DB::table('roles_users')->insert([
+            'user_id' => $user->id,
+            'role_id' => $role->id,
         ]);
 
         Auth::login($user);
 
-        // Catat log register
-        $this->function_log('Auth', 'register', 'User baru terdaftar: ' . $user->name);
-
-        return redirect('/dashboard')->with('success', 'Akun berhasil dibuat!');
+        return redirect()->route('pelanggan.index');
     }
 }

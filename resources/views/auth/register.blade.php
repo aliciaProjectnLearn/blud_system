@@ -2,164 +2,189 @@
 
 @section('title', 'Register')
 
+@push('styles')
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #4e73df;
+        }
+
+        .register-page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+        }
+
+        .register-card {
+            width: 100%;
+            max-width: 520px;
+            background: #fff;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .2);
+        }
+
+        .register-header {
+            padding: 2rem 2.5rem 1.75rem;
+            border-bottom: 1px solid #f0f2f8;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .register-logo {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            margin-bottom: 1rem;
+        }
+
+        .register-header h1 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #1a1f36;
+        }
+
+        .register-header p {
+            font-size: 13px;
+            color: #8892a4;
+        }
+
+        .register-body {
+            padding: 1.75rem 2.5rem 2.25rem;
+        }
+
+        .register-field {
+            margin-bottom: 1rem;
+        }
+
+        .register-field label {
+            font-size: 11.5px;
+            font-weight: 600;
+            color: #5a6478;
+            margin-bottom: .4rem;
+            display: block;
+            text-transform: uppercase;
+        }
+
+        .form-control {
+            width: 100%;
+            height: 46px;
+            border: 1.5px solid #d6e4f7;
+            border-radius: 50px;
+            padding: 0 18px;
+            font-size: 13.5px;
+            background: #ddeaf8;
+        }
+
+        .form-control:focus {
+            border-color: #4e73df;
+            background: #d0e2f5;
+            box-shadow: 0 0 0 3px rgba(78, 115, 223, .15);
+        }
+
+        .btn-register {
+            width: 100%;
+            height: 46px;
+            background: #4e73df;
+            border: none;
+            border-radius: 50px;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .btn-register:hover {
+            background: #2e59d9;
+        }
+
+        .register-links {
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .register-links a {
+            color: #4e73df;
+            font-weight: 600;
+            text-decoration: none;
+        }
+    </style>
+@endpush
+
 @section('content')
-<div class="container">
+    <div class="register-page">
+        <div class="register-card">
 
-    <div class="row justify-content-center">
-
-        <div class="col-xl-10 col-lg-12 col-md-9">
-
-            <div class="card o-hidden border-0 shadow-lg my-5">
-                <div class="card-body p-0">
-
-                    <div class="row">
-
-                        {{-- Kiri - Gambar --}}
-                        <div class="col-lg-5 d-none d-lg-block bg-register-image"></div>
-
-                        {{-- Kanan - Form Register --}}
-                        <div class="col-lg-7">
-                            <div class="p-5">
-
-                                <div class="text-center">
-                                    <h1 class="h4 text-gray-900 mb-4">Buat Akun Baru!</h1>
-                                </div>
-
-                                <form class="user" method="POST" action="{{ route('register') }}">
-                                    @csrf
-
-                                    {{-- Nama & Nama Lengkap --}}
-                                    <div class="form-group row">
-                                        <div class="col-sm-6 mb-3 mb-sm-0">
-                                            <input
-                                                type="text"
-                                                class="form-control form-control-user @error('name') is-invalid @enderror"
-                                                name="name"
-                                                value="{{ old('name') }}"
-                                                placeholder="Nama Panggilan / Nickname"
-                                                required
-                                                autofocus>
-                                            @error('name')
-                                                <div class="invalid-feedback">{{ $message }}</div>
-                                            @enderror
-                                        </div>
-                                        <div class="col-sm-6">
-                                            <input
-                                                type="text"
-                                                class="form-control form-control-user @error('nama_lengkap') is-invalid @enderror"
-                                                name="nama_lengkap"
-                                                value="{{ old('nama_lengkap') }}"
-                                                placeholder="Nama Lengkap (Sesuai KTP)"
-                                                required>
-                                            @error('nama_lengkap')
-                                                <div class="invalid-feedback">{{ $message }}</div>
-                                            @enderror
-                                        </div>
-                                    </div>
-
-                                    {{-- Username & No HP --}}
-                                    <div class="form-group row">
-                                        <div class="col-sm-6 mb-3 mb-sm-0">
-                                            <input
-                                                type="text"
-                                                class="form-control form-control-user @error('username') is-invalid @enderror"
-                                                name="username"
-                                                value="{{ old('username') }}"
-                                                placeholder="Username"
-                                                required>
-                                            @error('username')
-                                                <div class="invalid-feedback">{{ $message }}</div>
-                                            @enderror
-                                        </div>
-                                        <div class="col-sm-6">
-                                            <input
-                                                type="text"
-                                                class="form-control form-control-user @error('no_hp') is-invalid @enderror"
-                                                name="no_hp"
-                                                value="{{ old('no_hp') }}"
-                                                placeholder="Nomor HP/WhatsApp"
-                                                required>
-                                            @error('no_hp')
-                                                <div class="invalid-feedback">{{ $message }}</div>
-                                            @enderror
-                                        </div>
-                                    </div>
-
-                                    {{-- NIK --}}
-                                    <div class="form-group">
-                                        <input
-                                            type="text"
-                                            class="form-control form-control-user @error('nik') is-invalid @enderror"
-                                            name="nik"
-                                            value="{{ old('nik') }}"
-                                            placeholder="Nomor Induk Kependudukan (Opsional / Wajib Untuk Sewa Kantin)">
-                                        @error('nik')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-
-                                    {{-- Email --}}
-                                    <div class="form-group">
-                                        <input
-                                            type="email"
-                                            class="form-control form-control-user @error('email') is-invalid @enderror"
-                                            name="email"
-                                            value="{{ old('email') }}"
-                                            placeholder="Alamat Email"
-                                            required>
-                                        @error('email')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-
-                                    {{-- Password --}}
-                                    <div class="form-group row">
-                                        <div class="col-sm-6 mb-3 mb-sm-0">
-                                            <input
-                                                type="password"
-                                                class="form-control form-control-user @error('password') is-invalid @enderror"
-                                                name="password"
-                                                placeholder="Password"
-                                                required>
-                                            @error('password')
-                                                <div class="invalid-feedback">{{ $message }}</div>
-                                            @enderror
-                                        </div>
-                                        <div class="col-sm-6">
-                                            <input
-                                                type="password"
-                                                class="form-control form-control-user"
-                                                name="password_confirmation"
-                                                placeholder="Konfirmasi Password"
-                                                required>
-                                        </div>
-                                    </div>
-
-                                    {{-- Submit --}}
-                                    <button type="submit" class="btn btn-primary btn-user btn-block">
-                                        <i class="fas fa-user-plus fa-fw mr-1"></i> Daftar Sekarang
-                                    </button>
-
-                                </form>
-
-                                <hr>
-
-                                <div class="text-center">
-                                    <a class="small" href="{{ route('login') }}">
-                                        Sudah punya akun? Login!
-                                    </a>
-                                </div>
-
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
+            <div class="register-header">
+                <img src="{{ asset('img/logo_smk.png') }}" class="register-logo">
+                <h1>Buat Akun Baru</h1>
+                <p>Daftar untuk mengakses layanan BLUD</p>
             </div>
 
+            <div class="register-body">
+
+                <form method="POST" action="{{ route('register') }}">
+                    @csrf
+
+                    <div class="register-field">
+                        <label>Nama Lengkap</label>
+                        <input type="text" name="nama_lengkap" class="form-control" value="{{ old('nama_lengkap') }}"
+                            required>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 register-field">
+                            <label>Username</label>
+                            <input type="text" name="username" class="form-control" value="{{ old('username') }}"
+                                required>
+                        </div>
+
+                        <div class="col-md-6 register-field">
+                            <label>No HP</label>
+                            <input type="text" name="no_hp" class="form-control" value="{{ old('no_hp') }}" required>
+                        </div>
+                    </div>
+
+                    <div class="register-field">
+                        <label>NIK</label>
+                        <input type="text" name="nik" class="form-control" value="{{ old('nik') }}" required>
+                    </div>
+
+                    <div class="register-field">
+                        <label>Email</label>
+                        <input type="email" name="email" class="form-control" value="{{ old('email') }}" required>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 register-field">
+                            <label>Password</label>
+                            <input type="password" name="password" class="form-control" required>
+                        </div>
+
+                        <div class="col-md-6 register-field">
+                            <label>Konfirmasi Password</label>
+                            <input type="password" name="password_confirmation" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-register">
+                        Daftar Sekarang
+                    </button>
+
+                    <div class="register-links">
+                        <a href="{{ route('login') }}">
+                            Sudah punya akun? Login
+                        </a>
+                    </div>
+
+                </form>
+
+            </div>
         </div>
-
     </div>
-
-</div>
 @endsection
