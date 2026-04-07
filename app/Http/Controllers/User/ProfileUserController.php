@@ -31,6 +31,7 @@ class ProfileUserController extends Controller
             'nama_lengkap'  => ['nullable', 'string', 'max:255'],
             'email'         => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
             'no_hp'         => ['nullable', 'string', 'max:20'],
+            'nik'           => ['nullable', 'string', 'max:20', Rule::unique('users')->ignore($user->id)],
             'alamat'        => ['nullable', 'string', 'max:1000'],
             'username'      => ['required', 'string', 'max:255', Rule::unique('users')->ignore($user->id)],
             'password'      => ['nullable', 'string', 'min:8', 'confirmed'],
@@ -38,6 +39,7 @@ class ProfileUserController extends Controller
             'name.required' => 'Nama panggilan wajib diisi.',
             'email.required' => 'Email wajib diisi.',
             'email.unique' => 'Email sudah digunakan oleh pengguna lain.',
+            'nik.unique' => 'NIK sudah digunakan oleh pengguna lain.',
             'username.unique' => 'Username sudah digunakan oleh pengguna lain.',
             'password.min' => 'Password minimal 8 karakter.',
             'password.confirmed' => 'Konfirmasi password tidak cocok.',
@@ -48,6 +50,7 @@ class ProfileUserController extends Controller
             'nama_lengkap'  => $request->nama_lengkap,
             'email'         => $request->email,
             'no_hp'         => $request->no_hp,
+            'nik'           => $request->nik,
             'alamat'        => $request->alamat,
             'username'      => $request->username,
         ];

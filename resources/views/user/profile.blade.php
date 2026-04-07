@@ -78,6 +78,15 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="form-group">
+                                    <label class="form-control-label font-weight-bold" for="input-nik">NIK</label>
+                                    <input type="text" name="nik" id="input-nik" class="form-control @error('nik') is-invalid @enderror" placeholder="Nomor Induk Kependudukan" value="{{ old('nik', $user->nik) }}">
+                                    @error('nik') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <hr class="my-4">
