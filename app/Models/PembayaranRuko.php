@@ -19,6 +19,11 @@ class PembayaranRuko extends Model
         return $this->hasOne(SewaRuko::class, 'booking_id', 'booking_id');
     }
 
+    public function booking()
+    {
+        return $this->sewaRuko();
+    }
+
     public function tipe()
     {
         return $this->belongsTo(TipePembayaran::class, 'tipe_pembayaran_id');

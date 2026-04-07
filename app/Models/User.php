@@ -21,6 +21,7 @@ class User extends Authenticatable
         'password',
         'role',
         'status_futsal',
+        'alamat',
     ];
 
     protected $hidden = [
@@ -64,5 +65,10 @@ class User extends Authenticatable
     public function bookingAc()
     {
         return $this->hasMany(BookingAc::class, 'user_id');
+    }
+
+    public function penyewa()
+    {
+        return $this->hasOne(Penyewa::class, 'user_id');
     }
 }

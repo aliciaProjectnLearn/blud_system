@@ -24,6 +24,7 @@ use App\Http\Controllers\AdminAc\TeknisiController as AdminAcTeknisiController;
 use App\Http\Controllers\AdminAc\PelangganController as AdminAcPelangganController;
 use App\Http\Controllers\AdminAc\BookingController as AdminAcBookingController;
 use App\Http\Controllers\AdminAc\TransaksiController as AdminAcTransaksiController;
+use App\Http\Controllers\User\DashboardUserController;
 
 
 
@@ -244,12 +245,17 @@ Route::middleware(['auth', 'role:Adminac'])->prefix('adminac')->name('adminac.')
         ->name('transaksi.update_status');
 });
 
-// Pelanggan
-Route::middleware(['auth'])->group(function () {
+// Rute untuk Pelanggan (User Dashboard)
+Route::middleware(['auth', 'role:Pelanggan'])->prefix('user')->name('user.')->group(function () {
+    Route::get('/dashboard', [DashboardUserController::class, 'index'])->name('dashboard');
+    
+    // Profile Management
+    Route::get('/profile', [App\Http\Controllers\User\ProfileUserController::class, 'index'])->name('profile.index');
+    Route::put('/profile', [App\Http\Controllers\User\ProfileUserController::class, 'update'])->name('profile.update');
 
-    Route::get('/pelanggan', function () {
-        return view('pelanggan.index');
-    })->name('pelanggan.index');
-
+    // Placeholder untuk fitur layanan
+    Route::get('/futsal', function () { return 'Halaman Futsal Pelanggan (Belum dibuat)'; })->name('futsal.index');
+    Route::get('/ruko', function () { return 'Halaman Ruko Pelanggan (Belum dibuat)'; })->name('ruko.index');
+    Route::get('/ac', function () { return 'Halaman AC Pelanggan (Belum dibuat)'; })->name('ac.index');
 });
 

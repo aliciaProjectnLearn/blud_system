@@ -18,9 +18,14 @@ class PembayaranAc extends Model
         'invoice_no',
     ];
 
-    public function bookingAc()
+    public function booking()
     {
         return $this->belongsTo(BookingAc::class, 'booking_id');
+    }
+
+    public function bookingAc()
+    {
+        return $this->booking();
     }
 
     public function tipePembayaran()

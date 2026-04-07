@@ -46,11 +46,11 @@
                 <a href="#kontak" class="text-gray-700 hover:text-[#213C51] transition-colors font-medium">Kontak</a>
                 
                 <div class="flex items-center gap-4 border-l border-gray-300 pl-6 ml-2">
-                    <a href="{{ route('profile.edit') }}" class="flex items-center gap-2 text-gray-700 hover:text-[#6594B1] transition-colors font-medium">
+                    <a href="{{ route('user.dashboard') }}" class="flex items-center gap-2 text-gray-700 hover:text-[#6594B1] transition-colors font-medium">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                         </svg>
-                        Profil Saya
+                        Dashboard Saya
                     </a>
 
                     @php
@@ -87,11 +87,11 @@
                 
                 <hr class="border-gray-200 my-2">
                 
-                <a href="{{ route('profile.edit') }}" class="flex items-center gap-2 text-gray-700 hover:text-[#6594B1] transition-colors font-medium py-2">
+                <a href="{{ route('user.dashboard') }}" class="flex items-center gap-2 text-gray-700 hover:text-[#6594B1] transition-colors font-medium py-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                     </svg>
-                    Profil Saya
+                    Dashboard Saya
                 </a>
                 
                 <div class="pt-2 pb-2">
