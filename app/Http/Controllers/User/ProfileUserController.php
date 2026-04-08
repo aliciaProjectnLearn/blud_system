@@ -15,6 +15,7 @@ class ProfileUserController extends Controller
      */
     public function index()
     {
+        /** @var \App\Models\User $user */
         $user = Auth::user();
         return view('user.profile', compact('user'));
     }
@@ -24,6 +25,7 @@ class ProfileUserController extends Controller
      */
     public function update(Request $request)
     {
+        /** @var \App\Models\User $user */
         $user = Auth::user();
 
         $request->validate([

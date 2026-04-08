@@ -40,10 +40,19 @@ class AuthController extends Controller
                 ->where('roles_users.user_id', auth()->id())
                 ->value('roles.nama');
 
+            $roleName = strtolower($role ?? '');
+            $dashboardRoute = route('user.gateway');
+            if ($roleName === 'superadmin') $dashboardRoute = route('dashboard');
+            elseif ($roleName === 'adminfutsal') $dashboardRoute = route('adminfutsal.dashboard');
+            elseif ($roleName === 'adminkantin') $dashboardRoute = route('adminkantin.dashboard');
+            elseif ($roleName === 'adminac') $dashboardRoute = route('adminac.dashboard');
+            elseif ($roleName === 'teknisi') $dashboardRoute = route('teknisi.dashboard');
+            elseif ($roleName === 'pelanggan') $dashboardRoute = route('user.dashboard');
+
             // Catat log login
             $this->function_log('Auth', 'login', 'User ' . Auth::user()->name . ' login');
 
-            return redirect()->route('user.gateway');
+            return redirect($dashboardRoute);
         }
 
         return back()->with('error', 'Email atau password salah.')->withInput($request->only('email'));
@@ -58,7 +67,7 @@ class AuthController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect('/login');
+        return redirect()->route('user.gateway');
     }
 
     // ── REGISTER ──────────────────────────────────────────
@@ -106,6 +115,6 @@ class AuthController extends Controller
 
         Auth::login($user);
 
-        return redirect()->route('user.gateway');
+        return redirect()->route('user.dashboard');
     }
 }
