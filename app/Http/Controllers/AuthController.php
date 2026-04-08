@@ -57,6 +57,7 @@ class AuthController extends Controller
 
         return back()->with('error', 'Email atau password salah.')->withInput($request->only('email'));
     }
+    
     public function logout(Request $request)
     {
         // Catat log logout sebelum session dihapus
