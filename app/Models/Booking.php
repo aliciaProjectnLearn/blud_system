@@ -22,4 +22,9 @@ class Booking extends Model
     {
         return $this->hasOne(BookingFutsal::class, 'booking_id');
     }
+
+    public function pembayaranFutsal()
+    {
+        return $this->hasMany(PembayaranFutsal::class, 'booking_id');
+    }
 }

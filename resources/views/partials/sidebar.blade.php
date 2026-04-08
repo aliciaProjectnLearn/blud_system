@@ -316,7 +316,7 @@
     @if (auth()->user()->hasRole('Pelanggan'))
         <div class="sidebar-heading">Menu Akun</div>
 
-        <!-- {{-- Profile --}}
+        {{-- Profile --}}
         <li class="nav-item {{ request()->routeIs('user.profile.*') ? 'active' : '' }}">
             <a class="nav-link" href="{{ route('user.profile.index') }}">
                 <i class="fas fa-fw fa-user"></i>
@@ -324,13 +324,34 @@
             </a>
         </li>
 
-        {{-- Dashboard --}}
+        {{-- Dashboard Utama --}}
         <li class="nav-item {{ request()->routeIs('user.dashboard') ? 'active' : '' }}">
             <a class="nav-link" href="{{ route('user.dashboard') }}">
-                <i class="fas fa-fw fa-tachometer-alt"></i>
-                <span>Dashboard Saya</span>
+                <i class="fas fa-fw fa-home"></i>
+                <span>Dashboard Utama</span>
             </a>
-        </li> -->
+        </li>
+
+        <hr class="sidebar-divider">
+        <div class="sidebar-heading">Layanan Futsal</div>
+
+        {{-- Dashboard Futsal --}}
+        <li class="nav-item {{ request()->routeIs('user.futsal.dashboard') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('user.futsal.dashboard') }}">
+                <i class="fas fa-fw fa-tachometer-alt"></i>
+                <span>Dashboard Futsal</span>
+            </a>
+        </li>
+
+        {{-- Histori Booking --}}
+        <li class="nav-item {{ request()->routeIs('user.futsal.history') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('user.futsal.history') }}">
+                <i class="fas fa-fw fa-history"></i>
+                <span>Histori Booking</span>
+            </a>
+        </li>
+
+        
     @endif
 
     <hr class="sidebar-divider d-none d-md-block">

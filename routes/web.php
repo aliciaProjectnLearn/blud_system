@@ -253,8 +253,23 @@ Route::middleware(['auth', 'role:Pelanggan'])->prefix('user')->name('user.')->gr
     Route::get('/profile', [App\Http\Controllers\User\ProfileUserController::class, 'index'])->name('profile.index');
     Route::put('/profile', [App\Http\Controllers\User\ProfileUserController::class, 'update'])->name('profile.update');
 
-    // Placeholder untuk fitur layanan
-    Route::get('/futsal', function () { return 'Halaman Futsal Pelanggan (Belum dibuat)'; })->name('futsal.index');
+    // Futsal Management
+    Route::prefix('futsal')->name('futsal.')->group(function () {
+        Route::get('/dashboard', [\App\Http\Controllers\User\FutsalDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/history', [\App\Http\Controllers\User\FutsalDashboardController::class, 'history'])->name('history');
+        
+        // API-like endpoints
+        Route::prefix('api')->name('api.')->group(function () {
+            Route::get('/summary', [\App\Http\Controllers\User\FutsalDashboardController::class, 'getSummary'])->name('summary');
+            Route::get('/recent', [\App\Http\Controllers\User\FutsalDashboardController::class, 'getRecentBookings'])->name('recent');
+            Route::get('/history-data', [\App\Http\Controllers\User\FutsalDashboardController::class, 'getHistoryData'])->name('history-data');
+            Route::get('/booking/{id}', [\App\Http\Controllers\User\FutsalDashboardController::class, 'getDetail'])->name('detail');
+        });
+
+        Route::get('/booking/{id}/invoice', [\App\Http\Controllers\User\FutsalDashboardController::class, 'showInvoice'])->name('invoice');
+        Route::get('/booking/{id}/download-invoice', [\App\Http\Controllers\User\FutsalDashboardController::class, 'downloadInvoice'])->name('download-invoice');
+    });
+
     Route::get('/ruko', function () { return 'Halaman Ruko Pelanggan (Belum dibuat)'; })->name('ruko.index');
     Route::get('/ac', function () { return 'Halaman AC Pelanggan (Belum dibuat)'; })->name('ac.index');
 });
