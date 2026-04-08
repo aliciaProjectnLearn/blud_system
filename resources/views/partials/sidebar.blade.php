@@ -286,7 +286,8 @@
         <div class="sidebar-heading">Menu Pekerjaan</div>
 
         {{-- Detail Servis --}}
-        <li class="nav-item {{ request()->routeIs('teknisi.pekerjaan.*') || request()->routeIs('teknisi.dashboard*') ? 'active' : '' }}">
+        <li
+            class="nav-item {{ request()->routeIs('teknisi.pekerjaan.*') || request()->routeIs('teknisi.dashboard*') ? 'active' : '' }}">
             <a class="nav-link" href="{{ route('teknisi.dashboard') }}">
                 <i class="fas fa-fw fa-tools"></i>
                 <span>Detail Servis</span>
@@ -351,7 +352,30 @@
             </a>
         </li>
 
-        
+        <hr class="sidebar-divider">
+        <div class="sidebar-heading">Layanan Sewa Kantin</div>
+
+        {{-- Sistem Sewa Kantin --}}
+        <li class="nav-item {{ request()->routeIs('user.kantin.*') ? 'active' : '' }}">
+            <a class="nav-link {{ request()->routeIs('user.kantin.*') ? '' : 'collapsed' }}" href="#"
+                data-toggle="collapse" data-target="#collapseKantin">
+                <i class="fas fa-fw fa-store"></i>
+                <span>Sistem Sewa Kantin</span>
+            </a>
+            <div id="collapseKantin" class="collapse {{ request()->routeIs('user.kantin.*') ? 'show' : '' }}">
+                <div class="bg-white py-2 collapse-inner rounded">
+                    <a class="collapse-item" href="{{ route('user.kantin.dashboard') }}">
+                        <i class="fas fa-tachometer-alt mr-1"></i> Dashboard
+                    </a>
+                    <a class="collapse-item" href="{{ route('user.kantin.tagihan') }}">
+                        <i class="fas fa-file-invoice-dollar mr-1"></i> Tagihan Saya
+                    </a>
+                    <a class="collapse-item" href="{{ route('user.kantin.riwayat') }}">
+                        <i class="fas fa-history mr-1"></i> Riwayat Pembayaran
+                    </a>
+                </div>
+            </div>
+        </li>
     @endif
 
     <hr class="sidebar-divider d-none d-md-block">

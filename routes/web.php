@@ -40,9 +40,15 @@ Route::get('/', [LandingController::class, 'index'])->name('user.gateway');
 Route::middleware(['auth'])->group(function () {
     // Rute Layanan Pelanggan (Placeholder)
     Route::prefix('user')->name('user.')->group(function () {
-        Route::get('/futsal', function () { return 'Halaman Futsal Pelanggan (Belum dibuat)'; })->name('futsal.index');
-        Route::get('/ruko', function () { return 'Halaman Ruko Pelanggan (Belum dibuat)'; })->name('ruko.index');
-        Route::get('/ac', function () { return 'Halaman AC Pelanggan (Belum dibuat)'; })->name('ac.index');
+        Route::get('/futsal', function () {
+            return 'Halaman Futsal Pelanggan (Belum dibuat)';
+        })->name('futsal.index');
+        Route::get('/ruko', function () {
+            return 'Halaman Ruko Pelanggan (Belum dibuat)';
+        })->name('ruko.index');
+        Route::get('/ac', function () {
+            return 'Halaman AC Pelanggan (Belum dibuat)';
+        })->name('ac.index');
     });
 });
 
@@ -83,77 +89,77 @@ Route::middleware(['auth', 'role:Superadmin'])->group(function () {
 Route::middleware(['auth', 'role:Adminfutsal'])->prefix('adminfutsal')
     ->name('adminfutsal.')->group(function () {
 
-    // Dashboard
-    Route::get('/dashboard', [AdminFutsalDashboardController::class, 'index'])
-        ->name('dashboard');
+        // Dashboard
+        Route::get('/dashboard', [AdminFutsalDashboardController::class, 'index'])
+            ->name('dashboard');
 
-    // Paket Membership
-    Route::resource('paket-membership', PaketMembershipController::class)
-        ->only(['index', 'store', 'update', 'destroy']);
+        // Paket Membership
+        Route::resource('paket-membership', PaketMembershipController::class)
+            ->only(['index', 'store', 'update', 'destroy']);
 
-    // Monitoring Membership
-    Route::get('monitoring-membership', [MembershipController::class, 'index'])
-        ->name('monitoring-membership.index');
-    Route::post('monitoring-membership', [MembershipController::class, 'store'])
-        ->name('monitoring-membership.store');
+        // Monitoring Membership
+        Route::get('monitoring-membership', [MembershipController::class, 'index'])
+            ->name('monitoring-membership.index');
+        Route::post('monitoring-membership', [MembershipController::class, 'store'])
+            ->name('monitoring-membership.store');
 
-    // Monitoring Pelanggan Reguler
-    Route::get('pelanggan', [PelangganController::class, 'index'])
-        ->name('pelanggan.index');
-    Route::post('pelanggan', [PelangganController::class, 'store'])
-        ->name('pelanggan.store');
-    Route::put('pelanggan/{user}', [PelangganController::class, 'update'])
-        ->name('pelanggan.update');
+        // Monitoring Pelanggan Reguler
+        Route::get('pelanggan', [PelangganController::class, 'index'])
+            ->name('pelanggan.index');
+        Route::post('pelanggan', [PelangganController::class, 'store'])
+            ->name('pelanggan.store');
+        Route::put('pelanggan/{user}', [PelangganController::class, 'update'])
+            ->name('pelanggan.update');
 
 
-    // Frontend Jadwal Lapangan
-    Route::get('jadwal-lapangan', [JadwalLapanganController::class, 'index'])
-        ->name('jadwal-lapangan.index');
+        // Frontend Jadwal Lapangan
+        Route::get('jadwal-lapangan', [JadwalLapanganController::class, 'index'])
+            ->name('jadwal-lapangan.index');
 
-    // Jadwal Lapangan API Internal
-    Route::get('jadwal-lapangan/api-by-tanggal', [JadwalLapanganController::class, 'getJadwalByTanggal'])
-        ->name('jadwal-lapangan.api');
-    Route::post('jadwal-lapangan/booking', [JadwalLapanganController::class, 'updateStatusBooking'])
-        ->name('jadwal-lapangan.booking');
-    Route::post('jadwal-lapangan/batal', [JadwalLapanganController::class, 'batalBooking'])
-        ->name('jadwal-lapangan.batal');
+        // Jadwal Lapangan API Internal
+        Route::get('jadwal-lapangan/api-by-tanggal', [JadwalLapanganController::class, 'getJadwalByTanggal'])
+            ->name('jadwal-lapangan.api');
+        Route::post('jadwal-lapangan/booking', [JadwalLapanganController::class, 'updateStatusBooking'])
+            ->name('jadwal-lapangan.booking');
+        Route::post('jadwal-lapangan/batal', [JadwalLapanganController::class, 'batalBooking'])
+            ->name('jadwal-lapangan.batal');
 
-    // Manajemen Booking Futsal
-    Route::get('booking/jadwal-tersedia', [\App\Http\Controllers\AdminFutsal\BookingController::class, 'getAvailableSlots'])
-        ->name('booking.jadwal_tersedia');
-    Route::get('booking', [\App\Http\Controllers\AdminFutsal\BookingController::class, 'index'])
-        ->name('booking.index');
-    Route::post('booking', [\App\Http\Controllers\AdminFutsal\BookingController::class, 'store'])
-        ->name('booking.store');
-    Route::patch('booking/{id}', [\App\Http\Controllers\AdminFutsal\BookingController::class, 'update'])
-        ->name('booking.update');
-    Route::patch('booking/{id}/cancel', [\App\Http\Controllers\AdminFutsal\BookingController::class, 'cancel'])
-        ->name('booking.cancel');
-    Route::patch('booking/{id}/selesai', [\App\Http\Controllers\AdminFutsal\BookingController::class, 'selesai'])
-        ->name('booking.selesai');
+        // Manajemen Booking Futsal
+        Route::get('booking/jadwal-tersedia', [\App\Http\Controllers\AdminFutsal\BookingController::class, 'getAvailableSlots'])
+            ->name('booking.jadwal_tersedia');
+        Route::get('booking', [\App\Http\Controllers\AdminFutsal\BookingController::class, 'index'])
+            ->name('booking.index');
+        Route::post('booking', [\App\Http\Controllers\AdminFutsal\BookingController::class, 'store'])
+            ->name('booking.store');
+        Route::patch('booking/{id}', [\App\Http\Controllers\AdminFutsal\BookingController::class, 'update'])
+            ->name('booking.update');
+        Route::patch('booking/{id}/cancel', [\App\Http\Controllers\AdminFutsal\BookingController::class, 'cancel'])
+            ->name('booking.cancel');
+        Route::patch('booking/{id}/selesai', [\App\Http\Controllers\AdminFutsal\BookingController::class, 'selesai'])
+            ->name('booking.selesai');
 
-    // Manajemen Transaksi Futsal
-    Route::get('transaksi', [AdminFutsalTransaksiController::class, 'index'])
-        ->name('transaksi.index');
-    Route::get('transaksi/{id}', [AdminFutsalTransaksiController::class, 'show'])
-        ->name('transaksi.show');
-    Route::patch('transaksi/{id}/konfirmasi', [AdminFutsalTransaksiController::class, 'konfirmasi'])
-        ->name('transaksi.konfirmasi');
+        // Manajemen Transaksi Futsal
+        Route::get('transaksi', [AdminFutsalTransaksiController::class, 'index'])
+            ->name('transaksi.index');
+        Route::get('transaksi/{id}', [AdminFutsalTransaksiController::class, 'show'])
+            ->name('transaksi.show');
+        Route::patch('transaksi/{id}/konfirmasi', [AdminFutsalTransaksiController::class, 'konfirmasi'])
+            ->name('transaksi.konfirmasi');
 
-    // Laporan Transaksi Futsal
-    Route::get('laporan', [LaporanController::class, 'index'])
-        ->name('laporan.index');
-    Route::get('laporan/export-pdf', [LaporanController::class, 'exportPdf'])
-        ->name('laporan.export.pdf');
-    Route::get('laporan/export-excel', [LaporanController::class, 'exportExcel'])
-        ->name('laporan.export.excel');
+        // Laporan Transaksi Futsal
+        Route::get('laporan', [LaporanController::class, 'index'])
+            ->name('laporan.index');
+        Route::get('laporan/export-pdf', [LaporanController::class, 'exportPdf'])
+            ->name('laporan.export.pdf');
+        Route::get('laporan/export-excel', [LaporanController::class, 'exportExcel'])
+            ->name('laporan.export.excel');
 
-    // Pengaturan
-    Route::get('pengaturan', [\App\Http\Controllers\AdminFutsal\PengaturanController::class, 'index'])
-        ->name('pengaturan.index');
-    Route::put('pengaturan/{id}', [\App\Http\Controllers\AdminFutsal\PengaturanController::class, 'update'])
-        ->name('pengaturan.update');
-});
+        // Pengaturan
+        Route::get('pengaturan', [\App\Http\Controllers\AdminFutsal\PengaturanController::class, 'index'])
+            ->name('pengaturan.index');
+        Route::put('pengaturan/{id}', [\App\Http\Controllers\AdminFutsal\PengaturanController::class, 'update'])
+            ->name('pengaturan.update');
+    });
 
 
 // ── Admin Kantin ───────────────────────
@@ -244,20 +250,19 @@ Route::middleware(['auth', 'role:Adminac'])->prefix('adminac')->name('adminac.')
     Route::patch('transaksi/{id}/status', [AdminAcTransaksiController::class, 'updateStatus'])
         ->name('transaksi.update_status');
 
-          // Laporan Transaksi AC
+    // Laporan Transaksi AC
     Route::get('laporan', [\App\Http\Controllers\AdminAc\LaporanController::class, 'index'])
         ->name('laporan.index');
     Route::get('laporan/export-pdf', [\App\Http\Controllers\AdminAc\LaporanController::class, 'exportPdf'])
         ->name('laporan.export.pdf');
     Route::get('laporan/export-excel', [\App\Http\Controllers\AdminAc\LaporanController::class, 'exportExcel'])
         ->name('laporan.export.excel');
-
 });
 
 // Rute untuk Pelanggan (User Dashboard)
 Route::middleware(['auth', 'role:Pelanggan'])->prefix('user')->name('user.')->group(function () {
     Route::get('/dashboard', [DashboardUserController::class, 'index'])->name('dashboard');
-    
+
     // Profile Management
     Route::get('/profile', [App\Http\Controllers\User\ProfileUserController::class, 'index'])->name('profile.index');
     Route::put('/profile', [App\Http\Controllers\User\ProfileUserController::class, 'update'])->name('profile.update');
@@ -266,7 +271,7 @@ Route::middleware(['auth', 'role:Pelanggan'])->prefix('user')->name('user.')->gr
     Route::prefix('futsal')->name('futsal.')->group(function () {
         Route::get('/dashboard', [\App\Http\Controllers\User\FutsalDashboardController::class, 'index'])->name('dashboard');
         Route::get('/history', [\App\Http\Controllers\User\FutsalDashboardController::class, 'history'])->name('history');
-        
+
         // API-like endpoints
         Route::prefix('api')->name('api.')->group(function () {
             Route::get('/summary', [\App\Http\Controllers\User\FutsalDashboardController::class, 'getSummary'])->name('summary');
@@ -279,8 +284,17 @@ Route::middleware(['auth', 'role:Pelanggan'])->prefix('user')->name('user.')->gr
         Route::get('/booking/{id}/download-invoice', [\App\Http\Controllers\User\FutsalDashboardController::class, 'downloadInvoice'])->name('download-invoice');
     });
 
-    Route::get('/ruko', function () { return 'Halaman Ruko Pelanggan (Belum dibuat)'; })->name('ruko.index');
-    Route::get('/ac', function () { return 'Halaman AC Pelanggan (Belum dibuat)'; })->name('ac.index');
+    // Kantin Manajemen
+    Route::prefix('kantin')->name('kantin.')->group(function () {
+    Route::get('/dashboard', [\App\Http\Controllers\User\KantinDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/tagihan', [\App\Http\Controllers\User\KantinDashboardController::class, 'tagihan'])->name('tagihan');
+    Route::get('/riwayat', [\App\Http\Controllers\User\KantinDashboardController::class, 'riwayat'])->name('riwayat');
+    });
+
+    // AC Manajemen
+    Route::get('/ac', function () {
+        return 'Halaman AC Pelanggan (Belum dibuat)';
+    })->name('ac.index');
 });
 
 // ── Teknisi AC ───────────────────────
@@ -289,4 +303,3 @@ Route::middleware(['auth', 'role:Teknisi'])->prefix('teknisi')->name('teknisi.')
     Route::get('/pekerjaan/{id}', [\App\Http\Controllers\TeknisiAc\DashboardController::class, 'show'])->name('pekerjaan.show');
     Route::post('/pekerjaan/{id}/selesai', [\App\Http\Controllers\TeknisiAc\DashboardController::class, 'selesaikanPekerjaan'])->name('pekerjaan.selesai');
 });
-

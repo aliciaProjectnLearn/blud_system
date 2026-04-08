@@ -72,16 +72,27 @@ class PenyewaSeeder extends Seeder
                 // USER
                 $userId = DB::table('users')->insertGetId([
                     'name'         => $data['nama'],
-                    'username'     => 'penyewa_' . $index . '_' . rand(1000,9999),
+                    'username'     => 'penyewa_' . $index . '_' . rand(1000, 9999),
                     'nama_lengkap' => $data['nama'],
-                    'no_hp'        => '08' . rand(1000000000,9999999999),
-                    'nik'          => rand(1000000000000000,9999999999999999),
-                    'email'        => 'user'.$index.'@mail.com',
+                    'no_hp'        => '08' . rand(1000000000, 9999999999),
+                    'nik'          => rand(1000000000000000, 9999999999999999),
+                    'email'        => 'user' . $index . '@mail.com',
                     'password'     => Hash::make('password'),
-                    'status_futsal'=> 'active',
+                    'status_futsal' => 'active',
                     'created_at'   => now(),
                     'updated_at'   => now(),
                 ]);
+
+                // ← TAMBAHKAN INI: assign role Pelanggan
+                $rolePelanggan = DB::table('roles')->where('nama', 'Pelanggan')->value('id');
+                if ($rolePelanggan) {
+                    DB::table('roles_users')->insert([
+                        'user_id'    => $userId,
+                        'role_id'    => $rolePelanggan,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
 
                 // PENYEWA
                 $penyewaId = DB::table('penyewa')->insertGetId([
