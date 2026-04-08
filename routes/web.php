@@ -35,9 +35,9 @@ Route::middleware(['auth', 'role:Superadmin'])->group(function () {
 
 // route lain...
 // ── Halaman Welcome ──────────────────────────────────────
-Route::middleware(['auth'])->group(function () {
-    Route::get('/', [LandingController::class, 'index'])->name('user.gateway');
+Route::get('/', [LandingController::class, 'index'])->name('user.gateway');
 
+Route::middleware(['auth'])->group(function () {
     // Rute Layanan Pelanggan (Placeholder)
     Route::prefix('user')->name('user.')->group(function () {
         Route::get('/futsal', function () { return 'Halaman Futsal Pelanggan (Belum dibuat)'; })->name('futsal.index');
@@ -243,6 +243,15 @@ Route::middleware(['auth', 'role:Adminac'])->prefix('adminac')->name('adminac.')
     Route::resource('transaksi', AdminAcTransaksiController::class);
     Route::patch('transaksi/{id}/status', [AdminAcTransaksiController::class, 'updateStatus'])
         ->name('transaksi.update_status');
+
+          // Laporan Transaksi AC
+    Route::get('laporan', [\App\Http\Controllers\AdminAc\LaporanController::class, 'index'])
+        ->name('laporan.index');
+    Route::get('laporan/export-pdf', [\App\Http\Controllers\AdminAc\LaporanController::class, 'exportPdf'])
+        ->name('laporan.export.pdf');
+    Route::get('laporan/export-excel', [\App\Http\Controllers\AdminAc\LaporanController::class, 'exportExcel'])
+        ->name('laporan.export.excel');
+
 });
 
 // Rute untuk Pelanggan (User Dashboard)
@@ -257,5 +266,12 @@ Route::middleware(['auth', 'role:Pelanggan'])->prefix('user')->name('user.')->gr
     Route::get('/futsal', function () { return 'Halaman Futsal Pelanggan (Belum dibuat)'; })->name('futsal.index');
     Route::get('/ruko', function () { return 'Halaman Ruko Pelanggan (Belum dibuat)'; })->name('ruko.index');
     Route::get('/ac', function () { return 'Halaman AC Pelanggan (Belum dibuat)'; })->name('ac.index');
+});
+
+// ── Teknisi AC ───────────────────────
+Route::middleware(['auth', 'role:Teknisi'])->prefix('teknisi')->name('teknisi.')->group(function () {
+    Route::get('/dashboard', [\App\Http\Controllers\TeknisiAc\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/pekerjaan/{id}', [\App\Http\Controllers\TeknisiAc\DashboardController::class, 'show'])->name('pekerjaan.show');
+    Route::post('/pekerjaan/{id}/selesai', [\App\Http\Controllers\TeknisiAc\DashboardController::class, 'selesaikanPekerjaan'])->name('pekerjaan.selesai');
 });
 
