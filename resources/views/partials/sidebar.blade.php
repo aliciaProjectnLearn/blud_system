@@ -22,6 +22,11 @@
             $brandLabel = 'Sistem BLUD';
             $brandRoute = route('user.dashboard');
         }
+
+        // Status Active untuk Menu Dropdown Pelanggan
+        $futsalActive = request()->is('user/futsal*');
+        $kantinActive = request()->is('user/kantin*');
+        $acActive = request()->is('user/ac*');
     @endphp
 
     <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{{ $brandRoute }}">
@@ -336,42 +341,70 @@
         <hr class="sidebar-divider">
         <div class="sidebar-heading">Layanan Futsal</div>
 
-        {{-- Dashboard Futsal --}}
-        <li class="nav-item {{ request()->routeIs('user.futsal.dashboard') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('user.futsal.dashboard') }}">
-                <i class="fas fa-fw fa-tachometer-alt"></i>
-                <span>Dashboard Futsal</span>
+        {{-- Sistem Futsal --}}
+        <li class="nav-item {{ $futsalActive ? 'active' : '' }}">
+            <a class="nav-link {{ $futsalActive ? '' : 'collapsed' }}" href="#" data-toggle="collapse"
+                data-target="#collapseFutsal" aria-expanded="{{ $futsalActive ? 'true' : 'false' }}">
+                <i class="fas fa-fw fa-futbol"></i>
+                <span>Sistem Futsal</span>
             </a>
-        </li>
-
-        {{-- Histori Booking --}}
-        <li class="nav-item {{ request()->routeIs('user.futsal.history') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('user.futsal.history') }}">
-                <i class="fas fa-fw fa-history"></i>
-                <span>Histori Booking</span>
-            </a>
+            <div id="collapseFutsal" class="collapse {{ $futsalActive ? 'show' : '' }}">
+                <div class="bg-white py-2 collapse-inner rounded">
+                    <a class="collapse-item {{ request()->routeIs('user.futsal.dashboard') ? 'active' : '' }}"
+                        href="{{ route('user.futsal.dashboard') }}">
+                        <i class="fas fa-tachometer-alt mr-1"></i> Dashboard
+                    </a>
+                    <a class="collapse-item {{ request()->routeIs('user.futsal.history') ? 'active' : '' }}"
+                        href="{{ route('user.futsal.history') }}">
+                        <i class="fas fa-history mr-1"></i> Histori Booking
+                    </a>
+                </div>
+            </div>
         </li>
 
         <hr class="sidebar-divider">
         <div class="sidebar-heading">Layanan Sewa Kantin</div>
 
         {{-- Sistem Sewa Kantin --}}
-        <li class="nav-item {{ request()->routeIs('user.kantin.*') ? 'active' : '' }}">
-            <a class="nav-link {{ request()->routeIs('user.kantin.*') ? '' : 'collapsed' }}" href="#"
-                data-toggle="collapse" data-target="#collapseKantin">
+        <li class="nav-item {{ $kantinActive ? 'active' : '' }}">
+            <a class="nav-link {{ $kantinActive ? '' : 'collapsed' }}" href="#" data-toggle="collapse"
+                data-target="#collapseKantin" aria-expanded="{{ $kantinActive ? 'true' : 'false' }}">
                 <i class="fas fa-fw fa-store"></i>
                 <span>Sistem Sewa Kantin</span>
             </a>
-            <div id="collapseKantin" class="collapse {{ request()->routeIs('user.kantin.*') ? 'show' : '' }}">
+            <div id="collapseKantin" class="collapse {{ $kantinActive ? 'show' : '' }}">
                 <div class="bg-white py-2 collapse-inner rounded">
-                    <a class="collapse-item" href="{{ route('user.kantin.dashboard') }}">
+                    <a class="collapse-item {{ request()->routeIs('user.kantin.dashboard') ? 'active' : '' }}"
+                        href="{{ route('user.kantin.dashboard') }}">
+                        <i class="fas fa-tachometer-alt mr-1"></i>Dashboard
+                    </a>
+                    <a class="collapse-item {{ request()->routeIs('user.kantin.riwayat') ? 'active' : '' }}"
+                        href="{{ route('user.kantin.riwayat') }}">
+                        <i class="fas fa-history mr-1"></i> Riwayat Pembayaran
+                    </a>
+                </div>
+            </div>
+        </li>
+
+        <hr class="sidebar-divider">
+        <div class="sidebar-heading">Layanan Servis AC</div>
+
+        {{-- Sistem Servis AC --}}
+        <li class="nav-item {{ $acActive ? 'active' : '' }}">
+            <a class="nav-link {{ $acActive ? '' : 'collapsed' }}" href="#" data-toggle="collapse"
+                data-target="#collapseAC" aria-expanded="{{ $acActive ? 'true' : 'false' }}">
+                <i class="fas fa-fw fa-tools"></i>
+                <span>Sistem Servis AC</span>
+            </a>
+            <div id="collapseAC" class="collapse {{ $acActive ? 'show' : '' }}" aria-labelledby="headingAC">
+                <div class="bg-white py-2 collapse-inner rounded">
+                    <a class="collapse-item {{ request()->routeIs('user.ac.index') ? 'active' : '' }}"
+                        href="{{ route('user.ac.index') }}">
                         <i class="fas fa-tachometer-alt mr-1"></i> Dashboard
                     </a>
-                    <a class="collapse-item" href="{{ route('user.kantin.tagihan') }}">
-                        <i class="fas fa-file-invoice-dollar mr-1"></i> Tagihan Saya
-                    </a>
-                    <a class="collapse-item" href="{{ route('user.kantin.riwayat') }}">
-                        <i class="fas fa-history mr-1"></i> Riwayat Pembayaran
+                    <a class="collapse-item {{ request()->routeIs('user.ac.history') ? 'active' : '' }}"
+                        href="{{ route('user.ac.history') }}">
+                        <i class="fas fa-history mr-1"></i> Histori Booking
                     </a>
                 </div>
             </div>
@@ -383,6 +416,29 @@
     <div class="text-center d-none d-md-inline">
         <button class="rounded-circle border-0" id="sidebarToggle"></button>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.collapse.show').forEach(function(el) {
+                el.classList.add('show');
+                var toggle = document.querySelector('[data-target="#' + el.id + '"]');
+                if (toggle) {
+                    toggle.classList.remove('collapsed');
+                    toggle.setAttribute('aria-expanded', 'true');
+                }
+            });
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Force show semua collapse yang seharusnya terbuka
+            document.querySelectorAll('.collapse.show').forEach(function(el) {
+                el.style.display = 'block';
+                el.style.height = '';
+            });
+        });
+    </script>
 
 </ul>
 {{-- End Sidebar --}}
