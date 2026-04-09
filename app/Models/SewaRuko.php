@@ -14,7 +14,7 @@ class SewaRuko extends Model
         'ruko_id',
         'tgl_mulai',
         'tgl_selesai',
-        'total_biaya_tahunan',
+        'harga_sewa_tahunan',
         'no_mou',
         'status',
     ];

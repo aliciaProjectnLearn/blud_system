@@ -44,4 +44,9 @@ class BookingAc extends Model
     {
         return $this->hasMany(DetailServis::class, 'booking_id');
     }
+
+    public function pembayaran()
+    {
+        return $this->hasOne(PembayaranAc::class, 'booking_id', 'booking_id');
+    }
 }

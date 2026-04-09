@@ -27,4 +27,14 @@ class Booking extends Model
     {
         return $this->hasMany(PembayaranFutsal::class, 'booking_id');
     }
+
+    public function bookingAc()
+    {
+        return $this->hasOne(BookingAc::class, 'booking_id');
+    }
+
+    public function pembatalan()
+    {
+        return $this->hasOne(Pembatalan::class, 'booking_id');
+    }
 }

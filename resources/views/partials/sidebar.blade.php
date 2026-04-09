@@ -398,12 +398,10 @@
             </a>
             <div id="collapseAC" class="collapse {{ $acActive ? 'show' : '' }}" aria-labelledby="headingAC">
                 <div class="bg-white py-2 collapse-inner rounded">
-                    <a class="collapse-item {{ request()->routeIs('user.ac.index') ? 'active' : '' }}"
-                        href="{{ route('user.ac.index') }}">
+                    <a class="collapse-item {{ request()->routeIs('user.ac.index') ? 'active' : '' }}" href="{{ route('user.ac.index') }}">
                         <i class="fas fa-tachometer-alt mr-1"></i> Dashboard
                     </a>
-                    <a class="collapse-item {{ request()->routeIs('user.ac.history') ? 'active' : '' }}"
-                        href="{{ route('user.ac.history') }}">
+                    <a class="collapse-item {{ request()->routeIs('user.ac.history') ? 'active' : '' }}" href="{{ route('user.ac.history') }}">
                         <i class="fas fa-history mr-1"></i> Histori Booking
                     </a>
                 </div>
@@ -413,9 +411,18 @@
 
     <hr class="sidebar-divider d-none d-md-block">
 
-    <div class="text-center d-none d-md-inline">
-        <button class="rounded-circle border-0" id="sidebarToggle"></button>
-    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.collapse.show').forEach(function(el) {
+                el.classList.add('show');
+                var toggle = document.querySelector('[data-target="#' + el.id + '"]');
+                if (toggle) {
+                    toggle.classList.remove('collapsed');
+                    toggle.setAttribute('aria-expanded', 'true');
+                }
+            });
+        });
+    </script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {

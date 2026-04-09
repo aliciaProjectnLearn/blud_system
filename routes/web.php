@@ -40,12 +40,17 @@ Route::get('/', [LandingController::class, 'index'])->name('user.gateway');
 Route::middleware(['auth'])->group(function () {
     // Rute Layanan Pelanggan (Placeholder)
     Route::prefix('user')->name('user.')->group(function () {
+
         Route::get('/futsal', function () {
             return 'Halaman Futsal Pelanggan (Belum dibuat)';
         })->name('futsal.index');
+        // Route ruko dihapus karena digantikan oleh module kantin.
+
+        Route::get('/futsal', [\App\Http\Controllers\User\FutsalDashboardController::class, 'landing'])->name('futsal.index');
         Route::get('/ruko', function () {
             return 'Halaman Ruko Pelanggan (Belum dibuat)';
         })->name('ruko.index');
+
         Route::get('/ac', function () {
             return 'Halaman AC Pelanggan (Belum dibuat)';
         })->name('ac.index');
@@ -272,6 +277,11 @@ Route::middleware(['auth', 'role:Pelanggan'])->prefix('user')->name('user.')->gr
         Route::get('/dashboard', [\App\Http\Controllers\User\FutsalDashboardController::class, 'index'])->name('dashboard');
         Route::get('/history', [\App\Http\Controllers\User\FutsalDashboardController::class, 'history'])->name('history');
 
+        // Booking Lapangan
+        Route::get('/booking', [\App\Http\Controllers\User\FutsalDashboardController::class, 'showBookingForm'])->name('booking.form');
+        Route::post('/booking', [\App\Http\Controllers\User\FutsalDashboardController::class, 'store'])->name('booking.store');
+        Route::get('/check-availability', [\App\Http\Controllers\User\FutsalDashboardController::class, 'checkAvailability'])->name('booking.check');
+
         // API-like endpoints
         Route::prefix('api')->name('api.')->group(function () {
             Route::get('/summary', [\App\Http\Controllers\User\FutsalDashboardController::class, 'getSummary'])->name('summary');
@@ -286,15 +296,21 @@ Route::middleware(['auth', 'role:Pelanggan'])->prefix('user')->name('user.')->gr
 
     // Kantin Manajemen
     Route::prefix('kantin')->name('kantin.')->group(function () {
-    Route::get('/dashboard', [\App\Http\Controllers\User\KantinDashboardController::class, 'index'])->name('dashboard');
-    Route::get('/tagihan', [\App\Http\Controllers\User\KantinDashboardController::class, 'tagihan'])->name('tagihan');
-    Route::get('/riwayat', [\App\Http\Controllers\User\KantinDashboardController::class, 'riwayat'])->name('riwayat');
+        Route::get('/dashboard', [\App\Http\Controllers\User\KantinDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/tagihan', [\App\Http\Controllers\User\KantinDashboardController::class, 'tagihan'])->name('tagihan');
+        Route::get('/riwayat', [\App\Http\Controllers\User\KantinDashboardController::class, 'riwayat'])->name('riwayat');
+        Route::get('/katalog', [\App\Http\Controllers\User\KantinDashboardController::class, 'pilihUnit'])->name('katalog');
+        Route::get('/booking/{id}', [\App\Http\Controllers\User\KantinDashboardController::class, 'formSewa'])->name('booking');
+        Route::post('/booking/{id}', [\App\Http\Controllers\User\KantinDashboardController::class, 'storeSewa'])->name('store_booking');
     });
 
     // AC Manajemen
-    Route::get('/ac', function () {
-        return 'Halaman AC Pelanggan (Belum dibuat)';
-    })->name('ac.index');
+    Route::prefix('ac')->name('ac.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\User\AcDashboardController::class, 'index'])->name('index');
+        Route::get('/history', [\App\Http\Controllers\User\AcDashboardController::class, 'history'])->name('history');
+        Route::get('/{id}', [\App\Http\Controllers\User\AcDashboardController::class, 'show'])->name('show');
+        Route::post('/{id}/cancel', [\App\Http\Controllers\User\AcDashboardController::class, 'cancel'])->name('cancel');
+    });
 });
 
 // ── Teknisi AC ───────────────────────

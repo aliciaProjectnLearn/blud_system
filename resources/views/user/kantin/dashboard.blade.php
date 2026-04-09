@@ -64,9 +64,14 @@
         {{-- Page Heading --}}
         <div class="d-sm-flex align-items-center justify-content-between mb-4">
             <h1 class="h3 mb-0 text-gray-800">Dashboard Sistem Sewa Kantin</h1>
-            <a href="{{ route('user.dashboard') }}" class="btn btn-sm btn-secondary">
-                <i class="fas fa-arrow-left"></i> Kembali ke Dashboard
-            </a>
+            <div>
+                <a href="{{ route('user.kantin.katalog') }}" class="btn btn-sm btn-primary shadow-sm mr-2">
+                    <i class="fas fa-plus fa-sm text-white-50"></i> Sewa Kantin Baru
+                </a>
+                <a href="{{ route('user.dashboard') }}" class="btn btn-sm btn-secondary shadow-sm">
+                    <i class="fas fa-arrow-left fa-sm text-white-50"></i> Kembali
+                </a>
+            </div>
         </div>
 
         {{-- Jika user belum terdaftar sebagai penyewa, tampilkan pemberitahuan namun tetap render seluruh dashboard dengan nilai default kosong --}}
@@ -164,8 +169,43 @@
 
         </div>
 
-        {{-- Sewa Aktif & Grafik --}}
-        <div class="row">
+                {{-- Info Sewa Aktif --}}
+                <div class="col-lg-4 mb-4">
+                    <div class="card shadow h-100">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">Status Sewa Aktif</h6>
+                        </div>
+                        <div class="card-body">
+                            @if ($sewaAktif)
+                                @if($sewaAktif->status === 'pending')
+                                    <div class="alert alert-warning border-left-warning shadow-sm py-2 px-3 mb-3 text-sm">
+                                        <i class="fas fa-info-circle mr-1"></i> Pengajuan unit <strong>{{ $sewaAktif->ruko->kode_unit ?? ($sewaAktif->ruko->no_unit ?? '-') }}</strong> sedang diproses. Mohon tunggu verifikasi Admin maksimal 2x24 jam.
+                                    </div>
+                                @endif
+                                <table class="table table-borderless table-sm">
+                                    <tr>
+                                        <td><strong>Unit</strong></td>
+                                        <td>: {{ $sewaAktif->ruko->kode_unit ?? ($sewaAktif->ruko->no_unit ?? '-') }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Mulai</strong></td>
+                                        <td>: {{ \Carbon\Carbon::parse($sewaAktif->tgl_mulai)->format('d M Y') }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Selesai</strong></td>
+                                        <td>: {{ \Carbon\Carbon::parse($sewaAktif->tgl_selesai)->format('d M Y') }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Status</strong></td>
+                                        <td>: 
+                                            @if($sewaAktif->status === 'pending')
+                                                <span class="badge badge-warning">Pengajuan Diproses</span>
+                                            @else
+                                                <span class="badge badge-success">{{ ucfirst($sewaAktif->status) }}</span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                </table>
 
             {{-- Info Sewa Aktif --}}
             <div class="col-lg-4 mb-4">
