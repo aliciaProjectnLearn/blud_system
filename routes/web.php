@@ -292,9 +292,12 @@ Route::middleware(['auth', 'role:Pelanggan'])->prefix('user')->name('user.')->gr
     });
 
     // AC Manajemen
-    Route::get('/ac', function () {
-        return 'Halaman AC Pelanggan (Belum dibuat)';
-    })->name('ac.index');
+    Route::prefix('ac')->name('ac.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\User\AcDashboardController::class, 'index'])->name('index');
+        Route::get('/history', [\App\Http\Controllers\User\AcDashboardController::class, 'history'])->name('history');
+        Route::get('/{id}', [\App\Http\Controllers\User\AcDashboardController::class, 'show'])->name('show');
+        Route::post('/{id}/cancel', [\App\Http\Controllers\User\AcDashboardController::class, 'cancel'])->name('cancel');
+    });
 });
 
 // ── Teknisi AC ───────────────────────
