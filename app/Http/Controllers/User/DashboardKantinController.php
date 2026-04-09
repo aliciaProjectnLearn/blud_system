@@ -14,47 +14,77 @@ class DashboardKantinController extends Controller
     {
         $user = Auth::user();
 
-        // Ambil penyewa
+        // Ambil penyewa (bisa null)
         $penyewa = Penyewa::where('user_id', $user->id)->first();
 
-        if (!$penyewa) {
-            return response()->json([
-                'message' => 'User belum terdaftar sebagai penyewa'
-            ], 404);
+        // Inisialisasi default
+        $totalSewa = 0;
+        $totalDikonfirmasi = 0;
+        $totalSelesai = 0;
+        $tagihanMendatang = null;
+        $sewaAktif = null;
+        $labelGrafik = [];
+        $dataGrafik = [];
+        $transaksiTerbaru = collect();
+
+        if ($penyewa) {
+            // Base query
+            $baseQuery = SewaRuko::where('penyewa_id', $penyewa->id);
+
+            // Statistik
+            $totalSewa = (clone $baseQuery)->count();
+
+            // Pembayaran: hitung berdasarkan status
+            $totalDikonfirmasi = PembayaranRuko::whereHas('sewaRuko', function ($q) use ($penyewa) {
+                $q->where('penyewa_id', $penyewa->id);
+            })->where('status', 'verifikasi')->count();
+
+            $totalSelesai = PembayaranRuko::whereHas('sewaRuko', function ($q) use ($penyewa) {
+                $q->where('penyewa_id', $penyewa->id);
+            })->where('status', 'lunas')->count();
+
+            // Transaksi terbaru (pembayaran)
+            $transaksiTerbaru = PembayaranRuko::whereHas('sewaRuko', function ($q) use ($penyewa) {
+                $q->where('penyewa_id', $penyewa->id);
+            })->latest()->take(5)->get();
+
+            // Tagihan (belum bayar / menunggu)
+            $tagihanMendatang = PembayaranRuko::whereHas('sewaRuko', function ($q) use ($penyewa) {
+                $q->where('penyewa_id', $penyewa->id);
+            })->where('status', 'menunggu')->orderBy('tgl_jatuh_tempo')->first();
+
+            // Ambil sewa aktif beserta relasi pembayaran dan ruko
+            $sewaAktif = SewaRuko::with('pembayaran', 'ruko')
+                ->where('penyewa_id', $penyewa->id)
+                ->where('status', 'aktif')
+                ->first();
+
+            // Siapkan data grafik (total tagihan per bulan tahun ini)
+            $year = now()->year;
+            $labelGrafik = [];
+            $dataGrafik = [];
+
+            for ($m = 1; $m <= 12; $m++) {
+                $labelGrafik[] = \Carbon\Carbon::createFromDate($year, $m, 1)->format('M');
+                $sum = PembayaranRuko::whereHas('sewaRuko', function ($q) use ($penyewa) {
+                    $q->where('penyewa_id', $penyewa->id);
+                })->whereYear('tgl_jatuh_tempo', $year)->whereMonth('tgl_jatuh_tempo', $m)->sum('jumlah_tagihan');
+
+                $dataGrafik[] = (int) $sum;
+            }
         }
 
-        // Base query
-        $baseQuery = SewaRuko::where('penyewa_id', $penyewa->id);
-
-        // Statistik
-        $total = (clone $baseQuery)->count();
-        $aktif = (clone $baseQuery)->where('status', 'aktif')->count();
-        $selesai = (clone $baseQuery)->where('status', 'selesai')->count();
-        $dibatalkan = (clone $baseQuery)->where('status', 'dibatalkan')->count();
-
-        // Transaksi terbaru
-        $latest = (clone $baseQuery)
-            ->latest()
-            ->take(5)
-            ->get();
-
-        // Tagihan (belum bayar)
-        $tagihan = PembayaranRuko::whereHas('sewaRuko', function ($q) use ($penyewa) {
-                $q->where('penyewa_id', $penyewa->id);
-            })
-            ->where('status', 'belum_bayar')
-            ->get();
-
-        return response()->json([
-            'summary' => [
-                'total' => $total,
-                'aktif' => $aktif,
-                'selesai' => $selesai,
-                'dibatalkan' => $dibatalkan,
-                'tagihan' => $tagihan->count(),
-            ],
-            'latest' => $latest,
-            'tagihan' => $tagihan,
-        ]);
+        // Kembalikan view dengan semua variabel yang dipakai blade
+        return view('user.kantin.dashboard', compact(
+            'penyewa',
+            'totalSewa',
+            'totalDikonfirmasi',
+            'totalSelesai',
+            'tagihanMendatang',
+            'sewaAktif',
+            'labelGrafik',
+            'dataGrafik',
+            'transaksiTerbaru'
+        ));
     }
 }

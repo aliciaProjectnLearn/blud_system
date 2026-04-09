@@ -74,106 +74,100 @@
             </div>
         </div>
 
-        @if(session('success'))
-            <div class="alert alert-success">{{ session('success') }}</div>
-        @endif
+        {{-- Jika user belum terdaftar sebagai penyewa, tampilkan pemberitahuan namun tetap render seluruh dashboard dengan nilai default kosong --}}
+        @php
+            $isPenyewa = (bool) $penyewa;
+            // Pastikan variabel-variabel yang dipakai tersedia dengan nilai default
+            $totalSewa = $totalSewa ?? 0;
+            $totalDikonfirmasi = $totalDikonfirmasi ?? 0;
+            $totalSelesai = $totalSelesai ?? 0;
+            $tagihanMendatang = $tagihanMendatang ?? null;
+            $sewaAktif = $sewaAktif ?? null;
+            $labelGrafik = $labelGrafik ?? [];
+            $dataGrafik = $dataGrafik ?? [];
+            $transaksiTerbaru = $transaksiTerbaru ?? collect();
+        @endphp
 
-        @if (!$penyewa)
-            {{-- Kondisi: user belum terdaftar sebagai penyewa --}}
-            <div class="card shadow border-left-info mt-4">
-                <div class="card-body text-center py-5">
-                    <i class="fas fa-store fa-4x text-gray-300 mb-4"></i>
-                    <h5 class="text-gray-800 font-weight-bold">Anda belum memiliki sewa kantin/ruko aktif.</h5>
-                    <p class="text-muted mb-4">Temukan lokasi usaha yang stratgis untuk bisnis Anda. Mulai dengan memilih unit yang tersedia di katalog kami.</p>
-                    <a href="{{ route('user.kantin.katalog') }}" class="btn btn-primary px-4 py-2">
-                        <i class="fas fa-search mr-2"></i>Lihat Katalog Unit
-                    </a>
+        {{-- Summary Cards --}}
+        <div class="row">
+
+            {{-- Total Sewa --}}
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-primary shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Penyewaan
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $totalSewa }} Sewa</div>
+                            </div>
+                            <div class="col-auto"><i class="fas fa-store fa-2x text-gray-300"></i></div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        @else
-            {{-- Summary Cards --}}
-            <div class="row">
 
-                {{-- Total Sewa --}}
-                <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="card border-left-primary shadow h-100 py-2">
-                        <div class="card-body">
-                            <div class="row no-gutters align-items-center">
-                                <div class="col mr-2">
-                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Penyewaan
-                                    </div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $totalSewa }} Sewa</div>
-                                </div>
-                                <div class="col-auto"><i class="fas fa-store fa-2x text-gray-300"></i></div>
+            {{-- Dikonfirmasi --}}
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-info shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Pembayaran
+                                    Dikonfirmasi</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $totalDikonfirmasi }}</div>
                             </div>
+                            <div class="col-auto"><i class="fas fa-check-circle fa-2x text-gray-300"></i></div>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                {{-- Dikonfirmasi --}}
-                <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="card border-left-info shadow h-100 py-2">
-                        <div class="card-body">
-                            <div class="row no-gutters align-items-center">
-                                <div class="col mr-2">
-                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Pembayaran
-                                        Dikonfirmasi</div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $totalDikonfirmasi }}</div>
+            {{-- Selesai --}}
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-success shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Pembayaran Lunas
                                 </div>
-                                <div class="col-auto"><i class="fas fa-check-circle fa-2x text-gray-300"></i></div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $totalSelesai }}</div>
                             </div>
+                            <div class="col-auto"><i class="fas fa-clipboard-check fa-2x text-gray-300"></i></div>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                {{-- Selesai --}}
-                <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="card border-left-success shadow h-100 py-2">
-                        <div class="card-body">
-                            <div class="row no-gutters align-items-center">
-                                <div class="col mr-2">
-                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Pembayaran Lunas
-                                    </div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $totalSelesai }}</div>
+            {{-- Tagihan Mendatang --}}
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-warning shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Tagihan Mendatang
                                 </div>
-                                <div class="col-auto"><i class="fas fa-clipboard-check fa-2x text-gray-300"></i></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Tagihan Mendatang --}}
-                <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="card border-left-warning shadow h-100 py-2">
-                        <div class="card-body">
-                            <div class="row no-gutters align-items-center">
-                                <div class="col mr-2">
-                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Tagihan Mendatang
-                                    </div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                        @if ($tagihanMendatang)
-                                            Rp {{ number_format($tagihanMendatang->jumlah_tagihan, 0, ',', '.') }}
-                                        @else
-                                            <span class="text-muted" style="font-size:14px">Tidak ada tagihan</span>
-                                        @endif
-                                    </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
                                     @if ($tagihanMendatang)
-                                        <div class="text-xs text-danger mt-1">
-                                            Jatuh tempo:
-                                            {{ \Carbon\Carbon::parse($tagihanMendatang->tgl_jatuh_tempo)->format('d M Y') }}
-                                        </div>
+                                        Rp {{ number_format($tagihanMendatang->jumlah_tagihan, 0, ',', '.') }}
+                                    @else
+                                        <span class="text-muted" style="font-size:14px">Tidak ada tagihan</span>
                                     @endif
                                 </div>
-                                <div class="col-auto"><i class="fas fa-file-invoice-dollar fa-2x text-gray-300"></i></div>
+                                @if ($tagihanMendatang)
+                                    <div class="text-xs text-danger mt-1">
+                                        Jatuh tempo:
+                                        {{ \Carbon\Carbon::parse($tagihanMendatang->tgl_jatuh_tempo)->format('d M Y') }}
+                                    </div>
+                                @endif
                             </div>
+                            <div class="col-auto"><i class="fas fa-file-invoice-dollar fa-2x text-gray-300"></i></div>
                         </div>
                     </div>
                 </div>
-
             </div>
 
-            {{-- Sewa Aktif & Grafik --}}
-            <div class="row">
+        </div>
 
                 {{-- Info Sewa Aktif --}}
                 <div class="col-lg-4 mb-4">
@@ -213,108 +207,133 @@
                                     </tr>
                                 </table>
 
-                                @if ($sewaAktif->pembayaran->count() > 0)
-                                    <hr>
-                                    <h6 class="font-weight-bold text-warning">Tagihan Belum Lunas</h6>
-                                    @foreach ($sewaAktif->pembayaran->where('status', 'menunggu') as $tagihan)
-                                        <div class="d-flex justify-content-between align-items-center mb-2">
-                                            <span class="small">Termin {{ $tagihan->termin }}</span>
-                                            <span class="small font-weight-bold">Rp
-                                                {{ number_format($tagihan->jumlah_tagihan, 0, ',', '.') }}</span>
-                                        </div>
-                                        <div class="small text-danger mb-2">
-                                            <i class="fas fa-clock"></i> Jatuh tempo:
-                                            {{ \Carbon\Carbon::parse($tagihan->tgl_jatuh_tempo)->format('d M Y') }}
-                                        </div>
-                                    @endforeach
-                                @endif
-                            @else
-                                <div class="text-center py-4">
-                                    <i class="fas fa-store fa-3x text-gray-200 mb-3"></i>
-                                    <p class="text-muted small">Tidak ada sewa aktif saat ini.</p>
-                                </div>
+            {{-- Info Sewa Aktif --}}
+            <div class="col-lg-4 mb-4">
+                <div class="card shadow h-100">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">Status Sewa Aktif</h6>
+                    </div>
+                    <div class="card-body">
+                        @if ($sewaAktif)
+                            <table class="table table-borderless table-sm">
+                                <tr>
+                                    <td><strong>Unit</strong></td>
+                                    <td>: {{ $sewaAktif->ruko->kode_unit ?? ($sewaAktif->ruko->no_unit ?? '-') }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Mulai</strong></td>
+                                    <td>: {{ \Carbon\Carbon::parse($sewaAktif->tgl_mulai)->format('d M Y') }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Selesai</strong></td>
+                                    <td>: {{ \Carbon\Carbon::parse($sewaAktif->tgl_selesai)->format('d M Y') }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Status</strong></td>
+                                    <td>: <span class="badge badge-success">{{ ucfirst($sewaAktif->status) }}</span>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            @if ($sewaAktif->pembayaran->count() > 0)
+                                <hr>
+                                <h6 class="font-weight-bold text-warning">Tagihan Belum Lunas</h6>
+                                @foreach ($sewaAktif->pembayaran->where('status', 'menunggu') as $tagihan)
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="small">Termin {{ $tagihan->termin }}</span>
+                                        <span class="small font-weight-bold">Rp
+                                            {{ number_format($tagihan->jumlah_tagihan, 0, ',', '.') }}</span>
+                                    </div>
+                                    <div class="small text-danger mb-2">
+                                        <i class="fas fa-clock"></i> Jatuh tempo:
+                                        {{ \Carbon\Carbon::parse($tagihan->tgl_jatuh_tempo)->format('d M Y') }}
+                                    </div>
+                                @endforeach
                             @endif
-                        </div>
+                        @else
+                            <div class="text-center py-4">
+                                <i class="fas fa-store fa-3x text-gray-200 mb-3"></i>
+                                <p class="text-muted small">Tidak ada sewa aktif saat ini.</p>
+                            </div>
+                        @endif
                     </div>
                 </div>
-
-                {{-- Grafik Tagihan Per Bulan --}}
-                <div class="col-lg-8 mb-4">
-                    <div class="card shadow">
-                        <div class="card-header py-3">
-                            <h6 class="m-0 font-weight-bold text-primary">Tagihan Per Bulan ({{ now()->year }})</h6>
-                        </div>
-                        <div class="card-body">
-                            <canvas id="chartTagihan" height="100"></canvas>
-                        </div>
-                    </div>
-                </div>
-
             </div>
 
-            {{-- Transaksi Terbaru --}}
-            <div class="row">
-                <div class="col-lg-12 mb-4">
-                    <div class="card shadow">
-                        <div class="card-header py-3">
-                            <h6 class="m-0 font-weight-bold text-primary">Transaksi Terbaru</h6>
-                        </div>
-                        <div class="card-body">
-                            @if ($transaksiTerbaru->isEmpty())
-                                <div class="text-center py-4">
-                                    <i class="fas fa-receipt fa-3x text-gray-200 mb-3"></i>
-                                    <p class="text-muted">Belum ada data transaksi.</p>
-                                </div>
-                            @else
-                                <div class="table-responsive">
-                                    <table class="table table-bordered">
-                                        <thead>
+            {{-- Grafik Tagihan Per Bulan --}}
+            <div class="col-lg-8 mb-4">
+                <div class="card shadow">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">Tagihan Per Bulan ({{ now()->year }})</h6>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="chartTagihan" height="100"></canvas>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        {{-- Transaksi Terbaru --}}
+        <div class="row">
+            <div class="col-lg-12 mb-4">
+                <div class="card shadow">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">Transaksi Terbaru</h6>
+                    </div>
+                    <div class="card-body">
+                        @if ($transaksiTerbaru->isEmpty())
+                            <div class="text-center py-4">
+                                <i class="fas fa-receipt fa-3x text-gray-200 mb-3"></i>
+                                <p class="text-muted">Belum ada data transaksi.</p>
+                            </div>
+                        @else
+                            <div class="table-responsive">
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Unit</th>
+                                            <th>Termin</th>
+                                            <th>Jumlah Tagihan</th>
+                                            <th>Jatuh Tempo</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($transaksiTerbaru as $t)
                                             <tr>
-                                                <th>Unit</th>
-                                                <th>Termin</th>
-                                                <th>Jumlah Tagihan</th>
-                                                <th>Jatuh Tempo</th>
-                                                <th>Status</th>
+                                                <td>{{ $t->sewaRuko->ruko->kode_unit ?? ($t->sewaRuko->ruko->no_unit ?? '-') }}
+                                                </td>
+                                                <td>Termin {{ $t->termin }}</td>
+                                                <td>Rp {{ number_format($t->jumlah_tagihan, 0, ',', '.') }}</td>
+                                                <td>
+                                                    @if ($t->tgl_jatuh_tempo)
+                                                        {{ \Carbon\Carbon::parse($t->tgl_jatuh_tempo)->format('d M Y') }}
+                                                    @else
+                                                        -
+                                                    @endif
+                                                </td>
+                                                <td>
+                                                    @php
+                                                        $badge = match ($t->status) {
+                                                            'lunas' => 'success',
+                                                            'verifikasi' => 'info',
+                                                            'menunggu' => 'warning',
+                                                            default => 'secondary',
+                                                        };
+                                                    @endphp
+                                                    <span class="badge badge-{{ $badge }}">{{ ucfirst($t->status) }}</span>
+                                                </td>
                                             </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach ($transaksiTerbaru as $t)
-                                                <tr>
-                                                    <td>{{ $t->sewaRuko->ruko->kode_unit ?? ($t->sewaRuko->ruko->no_unit ?? '-') }}
-                                                    </td>
-                                                    <td>Termin {{ $t->termin }}</td>
-                                                    <td>Rp {{ number_format($t->jumlah_tagihan, 0, ',', '.') }}</td>
-                                                    <td>
-                                                        @if ($t->tgl_jatuh_tempo)
-                                                            {{ \Carbon\Carbon::parse($t->tgl_jatuh_tempo)->format('d M Y') }}
-                                                        @else
-                                                            -
-                                                        @endif
-                                                    </td>
-                                                    <td>
-                                                        @php
-                                                            $badge = match ($t->status) {
-                                                                'lunas' => 'success',
-                                                                'verifikasi' => 'info',
-                                                                'menunggu' => 'warning',
-                                                                default => 'secondary',
-                                                            };
-                                                        @endphp
-                                                        <span
-                                                            class="badge badge-{{ $badge }}">{{ ucfirst($t->status) }}</span>
-                                                    </td>
-                                                </tr>
-                                            @endforeach
-                                        </tbody>
-                                    </table>
-                                </div>
-                            @endif
-                        </div>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>
-
-        @endif {{-- end if penyewa --}}
+        </div>
 
     </div>
 @endsection
