@@ -40,9 +40,7 @@ Route::get('/', [LandingController::class, 'index'])->name('user.gateway');
 Route::middleware(['auth'])->group(function () {
     // Rute Layanan Pelanggan (Placeholder)
     Route::prefix('user')->name('user.')->group(function () {
-        Route::get('/futsal', function () {
-            return 'Halaman Futsal Pelanggan (Belum dibuat)';
-        })->name('futsal.index');
+        Route::get('/futsal', [\App\Http\Controllers\User\FutsalDashboardController::class, 'landing'])->name('futsal.index');
         Route::get('/ruko', function () {
             return 'Halaman Ruko Pelanggan (Belum dibuat)';
         })->name('ruko.index');
@@ -271,6 +269,11 @@ Route::middleware(['auth', 'role:Pelanggan'])->prefix('user')->name('user.')->gr
     Route::prefix('futsal')->name('futsal.')->group(function () {
         Route::get('/dashboard', [\App\Http\Controllers\User\FutsalDashboardController::class, 'index'])->name('dashboard');
         Route::get('/history', [\App\Http\Controllers\User\FutsalDashboardController::class, 'history'])->name('history');
+
+        // Booking Lapangan
+        Route::get('/booking', [\App\Http\Controllers\User\FutsalDashboardController::class, 'showBookingForm'])->name('booking.form');
+        Route::post('/booking', [\App\Http\Controllers\User\FutsalDashboardController::class, 'store'])->name('booking.store');
+        Route::get('/check-availability', [\App\Http\Controllers\User\FutsalDashboardController::class, 'checkAvailability'])->name('booking.check');
 
         // API-like endpoints
         Route::prefix('api')->name('api.')->group(function () {
