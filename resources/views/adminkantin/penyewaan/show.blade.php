@@ -33,7 +33,7 @@
                             <hr>
                             <p><b>Nama:</b> {{ $data->penyewa->user->nama_lengkap ?? '-' }}</p>
                             <p><b>Nama Usaha:</b> {{ $data->penyewa->nama_usaha }}</p>
-                            <p><b>NIK:</b> {{ $data->penyewa->nik }}</p>
+                            <p><b>NIK:</b> {{ $data->penyewa->user->nik ?? '-' }}</p>
                             <p><b>Alamat:</b> {{ $data->penyewa->alamat }}</p>
                         </div>
                         <div class="col-md-6">

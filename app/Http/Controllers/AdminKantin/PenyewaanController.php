@@ -24,11 +24,10 @@ class PenyewaanController extends Controller
         $allData = SewaRuko::with('ruko')->get();
 
         foreach ($allData as $item) {
-            // HITUNG STATUS PENYEWAAN
-            $newStatus = $today->gt(Carbon::parse($item->tgl_selesai)) ? 'selesai' : 'aktif';
-
-            if ($item->status !== $newStatus) {
-                $item->update(['status' => $newStatus]);
+            // HANYA tutup masa penyewaan jika sedang aktif dan masa berlakunya kedaluwarsa.
+            // JANGAN pernah meng-overwrite manual status admin (terutama 'selesai') menjadi 'aktif' kembali.
+            if ($item->status === 'aktif' && $today->gt(Carbon::parse($item->tgl_selesai))) {
+                $item->update(['status' => 'selesai']);
             }
 
             // UPDATE STATUS RUKO
@@ -124,9 +123,8 @@ class PenyewaanController extends Controller
         $allData = SewaRuko::with('ruko')->get();
 
         foreach ($allData as $item) {
-            $newStatus = $today->gt(Carbon::parse($item->tgl_selesai)) ? 'selesai' : 'aktif';
-            if ($item->status !== $newStatus) {
-                $item->update(['status' => $newStatus]);
+            if ($item->status === 'aktif' && $today->gt(Carbon::parse($item->tgl_selesai))) {
+                $item->update(['status' => 'selesai']);
             }
 
             if ($item->status === 'aktif') {
@@ -223,7 +221,11 @@ class PenyewaanController extends Controller
             return redirect()->back()->with('error', 'File tidak ditemukan di storage.');
         }
 
-        return Storage::disk('public')->download($doc->path_file, $doc->nama_dokumen);
+        $extension = pathinfo($doc->path_file, PATHINFO_EXTENSION);
+        $baseName = $doc->no_mou ?? $doc->nama_dokumen;
+        $cleanName = str_replace(['/', '\\'], '_', $baseName) . '.' . $extension;
+
+        return Storage::disk('public')->download($doc->path_file, $cleanName);
     }
 
     public function hapusDokumen($id)
@@ -258,9 +260,7 @@ class PenyewaanController extends Controller
             $path = 'mou/' . $nama_file;
 
             // 4. Constraint: Hindari duplikasi / Update record & hapus file lama
-            $existingDoc = DokumenPenyewaan::where('sewa_id', $sewa->id)
-                ->where('nama_dokumen', 'LIKE', 'MOU Otomatis%')
-                ->first();
+            $existingDoc = DokumenPenyewaan::where('no_mou', $no_mou)->first();
 
             if ($existingDoc) {
                 // Hapus file lama jika ada

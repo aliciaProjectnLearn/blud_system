@@ -225,7 +225,7 @@
         </a>
     </div>
     <div class="col-md-4 mb-3">
-        <a href="{{ route('user.ruko.index') }}" class="text-decoration-none">
+        <a href="{{ route('user.kantin.dashboard') }}" class="text-decoration-none">
             <div class="card quick-access-card shadow-sm border-0">
                 <i class="fas fa-store quick-access-icon"></i>
                 <h6 class="font-weight-bold text-primary mb-1">Daftar Sewa Ruko</h6>
