@@ -50,7 +50,7 @@ class DashboardUserController extends Controller
         if (!$penyewa) return null;
 
         return SewaRuko::where('penyewa_id', $penyewa->getKey())
-            ->where('status', 'aktif')
+            ->whereIn('status', ['aktif', 'pending'])
             ->with([
                 'ruko',
                 'pembayaran' => fn($q) => $q->where('status', 'menunggu')->orderBy('tgl_jatuh_tempo')

@@ -29,7 +29,7 @@
         <div class="content">
             <table style="width: 100%;">
                 <tr><td style="width: 30%;">Nama Lengkap</td><td>: {{ $sewa->penyewa->user->nama_lengkap ?? '-' }}</td></tr>
-                <tr><td style="width: 30%;">NIK</td><td>: {{ $sewa->penyewa->nik ?? '-' }}</td></tr>
+                <tr><td style="width: 30%;">NIK</td><td>: {{ $sewa->penyewa->user->nik ?? '-' }}</td></tr>
                 <tr><td style="width: 30%;">Nama Usaha</td><td>: {{ $sewa->penyewa->nama_usaha }}</td></tr>
                 <tr><td style="width: 30%;">Alamat</td><td>: {{ $sewa->penyewa->alamat }}</td></tr>
             </table>

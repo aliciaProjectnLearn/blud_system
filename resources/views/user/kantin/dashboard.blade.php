@@ -64,18 +64,30 @@
         {{-- Page Heading --}}
         <div class="d-sm-flex align-items-center justify-content-between mb-4">
             <h1 class="h3 mb-0 text-gray-800">Dashboard Sistem Sewa Kantin</h1>
-            <a href="{{ route('user.dashboard') }}" class="btn btn-sm btn-secondary">
-                <i class="fas fa-arrow-left"></i> Kembali ke Dashboard
-            </a>
+            <div>
+                <a href="{{ route('user.kantin.katalog') }}" class="btn btn-sm btn-primary shadow-sm mr-2">
+                    <i class="fas fa-plus fa-sm text-white-50"></i> Sewa Kantin Baru
+                </a>
+                <a href="{{ route('user.dashboard') }}" class="btn btn-sm btn-secondary shadow-sm">
+                    <i class="fas fa-arrow-left fa-sm text-white-50"></i> Kembali
+                </a>
+            </div>
         </div>
+
+        @if(session('success'))
+            <div class="alert alert-success">{{ session('success') }}</div>
+        @endif
 
         @if (!$penyewa)
             {{-- Kondisi: user belum terdaftar sebagai penyewa --}}
-            <div class="card shadow">
+            <div class="card shadow border-left-info mt-4">
                 <div class="card-body text-center py-5">
-                    <i class="fas fa-store fa-4x text-gray-300 mb-3"></i>
-                    <h5 class="text-muted">Anda belum terdaftar sebagai penyewa kantin/ruko.</h5>
-                    <p class="text-muted">Hubungi Admin Kantin untuk informasi lebih lanjut.</p>
+                    <i class="fas fa-store fa-4x text-gray-300 mb-4"></i>
+                    <h5 class="text-gray-800 font-weight-bold">Anda belum memiliki sewa kantin/ruko aktif.</h5>
+                    <p class="text-muted mb-4">Temukan lokasi usaha yang stratgis untuk bisnis Anda. Mulai dengan memilih unit yang tersedia di katalog kami.</p>
+                    <a href="{{ route('user.kantin.katalog') }}" class="btn btn-primary px-4 py-2">
+                        <i class="fas fa-search mr-2"></i>Lihat Katalog Unit
+                    </a>
                 </div>
             </div>
         @else
@@ -171,6 +183,11 @@
                         </div>
                         <div class="card-body">
                             @if ($sewaAktif)
+                                @if($sewaAktif->status === 'pending')
+                                    <div class="alert alert-warning border-left-warning shadow-sm py-2 px-3 mb-3 text-sm">
+                                        <i class="fas fa-info-circle mr-1"></i> Pengajuan unit <strong>{{ $sewaAktif->ruko->kode_unit ?? ($sewaAktif->ruko->no_unit ?? '-') }}</strong> sedang diproses. Mohon tunggu verifikasi Admin maksimal 2x24 jam.
+                                    </div>
+                                @endif
                                 <table class="table table-borderless table-sm">
                                     <tr>
                                         <td><strong>Unit</strong></td>
@@ -186,7 +203,12 @@
                                     </tr>
                                     <tr>
                                         <td><strong>Status</strong></td>
-                                        <td>: <span class="badge badge-success">{{ ucfirst($sewaAktif->status) }}</span>
+                                        <td>: 
+                                            @if($sewaAktif->status === 'pending')
+                                                <span class="badge badge-warning">Pengajuan Diproses</span>
+                                            @else
+                                                <span class="badge badge-success">{{ ucfirst($sewaAktif->status) }}</span>
+                                            @endif
                                         </td>
                                     </tr>
                                 </table>

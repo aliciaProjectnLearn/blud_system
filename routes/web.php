@@ -40,10 +40,17 @@ Route::get('/', [LandingController::class, 'index'])->name('user.gateway');
 Route::middleware(['auth'])->group(function () {
     // Rute Layanan Pelanggan (Placeholder)
     Route::prefix('user')->name('user.')->group(function () {
+
+        Route::get('/futsal', function () {
+            return 'Halaman Futsal Pelanggan (Belum dibuat)';
+        })->name('futsal.index');
+        // Route ruko dihapus karena digantikan oleh module kantin.
+
         Route::get('/futsal', [\App\Http\Controllers\User\FutsalDashboardController::class, 'landing'])->name('futsal.index');
         Route::get('/ruko', function () {
             return 'Halaman Ruko Pelanggan (Belum dibuat)';
         })->name('ruko.index');
+
         Route::get('/ac', function () {
             return 'Halaman AC Pelanggan (Belum dibuat)';
         })->name('ac.index');
@@ -289,9 +296,12 @@ Route::middleware(['auth', 'role:Pelanggan'])->prefix('user')->name('user.')->gr
 
     // Kantin Manajemen
     Route::prefix('kantin')->name('kantin.')->group(function () {
-    Route::get('/dashboard', [\App\Http\Controllers\User\KantinDashboardController::class, 'index'])->name('dashboard');
-    Route::get('/tagihan', [\App\Http\Controllers\User\KantinDashboardController::class, 'tagihan'])->name('tagihan');
-    Route::get('/riwayat', [\App\Http\Controllers\User\KantinDashboardController::class, 'riwayat'])->name('riwayat');
+        Route::get('/dashboard', [\App\Http\Controllers\User\KantinDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/tagihan', [\App\Http\Controllers\User\KantinDashboardController::class, 'tagihan'])->name('tagihan');
+        Route::get('/riwayat', [\App\Http\Controllers\User\KantinDashboardController::class, 'riwayat'])->name('riwayat');
+        Route::get('/katalog', [\App\Http\Controllers\User\KantinDashboardController::class, 'pilihUnit'])->name('katalog');
+        Route::get('/booking/{id}', [\App\Http\Controllers\User\KantinDashboardController::class, 'formSewa'])->name('booking');
+        Route::post('/booking/{id}', [\App\Http\Controllers\User\KantinDashboardController::class, 'storeSewa'])->name('store_booking');
     });
 
     // AC Manajemen
