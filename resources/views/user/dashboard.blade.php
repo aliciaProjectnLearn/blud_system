@@ -18,7 +18,7 @@
         background-image: linear-gradient(180deg, #4e73df 10%, #224abe 100%) !important;
     }
 
-    .sidebar-dark .sidebar-brand, 
+    .sidebar-dark .sidebar-brand,
     .sidebar-dark .nav-item .nav-link,
     .sidebar-dark .sidebar-heading {
         color: #FFFFFF !important;
@@ -125,7 +125,7 @@
                             Booking Futsal Aktif</div>
                         <div class="h5 mb-0 font-weight-bold text-gray-800">
                             @if($futsalAktif)
-                                #{{ $futsalAktif->booking->id }} 
+                                #{{ $futsalAktif->booking->id }}
                                 <span class="badge badge-warning text-xs font-weight-normal">{{ $futsalAktif->booking->status }}</span>
                             @else
                                 <span class="text-muted">Tidak ada booking</span>
@@ -150,7 +150,7 @@
                             Status Sewa Kantin/Ruko</div>
                         <div class="h5 mb-0 font-weight-bold text-gray-800">
                             @if($sewaRuko)
-                                Masa Aktif s.d 
+                                Masa Aktif s.d
                             @else
                                 <span class="text-muted">Belum ada sewa</span>
                             @endif
@@ -234,7 +234,7 @@
         </a>
     </div>
     <div class="col-md-4 mb-3">
-        <a href="{{ route('user.ac.index') }}" class="text-decoration-none">
+        <a href="{{ route('user.ac.layanan') }}" class="text-decoration-none">
             <div class="card quick-access-card shadow-sm border-0">
                 <i class="fas fa-tools quick-access-icon"></i>
                 <h6 class="font-weight-bold text-primary mb-1">Order Servis AC</h6>

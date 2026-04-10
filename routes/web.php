@@ -307,6 +307,8 @@ Route::middleware(['auth', 'role:Pelanggan'])->prefix('user')->name('user.')->gr
     // AC Manajemen
     Route::prefix('ac')->name('ac.')->group(function () {
         Route::get('/', [\App\Http\Controllers\User\AcDashboardController::class, 'index'])->name('index');
+        Route::post('/', [\App\Http\Controllers\User\AcDashboardController::class, 'store'])->name('store');
+        Route::get('/layanan', [\App\Http\Controllers\User\AcDashboardController::class, 'layanan'])->name('layanan');
         Route::get('/history', [\App\Http\Controllers\User\AcDashboardController::class, 'history'])->name('history');
         Route::get('/{id}', [\App\Http\Controllers\User\AcDashboardController::class, 'show'])->name('show');
         Route::post('/{id}/cancel', [\App\Http\Controllers\User\AcDashboardController::class, 'cancel'])->name('cancel');
