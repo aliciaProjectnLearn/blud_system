@@ -212,6 +212,12 @@ Route::middleware(['auth', 'role:Adminkantin'])->prefix('adminkantin')->name('ad
         ->name('laporan.export.pdf');
     Route::get('laporan/export-excel', [\App\Http\Controllers\AdminKantin\LaporanController::class, 'exportExcel'])
         ->name('laporan.export.excel');
+
+    // Manajemen Keuangan (Pemasukan & Pengeluaran)
+    Route::get('keuangan', [\App\Http\Controllers\AdminKantin\KeuanganController::class, 'index'])
+        ->name('keuangan.index');
+    Route::post('keuangan', [\App\Http\Controllers\AdminKantin\KeuanganController::class, 'store'])
+        ->name('keuangan.store');
 });
 
 
