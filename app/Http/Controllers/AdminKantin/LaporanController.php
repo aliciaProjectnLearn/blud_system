@@ -40,10 +40,22 @@ class LaporanController extends Controller
             ->where('status', 'verifikasi')
             ->sum('jumlah_tagihan');
 
+        // Tambahan: Hitung Pengeluaran
+        $queryPengeluaran = \App\Models\PengeluaranKantin::query();
+        if ($request->filled('tanggal_dari') && $request->filled('tanggal_sampai')) {
+            $queryPengeluaran->whereBetween('tanggal', [$request->tanggal_dari, $request->tanggal_sampai]);
+        } elseif ($request->filled('tanggal_dari')) {
+            $queryPengeluaran->where('tanggal', '>=', $request->tanggal_dari);
+        } elseif ($request->filled('tanggal_sampai')) {
+            $queryPengeluaran->where('tanggal', '<=', $request->tanggal_sampai);
+        }
+        $totalPengeluaran = $queryPengeluaran->sum('nominal');
+        $saldoAkhir = $totalPendapatan - $totalPengeluaran;
+
         // Gunakan pagination agar data tidak berat, dan bawa query parameternya
         $laporan = $query->paginate(25)->withQueryString();
 
-        return view('adminkantin.laporan.index', compact('laporan', 'totalPendapatan'));
+        return view('adminkantin.laporan.index', compact('laporan', 'totalPendapatan', 'totalPengeluaran', 'saldoAkhir'));
     }
 
     /**
@@ -71,7 +83,31 @@ class LaporanController extends Controller
         // sum jumlah_tagihan untuk yang verifikasi
         $totalPendapatan = $laporan->where('status', 'verifikasi')->sum('jumlah_tagihan');
 
-        $pdf = Pdf::loadView('adminkantin.laporan.pdf', compact('laporan', 'totalPendapatan'));
+        // Pemasukan terverifikasi untuk tabel di halaman 2
+        $pemasukan = $laporan->where('status', 'verifikasi');
+
+        // Tambahan: Hitung Pengeluaran untuk PDF
+        $queryPengeluaran = \App\Models\PengeluaranKantin::query();
+        if ($request->filled('tanggal_dari') && $request->filled('tanggal_sampai')) {
+            $queryPengeluaran->whereBetween('tanggal', [$request->tanggal_dari, $request->tanggal_sampai]);
+        } elseif ($request->filled('tanggal_dari')) {
+            $queryPengeluaran->where('tanggal', '>=', $request->tanggal_dari);
+        } elseif ($request->filled('tanggal_sampai')) {
+            $queryPengeluaran->where('tanggal', '<=', $request->tanggal_sampai);
+        }
+        
+        $pengeluaran = $queryPengeluaran->orderBy('tanggal', 'asc')->get();
+        $totalPengeluaran = $pengeluaran->sum('nominal');
+        $saldoAkhir = $totalPendapatan - $totalPengeluaran;
+
+        $pdf = Pdf::loadView('adminkantin.laporan.pdf', compact(
+            'laporan', 
+            'pemasukan',
+            'pengeluaran', 
+            'totalPendapatan', 
+            'totalPengeluaran', 
+            'saldoAkhir'
+        ));
         
         $fileName = 'Laporan_Transaksi_Kantin_';
         if ($request->filled('tanggal_dari') && $request->filled('tanggal_sampai')) {

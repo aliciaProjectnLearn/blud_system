@@ -60,20 +60,62 @@
     {{-- Informasi & Export --}}
     <div class="row mb-4">
         {{-- Total Pendapatan --}}
-        <div class="col-xl-6 col-md-6 mb-4 mb-md-0">
+        <div class="col-xl-3 col-md-6 mb-4">
             <div class="card border-left-success shadow h-100 py-2">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                Total Pendapatan (Status Verifikasi)
+                                Pemasukan
                             </div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800">
                                 Rp {{ number_format($totalPendapatan, 0, ',', '.') }}
                             </div>
                         </div>
                         <div class="col-auto">
-                            <i class="fas fa-money-check-alt fa-2x text-gray-300"></i>
+                            <i class="fas fa-arrow-up fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Total Pengeluaran --}}
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                Pengeluaran
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                Rp {{ number_format($totalPengeluaran, 0, ',', '.') }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-arrow-down fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Saldo Akhir --}}
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Saldo Akhir
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                Rp {{ number_format($saldoAkhir, 0, ',', '.') }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-wallet fa-2x text-gray-300"></i>
                         </div>
                     </div>
                 </div>
@@ -81,11 +123,11 @@
         </div>
 
         {{-- Export Buttons --}}
-        <div class="col-xl-6 col-md-6 d-flex justify-content-end align-items-center">
-            <a href="{{ route('adminkantin.laporan.export.pdf', request()->all()) }}" target="_blank" class="btn btn-danger mr-2 shadow-sm">
+        <div class="col-xl-3 col-md-6 d-flex flex-column justify-content-center align-items-end mb-4">
+            <a href="{{ route('adminkantin.laporan.export.pdf', request()->all()) }}" target="_blank" class="btn btn-danger btn-block mb-2 shadow-sm">
                 <i class="fas fa-file-pdf fa-sm text-white-50"></i> Export PDF
             </a>
-            <a href="{{ route('adminkantin.laporan.export.excel', request()->all()) }}" target="_blank" class="btn btn-success shadow-sm">
+            <a href="{{ route('adminkantin.laporan.export.excel', request()->all()) }}" target="_blank" class="btn btn-success btn-block shadow-sm">
                 <i class="fas fa-file-excel fa-sm text-white-50"></i> Export Excel
             </a>
         </div>
