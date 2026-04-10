@@ -281,6 +281,15 @@
             <a class="nav-link" href="{{ route('adminac.pelanggan.index') }}">
                 <i class="fas fa-fw fa-users"></i>
                 <span>Manajemen Pelanggan</span>
+            </a>
+        </li>
+
+        {{-- Manajemen Keuangan --}}
+        <li class="nav-item {{ request()->routeIs('adminac.keuangan.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('adminac.keuangan.index') }}">
+                <i class="fas fa-fw fa-wallet"></i>
+                <span>Manajemen Keuangan</span>
+            </a>
         </li>
     @endif
 
