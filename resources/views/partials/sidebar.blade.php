@@ -182,6 +182,14 @@
             </a>
         </li>
 
+        {{-- Manajemen Keuangan --}}
+        <li class="nav-item {{ request()->routeIs('adminfutsal.keuangan.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('adminfutsal.keuangan.index') }}">
+                <i class="fas fa-fw fa-wallet"></i>
+                <span>Manajemen Keuangan</span>
+            </a>
+        </li>
+
         {{-- Laporan Transaksi --}}
         <li class="nav-item {{ request()->routeIs('adminfutsal.laporan.*') ? 'active' : '' }}">
             <a class="nav-link" href="{{ route('adminfutsal.laporan.index') }}">

@@ -15,6 +15,7 @@ use App\Http\Controllers\AdminFutsal\PelangganController;
 use App\Http\Controllers\AdminFutsal\JadwalLapanganController;
 use App\Http\Controllers\AdminFutsal\LaporanController;
 use App\Http\Controllers\AdminFutsal\TransaksiController as AdminFutsalTransaksiController;
+use App\Http\Controllers\AdminFutsal\KeuanganController;
 use App\Http\Controllers\AdminKantin\DashboardController as AdminKantinDashboardController;
 use App\Http\Controllers\AdminKantin\UnitController as AdminKantinUnitController;
 use App\Http\Controllers\AdminKantin\PembayaranController;
@@ -164,6 +165,12 @@ Route::middleware(['auth', 'role:Adminfutsal'])->prefix('adminfutsal')
             ->name('pengaturan.index');
         Route::put('pengaturan/{id}', [\App\Http\Controllers\AdminFutsal\PengaturanController::class, 'update'])
             ->name('pengaturan.update');
+
+        // Manajemen Keuangan
+        Route::get('keuangan', [KeuanganController::class, 'index'])
+            ->name('keuangan.index');
+        Route::post('keuangan/tambah-pengeluaran', [KeuanganController::class, 'storePengeluaran'])
+            ->name('keuangan.store');
     });
 
 
@@ -276,6 +283,7 @@ Route::middleware(['auth', 'role:Pelanggan'])->prefix('user')->name('user.')->gr
     Route::prefix('futsal')->name('futsal.')->group(function () {
         Route::get('/dashboard', [\App\Http\Controllers\User\FutsalDashboardController::class, 'index'])->name('dashboard');
         Route::get('/history', [\App\Http\Controllers\User\FutsalDashboardController::class, 'history'])->name('history');
+        Route::get('/landing', [\App\Http\Controllers\User\FutsalDashboardController::class, 'landing'])->name('landing');
 
         // Booking Lapangan
         Route::get('/booking', [\App\Http\Controllers\User\FutsalDashboardController::class, 'showBookingForm'])->name('booking.form');
@@ -292,6 +300,10 @@ Route::middleware(['auth', 'role:Pelanggan'])->prefix('user')->name('user.')->gr
 
         Route::get('/booking/{id}/invoice', [\App\Http\Controllers\User\FutsalDashboardController::class, 'showInvoice'])->name('invoice');
         Route::get('/booking/{id}/download-invoice', [\App\Http\Controllers\User\FutsalDashboardController::class, 'downloadInvoice'])->name('download-invoice');
+
+        // Membership
+        Route::get('/membership', [\App\Http\Controllers\User\FutsalDashboardController::class, 'showMembershipForm'])->name('membership.form');
+        Route::post('/membership', [\App\Http\Controllers\User\FutsalDashboardController::class, 'storeMembership'])->name('membership.store');
     });
 
     // Kantin Manajemen

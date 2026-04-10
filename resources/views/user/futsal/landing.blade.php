@@ -520,10 +520,18 @@
                 <i class="fas fa-check-circle mr-1"></i> Paket Anda Saat Ini
             </div>
             @else
-            <div class="text-muted" style="font-size:0.8rem;">
-                <i class="fas fa-info-circle mr-1"></i>
-                Hubungi admin untuk aktivasi membership
-            </div>
+                @if($membershipAktif)
+                    <div class="text-muted" style="font-size:0.8rem;">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Selesaikan membership aktif Anda terlebih dahulu
+                    </div>
+                @else
+                    <a href="{{ route('user.futsal.membership.form') }}" 
+                    class="btn btn-primary btn-sm btn-block font-weight-bold" 
+                    style="border-radius:8px;">
+                        <i class="fas fa-shopping-cart mr-1"></i> Beli Membership
+                    </a>
+                @endif
             @endif
         </div>
     </div>
