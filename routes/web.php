@@ -262,6 +262,12 @@ Route::middleware(['auth', 'role:Adminac'])->prefix('adminac')->name('adminac.')
         ->name('laporan.export.pdf');
     Route::get('laporan/export-excel', [\App\Http\Controllers\AdminAc\LaporanController::class, 'exportExcel'])
         ->name('laporan.export.excel');
+
+    // Keuangan AC
+    Route::get('keuangan', [\App\Http\Controllers\AdminAc\KeuanganAcController::class, 'index'])
+        ->name('keuangan.index');
+    Route::post('keuangan', [\App\Http\Controllers\AdminAc\KeuanganAcController::class, 'storePengeluaran'])
+        ->name('keuangan.store');
 });
 
 // Rute untuk Pelanggan (User Dashboard)
