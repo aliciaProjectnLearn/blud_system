@@ -8,6 +8,8 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="description" content="">
     <meta name="author" content="">
+    {{-- Logo BLUD --}}
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect width='24' height='24' rx='4' fill='%234e73df'/><g stroke='white' stroke-width='2' stroke-linecap='round'><path d='M12 2v20M2 12h20'/><path d='m6 6 12 12M18 6 6 18'/></g></svg>">
 
     <title>{{ config('app.name', 'MyApp') }} - @yield('title', 'Dashboard')</title>
 

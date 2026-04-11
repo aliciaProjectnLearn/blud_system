@@ -8,6 +8,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\AdminLogActivityController;
 use App\Http\Controllers\SuperAdmin\DashboardController;
 use App\Http\Controllers\SuperAdmin\TransaksiController;
+use App\Http\Controllers\SuperAdmin\KeuanganController;
 use App\Http\Controllers\AdminFutsal\DashboardController as AdminFutsalDashboardController;
 use App\Http\Controllers\AdminFutsal\PaketMembershipController;
 use App\Http\Controllers\AdminFutsal\MembershipController;
@@ -26,12 +27,6 @@ use App\Http\Controllers\AdminAc\BookingController as AdminAcBookingController;
 use App\Http\Controllers\AdminAc\TransaksiController as AdminAcTransaksiController;
 use App\Http\Controllers\User\DashboardUserController;
 
-
-
-Route::middleware(['auth', 'role:Superadmin'])->group(function () {
-    Route::get('/superadmin/monitoring', [AdminLogActivityController::class, 'index'])
-        ->name('monitoring.index');
-});
 
 // route lain...
 // ── Halaman Welcome ──────────────────────────────────────
@@ -73,14 +68,8 @@ Route::middleware(['auth', 'role:Superadmin'])->group(function () {
     // Dashboard
     Route::get('/dashboard', [App\Http\Controllers\SuperAdmin\DashboardController::class, 'index'])
         ->name('dashboard');
-
-    // Profile
-    Route::get('/profile', [ProfileController::class, 'edit'])
-        ->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])
-        ->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])
-        ->name('profile.destroy');
+    Route::put('/password', [App\Http\Controllers\Auth\PasswordController::class, 'update'])
+        ->name('password.update');
 
     // User Management
     Route::resource('users', UserController::class);
@@ -88,6 +77,21 @@ Route::middleware(['auth', 'role:Superadmin'])->group(function () {
         ->name('users.pelanggan');
     Route::get('/transaksi', [TransaksiController::class, 'index'])
         ->name('transaksi.index');
+    Route::get('/transaksi/{id}', [TransaksiController::class, 'show'])
+    ->name('transaksi.show');
+    Route::get('/monitoring', [AdminLogActivityController::class, 'index'])
+        ->name('dashboard.monitoring');
+
+    // Rekap Keuangan
+    Route::get('/keuangan', [KeuanganController::class, 'index'])
+        ->name('dashboard.keuangan');
+});
+
+// Profile Semua Admin
+Route::middleware(['auth', 'role:Superadmin|Adminfutsal|Adminkantin|Adminac'])->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
 // ── Admin Futsal ───────────────────────

@@ -21,6 +21,6 @@ class AdminLogActivityController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate($request->per_page ?? 10);
 
-        return view('superadmin.monitoring', compact('logs'));
+        return view('dashboard.monitoring', compact('logs'));
     }
 }

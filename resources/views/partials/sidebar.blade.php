@@ -30,9 +30,10 @@
     @endphp
 
     <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{{ $brandRoute }}">
-        <div class="sidebar-brand-icon rotate-n-15">
-            <i class="fas fa-fw fa-layer-group"></i>
-        </div>
+        <svg class="text-white" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2v20M2 12h20"></path>
+            <path d="m6 6 12 12M18 6 6 18"></path>
+        </svg>
         <div class="sidebar-brand-text mx-3">{{ $brandLabel }}</div>
     </a>
     <hr class="sidebar-divider my-0">
@@ -100,10 +101,24 @@
             </div>
         </li>
 
-        <li class="nav-item {{ request()->routeIs('transaksi.index') ? 'active' : '' }}">
+        <li class="nav-item {{ request()->routeIs('users.*') ? 'active' : '' }}">
             <a class="nav-link" href="{{ route('transaksi.index') }}">
                 <i class="fas fa-clipboard-list"></i>
                 <span>Monitoring Transaksi</span>
+            </a>
+        </li>
+
+        <li class="nav-item {{ request()->routeIs('users.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('dashboard.keuangan') }}">
+                <i class="fas fa-file-invoice-dollar"></i>
+                <span>Rekap Keuangan</span>
+            </a>
+        </li>
+
+        <li class="nav-item {{ request()->routeIs('users.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('dashboard.monitoring') }}">
+                <i class="fas fa-clipboard-list"></i>
+                <span>Log Activities</span>
             </a>
         </li>
     @endif
