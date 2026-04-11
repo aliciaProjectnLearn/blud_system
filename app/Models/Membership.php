@@ -15,6 +15,7 @@ class Membership extends Model
         'transaksi_id',
         'total_kuota',
         'sisa_kuota',
+        'tgl_daftar',
         'status',
     ];
 
