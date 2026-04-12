@@ -109,9 +109,9 @@
         </li>
 
         <li class="nav-item {{ request()->routeIs('users.*') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('dashboard.keuangan') }}">
+            <a class="nav-link" href="{{ route('dashboard.rekap-keuangan') }}">
                 <i class="fas fa-file-invoice-dollar"></i>
-                <span>Rekap Keuangan</span>
+                <span>Rekap Keuangan BLUD</span>
             </a>
         </li>
 

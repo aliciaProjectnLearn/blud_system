@@ -8,7 +8,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\AdminLogActivityController;
 use App\Http\Controllers\SuperAdmin\DashboardController;
 use App\Http\Controllers\SuperAdmin\TransaksiController;
-use App\Http\Controllers\SuperAdmin\KeuanganController;
+use App\Http\Controllers\SuperAdmin\RekapKeuanganController;
 use App\Http\Controllers\AdminFutsal\DashboardController as AdminFutsalDashboardController;
 use App\Http\Controllers\AdminFutsal\PaketMembershipController;
 use App\Http\Controllers\AdminFutsal\MembershipController;
@@ -83,8 +83,8 @@ Route::middleware(['auth', 'role:Superadmin'])->group(function () {
         ->name('dashboard.monitoring');
 
     // Rekap Keuangan
-    Route::get('/keuangan', [KeuanganController::class, 'index'])
-        ->name('dashboard.keuangan');
+    Route::get('/rekap-keuangan', [RekapKeuanganController::class, 'index'])
+        ->name('dashboard.rekap-keuangan');
 });
 
 // Profile Semua Admin
