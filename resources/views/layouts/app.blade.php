@@ -20,6 +20,93 @@
     {{-- SB Admin 2 CSS --}}
     <link href="{{ asset('assets/css/sb-admin-2.min.css') }}" rel="stylesheet">
 
+    <style>
+        /* ── Mobile Sidebar Overlay ── */
+        @media (max-width: 767.98px) {
+
+            /* Overlay gelap di belakang sidebar */
+            #sidebar-overlay {
+                display: none;
+                position: fixed;    
+                pointer-events: none;
+                top: 0; left: 0;
+                width: 100%; height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 1040;
+                transition: opacity 0.3s ease;
+            }
+
+            #sidebar-overlay.show {
+                display: block;
+                opacity: 1;
+                pointer-events: auto;
+            }
+
+            /* Sidebar full-screen overlay di mobile */
+            #accordionSidebar {
+                position: fixed !important;
+                top: 0; left: 0;
+                width: 280px !important;
+                max-width: 280px !important;
+                height: 100vh !important;
+                z-index: 1050;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+                overflow-y: auto;
+                box-shadow: 4px 0 15px rgba(0, 0, 0, 0.3);
+            }
+
+            #accordionSidebar.mobile-open {
+                transform: translateX(0);
+            }
+
+            /* Tombol close di dalam sidebar */
+            .sidebar-close-btn {
+                display: flex !important;
+                position: absolute;
+                top: 12px; right: 12px;
+                width: 32px; height: 32px;
+                background: rgba(255,255,255,0.2);
+                border: none;
+                border-radius: 50%;
+                color: white;
+                font-size: 16px;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                z-index: 10;
+                transition: background 0.2s;
+            }
+
+            .sidebar-close-btn:hover {
+                background: rgba(255,255,255,0.35);
+            }
+
+            /* Content wrapper tidak terdorong */
+            #content-wrapper {
+                width: 100% !important;
+                margin-left: 0 !important;
+                position: relative;
+                z-index: 1;
+            }
+
+            /* Sidebar brand padding kanan untuk tombol close */
+            .sidebar-brand {
+                padding-right: 48px !important;
+            }
+        }
+
+        /* Sembunyikan tombol close di desktop */
+        @media (min-width: 768px) {
+            .sidebar-close-btn {
+                display: none !important;
+            }
+            #sidebar-overlay {
+                display: none !important;
+            }
+        }
+    </style>
+
     {{-- Custom CSS tambahan per halaman --}}
     @stack('styles')
 </head>
@@ -28,6 +115,9 @@
 
     {{-- Page Wrapper --}}
     <div id="wrapper">
+
+        {{-- Mobile Sidebar Overlay --}}
+        <div id="sidebar-overlay"></div>
 
         {{-- ===== SIDEBAR ===== --}}
         @include('partials.sidebar')
@@ -128,7 +218,71 @@ showConfirmButton: false
 })
 
 </script>
-@endif
+    @endif
+
+    <script>
+    $(function() {
+
+        // ── Hanya aktif di mobile (< 768px) ──────────────────────────
+        function isMobile() {
+            return window.innerWidth < 768;
+        }
+
+        // ── Buka sidebar di mobile ────────────────────────────────────
+        function openMobileSidebar() {
+            if (!isMobile()) return;
+            $('#accordionSidebar').addClass('mobile-open');
+            $('#sidebar-overlay').addClass('show');
+            $('body').css('overflow', 'hidden');
+        }
+
+        // ── Tutup sidebar di mobile ───────────────────────────────────
+        function closeMobileSidebar() {
+            $('#accordionSidebar').removeClass('mobile-open');
+            $('#sidebar-overlay').removeClass('show');
+            $('body').css('overflow', '');
+        }
+
+        // ── Intercept tombol hamburger SB Admin 2 ────────────────────
+        // SB Admin 2 menggunakan #sidebarToggle untuk toggle sidebar
+        $(document).on('click', '#sidebarToggle, #sidebarToggleTop', function(e) {
+            if (isMobile()) {
+                e.preventDefault();
+                e.stopPropagation();
+                if ($('#accordionSidebar').hasClass('mobile-open')) {
+                    closeMobileSidebar();
+                } else {
+                    openMobileSidebar();
+                }
+            }
+        });
+
+        // ── Klik overlay untuk tutup ──────────────────────────────────
+        $(document).on('click', '#sidebar-overlay', function() {
+            closeMobileSidebar();
+        });
+
+        // ── Tombol X di dalam sidebar ─────────────────────────────────
+        $(document).on('click', '.sidebar-close-btn', function() {
+            closeMobileSidebar();
+        });
+
+        // ── Tutup sidebar saat resize ke desktop ──────────────────────
+        $(window).on('resize', function() {
+            if (!isMobile()) {
+                closeMobileSidebar();
+            }
+        });
+
+        // ── Tutup sidebar saat klik link menu di mobile ───────────────
+        // (agar tidak perlu klik X setelah navigasi)
+        $('#accordionSidebar').on('click', 'a:not([data-toggle])', function() {
+            if (isMobile()) {
+                closeMobileSidebar();
+            }
+        });
+    });
+    </script>
 
 </body>
 

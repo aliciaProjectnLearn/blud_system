@@ -11,7 +11,7 @@
         </div>
         <div class="card-body">
             <form action="{{ route('adminkantin.penyewaan.index') }}" method="GET" class="row">
-                <div class="col-md-3 mb-3">
+                <div class="col-6 col-md-3 mb-3">
                     <label>Status Sewa</label>
                     <select name="status" class="form-control">
                         <option value="">Semua Status</option>
@@ -20,7 +20,7 @@
                         <option value="dibatalkan" {{ request('status') == 'dibatalkan' ? 'selected' : '' }}>Dibatalkan</option>
                     </select>
                 </div>
-                <div class="col-md-3 mb-3">
+                <div class="col-6 col-md-3 mb-3">
                     <label>Unit Ruko</label>
                     <select name="ruko_id" class="form-control">
                         <option value="">Semua Unit</option>
@@ -31,7 +31,7 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-3 mb-3">
+                <div class="col-6 col-md-3 mb-3">
                     <label>Nama Penyewa</label>
                     <select name="penyewa_id" class="form-control">
                         <option value="">Semua Penyewa</option>
@@ -67,12 +67,12 @@
                 <table class="table table-bordered" width="100%">
                     <thead class="thead-light">
                         <tr>
-                            <th>No</th>
+                            <th class="d-none d-sm-table-cell">No</th>
                             <th>Nama Penyewa</th>
                             <th>Kode Unit</th>
-                            <th>Jenis Unit</th>
+                            <th class="d-none d-md-table-cell">Jenis Unit</th>
                             <th>Tgl Mulai</th>
-                            <th>Tgl Selesai</th>
+                            <th class="d-none d-md-table-cell">Tgl Selesai</th>
                             <th>Status</th>
                             <th>Aksi</th>
                         </tr>
@@ -80,12 +80,12 @@
                     <tbody>
                         @forelse($data as $index => $item)
                         <tr>
-                            <td>{{ $index + 1 }}</td>
+                            <td class="d-none d-sm-table-cell">{{ $index + 1 }}</td>
                             <td>{{ $item->penyewa->user->nama_lengkap ?? $item->penyewa->nama_usaha }}</td>
                             <td>{{ $item->ruko->kode_unit }}</td>
-                            <td>{{ $item->ruko->kategori->nama ?? '-' }}</td>
+                            <td class="d-none d-md-table-cell">{{ $item->ruko->kategori->nama ?? '-' }}</td>
                             <td>{{ \Carbon\Carbon::parse($item->tgl_mulai)->format('d/m/Y') }}</td>
-                            <td>{{ \Carbon\Carbon::parse($item->tgl_selesai)->format('d/m/Y') }}</td>
+                            <td class="d-none d-md-table-cell">{{ \Carbon\Carbon::parse($item->tgl_selesai)->format('d/m/Y') }}</td>
                             <td>
                                 @if($item->status == 'aktif')
                                     <span class="badge badge-success">Aktif</span>
@@ -96,17 +96,21 @@
                                 @endif
                             </td>
                             <td>
-                                <a href="{{ route('adminkantin.penyewaan.show', $item->id) }}" class="btn btn-info btn-sm">Detail</a>
+                                <a href="{{ route('adminkantin.penyewaan.show', $item->id) }}" class="btn btn-info btn-sm">
+                                    <i class="fas fa-eye"></i> <span class="d-none d-md-inline">Detail</span>
+                                </a>
                                 
                                 <button type="button" class="btn btn-warning btn-sm" data-toggle="modal" data-target="#editModal{{ $item->id }}">
-                                    Edit
+                                    <i class="fas fa-edit"></i> <span class="d-none d-md-inline">Edit</span>
                                 </button>
 
                                 @if($item->status != 'aktif')
                                 <form action="{{ route('adminkantin.penyewaan.destroy', $item->id) }}" method="POST" style="display:inline;" class="delete-form">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirmDelete(event)">Hapus</button>
+                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirmDelete(event)">
+                                        <i class="fas fa-trash"></i> <span class="d-none d-md-inline">Hapus</span>
+                                    </button>
                                 </form>
                                 @endif
                             </td>

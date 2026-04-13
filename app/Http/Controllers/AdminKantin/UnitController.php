@@ -89,7 +89,7 @@ class UnitController extends Controller
         }
 
         $units      = $query->orderByRaw("CAST(SUBSTRING(kode_unit, 4) AS UNSIGNED) ASC")->paginate(10)->withQueryString();
-        $kategoris  = \App\Models\Kategori::orderBy('nama')->get();
+        $kategoris  = \App\Models\Kategori::where('tipe', 'kantin')->orderBy('nama')->get();
 
         return view('adminkantin.unit.index', compact('units', 'kategoris'));
     }
@@ -100,7 +100,7 @@ class UnitController extends Controller
     public function create()
     {
         $kodeUnit  = $this->generateKodeUnit();
-        $kategoris = \App\Models\Kategori::orderBy('nama')->get();
+        $kategoris = \App\Models\Kategori::where('tipe', 'kantin')->orderBy('nama')->get();
 
         return view('adminkantin.unit.create', compact('kodeUnit', 'kategoris'));
     }
@@ -114,7 +114,6 @@ class UnitController extends Controller
             'kode_unit'    => 'required|string|max:10|unique:ruko,kode_unit',
             'kategori_id'  => 'required|exists:kategori,id',
             'harga'        => 'required|numeric|min:0',
-            'status_unit'  => 'required|in:terisi,kosong',
             'dokumen'      => 'nullable|array|max:10',
             'dokumen.*'    => 'file|mimes:jpg,jpeg,png,pdf|max:5120',
         ]);
@@ -128,7 +127,7 @@ class UnitController extends Controller
                 'kode_unit'   => $validated['kode_unit'],
                 'kategori_id' => $validated['kategori_id'],
                 'harga'       => $validated['harga'],
-                'status_unit' => $validated['status_unit'],
+                'status_unit' => 'kosong',
             ]);
 
             if ($request->hasFile('dokumen')) {
@@ -173,7 +172,7 @@ class UnitController extends Controller
     public function edit(Ruko $unit)
     {
         $unit->load('dokumentasiUnit');
-        $kategoris = \App\Models\Kategori::orderBy('nama')->get();
+        $kategoris = \App\Models\Kategori::where('tipe', 'kantin')->orderBy('nama')->get();
 
         return view('adminkantin.unit.edit', compact('unit', 'kategoris'));
     }

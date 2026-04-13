@@ -19,44 +19,55 @@
     @endif
 
     <div class="card shadow mb-4">
-        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-            <h6 class="m-0 font-weight-bold text-primary">Daftar Pembayaran</h6>
-
-            {{-- Filter --}}
-            <form method="GET" action="{{ route('adminkantin.pembayaran.index') }}" class="form-inline">
-                <input type="text" name="search" class="form-control form-control-sm mr-2"
-                    placeholder="Cari nama usaha..." value="{{ request('search') }}">
-                <select name="termin" class="form-control form-control-sm mr-2">
-                    <option value="">-- Semua Termin --</option>
-                    <option value="1" {{ request('termin') == '1' ? 'selected' : '' }}>Termin 1</option>
-                    <option value="2" {{ request('termin') == '2' ? 'selected' : '' }}>Termin 2</option>
-                </select>
-                <select name="status" class="form-control form-control-sm mr-2">
-                    <option value="">-- Semua Status --</option>
-                    <option value="menunggu" {{ request('status') === 'menunggu' ? 'selected' : '' }}>Menunggu</option>
-                    <option value="verifikasi" {{ request('status') === 'verifikasi' ? 'selected' : '' }}>Terverifikasi</option>
-                    <option value="dibatalkan" {{ request('status') === 'dibatalkan' ? 'selected' : '' }}>Dibatalkan</option>
-                </select>
-                <button type="submit" class="btn btn-sm btn-secondary mr-1">
-                    <i class="fas fa-filter"></i> Filter
-                </button>
-                @if(request()->filled('search') || request()->filled('status') || request()->filled('termin'))
-                    <a href="{{ route('adminkantin.pembayaran.index') }}" class="btn btn-sm btn-light">Reset</a>
-                @endif
-            </form>
+        <div class="card-header py-3">
+            <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary mb-2 mb-md-0">Daftar Pembayaran</h6>
+                <form method="GET" action="{{ route('adminkantin.pembayaran.index') }}">
+                    <div class="row g-2">
+                        <div class="col-12 col-md-auto">
+                            <input type="text" name="search" class="form-control form-control-sm"
+                                placeholder="Cari nama usaha..." value="{{ request('search') }}">
+                        </div>
+                        <div class="col-6 col-md-auto">
+                            <select name="termin" class="form-control form-control-sm">
+                                <option value="">-- Semua Termin --</option>
+                                <option value="1" {{ request('termin') == '1' ? 'selected' : '' }}>Termin 1</option>
+                                <option value="2" {{ request('termin') == '2' ? 'selected' : '' }}>Termin 2</option>
+                            </select>
+                        </div>
+                        <div class="col-6 col-md-auto">
+                            <select name="status" class="form-control form-control-sm">
+                                <option value="">-- Semua Status --</option>
+                                <option value="menunggu" {{ request('status') === 'menunggu' ? 'selected' : '' }}>Menunggu</option>
+                                <option value="verifikasi" {{ request('status') === 'verifikasi' ? 'selected' : '' }}>Verifikasi</option>
+                                <option value="lunas" {{ request('status') === 'lunas' ? 'selected' : '' }}>Lunas</option>
+                                <option value="dibatalkan" {{ request('status') === 'dibatalkan' ? 'selected' : '' }}>Dibatalkan</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-auto d-flex gap-1">
+                            <button type="submit" class="btn btn-sm btn-secondary mr-1">
+                                <i class="fas fa-filter"></i> Filter
+                            </button>
+                            @if(request()->filled('search') || request()->filled('status') || request()->filled('termin'))
+                                <a href="{{ route('adminkantin.pembayaran.index') }}" class="btn btn-sm btn-light">Reset</a>
+                            @endif
+                        </div>
+                    </div>
+                </form>
+            </div>
         </div>
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table table-bordered" width="100%">
                     <thead>
                         <tr>
-                            <th>No</th>
+                            <th class="d-none d-sm-table-cell">No</th>
                             <th>Penyewa</th>
                             <th>Kode Unit</th>
                             <th>Termin</th>
-                            <th>Jatuh Tempo</th>
+                            <th class="d-none d-md-table-cell">Jatuh Tempo</th>
                             <th>Jumlah Tagihan</th>
-                            <th>Tgl Bayar</th>
+                            <th class="d-none d-lg-table-cell">Tgl Bayar</th>
                             <th>Status</th>
                             <th>Aksi</th>
                         </tr>
@@ -65,7 +76,7 @@
                         @forelse($pembayarans as $i => $p)
                         @php $terlambat = $p->isTerlambat(); @endphp
                         <tr class="{{ $terlambat ? 'table-danger' : '' }}">
-                            <td>{{ $pembayarans->firstItem() + $i }}</td>
+                            <td class="d-none d-sm-table-cell">{{ $pembayarans->firstItem() + $i }}</td>
                             <td>
                                 <strong>{{ $p->sewaRuko->penyewa->nama_usaha ?? '-' }}</strong>
                                 @if($terlambat)
@@ -74,20 +85,22 @@
                             </td>
                             <td>{{ $p->sewaRuko->ruko->kode_unit ?? '-' }}</td>
                             <td>Termin {{ $p->termin }}</td>
-                            <td>
+                            <td class="d-none d-md-table-cell">
                                 {{ $p->tgl_jatuh_tempo
                                     ? \Carbon\Carbon::parse($p->tgl_jatuh_tempo)->format('d M Y')
                                     : '-' }}
                             </td>
                             <td>Rp {{ number_format($p->jumlah_tagihan, 0, ',', '.') }}</td>
-                            <td>
+                            <td class="d-none d-lg-table-cell">
                                 {{ $p->tgl_bayar
                                     ? \Carbon\Carbon::parse($p->tgl_bayar)->format('d M Y')
                                     : '-' }}
                             </td>
                             <td>
-                                @if($p->status === 'verifikasi')
-                                    <span class="badge badge-success">Terverifikasi</span>
+                                @if($p->status === 'lunas')
+                                    <span class="badge badge-success">Lunas</span>
+                                @elseif($p->status === 'verifikasi')
+                                    <span class="badge badge-info">Verifikasi</span>
                                 @elseif($p->status === 'menunggu')
                                     <span class="badge badge-warning">Menunggu</span>
                                 @else

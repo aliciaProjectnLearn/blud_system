@@ -42,22 +42,8 @@
                     </h6>
                 </div>
                 {{-- Filter Form --}}
-                <div class="col-md-6">
-                    <form method="GET" action="{{ route('adminkantin.penyewa.index') }}" class="form-inline justify-content-md-end">
-                        <div class="input-group input-group-sm">
-                            <input type="text" name="search" class="form-control" placeholder="Cari nama atau usaha..." value="{{ request('search') }}">
-                            <div class="input-group-append">
-                                <button class="btn btn-primary" type="submit">
-                                    <i class="fas fa-search fa-sm"></i>
-                                </button>
-                                @if(request('search'))
-                                    <a href="{{ route('adminkantin.penyewa.index') }}" class="btn btn-outline-secondary">
-                                        <i class="fas fa-times"></i>
-                                    </a>
-                                @endif
-                            </div>
-                        </div>
-                    </form>
+                <div class="col-md-6 text-right">
+                    {{-- Pencarian dihapus sesuai revisi --}}
                 </div>
             </div>
         </div>
@@ -69,11 +55,10 @@
                         <tr>
                             <th class="text-center" style="width:5%;">No</th>
                             <th>Nama Penyewa</th>
-                            <th>Kontak</th>
+                            <th class="d-none d-md-table-cell">Kontak</th>
                             <th>Jenis Usaha</th>
                             <th>Unit Terakhir</th>
-                            <th>Periode Sewa</th>
-                            <th class="text-center">Status Sewa</th>
+                            <th class="d-none d-lg-table-cell">Periode Sewa</th>
                             <th class="text-center" style="width:18%;">Aksi</th>
                         </tr>
                     </thead>
@@ -91,7 +76,7 @@
                                     <small class="text-muted">NIK: {{ $item->user->nik ?? '-' }}</small>
                                 </td>
 
-                                <td>
+                                <td class="d-none d-md-table-cell">
                                     <i class="fas fa-phone-alt fa-xs text-muted mr-1"></i>
                                     {{ $item->user->no_hp ?? '-' }}
                                 </td>
@@ -106,7 +91,7 @@
                                     @endif
                                 </td>
 
-                                <td>
+                                <td class="d-none d-lg-table-cell">
                                     @if($latestSewa && $latestSewa->tgl_mulai && $latestSewa->tgl_selesai)
                                         <small>{{ \Carbon\Carbon::parse($latestSewa->tgl_mulai)->format('d M Y') }} - <br>
                                         {{ \Carbon\Carbon::parse($latestSewa->tgl_selesai)->format('d M Y') }}</small>
@@ -115,33 +100,15 @@
                                     @endif
                                 </td>
 
-                                <td class="text-center">
-                                    @if($latestSewa)
-                                        @php
-                                            $statusText = 'Selesai';
-                                            $badgeClass = 'secondary';
-                                            
-                                            if($latestSewa->status === 'disetujui') {
-                                                $statusText = 'Aktif';
-                                                $badgeClass = 'success';
-                                            } elseif(in_array($latestSewa->status, ['menunggu', 'pending'])) {
-                                                $statusText = 'Menunggu';
-                                                $badgeClass = 'warning';
-                                            }
-                                        @endphp
-                                        <span class="badge badge-{{ $badgeClass }} px-2 py-1">{{ $statusText }}</span>
-                                    @else
-                                        <span class="badge badge-secondary px-2 py-1">Tidak Aktif</span>
-                                    @endif
-                                </td>
+
 
                                 <td class="text-center">
                                     <a href="{{ route('adminkantin.penyewa.show', $item->id) }}" class="btn btn-info btn-sm" title="Detail">
-                                        <i class="fas fa-eye"></i>
+                                        <i class="fas fa-eye"></i> <span class="d-none d-md-inline"></span>
                                     </a>
 
                                     <a href="{{ route('adminkantin.penyewa.edit', $item->id) }}" class="btn btn-warning btn-sm" title="Edit">
-                                        <i class="fas fa-pencil-alt"></i>
+                                        <i class="fas fa-pencil-alt"></i> <span class="d-none d-md-inline"></span>
                                     </a>
 
                                     @php

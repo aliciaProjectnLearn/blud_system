@@ -66,15 +66,17 @@
     <div class="container-fluid" id="main-content" style="display:none">
 
         {{-- Page Heading --}}
-        <div class="d-sm-flex align-items-center justify-content-between mb-4">
-            <h1 class="h3 mb-0 text-gray-800">Dashboard Sistem Sewa Kantin</h1>
-            <div>
-                <a href="{{ route('user.kantin.katalog') }}" class="btn btn-sm btn-primary shadow-sm mr-2">
-                    <i class="fas fa-plus fa-sm text-white-50"></i> Sewa Kantin Baru
-                </a>
-                <a href="{{ route('user.dashboard') }}" class="btn btn-sm btn-secondary shadow-sm">
-                    <i class="fas fa-arrow-left fa-sm text-white-50"></i> Kembali
-                </a>
+        <div class="mb-4">
+            <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between">
+                <h1 class="h3 mb-2 mb-sm-0 text-gray-800">Dashboard Sistem Sewa Kantin</h1>
+                <div class="d-flex flex-wrap gap-2 mt-2 mt-sm-0">
+                    <a href="{{ route('user.kantin.booking.form') }}" class="btn btn-sm btn-primary shadow-sm mr-2">
+                        <i class="fas fa-plus fa-sm text-white-50"></i> Sewa Kantin Baru
+                    </a>
+                    <a href="{{ route('user.dashboard') }}" class="btn btn-sm btn-secondary shadow-sm">
+                        <i class="fas fa-arrow-left fa-sm text-white-50"></i> Kembali
+                    </a>
+                </div>
             </div>
         </div>
 
@@ -275,7 +277,7 @@
                     </div>
 
                     <div class="card-body">
-                        <canvas id="chartTagihan" height="100"></canvas>
+                        <canvas id="chartTagihan" class="w-100" style="max-height: 250px;"></canvas>
                     </div>
 
                 </div>
@@ -314,7 +316,7 @@
                                             <th>Unit</th>
                                             <th>Termin</th>
                                             <th>Jumlah</th>
-                                            <th>Jatuh Tempo</th>
+                                            <th class="d-none d-md-table-cell">Jatuh Tempo</th>
                                             <th>Status</th>
                                         </tr>
                                     </thead>
@@ -334,7 +336,7 @@
                                                     Rp {{ number_format($t->jumlah_tagihan, 0, ',', '.') }}
                                                 </td>
 
-                                                <td>
+                                                <td class="d-none d-md-table-cell">
                                                     @if ($t->tgl_jatuh_tempo)
                                                         {{ \Carbon\Carbon::parse($t->tgl_jatuh_tempo)->format('d M Y') }}
                                                     @else
