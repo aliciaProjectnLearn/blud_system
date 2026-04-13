@@ -111,8 +111,8 @@
                             <td>{{ $p->no_hp ?? '-' }}</td>
                             <td class="text-center">{{ $p->bookingFutsal->count() }}x</td>
                             <td>
-                                {{ $p->bookingFutsal->first()?->tgl_main
-                                    ? \Carbon\Carbon::parse($p->bookingFutsal->first()->tgl_main)->format('d M Y')
+                                {{ $p->bookingFutsal->first()?->start_datetime
+                                    ? \Carbon\Carbon::parse($p->bookingFutsal->first()->start_datetime)->format('d M Y')
                                     : '-' }}
                             </td>
                             <td>

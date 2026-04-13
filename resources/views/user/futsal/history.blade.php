@@ -67,8 +67,20 @@
                         @forelse($history as $item)
                         <tr>
                             <td class="font-weight-bold">{{ $item->lapangan->nama ?? 'N/A' }}</td>
-                            <td>{{ \Carbon\Carbon::parse($item->tgl_main)->format('d M Y') }}</td>
-                            <td>{{ substr($item->jam_mulai, 0, 5) }} - {{ substr($item->jam_selesai, 0, 5) }}</td>
+                            <td>
+                                @if($item->type === 'event')
+                                    {{ \Carbon\Carbon::parse($item->start_datetime)->format('d M Y') }}<br>s/d<br>{{ \Carbon\Carbon::parse($item->end_datetime)->format('d M Y') }}
+                                @else
+                                    {{ \Carbon\Carbon::parse($item->start_datetime)->format('d M Y') }}
+                                @endif
+                            </td>
+                            <td>
+                                @if($item->type === 'event')
+                                    <span class="badge badge-warning">Event</span>
+                                @else
+                                    {{ $item->start_datetime->format('H:i') }} - {{ $item->end_datetime->format('H:i') }}
+                                @endif
+                            </td>
                             <td>
                                 @php
                                     $status = strtolower($item->booking->status ?? '');

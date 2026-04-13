@@ -35,6 +35,8 @@
                             <td>
                                 @if($transaksi->jenis_transaksi == 'membership')
                                     <span class="badge badge-info shadow-sm"><i class="fas fa-id-card"></i> Membership</span>
+                                @elseif($transaksi->jenis_transaksi == 'event')
+                                    <span class="badge badge-warning shadow-sm text-dark"><i class="fas fa-calendar-alt"></i> Event</span>
                                 @elseif($transaksi->jenis_transaksi == 'guest')
                                     <span class="badge badge-secondary shadow-sm">Guest</span>
                                 @else
@@ -52,6 +54,32 @@
                             <td>:</td>
                             <td>{{ $transaksi->booking->bookingFutsal->lapangan->nama ?? '-' }}</td>
                         </tr>
+                        
+                        {{-- TAMBAHAN BARU: Informasi Jadwal --}}
+                        <tr>
+                            <td><strong>Jadwal Main</strong></td>
+                            <td>:</td>
+                            <td>
+                                @if($transaksi->booking && $transaksi->booking->bookingFutsal)
+                                    @php $bf = $transaksi->booking->bookingFutsal; @endphp
+                                    
+                                    @if($bf->type === 'event')
+                                        <span class="text-warning font-weight-bold">
+                                            {{ \Carbon\Carbon::parse($bf->start_datetime)->format('d M Y') }} s/d {{ \Carbon\Carbon::parse($bf->end_datetime)->format('d M Y') }}
+                                        </span>
+                                        <br><small class="text-muted">(Multi-hari / Full Day)</small>
+                                    @else
+                                        {{ \Carbon\Carbon::parse($bf->start_datetime)->format('d M Y') }}<br>
+                                        <small class="text-muted">
+                                            <i class="fas fa-clock"></i> Jam: {{ \Carbon\Carbon::parse($bf->start_datetime)->format('H:i') }} - {{ \Carbon\Carbon::parse($bf->end_datetime)->format('H:i') }} WIB
+                                        </small>
+                                    @endif
+                                @else
+                                    -
+                                @endif
+                            </td>
+                        </tr>
+
                         <tr>
                             <td><strong>Total Pembayaran</strong></td>
                             <td>:</td>
@@ -88,7 +116,15 @@
                                 <div class="form-group">
                                     <label for="jumlah_bayar"><strong>Nominal Pembayaran (Rp)</strong></label>
                                     <input type="number" name="jumlah_bayar" id="jumlah_bayar"
-                                        class="form-control" placeholder="Contoh: 100000" min="1" required>
+                                        class="form-control" placeholder="Contoh: 100000" min="1" 
+                                        value="{{ $transaksi->jumlah_bayar > 0 ? $transaksi->jumlah_bayar : '' }}"
+                                        {{ $transaksi->jenis_transaksi == 'event' ? 'readonly' : 'required' }}>
+                                    
+                                    @if($transaksi->jenis_transaksi == 'event')
+                                        <small class="text-warning font-weight-bold mt-1 d-block">
+                                            <i class="fas fa-lock"></i> Harga event sudah dikunci sistem.
+                                        </small>
+                                    @endif
                                 </div>
                             @else
                                 <div class="alert alert-info">

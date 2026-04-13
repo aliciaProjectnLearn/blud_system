@@ -385,7 +385,7 @@
                         <h6><b>Informasi Booking</b></h6>
                         <table class="table table-sm table-borderless">
                             <tr><td>ID Booking</td><td>: <b>#${data.booking.id}</b></td></tr>
-                            <tr><td>Tanggal Main</td><td>: ${data.booking.tgl_main ?? ''}</td></tr>
+                            <tr><td>Waktu Mulai</td><td>: ${data.booking.start_datetime ?? ''}</td></tr>
                             <tr><td>Status</td><td>: <span class="badge badge-info">${data.booking.status}</span></td></tr>
                         </table>
                     </div>

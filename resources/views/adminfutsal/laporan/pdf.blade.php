@@ -51,7 +51,18 @@
                 <tr>
                     <td class="text-center">{{ $index + 1 }}</td>
                     <td>{{ $item->booking->user->name ?? '-' }}</td>
-                    <td>{{ $item->booking->bookingFutsal->tgl_main ?? '-' }}</td>
+                    <td>
+                        @php $bf = $item->booking->bookingFutsal; @endphp
+                        @if($bf)
+                            @if($bf->type === 'event')
+                                {{ \Carbon\Carbon::parse($bf->start_datetime)->format('d-m-Y') }}<br>s/d<br>{{ \Carbon\Carbon::parse($bf->end_datetime)->format('d-m-Y') }}
+                            @else
+                                {{ \Carbon\Carbon::parse($bf->start_datetime)->format('d-m-Y H:i') }}
+                            @endif
+                        @else
+                            -
+                        @endif
+                    </td>
                     <td>{{ \Carbon\Carbon::parse($item->tgl_bayar)->format('d-m-Y H:i') }}</td>
                     <td>{{ $item->booking->bookingFutsal->jenis_pembayaran ?? ($item->tipePembayaran->nama_tipe ?? '-') }}</td>
                     <td class="text-right">Rp {{ number_format($item->jumlah_bayar, 0, ',', '.') }}</td>

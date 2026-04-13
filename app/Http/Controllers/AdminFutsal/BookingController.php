@@ -21,9 +21,9 @@ class BookingController extends Controller
     {
         $query = BookingFutsal::with(['booking', 'user', 'lapangan']);
 
-        // Filter by Date
+        // Filter by Date (using start_datetime instead of tgl_main)
         if ($request->filled('tanggal')) {
-            $query->where('tgl_main', $request->tanggal);
+            $query->whereDate('start_datetime', $request->tanggal);
         }
 
         // Filter by Status
@@ -42,9 +42,7 @@ class BookingController extends Controller
         }
 
         // Sort by nearest date and time
-        $bookings = $query->orderBy('tgl_main', 'asc')
-            ->orderBy('jam_mulai', 'asc')
-            ->get();
+        $bookings = $query->orderBy('start_datetime', 'asc')->get();
 
         $lapangans = Lapangan::all();
         $users = User::all();
@@ -57,36 +55,40 @@ class BookingController extends Controller
     public function getAvailableSlots(Request $request)
     {
         $lapanganId = $request->lapangan_id;
-        $tanggal = $request->tanggal;
+        $tanggalStr = $request->tanggal;
+        
+        $tanggalStart = Carbon::parse($tanggalStr)->startOfDay();
+        $tanggalEnd = Carbon::parse($tanggalStr)->endOfDay();
 
         $jadwal = JadwalLapangan::all();
 
-        // Ambil semua booking di lapangan & tanggal tersebut yang mengunci slot
+        // Ambil semua booking di lapangan yang bersinggungan hari ini (termasuk event multi-hari)
         $bookedSlots = BookingFutsal::whereHas('booking', function ($q) {
                 $q->whereIn('status', ['menunggu', 'dikonfirmasi', 'selesai']);
             })
             ->where('lapangan_id', $lapanganId)
-            ->where('tgl_main', $tanggal)
+            ->where(function($query) use ($tanggalStart, $tanggalEnd) {
+                $query->where('start_datetime', '<=', $tanggalEnd)
+                      ->where('end_datetime', '>=', $tanggalStart);
+            })
             ->get();
 
         $available = collect();
 
         foreach ($jadwal as $j) {
-            $proposedMulai = Carbon::parse($j->jam_mulai);
-            // Default 1 jam durasi booking di UI
-            $proposedSelesai = $proposedMulai->copy()->addHour();
+            $proposedFullStart = Carbon::parse($tanggalStr . ' ' . $j->jam_mulai);
+            $proposedFullEnd = $proposedFullStart->copy()->addHour();
 
-            $proposedStartWithPadding = $proposedMulai->copy()->subMinutes(9)->format('H:i:s');
-            $proposedEndWithPadding = $proposedSelesai->copy()->addMinutes(9)->format('H:i:s');
+            $proposedStartWithPadding = $proposedFullStart->copy()->subMinutes(9);
+            $proposedEndWithPadding = $proposedFullEnd->copy()->addMinutes(9);
 
             $isOverlap = false;
 
             foreach ($bookedSlots as $booked) {
-                // Konversi jam dari DB ke string untuk perbandingan simpel
-                $existingMulai = Carbon::parse($booked->jam_mulai)->format('H:i:s');
-                $existingSelesai = Carbon::parse($booked->jam_selesai)->format('H:i:s');
+                $existingMulai = Carbon::parse($booked->start_datetime);
+                $existingSelesai = Carbon::parse($booked->end_datetime);
 
-                // Logic Intersection persis seperti checkOverlap()
+                // Logic Intersection datetime
                 if ($existingMulai < $proposedEndWithPadding && $existingSelesai > $proposedStartWithPadding) {
                     $isOverlap = true;
                     break;
@@ -106,29 +108,31 @@ class BookingController extends Controller
         $request->validate([
             'user_id' => 'required|exists:users,id',
             'lapangan_id' => 'required|exists:lapangan,id',
-            'tgl_main' => 'required|date',
-            'jam_mulai' => 'required|date_format:H:i',
-            'jam_selesai' => 'required|date_format:H:i|after:jam_mulai',
+            'type' => 'required|in:regular,event',
+            'tgl_main' => 'required_if:type,regular|nullable|date',
+            'jam_mulai' => 'required_if:type,regular|nullable|date_format:H:i',
+            'jam_selesai' => 'required_if:type,regular|nullable|date_format:H:i|after:jam_mulai',
+            'start_datetime' => 'required_if:type,event|nullable|date',
+            'end_datetime' => 'required_if:type,event|nullable|date|after:start_datetime',
             'jenis_pembayaran' => 'required|in:reguler,membership',
         ]);
 
-        $jamMulai = Carbon::parse($request->jam_mulai);
-        $jamSelesai = Carbon::parse($request->jam_selesai);
-        $durasi = max(1, ceil($jamSelesai->diffInMinutes($jamMulai) / 60));
+        if ($request->type === 'event') {
+            $startDateTime = Carbon::parse($request->start_datetime);
+            $endDateTime = Carbon::parse($request->end_datetime);
+            $durasi = max(1, ceil($endDateTime->diffInDays($startDateTime)));
+        } else {
+            $startDateTime = Carbon::parse($request->tgl_main . ' ' . $request->jam_mulai);
+            $endDateTime = Carbon::parse($request->tgl_main . ' ' . $request->jam_selesai);
+            $durasi = max(1, ceil($endDateTime->diffInMinutes($startDateTime) / 60));
+        }
 
         DB::beginTransaction();
         try {
-            // LOCK: Cegah Race Condition pada slot Lapangan yang sama
             $lapangan = Lapangan::where('id', $request->lapangan_id)->lockForUpdate()->firstOrFail();
 
-            // LOCK: Ekstra pengamanan race condition di level table booking futsal untuk tanggal yang sama
-            BookingFutsal::where('lapangan_id', $lapangan->id)
-                ->where('tgl_main', $request->tgl_main)
-                ->lockForUpdate()
-                ->get();
-
             // VALIDASI: Overlap & 10 min jeda
-            if ($this->checkOverlap($lapangan->id, $request->tgl_main, $request->jam_mulai, $request->jam_selesai)) {
+            if ($this->checkOverlap($lapangan->id, $startDateTime, $endDateTime)) {
                 throw new \Exception('Waktu pemesanan bertabrakan atau tidak memenuhi jeda minimal 10 menit.');
             }
 
@@ -155,16 +159,15 @@ class BookingController extends Controller
                 'booking_id' => $booking->id,
                 'user_id' => $request->user_id,
                 'lapangan_id' => $lapangan->id,
-                'tgl_main' => $request->tgl_main,
-                'jam_mulai' => $request->jam_mulai,
-                'jam_mulai_efektif' => $request->jam_mulai,
-                'jam_selesai' => $request->jam_selesai,
-                'durasi_main' => $durasi,
+                'type' => $request->type,
+                'start_datetime' => $startDateTime->format('Y-m-d H:i:s'),
+                'end_datetime' => $endDateTime->format('Y-m-d H:i:s'),
                 'jenis_pembayaran' => $request->jenis_pembayaran,
             ]);
 
             if ($request->jenis_pembayaran === 'reguler') {
-                $harga = $lapangan->harga_siang ?? 100000;
+                $harga = $request->type === 'event' ? ($lapangan->harga_siang ?? 100000) * 10 : ($lapangan->harga_siang ?? 100000); 
+                // Untuk event asumsikan harganya fix dikali 10 jam/hari, tapi sebagai fallback, kita samakan durasi kali harga
                 PembayaranFutsal::create([
                     'booking_id' => $booking->id,
                     'tipe_pembayaran_id' => 2, // Tunai default
@@ -177,7 +180,6 @@ class BookingController extends Controller
                 $booking->update(['status' => 'dikonfirmasi']);
             }
 
-            // LOG
             LogActivity::create([
                 'user_id' => auth()->id(),
                 'nama_user' => auth()->user()->name ?? 'Admin Futsal',
@@ -186,13 +188,14 @@ class BookingController extends Controller
                 'deskripsi_aktivitas' => "Menambahkan booking untuk UserID: {$request->user_id} di LapanganID: {$lapangan->id}",
             ]);
 
-            // UPDATE JADWAL LAPANGAN FRONTEND CALENDAR KE TERISI
-            for ($i = 0; $i < $durasi; $i++) {
-                $slotStart = $jamMulai->copy()->addHours($i)->format('H:i:s');
-                JadwalLapangan::where('lapangan_id', $lapangan->id)
-                    ->where('tanggal', $request->tgl_main)
-                    ->where('jam_mulai', $slotStart)
-                    ->update(['status' => 'terisi']);
+            if ($request->type === 'regular') {
+                for ($i = 0; $i < $durasi; $i++) {
+                    $slotStart = $startDateTime->copy()->addHours($i)->format('H:i:s');
+                    JadwalLapangan::where('lapangan_id', $lapangan->id)
+                        ->where('tanggal', $request->tgl_main)
+                        ->where('jam_mulai', $slotStart)
+                        ->update(['status' => 'terisi']);
+                }
             }
 
             DB::commit();
@@ -218,11 +221,12 @@ class BookingController extends Controller
             $booking->update(['status' => 'dibatalkan']);
 
             if ($bookingFutsal->jenis_pembayaran === 'membership') {
+                $durasiBack = $bookingFutsal->type === 'event' ? $bookingFutsal->durasi_hari : $bookingFutsal->durasi_jam;
                 $membership = Membership::where('user_id', $bookingFutsal->user_id)
                     ->orderBy('created_at', 'desc')->lockForUpdate()->first();
 
                 if ($membership) {
-                    $membership->kembalikanKuota($bookingFutsal->durasi_main);
+                    $membership->kembalikanKuota($durasiBack);
                 }
             } else {
                 $pembayaran = PembayaranFutsal::where('booking_id', $booking->id)->lockForUpdate()->first();
@@ -239,14 +243,16 @@ class BookingController extends Controller
                 'deskripsi_aktivitas' => 'Membatalkan booking futsal BookingID: ' . $booking->id,
             ]);
 
-            // KEMBALIKAN JADWAL LAPANGAN FRONTEND CALENDAR KE TERSEDIA
-            $jamBatal = Carbon::parse($bookingFutsal->jam_mulai);
-            for ($i = 0; $i < $bookingFutsal->durasi_main; $i++) {
-                $slotStart = $jamBatal->copy()->addHours($i)->format('H:i:s');
-                JadwalLapangan::where('lapangan_id', $bookingFutsal->lapangan_id)
-                    ->where('tanggal', $bookingFutsal->tgl_main)
-                    ->where('jam_mulai', $slotStart)
-                    ->update(['status' => 'tersedia']);
+            if ($bookingFutsal->type === 'regular') {
+                $jamBatal = Carbon::parse($bookingFutsal->start_datetime);
+                $durasiStr = $bookingFutsal->durasi_jam;
+                for ($i = 0; $i < $durasiStr; $i++) {
+                    $slotStart = $jamBatal->copy()->addHours($i)->format('H:i:s');
+                    JadwalLapangan::where('lapangan_id', $bookingFutsal->lapangan_id)
+                        ->where('tanggal', $jamBatal->format('Y-m-d'))
+                        ->where('jam_mulai', $slotStart)
+                        ->update(['status' => 'tersedia']);
+                }
             }
 
             DB::commit();
@@ -261,9 +267,12 @@ class BookingController extends Controller
     {
         $request->validate([
             'lapangan_id' => 'required|exists:lapangan,id',
-            'tgl_main' => 'required|date',
-            'jam_mulai' => 'required|date_format:H:i',
-            'jam_selesai' => 'required|date_format:H:i|after:jam_mulai',
+            'type' => 'required|in:regular,event',
+            'tgl_main' => 'required_if:type,regular|nullable|date',
+            'jam_mulai' => 'required_if:type,regular|nullable|date_format:H:i',
+            'jam_selesai' => 'required_if:type,regular|nullable|date_format:H:i|after:jam_mulai',
+            'start_datetime' => 'required_if:type,event|nullable|date',
+            'end_datetime' => 'required_if:type,event|nullable|date|after:start_datetime',
         ]);
 
         DB::beginTransaction();
@@ -275,68 +284,71 @@ class BookingController extends Controller
                 throw new \Exception('Booking sudah selesai/batal, tidak bisa direchedule.');
             }
 
-            $jamMulai = Carbon::parse($request->jam_mulai);
-            $jamSelesai = Carbon::parse($request->jam_selesai);
-            $durasiBaru = max(1, ceil($jamSelesai->diffInMinutes($jamMulai) / 60));
-
-            // LOCK: Ekstra pengamanan race condition di level table booking
-            BookingFutsal::where('lapangan_id', $lapangan->id)
-                ->where('tgl_main', $request->tgl_main)
-                ->lockForUpdate()
-                ->get();
+            if ($request->type === 'event') {
+                $startDateTime = Carbon::parse($request->start_datetime);
+                $endDateTime = Carbon::parse($request->end_datetime);
+                $durasiBaru = max(1, ceil($endDateTime->diffInDays($startDateTime)));
+            } else {
+                $startDateTime = Carbon::parse($request->tgl_main . ' ' . $request->jam_mulai);
+                $endDateTime = Carbon::parse($request->tgl_main . ' ' . $request->jam_selesai);
+                $durasiBaru = max(1, ceil($endDateTime->diffInMinutes($startDateTime) / 60));
+            }
 
             // VALIDASI: overlap excluding current booking
-            if ($this->checkOverlap($lapangan->id, $request->tgl_main, $request->jam_mulai, $request->jam_selesai, $bookingFutsal->booking_id)) {
+            if ($this->checkOverlap($lapangan->id, $startDateTime, $endDateTime, $bookingFutsal->booking_id)) {
                 throw new \Exception('Jadwal baru bertabrakan atau tidak memenuhi jeda 10 menit.');
             }
+
+            $durasiLama = $bookingFutsal->type === 'event' ? $bookingFutsal->durasi_hari : $bookingFutsal->durasi_jam;
 
             if ($bookingFutsal->jenis_pembayaran === 'membership') {
                 $membership = Membership::where('user_id', $bookingFutsal->user_id)->orderBy('created_at', 'desc')->lockForUpdate()->first();
                 if ($membership) {
-                    if ($durasiBaru > $bookingFutsal->durasi_main) {
-                        $diff = $durasiBaru - $bookingFutsal->durasi_main;
+                    if ($durasiBaru > $durasiLama) {
+                        $diff = $durasiBaru - $durasiLama;
                         if ($membership->sisa_kuota < $diff) {
                             throw new \Exception('Sisa kuota membership tidak mencukupi untuk penambahan waktu!');
                         }
                         $membership->gunakanKuota($diff);
-                    } else if ($durasiBaru < $bookingFutsal->durasi_main) {
-                        $diff = $bookingFutsal->durasi_main - $durasiBaru;
+                    } else if ($durasiBaru < $durasiLama) {
+                        $diff = $durasiLama - $durasiBaru;
                         $membership->kembalikanKuota($diff);
                     }
                 }
             } else {
-                $harga = $lapangan->harga_siang ?? 100000;
+                $harga = $request->type === 'event' ? ($lapangan->harga_siang ?? 100000) * 10 : ($lapangan->harga_siang ?? 100000);
                 $pembayaran = PembayaranFutsal::where('booking_id', $bookingFutsal->booking_id)->first();
                 if ($pembayaran) {
                     $pembayaran->update(['jumlah_bayar' => $harga * $durasiBaru]);
                 }
             }
 
-            // KEMBALIKAN JADWAL LAMA KE TERSEDIA
-            $oldJamMulai = Carbon::parse($bookingFutsal->jam_mulai);
-            for ($i = 0; $i < $bookingFutsal->durasi_main; $i++) {
-                $slotStart = $oldJamMulai->copy()->addHours($i)->format('H:i:s');
-                JadwalLapangan::where('lapangan_id', $bookingFutsal->lapangan_id)
-                    ->where('tanggal', $bookingFutsal->tgl_main)
-                    ->where('jam_mulai', $slotStart)
-                    ->update(['status' => 'tersedia']);
+            if ($bookingFutsal->type === 'regular') {
+                $oldJamMulai = Carbon::parse($bookingFutsal->start_datetime);
+                for ($i = 0; $i < $durasiLama; $i++) {
+                    $slotStart = $oldJamMulai->copy()->addHours($i)->format('H:i:s');
+                    JadwalLapangan::where('lapangan_id', $bookingFutsal->lapangan_id)
+                        ->where('tanggal', $oldJamMulai->format('Y-m-d'))
+                        ->where('jam_mulai', $slotStart)
+                        ->update(['status' => 'tersedia']);
+                }
             }
 
-            // UPDATE SLOT JADWAL BARU KE TERISI
-            for ($i = 0; $i < $durasiBaru; $i++) {
-                $slotStart = $jamMulai->copy()->addHours($i)->format('H:i:s');
-                JadwalLapangan::where('lapangan_id', $lapangan->id)
-                    ->where('tanggal', $request->tgl_main)
-                    ->where('jam_mulai', $slotStart)
-                    ->update(['status' => 'terisi']);
+            if ($request->type === 'regular') {
+                for ($i = 0; $i < $durasiBaru; $i++) {
+                    $slotStart = $startDateTime->copy()->addHours($i)->format('H:i:s');
+                    JadwalLapangan::where('lapangan_id', $lapangan->id)
+                        ->where('tanggal', $startDateTime->format('Y-m-d'))
+                        ->where('jam_mulai', $slotStart)
+                        ->update(['status' => 'terisi']);
+                }
             }
 
             $bookingFutsal->update([
                 'lapangan_id' => $lapangan->id,
-                'tgl_main' => $request->tgl_main,
-                'jam_mulai' => $request->jam_mulai,
-                'jam_selesai' => $request->jam_selesai,
-                'durasi_main' => $durasiBaru,
+                'type' => $request->type,
+                'start_datetime' => $startDateTime->format('Y-m-d H:i:s'),
+                'end_datetime' => $endDateTime->format('Y-m-d H:i:s'),
             ]);
 
             LogActivity::create([
@@ -371,7 +383,6 @@ class BookingController extends Controller
             if ($bookingFutsal->jenis_pembayaran === 'reguler') {
                 $pembayaran = PembayaranFutsal::where('booking_id', $booking->id)->first();
                 if ($pembayaran) {
-                    // Update ke 'lunas' atau 'verifikasi' untuk nandain bayar tunai
                     $pembayaran->update(['status' => 'verifikasi']);
                 }
             }
@@ -392,27 +403,19 @@ class BookingController extends Controller
         }
     }
 
-    /**
-     * Logic Overlap Teraman.
-     * Menggunakan Intersection logic: (A.start < B.end) AND (A.end > B.start)
-     */
-    private function checkOverlap($lapanganId, $tanggal, $timeStart, $timeEnd, $excludeBookingId = null)
+    private function checkOverlap($lapanganId, $proposedStart, $proposedEnd, $excludeBookingId = null)
     {
-        // Tolerasni jeda 10 menit (A.start - 9m < B.end) and (A.end + 9m > B.start)
-        // Setara: existing_start < proposed_end + 9m  && existing_end > proposed_start - 9m
-        $proposedEndWithPadding = Carbon::parse($timeEnd)->addMinutes(9)->format('H:i:s');
-        $proposedStartWithPadding = Carbon::parse($timeStart)->subMinutes(9)->format('H:i:s');
+        $proposedStartWithPadding = Carbon::parse($proposedStart)->subMinutes(9)->format('Y-m-d H:i:s');
+        $proposedEndWithPadding = Carbon::parse($proposedEnd)->addMinutes(9)->format('Y-m-d H:i:s');
 
         return BookingFutsal::whereHas('booking', function ($q) {
-                // Semua jadwal ini MENGUNCI lapangan
                 $q->whereIn('status', ['menunggu', 'dikonfirmasi', 'selesai']);
             })
             ->where('lapangan_id', $lapanganId)
-            ->where('tgl_main', $tanggal)
             ->where(function ($query) use ($proposedStartWithPadding, $proposedEndWithPadding) {
-                // Logika Intersection menggunakan kolom string waktu murni
-                $query->where('jam_mulai', '<', $proposedEndWithPadding)
-                      ->where('jam_selesai', '>', $proposedStartWithPadding);
+                // Logika Intersection datetime
+                $query->where('start_datetime', '<', $proposedEndWithPadding)
+                      ->where('end_datetime', '>', $proposedStartWithPadding);
             })
             ->when($excludeBookingId, function ($query, $id) {
                 return $query->where('booking_id', '!=', $id);

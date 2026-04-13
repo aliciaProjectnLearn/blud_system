@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('pembayaran_futsal', function (Blueprint $table) {
             $table->string('kode_pembayaran')->unique()->after('id');
-            $table->enum('jenis_transaksi', ['membership', 'booking', 'guest'])->default('booking')->after('kode_pembayaran');
+            $table->enum('jenis_transaksi', ['membership', 'booking', 'guest', 'event'])->default('booking')->after('kode_pembayaran');
         });
     }
 

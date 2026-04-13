@@ -181,12 +181,21 @@
                         <div style="font-size: 11px; color: #858796;">Ukuran Lapangan: {{ $booking->lapangan->ukuran }}</div>
                     </td>
                     <td style="text-align: center;">
-                        {{ \Carbon\Carbon::parse($booking->tgl_main)->format('d F Y') }}<br>
-                        <span style="font-weight: bold;">{{ substr($booking->jam_mulai, 0, 5) }} - {{ substr($booking->jam_selesai, 0, 5) }}</span><br>
-                        <span style="color: #666;">({{ $booking->durasi_main }} Jam)</span>
+                        @if($booking->type === 'event')
+                            {{ \Carbon\Carbon::parse($booking->start_datetime)->format('d F Y') }} s/d <br>
+                            {{ \Carbon\Carbon::parse($booking->end_datetime)->format('d F Y') }}<br>
+                            <span style="color: #666;">({{ $booking->durasi_hari }} Hari)</span>
+                        @else
+                            {{ \Carbon\Carbon::parse($booking->start_datetime)->format('d F Y') }}<br>
+                            <span style="font-weight: bold;">{{ $booking->start_datetime->format('H:i') }} - {{ $booking->end_datetime->format('H:i') }}</span><br>
+                            <span style="color: #666;">({{ $booking->durasi_jam }} Jam)</span>
+                        @endif
                     </td>
                     <td style="text-align: right;">
-                        Rp {{ number_format(($pembayaran->jumlah_bayar ?? 0) / ($booking->durasi_main ?: 1), 0, ',', '.') }}
+                        @php
+                            $durasi = $booking->type === 'event' ? max($booking->durasi_hari, 1) : max($booking->durasi_jam, 1);
+                        @endphp
+                        Rp {{ number_format(($pembayaran->jumlah_bayar ?? 0) / $durasi, 0, ',', '.') }}
                     </td>
                     <td style="text-align: right; font-weight: bold;">
                         Rp {{ number_format($pembayaran->jumlah_bayar ?? 0, 0, ',', '.') }}
