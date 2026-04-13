@@ -23,7 +23,7 @@
                                             placeholder="Cari nama...">
                                     </form>
 
-                                    
+
                                     <div>
                             </div>
                         </div>
@@ -32,7 +32,8 @@
                                         <tr>
                                             <th>No</th>
                                             <th>Name</th>
-                                            <th>Email</th>                                    
+                                            <th>No HP</th>
+                                            <th>Email</th>
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
@@ -41,16 +42,16 @@
                                         <tr>
                                             <td>{{ $loop->iteration }}</td>
                                             <td>{{ $user->name }}</td>
+                                            <td>{{ $user->no_hp }}</td>
                                             <td>{{ $user->email }}</td>
                                             <td>
-                                                <a href="{{ route('users.edit', $user->id) }}" class="btn btn-warning btn-sm">Edit</a>
-                                                <a href="{{ route('users.show',$user->id) }}" 
+                                                <a href="{{ route('users.show',$user->id) }}"
                                                     class="btn btn-info btn-sm">
                                                     Detail
                                                 </a>
-                                                <form id="delete-form-{{ $user->id }}" 
-                                                    action="{{ route('users.destroy', $user->id) }}" 
-                                                    method="POST" 
+                                                <form id="delete-form-{{ $user->id }}"
+                                                    action="{{ route('users.destroy', $user->id) }}"
+                                                    method="POST"
                                                     style="display:inline-block">
 
                                                     @csrf

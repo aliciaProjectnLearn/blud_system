@@ -16,10 +16,13 @@ class CheckRole
             return redirect()->route('login');
         }
 
+        // Support multiple roles dipisah pipe: role:Superadmin|Adminfutsal|Adminkantin
+        $allowedRoles = explode('|', $role);
+
         $hasRole = DB::table('roles_users')
             ->join('roles', 'roles.id', '=', 'roles_users.role_id')
             ->where('roles_users.user_id', $user->id)
-            ->where('roles.nama', $role)
+            ->whereIn('roles.nama', $allowedRoles)
             ->exists();
 
         if (!$hasRole) {

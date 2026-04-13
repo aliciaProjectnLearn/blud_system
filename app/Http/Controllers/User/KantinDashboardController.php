@@ -100,21 +100,6 @@ class KantinDashboardController extends Controller
             'labelGrafik'
         ));
     }
-    public function tagihan()
-    {
-        $user    = Auth::user();
-        $penyewa = $user->penyewa;
-
-        $tagihan = $penyewa
-            ? PembayaranRuko::whereHas('sewaRuko', fn($q) => $q->where('penyewa_id', $penyewa->getKey()))
-            ->where('status', 'menunggu')
-            ->with('sewaRuko.ruko')
-            ->orderBy('tgl_jatuh_tempo')
-            ->get()
-            : collect();
-
-        return view('user.kantin.tagihan', compact('tagihan'));
-    }
 
     public function riwayat()
     {
@@ -148,7 +133,7 @@ class KantinDashboardController extends Controller
     public function formSewa($id)
     {
         $ruko = Ruko::with('kategori', 'dokumentasiUnit')->findOrFail($id);
-        
+
         // Pastikan ruko masih kosong
         if ($ruko->status_unit !== 'kosong') {
             return redirect()->route('user.kantin.katalog')->with('error', 'Unit sudah tidak tersedia.');
@@ -220,7 +205,7 @@ class KantinDashboardController extends Controller
                 'tgl_mulai' => $tglMulai,
                 'tgl_selesai' => $tglSelesai,
                 'harga_sewa_tahunan' => $ruko->harga,
-                'status' => 'pending', 
+                'status' => 'pending',
             ]);
 
             // 4. Update status ruko agar tidak dobel dipesan
@@ -241,7 +226,7 @@ class KantinDashboardController extends Controller
 
             DB::commit();
 
-            return redirect()->route('user.kantin.tagihan')->with('success', 'Pengajuan sewa berhasil dikirim! Tagihan Anda akan muncul di halaman ini setelah Admin memverifikasi dan menyetujui pengajuan.');
+            return redirect()->route('user.kantin.dashboard')->with('success', 'Pengajuan sewa berhasil dikirim! Tunggu Admin memverifikasi dan menyetujui pengajuan.');
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Terjadi kesalahan sistem: ' . $e->getMessage());
