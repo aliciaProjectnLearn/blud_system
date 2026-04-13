@@ -23,7 +23,7 @@
                                             placeholder="Cari admin...">
                                     </form>
 
-                                    
+
                                     <div>
                                     <a href="{{ route('users.create') }}" class="btn btn-primary">
                                         Tambah Admin
@@ -35,6 +35,7 @@
                                         <tr>
                                             <th>No</th>
                                             <th>Name</th>
+                                            <th>No HP</th>
                                             <th>Email</th>
                                             <th>Role</th>
                                             <th>Actions</th>
@@ -45,19 +46,20 @@
                                         <tr>
                                             <td>{{ $loop->iteration }}</td>
                                             <td>{{ $user->name }}</td>
+                                            <td>{{ $user->no_hp }}</td>
                                             <td>{{ $user->email }}</td>
                                             <td>@foreach($user->roles as $role)
                                                 {{ $role->nama }}
                                             @endforeach</td>
                                             <td>
                                                 <a href="{{ route('users.edit', $user->id) }}" class="btn btn-warning btn-sm">Edit</a>
-                                                <a href="{{ route('users.show',$user->id) }}" 
+                                                <a href="{{ route('users.show',$user->id) }}"
                                                     class="btn btn-info btn-sm">
                                                     Detail
                                                 </a>
-                                                <form id="delete-form-{{ $user->id }}" 
-                                                    action="{{ route('users.destroy', $user->id) }}" 
-                                                    method="POST" 
+                                                <form id="delete-form-{{ $user->id }}"
+                                                    action="{{ route('users.destroy', $user->id) }}"
+                                                    method="POST"
                                                     style="display:inline-block">
 
                                                     @csrf

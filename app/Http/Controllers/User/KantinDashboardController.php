@@ -101,21 +101,6 @@ class KantinDashboardController extends Controller
             'labelGrafik'
         ));
     }
-    public function tagihan()
-    {
-        $user    = Auth::user();
-        $penyewa = $user->penyewa;
-
-        $tagihan = $penyewa
-            ? PembayaranRuko::whereHas('sewaRuko', fn($q) => $q->where('penyewa_id', $penyewa->getKey()))
-            ->where('status', 'menunggu')
-            ->with('sewaRuko.ruko')
-            ->orderBy('tgl_jatuh_tempo')
-            ->get()
-            : collect();
-
-        return view('user.kantin.tagihan', compact('tagihan'));
-    }
 
     public function riwayat()
     {
@@ -168,7 +153,7 @@ class KantinDashboardController extends Controller
     public function formSewa($id)
     {
         $ruko = Ruko::with('kategori', 'dokumentasiUnit')->findOrFail($id);
-        
+
         // Pastikan ruko masih kosong
         if ($ruko->status_unit !== 'kosong') {
             return redirect()->route('user.kantin.katalog')->with('error', 'Unit sudah tidak tersedia.');
@@ -242,7 +227,7 @@ class KantinDashboardController extends Controller
                 'tgl_mulai' => $tglMulai->format('Y-m-d'),
                 'tgl_selesai' => $tglSelesai->format('Y-m-d'),
                 'harga_sewa_tahunan' => $ruko->harga,
-                'status' => 'pending', 
+                'status' => 'pending',
             ]);
 
             // 5. Generate Pembayaran Termin

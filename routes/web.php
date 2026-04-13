@@ -8,6 +8,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\AdminLogActivityController;
 use App\Http\Controllers\SuperAdmin\DashboardController;
 use App\Http\Controllers\SuperAdmin\TransaksiController;
+use App\Http\Controllers\SuperAdmin\RekapKeuanganController;
 use App\Http\Controllers\AdminFutsal\DashboardController as AdminFutsalDashboardController;
 use App\Http\Controllers\AdminFutsal\PaketMembershipController;
 use App\Http\Controllers\AdminFutsal\MembershipController;
@@ -15,6 +16,7 @@ use App\Http\Controllers\AdminFutsal\PelangganController;
 use App\Http\Controllers\AdminFutsal\JadwalLapanganController;
 use App\Http\Controllers\AdminFutsal\LaporanController;
 use App\Http\Controllers\AdminFutsal\TransaksiController as AdminFutsalTransaksiController;
+use App\Http\Controllers\AdminFutsal\KeuanganController;
 use App\Http\Controllers\AdminKantin\DashboardController as AdminKantinDashboardController;
 use App\Http\Controllers\AdminKantin\UnitController as AdminKantinUnitController;
 use App\Http\Controllers\AdminKantin\PembayaranController;
@@ -26,12 +28,6 @@ use App\Http\Controllers\AdminAc\BookingController as AdminAcBookingController;
 use App\Http\Controllers\AdminAc\TransaksiController as AdminAcTransaksiController;
 use App\Http\Controllers\User\DashboardUserController;
 
-
-
-Route::middleware(['auth', 'role:Superadmin'])->group(function () {
-    Route::get('/superadmin/monitoring', [AdminLogActivityController::class, 'index'])
-        ->name('monitoring.index');
-});
 
 // route lain...
 // ── Halaman Welcome ──────────────────────────────────────
@@ -73,14 +69,8 @@ Route::middleware(['auth', 'role:Superadmin'])->group(function () {
     // Dashboard
     Route::get('/dashboard', [App\Http\Controllers\SuperAdmin\DashboardController::class, 'index'])
         ->name('dashboard');
-
-    // Profile
-    Route::get('/profile', [ProfileController::class, 'edit'])
-        ->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])
-        ->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])
-        ->name('profile.destroy');
+    Route::put('/password', [App\Http\Controllers\Auth\PasswordController::class, 'update'])
+        ->name('password.update');
 
     // User Management
     Route::resource('users', UserController::class);
@@ -88,6 +78,21 @@ Route::middleware(['auth', 'role:Superadmin'])->group(function () {
         ->name('users.pelanggan');
     Route::get('/transaksi', [TransaksiController::class, 'index'])
         ->name('transaksi.index');
+    Route::get('/transaksi/{id}', [TransaksiController::class, 'show'])
+    ->name('transaksi.show');
+    Route::get('/monitoring', [AdminLogActivityController::class, 'index'])
+        ->name('dashboard.monitoring');
+
+    // Rekap Keuangan
+    Route::get('/rekap-keuangan', [RekapKeuanganController::class, 'index'])
+        ->name('dashboard.rekap-keuangan');
+});
+
+// Profile Semua Admin
+Route::middleware(['auth', 'role:Superadmin|Adminfutsal|Adminkantin|Adminac'])->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
 // ── Admin Futsal ───────────────────────
@@ -164,6 +169,12 @@ Route::middleware(['auth', 'role:Adminfutsal'])->prefix('adminfutsal')
             ->name('pengaturan.index');
         Route::put('pengaturan/{id}', [\App\Http\Controllers\AdminFutsal\PengaturanController::class, 'update'])
             ->name('pengaturan.update');
+
+        // Manajemen Keuangan
+        Route::get('keuangan', [KeuanganController::class, 'index'])
+            ->name('keuangan.index');
+        Route::post('keuangan/tambah-pengeluaran', [KeuanganController::class, 'storePengeluaran'])
+            ->name('keuangan.store');
     });
 
 
@@ -288,6 +299,7 @@ Route::middleware(['auth', 'role:Pelanggan'])->prefix('user')->name('user.')->gr
     Route::prefix('futsal')->name('futsal.')->group(function () {
         Route::get('/dashboard', [\App\Http\Controllers\User\FutsalDashboardController::class, 'index'])->name('dashboard');
         Route::get('/history', [\App\Http\Controllers\User\FutsalDashboardController::class, 'history'])->name('history');
+        Route::get('/landing', [\App\Http\Controllers\User\FutsalDashboardController::class, 'landing'])->name('landing');
 
         // Booking Lapangan
         Route::get('/booking', [\App\Http\Controllers\User\FutsalDashboardController::class, 'showBookingForm'])->name('booking.form');
@@ -304,6 +316,10 @@ Route::middleware(['auth', 'role:Pelanggan'])->prefix('user')->name('user.')->gr
 
         Route::get('/booking/{id}/invoice', [\App\Http\Controllers\User\FutsalDashboardController::class, 'showInvoice'])->name('invoice');
         Route::get('/booking/{id}/download-invoice', [\App\Http\Controllers\User\FutsalDashboardController::class, 'downloadInvoice'])->name('download-invoice');
+
+        // Membership
+        Route::get('/membership', [\App\Http\Controllers\User\FutsalDashboardController::class, 'showMembershipForm'])->name('membership.form');
+        Route::post('/membership', [\App\Http\Controllers\User\FutsalDashboardController::class, 'storeMembership'])->name('membership.store');
     });
 
     // Kantin Manajemen

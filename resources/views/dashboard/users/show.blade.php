@@ -43,6 +43,11 @@
                         </tr>
 
                         <tr>
+                            <th width="30%">No HP</th>
+                            <td>{{ $user->no_hp }}</td>
+                        </tr>
+
+                        <tr>
                             <th>Email</th>
                             <td>{{ $user->email }}</td>
                         </tr>
