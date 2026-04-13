@@ -41,7 +41,7 @@ class DashboardUserController extends Controller
         return BookingFutsal::where('user_id', $userId)
             ->whereHas('booking', fn($q) => $q->whereIn('status', ['menunggu', 'dikonfirmasi']))
             ->with('booking')
-            ->latest('tgl_main')
+            ->latest('start_datetime')
             ->first();
     }
 

@@ -18,7 +18,7 @@ class PelangganController extends Controller
         $query = User::whereHas('bookingFutsal', function ($q) {
             $q->where('jenis_pembayaran', 'reguler');
         })->with(['bookingFutsal' => function ($q) {
-            $q->where('jenis_pembayaran', 'reguler')->latest('tgl_main');
+            $q->where('jenis_pembayaran', 'reguler')->latest('start_datetime');
         }]);
 
         if ($request->filled('search')) {
@@ -53,10 +53,10 @@ class PelangganController extends Controller
         foreach ($userIds as $userId) {
             $lastBooking = BookingFutsal::where('user_id', $userId)
                 ->where('jenis_pembayaran', 'reguler')
-                ->latest('tgl_main')
+                ->latest('start_datetime')
                 ->first();
 
-            $status = ($lastBooking && now()->diffInDays($lastBooking->tgl_main, true) > 30)
+            $status = ($lastBooking && now()->diffInDays($lastBooking->start_datetime, true) > 30)
                 ? 'inactive'
                 : 'active';
 

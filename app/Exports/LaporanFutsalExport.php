@@ -53,7 +53,14 @@ class LaporanFutsalExport implements FromCollection, WithHeadings, WithMapping, 
     public function map($pembayaran): array
     {
         $namaPelanggan = $pembayaran->booking->user->name ?? '-';
-        $tanggalBooking = $pembayaran->booking->bookingFutsal->tgl_main ?? '-';
+        $bookingFutsal = $pembayaran->booking->bookingFutsal;
+        if ($bookingFutsal && $bookingFutsal->type === 'event') {
+            $tanggalBooking = \Carbon\Carbon::parse($bookingFutsal->start_datetime)->format('d-m-Y') . ' s/d ' . \Carbon\Carbon::parse($bookingFutsal->end_datetime)->format('d-m-Y');
+        } elseif ($bookingFutsal) {
+            $tanggalBooking = \Carbon\Carbon::parse($bookingFutsal->start_datetime)->format('d-m-Y H:i');
+        } else {
+            $tanggalBooking = '-';
+        }
         $tanggalPembayaran = \Carbon\Carbon::parse($pembayaran->tgl_bayar)->format('d-m-Y');
         $jumlahBayar = $pembayaran->jumlah_bayar;
         $jenisPembayaran = $pembayaran->booking->bookingFutsal->jenis_pembayaran ?? 

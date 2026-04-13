@@ -20,6 +20,7 @@
                     <option value="">-- Semua Jenis --</option>
                     <option value="booking" {{ request('jenis_transaksi') == 'booking' ? 'selected' : '' }}>Booking</option>
                     <option value="membership" {{ request('jenis_transaksi') == 'membership' ? 'selected' : '' }}>Membership</option>
+                    <option value="event" {{ request('jenis_transaksi') == 'event' ? 'selected' : '' }}>Event</option>
                     <option value="guest" {{ request('jenis_transaksi') == 'guest' ? 'selected' : '' }}>Guest</option>
                 </select>
 
@@ -61,6 +62,8 @@
                             <td>
                                 @if($trx->jenis_transaksi == 'membership')
                                     <span class="badge badge-info shadow-sm"><i class="fas fa-id-card"></i> Membership</span>
+                                @elseif($trx->jenis_transaksi == 'event')
+                                    <span class="badge badge-warning shadow-sm"><i class="fas fa-calendar-check"></i> Event</span>
                                 @elseif($trx->jenis_transaksi == 'guest')
                                     <span class="badge badge-secondary shadow-sm">Guest</span>
                                 @else

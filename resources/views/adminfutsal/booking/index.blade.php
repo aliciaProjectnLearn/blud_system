@@ -73,7 +73,7 @@
                             <th>Durasi</th>
                             <th>Pemesan</th>
                             <th>Lapangan</th>
-                            <th>Jenis Pesanan</th>
+                            <th>Jenis Transaksi</th>
                             <th>Status</th>
                             <th>Aksi</th>
                         </tr>
@@ -83,15 +83,31 @@
                         <tr>
                             <td>{{ $index+1 }}</td>
                             <td>{{ \Carbon\Carbon::parse($item->created_at)->format('d M Y H:i') }}</td>
-                            <td>{{ \Carbon\Carbon::parse($item->tgl_main)->format('d M Y') }}<br><strong>{{ \Carbon\Carbon::parse($item->jam_mulai)->format('H:i') }} - {{ \Carbon\Carbon::parse($item->jam_selesai)->format('H:i') }}</strong></td>
-                            <td>{{ $item->durasi_main }} Jam</td>
+                            <td>
+                                @if($item->type === 'event')
+                                    {{ \Carbon\Carbon::parse($item->start_datetime)->format('d M Y') }}<br>s/d<br>{{ \Carbon\Carbon::parse($item->end_datetime)->format('d M Y') }}
+                                @else
+                                    {{ \Carbon\Carbon::parse($item->start_datetime)->format('d M Y') }}<br><strong>{{ $item->start_datetime->format('H:i') }} - {{ $item->end_datetime->format('H:i') }}</strong>
+                                @endif
+                            </td>
+                            <td>
+                                @if($item->type === 'event')
+                                    {{ $item->durasi_hari }} Hari
+                                @else
+                                    {{ $item->durasi_jam }} Jam
+                                @endif
+                            </td>
                             <td>{{ $item->user->name ?? 'User Tidak Diketahui' }}</td>
                             <td>{{ $item->lapangan->nama ?? 'Lapangan X' }}</td>
                             <td>
-                                @if($item->jenis_pembayaran == 'membership')
-                                    <span class="badge badge-info"><i class="fas fa-id-card"></i> Membership</span>
+                                @if($item->type === 'event')
+                                    <span class="badge badge-warning"><i class="fas fa-calendar-alt"></i> Event</span>
                                 @else
-                                    <span class="badge badge-secondary"><i class="fas fa-money-bill"></i> Reguler</span>
+                                    @if($item->jenis_pembayaran == 'membership')
+                                        <span class="badge badge-info"><i class="fas fa-id-card"></i> Membership</span>
+                                    @else
+                                        <span class="badge badge-secondary"><i class="fas fa-money-bill"></i> Reguler</span>
+                                    @endif
                                 @endif
                             </td>
                             <td>
@@ -145,8 +161,14 @@
                                     <div class="modal-body text-left">
                                         <p><strong>Nama Pemesan:</strong> {{ $item->user->name ?? '-' }}</p>
                                         <p><strong>Lapangan:</strong> {{ $item->lapangan->nama ?? '-' }}</p>
-                                        <p><strong>Jadwal:</strong> {{ \Carbon\Carbon::parse($item->tgl_main)->format('d F Y') }}, {{ \Carbon\Carbon::parse($item->jam_mulai)->format('H:i') }} - {{ \Carbon\Carbon::parse($item->jam_selesai)->format('H:i') }}</p>
-                                        <p><strong>Durasi:</strong> {{ $item->durasi_main }} Jam</p>
+                                        <p><strong>Tipe Booking:</strong> {{ ucfirst($item->type) }}</p>
+                                        @if($item->type === 'event')
+                                            <p><strong>Jadwal:</strong> {{ \Carbon\Carbon::parse($item->start_datetime)->format('d M Y H:i') }} s.d {{ \Carbon\Carbon::parse($item->end_datetime)->format('d M Y H:i') }}</p>
+                                            <p><strong>Durasi:</strong> {{ $item->durasi_hari }} Hari</p>
+                                        @else
+                                            <p><strong>Jadwal:</strong> {{ \Carbon\Carbon::parse($item->start_datetime)->format('d F Y') }}, {{ $item->start_datetime->format('H:i') }} - {{ $item->end_datetime->format('H:i') }}</p>
+                                            <p><strong>Durasi:</strong> {{ $item->durasi_jam }} Jam</p>
+                                        @endif
                                         <p><strong>Jenis Pembayaran:</strong> {{ ucfirst($item->jenis_pembayaran) }}</p>
                                         <p><strong>Status:</strong> {{ ucfirst($item->booking->status ?? '-') }}</p>
                                     </div>
@@ -180,31 +202,55 @@
                                                     @endforeach
                                                 </select>
                                             </div>
+
                                             <div class="form-group">
-                                                <label>Tanggal Main</label>
-                                                <input type="date" name="tgl_main" class="form-control" value="{{ \Carbon\Carbon::parse($item->tgl_main)->format('Y-m-d') }}" required min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}">
-                                            </div>
-                                            <div class="form-group">
-                                                <label>Jam Mulai</label>
-                                                <select name="jam_mulai" class="form-control jam-mulai-edit" data-id="{{ $item->id }}" required>
-                                                    <option value="">-- Pilih Jam Mulai --</option>
-                                                    @php
-                                                        $startEdit = \Carbon\Carbon::parse($pengaturan->jam_buka);
-                                                        $endEdit = \Carbon\Carbon::parse($pengaturan->jam_tutup);
-                                                    @endphp
-                                                    @while($startEdit < $endEdit)
-                                                        @php $formattedStart = $startEdit->format('H:i'); @endphp
-                                                        <option value="{{ $formattedStart }}" {{ \Carbon\Carbon::parse($item->jam_mulai)->format('H:i') == $formattedStart ? 'selected' : '' }}>
-                                                            {{ $formattedStart }}
-                                                        </option>
-                                                        @php $startEdit->addHour(); @endphp
-                                                    @endwhile
+                                                <label>Jenis Booking</label>
+                                                <select name="type" class="form-control booking-type-select" data-id="edit_{{ $item->id }}" required>
+                                                    <option value="regular" {{ $item->type == 'regular' ? 'selected' : '' }}>Reguler (Per Jam)</option>
+                                                    <option value="event" {{ $item->type == 'event' ? 'selected' : '' }}>Event (Multi-Hari)</option>
                                                 </select>
                                             </div>
-                                            <div class="form-group">
-                                                <label>Jam Selesai</label>
-                                                <input type="time" name="jam_selesai" id="jam_selesai_edit_{{ $item->id }}" class="form-control" value="{{ \Carbon\Carbon::parse($item->jam_selesai)->format('H:i') }}" readonly required>
-                                                <small class="text-muted">Otomatis 1 jam (berdasarkan jadwal)</small>
+
+                                            <!-- Regular Fields -->
+                                            <div id="regular_fields_edit_{{ $item->id }}" class="{{ $item->type == 'event' ? 'd-none' : '' }}">
+                                                <div class="form-group">
+                                                    <label>Tanggal Main</label>
+                                                    <input type="date" name="tgl_main" class="form-control" value="{{ $item->type == 'regular' ? \Carbon\Carbon::parse($item->start_datetime)->format('Y-m-d') : '' }}" min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label>Jam Mulai</label>
+                                                    <select name="jam_mulai" class="form-control jam-mulai-edit" data-id="edit_{{ $item->id }}">
+                                                        <option value="">-- Pilih Jam Mulai --</option>
+                                                        @php
+                                                            $startEdit = \Carbon\Carbon::parse($pengaturan->jam_buka);
+                                                            $endEdit = \Carbon\Carbon::parse($pengaturan->jam_tutup);
+                                                        @endphp
+                                                        @while($startEdit < $endEdit)
+                                                            @php $formattedStart = $startEdit->format('H:i'); @endphp
+                                                            <option value="{{ $formattedStart }}" {{ $item->type == 'regular' && $item->start_datetime->format('H:i') == $formattedStart ? 'selected' : '' }}>
+                                                                {{ $formattedStart }}
+                                                            </option>
+                                                            @php $startEdit->addHour(); @endphp
+                                                        @endwhile
+                                                    </select>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label>Jam Selesai</label>
+                                                    <input type="time" name="jam_selesai" id="jam_selesai_edit_{{ $item->id }}" class="form-control" value="{{ $item->type == 'regular' ? $item->end_datetime->format('H:i') : '' }}" readonly>
+                                                    <small class="text-muted">Otomatis 1 jam (berdasarkan jadwal)</small>
+                                                </div>
+                                            </div>
+
+                                            <!-- Event Fields -->
+                                            <div id="event_fields_edit_{{ $item->id }}" class="{{ $item->type == 'regular' ? 'd-none' : '' }}">
+                                                <div class="form-group">
+                                                    <label>Mulai Event</label>
+                                                    <input type="datetime-local" name="start_datetime" class="form-control" value="{{ $item->type == 'event' ? \Carbon\Carbon::parse($item->start_datetime)->format('Y-m-d\TH:i') : '' }}">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label>Selesai Event</label>
+                                                    <input type="datetime-local" name="end_datetime" class="form-control" value="{{ $item->type == 'event' ? \Carbon\Carbon::parse($item->end_datetime)->format('Y-m-d\TH:i') : '' }}">
+                                                </div>
                                             </div>
 
                                             @if($item->jenis_pembayaran == 'membership')
@@ -259,7 +305,7 @@
                                     </div>
                                     <div class="modal-body">
                                         Apakah Anda yakin ingin membatalkan jadwal ini?<br>
-                                        Pemain: <strong>{{ $item->user->name ?? '-' }}</strong> pada <strong>{{ \Carbon\Carbon::parse($item->tgl_main)->format('d M') }} ({{ \Carbon\Carbon::parse($item->jam_mulai)->format('H:i') }})</strong>.
+                                        Pemain: <strong>{{ $item->user->name ?? '-' }}</strong> pada <strong>{{ \Carbon\Carbon::parse($item->start_datetime)->format('d M y H:i') }}</strong>.
                                         <br><br>
                                         @if($item->jenis_pembayaran == 'membership')
                                             <span class="text-danger"><i class="fas fa-exclamation-triangle"></i> Membatalkan booking membership akan mengembalikan kuota member tersebut.</span>
@@ -305,7 +351,7 @@
                 </div>
                 <div class="modal-body">
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="form-group">
                                 <label for="user_id">Pilih Pelanggan / User <span class="text-danger">*</span></label>
                                 <select name="user_id" id="user_id" class="form-control" required>
@@ -316,7 +362,7 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <div class="form-group">
                                 <label for="lapangan_id">Pilih Lapangan <span class="text-danger">*</span></label>
                                 <select name="lapangan_id" id="lapangan_id" class="form-control" required>
@@ -329,35 +375,61 @@
                         </div>
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label for="tgl_main">Tanggal Main <span class="text-danger">*</span></label>
-                                <input type="date" name="tgl_main" id="tgl_main" class="form-control" required min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}">
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="jam_mulai">Jam Mulai <span class="text-danger">*</span></label>
-                                <select name="jam_mulai" id="jam_mulai" class="form-control" required>
-                                    <option value="">-- Pilih Jam --</option>
-                                    @php
-                                        $start = \Carbon\Carbon::parse($pengaturan->jam_buka);
-                                        $end = \Carbon\Carbon::parse($pengaturan->jam_tutup);
-                                    @endphp
-                                    @while($start < $end)
-                                        <option value="{{ $start->format('H:i') }}">{{ $start->format('H:i') }}</option>
-                                        @php $start->addHour(); @endphp
-                                    @endwhile
+                                <label>Jenis Booking <span class="text-danger">*</span></label>
+                                <select name="type" class="form-control booking-type-select" data-id="create_new" required>
+                                    <option value="regular">Reguler (Per Jam)</option>
+                                    <option value="event">Event (Multi-Hari)</option>
                                 </select>
                             </div>
                         </div>
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="jam_selesai">Jam Selesai <span class="text-danger">*</span></label>
-                                <input type="time" name="jam_selesai" id="jam_selesai" class="form-control" required readonly>
-                                <small class="text-muted">Otomatis 1 jam</small>
+                        
+                        <div class="col-md-12">
+                            <hr>
+                        </div>
+                        
+                        <!-- Regular Fields -->
+                        <div id="regular_fields_create_new" class="col-md-12 row mr-0 pr-0">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="tgl_main">Tanggal Main <span class="text-danger">*</span></label>
+                                    <input type="date" name="tgl_main" id="tgl_main" class="form-control" min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="jam_mulai">Jam Mulai <span class="text-danger">*</span></label>
+                                    <select name="jam_mulai" id="jam_mulai" class="form-control">
+                                        <option value="">-- Pilih Jam --</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="jam_selesai">Jam Selesai <span class="text-danger">*</span></label>
+                                    <input type="time" name="jam_selesai" id="jam_selesai" class="form-control" readonly>
+                                    <small class="text-muted">Otomatis 1 jam</small>
+                                </div>
                             </div>
                         </div>
+
+                        <!-- Event Fields -->
+                        <div id="event_fields_create_new" class="col-md-12 row mr-0 pr-0 d-none">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Waktu Mulai Event <span class="text-danger">*</span></label>
+                                    <input type="datetime-local" name="start_datetime" class="form-control">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Waktu Selesai Event <span class="text-danger">*</span></label>
+                                    <input type="datetime-local" name="end_datetime" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="col-md-12">
-                            <div class="form-group mb-0">
+                            <div class="form-group mb-0 mt-3">
                                 <label>Jenis Pembayaran <span class="text-danger">*</span></label>
                                 <div class="mt-2">
                                     <div class="custom-control custom-radio custom-control-inline">
@@ -389,13 +461,32 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
 
-    // Auto fill jam selesai for Edit Modals
+    // Toggle fields based on booking type
+    const typeSelects = document.querySelectorAll('.booking-type-select');
+    typeSelects.forEach(select => {
+        select.addEventListener('change', function() {
+            let type = this.value;
+            let id = this.getAttribute('data-id');
+            let regularFields = document.getElementById('regular_fields_' + id);
+            let eventFields = document.getElementById('event_fields_' + id);
+
+            if (type === 'regular') {
+                if(regularFields) regularFields.classList.remove('d-none');
+                if(eventFields) eventFields.classList.add('d-none');
+            } else {
+                if(regularFields) regularFields.classList.add('d-none');
+                if(eventFields) eventFields.classList.remove('d-none');
+            }
+        });
+    });
+
+    // Auto fill jam selesai for Edit Modals (Regular)
     const editJamMulaiSelects = document.querySelectorAll('.jam-mulai-edit');
     editJamMulaiSelects.forEach(select => {
         select.addEventListener('change', function() {
             let jamMulai = this.value;
             let id = this.getAttribute('data-id');
-            let selTarget = document.getElementById('jam_selesai_edit_' + id);
+            let selTarget = document.getElementById('jam_selesai_' + id);
 
             if (jamMulai && selTarget) {
                 let parts = jamMulai.split(':');
@@ -405,7 +496,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 date.setHours(parseInt(jam));
                 date.setMinutes(parseInt(menit));
 
-                // default 1 jam (bisa disesuaikan jika durasi > 1 jam didukung UI, namun di snippet pakai +1 jam)
+                // default 1 jam
                 date.setHours(date.getHours() + 1);
 
                 let jamSelesai = ('0' + date.getHours()).slice(-2) + ':' + ('0' + date.getMinutes()).slice(-2);
@@ -414,7 +505,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Auto fill jam selesai for Create Modal
+    // Auto fill jam selesai for Create Modal (Regular)
     document.getElementById('jam_mulai').addEventListener('change', function() {
         let jamMulai = this.value;
 
@@ -434,8 +525,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // AJAX load filter slot kosong
+    // AJAX load filter slot kosong untuk Create Modal
     function loadJadwal() {
+        let spanError = document.getElementById('error-msg-slot');
         let lapangan = document.getElementById('lapangan_id').value;
         let tanggal = document.getElementById('tgl_main').value;
 
@@ -447,7 +539,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     select.innerHTML = '<option value="">-- Pilih Jam --</option>';
 
                     data.forEach(j => {
-                        // parse H:i
                         let parts = j.jam_mulai.split(':');
                         let timeString = parts[0] + ':' + parts[1];
                         select.innerHTML += `<option value="${timeString}">${timeString}</option>`;
