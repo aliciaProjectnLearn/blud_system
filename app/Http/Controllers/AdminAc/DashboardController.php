@@ -4,13 +4,17 @@ namespace App\Http\Controllers\AdminAc;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
 use Carbon\Carbon;
+use App\Models\User;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $today = Carbon::today();
+        
+        $filterBulan = $request->get('bulan_filter', $today->month);
 
         // ── Total Transaksi AC ──────────────────────────────
         $totalTransaksi = DB::table('pembayaran_ac')->count();
@@ -97,6 +101,12 @@ class DashboardController extends Controller
         foreach ($pendapatanPerBulan as $p) {
             $dataPendapatan[$p->bulan - 1] = $p->total;
         }
+
+        $totalTeknisi = DB::table('users')
+            ->join('roles_users', 'users.id', '=', 'roles_users.user_id')
+            ->join('roles', 'roles.id', '=', 'roles_users.role_id')
+            ->where('roles.nama', 'Teknisi')
+            ->count();
 
         return view('adminac.index', compact(
             'totalTransaksi',

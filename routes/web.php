@@ -355,4 +355,8 @@ Route::middleware(['auth', 'role:Teknisi'])->prefix('teknisi')->name('teknisi.')
     Route::get('/dashboard', [\App\Http\Controllers\TeknisiAc\DashboardController::class, 'index'])->name('dashboard');
     Route::get('/pekerjaan/{id}', [\App\Http\Controllers\TeknisiAc\DashboardController::class, 'show'])->name('pekerjaan.show');
     Route::post('/pekerjaan/{id}/selesai', [\App\Http\Controllers\TeknisiAc\DashboardController::class, 'selesaikanPekerjaan'])->name('pekerjaan.selesai');
+    
+    // Pembayaran
+    Route::get('/pembayaran/{id}', [\App\Http\Controllers\TeknisiAc\PembayaranController::class, 'create'])->name('pembayaran.form');
+    Route::post('/pembayaran/{id}', [\App\Http\Controllers\TeknisiAc\PembayaranController::class, 'store'])->name('pembayaran.store');
 });

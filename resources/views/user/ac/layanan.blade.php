@@ -133,14 +133,14 @@
                         <textarea name="alamat" class="form-control" rows="2" required placeholder="Contoh: Jl. Merpati No. 123..."></textarea>
                     </div>
                     <div class="row">
-                        <div class="col-6">
-                            <div class="form-group">
+                        <div class="col-12 col-md-6 mb-3 mb-md-0">
+                            <div class="form-group mb-0">
                                 <label class="small font-weight-bold">Merek AC</label>
                                 <input type="text" name="merek_ac" class="form-control" placeholder="LG, Samsung, dll">
                             </div>
                         </div>
-                        <div class="col-6">
-                            <div class="form-group">
+                        <div class="col-12 col-md-6">
+                            <div class="form-group mb-0">
                                 <label class="small font-weight-bold">Jumlah Unit</label>
                                 <input type="number" name="jumlah_unit" class="form-control" value="1" min="1">
                             </div>

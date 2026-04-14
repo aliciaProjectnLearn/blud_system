@@ -47,6 +47,6 @@ class BookingAc extends Model
 
     public function pembayaran()
     {
-        return $this->hasOne(PembayaranAc::class, 'booking_id', 'booking_id');
+        return $this->hasOne(PembayaranAc::class, 'booking_id', 'id');
     }
 }

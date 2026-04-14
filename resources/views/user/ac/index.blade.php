@@ -24,8 +24,8 @@
 @section('content')
 <div class="container-fluid">
     <!-- Page Heading -->
-    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800 font-weight-bold">Daftar Booking & Riwayat Servis AC</h1>
+    <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between mb-4">
+        <h1 class="h3 mb-3 mb-sm-0 text-gray-800 font-weight-bold">Daftar Booking & Riwayat Servis AC</h1>
         <button class="btn btn-sm btn-primary" onclick="openLayananModal()">
             <i class="fas fa-plus mr-1"></i> Tambah Booking
         </button>
@@ -104,10 +104,10 @@
 
     <!-- Data Table Card -->
     <div class="card shadow mb-4">
-        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-            <h6 class="m-0 font-weight-bold text-primary">Daftar Transaksi Layanan AC</h6>
-            <form action="{{ route('user.ac.index') }}" method="GET" id="filterForm" class="form-inline">
-                <select name="status" class="form-control form-control-sm" onchange="this.form.submit()">
+        <div class="card-header py-3 d-flex flex-column flex-md-row align-items-md-center justify-content-between">
+            <h6 class="m-0 font-weight-bold text-primary mb-2 mb-md-0">Daftar Transaksi Layanan AC</h6>
+            <form action="{{ route('user.ac.index') }}" method="GET" id="filterForm" class="form-inline w-100 w-md-auto">
+                <select name="status" class="form-control form-control-sm w-100" onchange="this.form.submit()">
                     <option value="">Semua Status</option>
                     <option value="menunggu" {{ $statusFilter == 'menunggu' ? 'selected' : '' }}>Pending</option>
                     <option value="proses" {{ $statusFilter == 'proses' ? 'selected' : '' }}>On Process</option>
@@ -168,12 +168,12 @@
                                 @endif
                             </td>
                             <td class="text-center">
-                                <div class="btn-group" role="group">
-                                    <button class="btn btn-sm btn-info" onclick="viewDetail({{ $booking->id }})" title="Lihat Detail">
+                                <div class="d-flex flex-column flex-md-row justify-content-center" style="gap: 5px;">
+                                    <button class="btn btn-sm btn-info w-100 w-md-auto" onclick="viewDetail({{ $booking->id }})" title="Lihat Detail">
                                         <i class="fas fa-eye"></i>
                                     </button>
                                     @if($booking->status == 'menunggu' && !$isCanceled)
-                                    <button class="btn btn-sm btn-danger ml-1" onclick="openCancelModal({{ $booking->id }})" title="Batalkan">
+                                    <button class="btn btn-sm btn-danger w-100 w-md-auto" onclick="openCancelModal({{ $booking->id }})" title="Batalkan">
                                         <i class="fas fa-times"></i>
                                     </button>
                                     @endif
@@ -225,14 +225,14 @@
                         <textarea name="alamat" class="form-control" rows="2" required placeholder="Contoh: Jl. Merpati No. 123..."></textarea>
                     </div>
                     <div class="row">
-                        <div class="col-6">
-                            <div class="form-group">
+                        <div class="col-12 col-md-6 mb-3 mb-md-0">
+                            <div class="form-group mb-0">
                                 <label class="small font-weight-bold">Merek AC</label>
                                 <input type="text" name="merek_ac" class="form-control" placeholder="LG, Samsung, dll">
                             </div>
                         </div>
-                        <div class="col-6">
-                            <div class="form-group">
+                        <div class="col-12 col-md-6">
+                            <div class="form-group mb-0">
                                 <label class="small font-weight-bold">Jumlah Unit</label>
                                 <input type="number" name="jumlah_unit" class="form-control" value="1" min="1">
                             </div>
