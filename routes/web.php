@@ -330,6 +330,13 @@ Route::middleware(['auth', 'role:Pelanggan'])->prefix('user')->name('user.')->gr
         Route::get('/katalog', [\App\Http\Controllers\User\KantinDashboardController::class, 'pilihUnit'])->name('katalog');
         Route::get('/booking/{id}', [\App\Http\Controllers\User\KantinDashboardController::class, 'formSewa'])->name('booking');
         Route::post('/booking/{id}', [\App\Http\Controllers\User\KantinDashboardController::class, 'storeSewa'])->name('store_booking');
+        Route::post('/pembayaran/{id}/confirm', [\App\Http\Controllers\User\KantinDashboardController::class, 'confirmPembayaran'])->name('confirm_pembayaran');
+        Route::get('/pembayaran/{id}/kwitansi', [\App\Http\Controllers\User\KantinDashboardController::class, 'downloadKwitansi'])->name('kwitansi');
+
+        // ── Booking Langsung (Streamlined) ──────────────────────────────
+        Route::get('/booking-form', [\App\Http\Controllers\User\KantinDashboardController::class, 'showBookingForm'])->name('booking.form');
+        Route::get('/unit/{id}/detail', [\App\Http\Controllers\User\KantinDashboardController::class, 'getUnitDetail'])->name('unit.detail');
+        Route::post('/booking-store', [\App\Http\Controllers\User\KantinDashboardController::class, 'storeBooking'])->name('booking.store');
     });
 
     // AC Manajemen

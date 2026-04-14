@@ -77,7 +77,7 @@
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label">Nama Pemohon</label>
                             <div class="col-sm-9">
-                                <input type="text" class="form-control" value="{{ $user->name }}" readonly>
+                                <input type="text" class="form-control bg-light" value="{{ $user->name }}" readonly>
                             </div>
                         </div>
 
@@ -86,41 +86,61 @@
                             <div class="form-group row">
                                 <label class="col-sm-3 col-form-label">NIK <span class="text-danger">*</span></label>
                                 <div class="col-sm-9">
-                                    <input type="text" name="nik" class="form-control" required placeholder="Masukkan NIK 16 digit" value="{{ old('nik', $user->nik) }}">
+                                    <input type="text" name="nik" class="form-control @error('nik') is-invalid @enderror" required placeholder="Masukkan NIK 16 digit" value="{{ old('nik', $user->nik) }}">
+                                    @error('nik') <div class="invalid-feedback">{{ $message }}</div> @enderror
                                 </div>
                             </div>
                             <div class="form-group row">
                                 <label class="col-sm-3 col-form-label">Nama Usaha/Toko <span class="text-danger">*</span></label>
                                 <div class="col-sm-9">
-                                    <input type="text" name="nama_usaha" class="form-control" required placeholder="Contoh: Kedai Kopi Maju" value="{{ old('nama_usaha') }}">
+                                    <input type="text" name="nama_usaha" class="form-control @error('nama_usaha') is-invalid @enderror" required placeholder="Contoh: Kedai Kopi Maju" value="{{ old('nama_usaha') }}">
+                                    @error('nama_usaha') <div class="invalid-feedback">{{ $message }}</div> @enderror
                                 </div>
                             </div>
                             <div class="form-group row">
                                 <label class="col-sm-3 col-form-label">Alamat Lengkap <span class="text-danger">*</span></label>
                                 <div class="col-sm-9">
-                                    <textarea name="alamat" class="form-control" required placeholder="Masukkan Alamat Usaha/Tinggal">{{ old('alamat', $user->alamat) }}</textarea>
+                                    <textarea name="alamat" class="form-control @error('alamat') is-invalid @enderror" required placeholder="Masukkan Alamat Usaha/Tinggal">{{ old('alamat', $user->alamat) }}</textarea>
+                                    @error('alamat') <div class="invalid-feedback">{{ $message }}</div> @enderror
                                 </div>
                             </div>
                         @else
                             <div class="form-group row">
                                 <label class="col-sm-3 col-form-label">NIK</label>
                                 <div class="col-sm-9">
-                                    <input type="text" class="form-control" value="{{ $user->nik }}" readonly>
+                                    <input type="text" class="form-control bg-light" value="{{ $user->nik }}" readonly>
                                 </div>
                             </div>
                             <div class="form-group row">
                                 <label class="col-sm-3 col-form-label">Nama Usaha</label>
                                 <div class="col-sm-9">
-                                    <input type="text" class="form-control" value="{{ $penyewa->nama_usaha }}" readonly>
-                                </div>
-                            </div>
-                            <div class="form-group row">
-                                <label class="col-sm-3 col-form-label">Alamat Lengkap</label>
-                                <div class="col-sm-9">
-                                    <textarea class="form-control" readonly>{{ $penyewa->alamat ?? $user->alamat }}</textarea>
+                                    <input type="text" class="form-control bg-light" value="{{ $penyewa->nama_usaha }}" readonly>
                                 </div>
                             </div>
                         @endif
+
+                        <hr>
+                        <h6 class="font-weight-bold mb-3">Rencana Sewa & Pembayaran</h6>
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label">Tanggal Mulai <span class="text-danger">*</span></label>
+                            <div class="col-sm-9">
+                                <input type="date" name="tgl_mulai" class="form-control @error('tgl_mulai') is-invalid @enderror" required value="{{ old('tgl_mulai', date('Y-m-d')) }}" min="{{ date('Y-m-d') }}">
+                                <small class="text-muted">Sewa berlaku selama 1 tahun sejak tanggal mulai.</small>
+                                @error('tgl_mulai') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info border-0 shadow-sm">
+                            <div class="font-weight-bold mb-2 small"><i class="fas fa-calculator mr-1"></i> Estimasi Cicilan 2 Termin:</div>
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="small">Termin 1 (Saat ini)</span>
+                                <span class="font-weight-bold">Rp {{ number_format($ruko->harga / 2, 0, ',', '.') }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="small">Termin 2 (Bulan ke-6)</span>
+                                <span class="font-weight-bold text-gray-700">Rp {{ number_format($ruko->harga / 2, 0, ',', '.') }}</span>
+                            </div>
+                        </div>
 
                         <hr>
                         <h6 class="font-weight-bold mb-3">Persyaratan Dokumen</h6>
@@ -132,12 +152,13 @@
                                     <input type="file" name="dokumen_ktp" class="custom-file-input" id="dokumen_ktp" required accept=".pdf,.jpg,.jpeg,.png">
                                     <label class="custom-file-label" for="dokumen_ktp">Pilih file (PDF/JPG/PNG max 2MB)...</label>
                                 </div>
+                                @error('dokumen_ktp') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
                                 <small class="text-muted">KTP digunakan untuk verifikasi Identitas dan MOU Penyewaan.</small>
                             </div>
                         </div>
 
                         <div class="form-group text-right mt-4">
-                            <button type="submit" class="btn btn-primary" onclick="return confirm('Apakah Anda yakin ingin mengajukan sewa ini?')">
+                            <button type="submit" class="btn btn-primary px-4 py-2" onclick="return confirm('Apakah Anda yakin ingin mengajukan sewa ini?')">
                                 <i class="fas fa-paper-plane mr-1"></i> Ajukan Permohonan Sewa
                             </button>
                         </div>

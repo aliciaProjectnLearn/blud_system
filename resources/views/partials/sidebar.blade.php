@@ -1,5 +1,6 @@
-{{-- Sidebar --}}
 <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+
+
 
     {{-- Sidebar Brand --}}
     @php
@@ -453,36 +454,19 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('.collapse.show').forEach(function(el) {
-                el.classList.add('show');
-                var toggle = document.querySelector('[data-target="#' + el.id + '"]');
-                if (toggle) {
-                    toggle.classList.remove('collapsed');
-                    toggle.setAttribute('aria-expanded', 'true');
-                }
-            });
-        });
-    </script>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('.collapse.show').forEach(function(el) {
-                el.classList.add('show');
-                var toggle = document.querySelector('[data-target="#' + el.id + '"]');
-                if (toggle) {
-                    toggle.classList.remove('collapsed');
-                    toggle.setAttribute('aria-expanded', 'true');
-                }
-            });
-        });
-    </script>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
             // Force show semua collapse yang seharusnya terbuka
             document.querySelectorAll('.collapse.show').forEach(function(el) {
                 el.style.display = 'block';
                 el.style.height = '';
+            });
+
+            // Pastikan toggle state benar jika ada yang terbuka
+            document.querySelectorAll('.collapse.show').forEach(function(el) {
+                var toggle = document.querySelector('[data-target="#' + el.id + '"]');
+                if (toggle) {
+                    toggle.classList.remove('collapsed');
+                    toggle.setAttribute('aria-expanded', 'true');
+                }
             });
         });
     </script>

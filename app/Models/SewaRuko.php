@@ -17,11 +17,11 @@ class SewaRuko extends Model
         'harga_sewa_tahunan',
         'no_mou',
         'status',
+        'notifikasi_terkirim',
     ];
 
     /**
      * Relasi ke model Penyewa.
-     * Sekarang sewa_ruko.penyewa_id merujuk langsung ke penyewa.id
      */
     public function penyewa()
     {
@@ -35,7 +35,7 @@ class SewaRuko extends Model
 
     public function pembayaran()
     {
-        return $this->hasMany(PembayaranRuko::class, 'booking_id', 'booking_id');
+        return $this->hasMany(PembayaranRuko::class, 'sewa_ruko_id');
     }
 
     public function dokumen()
