@@ -26,13 +26,20 @@ class DashboardController extends Controller
             ->get();
 
         // Riwayat pekerjaan yang sudah selesai
-        $historiPekerjaan = BookingAc::with(['user', 'layanan'])
+        $historiPekerjaan = BookingAc::with(['user', 'layanan', 'pembayaran'])
             ->where('teknisi_id', $userId)
             ->where('status', 'selesai')
             ->orderBy('updated_at', 'desc')
             ->get();
 
-        return view('teknisiac.dashboard.index', compact('pekerjaanAktif', 'historiPekerjaan'));
+        // Jumlah pekerjaan selesai bulan ini
+        $totalSelesaiBulanIni = BookingAc::where('teknisi_id', $userId)
+            ->where('status', 'selesai')
+            ->whereMonth('updated_at', now()->month)
+            ->whereYear('updated_at', now()->year)
+            ->count();
+
+        return view('teknisiac.dashboard.index', compact('pekerjaanAktif', 'historiPekerjaan', 'totalSelesaiBulanIni'));
     }
 
     /**

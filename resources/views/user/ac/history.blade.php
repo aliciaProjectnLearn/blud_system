@@ -48,7 +48,7 @@
                             <td>{{ ($history->currentPage()-1) * $history->perPage() + $loop->iteration }}</td>
                             <td>{{ \Carbon\Carbon::parse($item->created_at)->format('d M Y') }}</td>
                             <td class="text-left">
-                                <span class="font-weight-bold text-primary">{{ $item->layanan->nama_layanan ?? 'N/A' }}</span><br>
+                                <span class="font-weight-bold text-primary">{{ $item->layanan->nama ?? 'N/A' }}</span><br>
                                 <small class="text-muted">{{ $item->merek_ac }}</small>
                             </td>
                             <td>{{ $item->teknisi->name ?? 'Belum Ditentukan' }}</td>

@@ -7,6 +7,8 @@ use App\Models\BookingAc;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class BookingController extends Controller
 {
@@ -80,7 +82,52 @@ class BookingController extends Controller
             'status'     => 'proses',
         ]);
 
-        return back()->with('success', 'Booking berhasil di-approve dan teknisi ditugaskan.');
+        // ── 🚀 Integrasi Pengiriman Pesan WhatsApp via API (Contoh Menggunakan Fonnte) ──
+        try {
+            $teknisi = User::find($request->teknisi_id);
+            // Muat relasi jika belum, agar data di pesan dinamis
+            $booking->load(['user', 'layanan']);
+
+            if ($teknisi && $teknisi->no_hp) {
+                $noHpTeknisi = $teknisi->no_hp;
+                
+                // Format Pesan Dinamis dari Database
+                $pesan = "*TUGAS SERVIS AC BARU!* 🛠️❄️\n\n";
+                $pesan .= "Halo teknisi *{$teknisi->name}*, Anda memiliki pekerjaan baru dengan rincian:\n\n";
+                $pesan .= "👤 *Nama Pelanggan*: {$booking->user->nama_lengkap}\n";
+                $pesan .= "📞 *No. HP Pelanggan*: {$booking->user->no_hp}\n";
+                $pesan .= "🔧 *Layanan AC*: " . ($booking->layanan->nama ?? '-') . "\n";
+                $pesan .= "🏷️ *Merek AC*: " . ($booking->merek_ac ?? '-') . "\n";
+                $pesan .= "📅 *Tgl Kunjungan*: " . \Carbon\Carbon::parse($booking->tgl_kunjungan)->translatedFormat('d F Y') . "\n";
+                $pesan .= "📍 *Alamat Lokasi*: {$booking->alamat}\n";
+                $pesan .= "📝 *Keluhan*: " . ($booking->detail_keluhan ?? 'Tidak ada catatan') . "\n\n";
+                $pesan .= "Silakan cek halaman Dashboard Anda untuk melakukan konfirmasi penyelesaian. Semangat bekerja!";
+
+                // Mengirim ke endpoint API WhatsApp (Contoh Fonnte)
+                // Ganti YOUR_API_TOKEN di file .env dengan token asli (misal: FONNTE_TOKEN=xxx)
+                $apiToken = env('FONNTE_TOKEN', 'YOUR_API_TOKEN_HERE'); 
+
+                if ($apiToken !== 'YOUR_API_TOKEN_HERE') {
+                    $response = Http::withHeaders([
+                        'Authorization' => $apiToken,
+                    ])->post('https://api.fonnte.com/send', [
+                        'target' => $noHpTeknisi,
+                        'message' => $pesan,
+                        'countryCode' => '62', // Otomatis mengonversi 08 menjadi +628
+                    ]);
+
+                    // Mencatat log respon berhasil/tidaknya API
+                    Log::info('Notifikasi WA Teknisi: ' . $response->body());
+                } else {
+                    Log::warning('Token Fonnte belum diatur di .env. Pesan WA urung dikirim.');
+                }
+            }
+        } catch (\Exception $e) {
+            // Kita tidak ingin sistem error/gagal cuma karena koneksi ke WA error
+            Log::error('Gagal mengirim WA ke teknisi: ' . $e->getMessage());
+        }
+
+        return back()->with('success', 'Booking berhasil di-approve dan teknisi ditugaskan (Notifikasi WA terkirim/diproses).');
     }
 
     // ── Selesai ─────────────────────────────────────────

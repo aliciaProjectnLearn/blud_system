@@ -70,6 +70,11 @@ class User extends Authenticatable
         return $this->hasMany(BookingAc::class, 'user_id');
     }
 
+    public function pekerjaanTeknisi()
+    {
+        return $this->hasMany(BookingAc::class, 'teknisi_id');
+    }
+
     public function penyewa()
     {
         return $this->hasOne(Penyewa::class, 'user_id');
