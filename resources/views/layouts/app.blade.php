@@ -23,90 +23,197 @@
     <link href="{{ asset('assets/css/sb-admin-2.min.css') }}" rel="stylesheet">
 
     <style>
-        /* ── Mobile Sidebar Overlay ── */
-        @media (max-width: 767.98px) {
+    @media (max-width: 767.98px) {
 
-            /* Overlay gelap di belakang sidebar */
-            #sidebar-overlay {
-                display: none;
-                position: fixed;    
-                pointer-events: none;
-                top: 0; left: 0;
-                width: 100%; height: 100%;
-                background: rgba(0, 0, 0, 0.5);
-                z-index: 1040;
-                transition: opacity 0.3s ease;
-            }
-
-            #sidebar-overlay.show {
-                display: block;
-                opacity: 1;
-                pointer-events: auto;
-            }
-
-            /* Sidebar full-screen overlay di mobile */
-            #accordionSidebar {
-                position: fixed !important;
-                top: 0; left: 0;
-                width: 280px !important;
-                max-width: 280px !important;
-                height: 100vh !important;
-                z-index: 1050;
-                transform: translateX(-100%);
-                transition: transform 0.3s ease;
-                overflow-y: auto;
-                box-shadow: 4px 0 15px rgba(0, 0, 0, 0.3);
-            }
-
-            #accordionSidebar.mobile-open {
-                transform: translateX(0);
-            }
-
-            /* Tombol close di dalam sidebar */
-            .sidebar-close-btn {
-                display: flex !important;
-                position: absolute;
-                top: 12px; right: 12px;
-                width: 32px; height: 32px;
-                background: rgba(255,255,255,0.2);
-                border: none;
-                border-radius: 50%;
-                color: white;
-                font-size: 16px;
-                align-items: center;
-                justify-content: center;
-                cursor: pointer;
-                z-index: 10;
-                transition: background 0.2s;
-            }
-
-            .sidebar-close-btn:hover {
-                background: rgba(255,255,255,0.35);
-            }
-
-            /* Content wrapper tidak terdorong */
-            #content-wrapper {
-                width: 100% !important;
-                margin-left: 0 !important;
-                position: relative;
-                z-index: 1;
-            }
-
-            /* Sidebar brand padding kanan untuk tombol close */
-            .sidebar-brand {
-                padding-right: 48px !important;
-            }
+        /* Sembunyikan sidebar default SB Admin 2 di mobile */
+        #accordionSidebar {
+            display: none !important;
         }
 
-        /* Sembunyikan tombol close di desktop */
-        @media (min-width: 768px) {
-            .sidebar-close-btn {
-                display: none !important;
-            }
-            #sidebar-overlay {
-                display: none !important;
-            }
+        /* Dropdown menu mobile */
+        #mobile-nav {
+            display: none;
+            position: fixed;
+            top: 68px; /* 56px topbar + 12px gap */
+            left: 12px;
+            right: 12px;
+            width: calc(100% - 24px);
+            max-height: calc(100vh - 80px);
+            overflow-y: auto;
+            background: linear-gradient(180deg, #4e73df 10%, #224abe 100%);
+            z-index: 1050;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            padding-bottom: 20px;
+            border-radius: 15px;
+            border: 1px solid rgba(255,255,255,0.1);
         }
+
+        #mobile-nav.open {
+            display: block;
+            animation: slideDown 0.25s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Backdrop */
+        #mobile-nav-backdrop {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(2px);
+            z-index: 1049;
+        }
+
+        #mobile-nav-backdrop.open {
+            display: block;
+        }
+
+        /* Tombol close */
+        #mobile-nav-close {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 10px 16px 4px;
+        }
+
+        #mobile-nav-close button {
+            background: rgba(255,255,255,0.15);
+            border: none;
+            border-radius: 50%;
+            width: 32px; height: 32px;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #mobile-nav-close button:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        /* Section heading */
+        #mobile-nav .mobile-nav-heading {
+            font-size: 0.65rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.4);
+            letter-spacing: 0.1rem;
+            padding: 12px 16px 4px;
+        }
+
+        /* Nav item */
+        #mobile-nav .mobile-nav-item {
+            display: block;
+            padding: 12px 24px;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            font-size: 0.9rem;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: background 0.15s, color 0.15s;
+        }
+
+        #mobile-nav .mobile-nav-item:hover,
+        #mobile-nav .mobile-nav-item.active {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            text-decoration: none;
+        }
+
+        #mobile-nav .mobile-nav-item i {
+            width: 20px;
+            text-align: center;
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+
+        /* Sub item (collapse) */
+        #mobile-nav .mobile-nav-toggle {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 24px;
+            color: rgba(255,255,255,0.8);
+            font-size: 0.9rem;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            cursor: pointer;
+            background: none;
+            border-top: none;
+            border-left: none;
+            border-right: none;
+            width: 100%;
+            text-align: left;
+            gap: 10px;
+        }
+
+        #mobile-nav .mobile-nav-toggle:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+
+        #mobile-nav .mobile-nav-toggle .toggle-icon {
+            font-size: 0.7rem;
+            transition: transform 0.2s;
+            margin-left: auto;
+        }
+
+        #mobile-nav .mobile-nav-toggle.collapsed .toggle-icon {
+            transform: rotate(-90deg);
+        }
+
+        #mobile-nav .mobile-nav-submenu {
+            background: rgba(0,0,0,0.2);
+            border-left: 3px solid rgba(255,255,255,0.3);
+            margin-left: 24px;
+            margin-right: 24px;
+            border-radius: 0 0 8px 8px;
+        }
+
+        #mobile-nav .mobile-nav-subitem {
+            display: block;
+            padding: 10px 20px 10px 20px;
+            color: rgba(255,255,255,0.7);
+            font-size: 0.85rem;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            transition: background 0.15s, color 0.15s;
+        }
+
+        #mobile-nav .mobile-nav-subitem:hover,
+        #mobile-nav .mobile-nav-subitem.active {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            text-decoration: none;
+        }
+
+        /* Divider */
+        #mobile-nav .mobile-nav-divider {
+            border-top: 1px solid rgba(255,255,255,0.15);
+            margin: 8px 0;
+        }
+
+        /* Content wrapper tidak terpengaruh */
+        #content-wrapper {
+            width: 100% !important;
+            margin-left: 0 !important;
+        }
+    }
+
+    @media (min-width: 768px) {
+        #mobile-nav,
+        #mobile-nav-backdrop {
+            display: none !important;
+        }
+    }
     </style>
 
     {{-- Custom CSS tambahan per halaman --}}
@@ -118,8 +225,18 @@
     {{-- Page Wrapper --}}
     <div id="wrapper">
 
-        {{-- Mobile Sidebar Overlay --}}
-        <div id="sidebar-overlay"></div>
+        {{-- ===== MOBILE NAV (hanya mobile) ===== --}}
+        <div id="mobile-nav-backdrop"></div>
+        <div id="mobile-nav">
+            <div id="mobile-nav-close">
+                <button id="btn-mobile-nav-close"><i class="fas fa-times"></i></button>
+            </div>
+            {{-- Diisi oleh JavaScript berdasarkan role --}}
+            <div id="mobile-nav-content">
+                @include('partials.mobile-nav')
+            </div>
+        </div>
+        {{-- ===== END MOBILE NAV ===== --}}
 
         {{-- ===== SIDEBAR ===== --}}
         @include('partials.sidebar')
@@ -225,62 +342,68 @@ showConfirmButton: false
     <script>
     $(function() {
 
-        // ── Hanya aktif di mobile (< 768px) ──────────────────────────
         function isMobile() {
             return window.innerWidth < 768;
         }
 
-        // ── Buka sidebar di mobile ────────────────────────────────────
-        function openMobileSidebar() {
-            if (!isMobile()) return;
-            $('#accordionSidebar').addClass('mobile-open');
-            $('#sidebar-overlay').addClass('show');
+        function openMobileNav() {
+            $('#mobile-nav').addClass('open');
+            $('#mobile-nav-backdrop').addClass('open');
             $('body').css('overflow', 'hidden');
         }
 
-        // ── Tutup sidebar di mobile ───────────────────────────────────
-        function closeMobileSidebar() {
-            $('#accordionSidebar').removeClass('mobile-open');
-            $('#sidebar-overlay').removeClass('show');
+        function closeMobileNav() {
+            $('#mobile-nav').removeClass('open');
+            $('#mobile-nav-backdrop').removeClass('open');
             $('body').css('overflow', '');
         }
 
-        // ── Intercept tombol hamburger SB Admin 2 ────────────────────
-        // SB Admin 2 menggunakan #sidebarToggle untuk toggle sidebar
+        // Intercept tombol hamburger SB Admin 2
         $(document).on('click', '#sidebarToggle, #sidebarToggleTop', function(e) {
             if (isMobile()) {
                 e.preventDefault();
                 e.stopPropagation();
-                if ($('#accordionSidebar').hasClass('mobile-open')) {
-                    closeMobileSidebar();
+                if ($('#mobile-nav').hasClass('open')) {
+                    closeMobileNav();
                 } else {
-                    openMobileSidebar();
+                    openMobileNav();
                 }
             }
         });
 
-        // ── Klik overlay untuk tutup ──────────────────────────────────
-        $(document).on('click', '#sidebar-overlay', function() {
-            closeMobileSidebar();
+        // Klik backdrop untuk tutup
+        $(document).on('click', '#mobile-nav-backdrop', function() {
+            closeMobileNav();
         });
 
-        // ── Tombol X di dalam sidebar ─────────────────────────────────
-        $(document).on('click', '.sidebar-close-btn', function() {
-            closeMobileSidebar();
+        // Tombol X
+        $(document).on('click', '#btn-mobile-nav-close', function() {
+            closeMobileNav();
         });
 
-        // ── Tutup sidebar saat resize ke desktop ──────────────────────
-        $(window).on('resize', function() {
-            if (!isMobile()) {
-                closeMobileSidebar();
+        // Klik link (bukan toggle) untuk tutup
+        $(document).on('click', '#mobile-nav .mobile-nav-item, #mobile-nav .mobile-nav-subitem', function() {
+            closeMobileNav();
+        });
+
+        // Toggle submenu
+        $(document).on('click', '#mobile-nav .mobile-nav-toggle', function() {
+            const target = $(this).data('target');
+            const isCollapsed = $(this).hasClass('collapsed');
+
+            if (isCollapsed) {
+                $(this).removeClass('collapsed');
+                $(target).slideDown(200);
+            } else {
+                $(this).addClass('collapsed');
+                $(target).slideUp(200);
             }
         });
 
-        // ── Tutup sidebar saat klik link menu di mobile ───────────────
-        // (agar tidak perlu klik X setelah navigasi)
-        $('#accordionSidebar').on('click', 'a:not([data-toggle])', function() {
-            if (isMobile()) {
-                closeMobileSidebar();
+        // Tutup saat resize ke desktop
+        $(window).on('resize', function() {
+            if (!isMobile()) {
+                closeMobileNav();
             }
         });
     });

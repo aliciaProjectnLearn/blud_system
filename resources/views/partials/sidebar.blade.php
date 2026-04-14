@@ -1,9 +1,6 @@
 <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
 
-    {{-- Tombol Close (hanya tampil di mobile via CSS) --}}
-    <button class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Tutup Menu">
-        <i class="fas fa-times"></i>
-    </button>
+
 
     {{-- Sidebar Brand --}}
     @php

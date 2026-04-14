@@ -50,6 +50,24 @@
         max-width: 520px;
     }
 
+    @media (max-width: 767.98px) {
+        .hero-kantin {
+            padding: 32px 24px;
+            text-align: center;
+        }
+        .hero-kantin h1 {
+            font-size: 1.6rem;
+        }
+        .hero-kantin p.lead {
+            font-size: 0.95rem;
+            margin: 0 auto;
+        }
+        .hero-kantin .mt-4 {
+            display: flex;
+            justify-content: center;
+        }
+    }
+
     /* ── Step Indicator ── */
     .step-indicator {
         display: flex;
@@ -57,25 +75,25 @@
         justify-content: center;
         gap: 0;
         margin-bottom: 32px;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
     }
     .step-item {
         display: flex;
         flex-direction: column;
         align-items: center;
         flex: 1;
-        min-width: 100px;
         position: relative;
+        z-index: 1;
     }
     .step-item:not(:last-child)::after {
         content: '';
         position: absolute;
         top: 20px;
-        left: 60%;
-        width: 80%;
+        left: 50%;
+        width: 100%;
         height: 2px;
         background: #e3e6f0;
-        z-index: 0;
+        z-index: -1;
     }
     .step-circle {
         width: 42px;
@@ -88,9 +106,9 @@
         justify-content: center;
         font-weight: 800;
         font-size: 1rem;
-        z-index: 1;
         box-shadow: 0 3px 10px rgba(78,115,223,0.3);
         margin-bottom: 8px;
+        border: 4px solid #fff;
     }
     .step-label {
         font-size: 0.75rem;
@@ -106,6 +124,36 @@
         max-width: 100px;
     }
 
+    @media (max-width: 767.98px) {
+        .step-indicator {
+            flex-direction: column;
+            gap: 20px;
+            align-items: flex-start;
+            padding-left: 20px;
+        }
+        .step-item {
+            flex-direction: row;
+            align-items: center;
+            text-align: left;
+            gap: 15px;
+            width: 100%;
+        }
+        .step-item:not(:last-child)::after {
+            left: 21px;
+            top: 42px;
+            width: 2px;
+            height: calc(100% + 20px);
+        }
+        .step-desc {
+            text-align: left;
+            max-width: none;
+        }
+        .step-label {
+            text-align: left;
+            font-size: 0.85rem;
+        }
+    }
+
     /* ── Denah SVG Container ── */
     .denah-container {
         background: #f8f9fc;
@@ -113,7 +161,32 @@
         padding: 20px;
         margin-bottom: 24px;
         border: 1px solid #e3e6f0;
-        overflow-x: auto;
+        position: relative;
+        min-height: 180px;
+        display: flex;
+        align-items: center;
+    }
+    .btn-zoom-denah {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 5;
+        background: white;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        color: #4e73df;
+        border: 1px solid #e3e6f0;
+        transition: all 0.2s;
+    }
+    .btn-zoom-denah:hover {
+        background: #4e73df;
+        color: white;
+        text-decoration: none;
     }
     .denah-container svg {
         display: block;
@@ -349,6 +422,9 @@
             {{-- Denah Container --}}
             <p class="text-muted small mb-2"><i class="fas fa-map-marker-alt mr-1"></i> Denah lokasi unit — klik unit <span class="text-success font-weight-bold">hijau</span> untuk menyewa</p>
             <div class="denah-container">
+                <a href="javascript:void(0)" class="btn-zoom-denah btn-zoom-trigger" data-title="{{ $cat['nama'] }}" data-target="#{{ $cat['svg_id'] }}">
+                    <i class="fas fa-search-plus"></i>
+                </a>
                 <svg id="{{ $cat['svg_id'] }}" width="100%"></svg>
             </div>
 
@@ -393,6 +469,29 @@
     </div>
     @endforeach
 
+</div>
+
+{{-- Modal Zoom Denah --}}
+<div class="modal fade" id="modalZoomDenah" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="zoomModalLabel">Detail Denah</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-0" style="overflow: auto; background: #f8f9fc; min-height: 400px; display: flex; align-items: center; justify-content: center;">
+                <div id="zoom-content" style="width: 100%; padding: 40px;">
+                    {{-- SVG akan dipindah ke sini saat diklik --}}
+                </div>
+            </div>
+            <div class="modal-footer bg-light">
+                <p class="small text-muted mr-auto mb-0"><i class="fas fa-info-circle mr-1"></i> Gunakan mouse/jari untuk scroll denah jika tidak muat.</p>
+                <button type="button" class="btn btn-secondary px-4" data-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
 </div>
 @endsection
 
@@ -545,6 +644,35 @@ $(function() {
         const W = 90, H = 55, GAP = 12, startX = 130, startY = 20;
         units.forEach((u, i) => buatBangunan(svg, startX + i*(W+GAP), startY, W, H, u));
     })();
+
+    // Modal Zoom Logic
+    $('.btn-zoom-trigger').on('click', function() {
+        const svgId = $(this).data('target');
+        const title = $(this).data('title');
+        const originalSvg = document.querySelector(svgId);
+        
+        if (originalSvg) {
+            const clone = originalSvg.cloneNode(true);
+            clone.removeAttribute('width');
+            clone.removeAttribute('height');
+            clone.style.width = '100%';
+            clone.style.height = 'auto';
+            clone.style.display = 'block';
+            
+            // Re-attach listeners to clone for booking
+            clone.querySelectorAll('.unit-building').forEach(g => {
+                if (g.getAttribute('data-status') === 'kosong') {
+                    g.addEventListener('click', () => {
+                        window.location.href = `${bookingUrlBase}/${g.getAttribute('data-id')}`;
+                    });
+                }
+            });
+            
+            $('#zoom-content').empty().append(clone);
+            $('#zoomModalLabel').text('Detail Denah: ' + title);
+            $('#modalZoomDenah').modal('show');
+        }
+    });
 });
 </script>
 @endpush
