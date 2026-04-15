@@ -131,10 +131,21 @@
                                     <p class="text-muted small mb-0">Ukuran: {{ $booking->lapangan->ukuran }}</p>
                                 </td>
                                 <td class="text-center py-4">
-                                    <p class="mb-1">{{ \Carbon\Carbon::parse($booking->tgl_main)->format('d F Y') }}</p>
-                                    <p class="mb-0 text-muted small">{{ substr($booking->jam_mulai, 0, 5) }} - {{ substr($booking->jam_selesai, 0, 5) }} ({{ $booking->durasi_main }} Jam)</p>
+                                    @if($booking->type === 'event')
+                                        <p class="mb-1">{{ \Carbon\Carbon::parse($booking->start_datetime)->format('d F Y') }} s/d</p>
+                                        <p class="mb-0">{{ \Carbon\Carbon::parse($booking->end_datetime)->format('d F Y') }}</p>
+                                        <p class="mb-0 text-muted small">({{ $booking->durasi_hari }} Hari)</p>
+                                    @else
+                                        <p class="mb-1">{{ \Carbon\Carbon::parse($booking->start_datetime)->format('d F Y') }}</p>
+                                        <p class="mb-0 text-muted small">{{ $booking->start_datetime->format('H:i') }} - {{ $booking->end_datetime->format('H:i') }} ({{ $booking->durasi_jam }} Jam)</p>
+                                    @endif
                                 </td>
-                                <td class="text-right py-4">Rp {{ number_format(($pembayaran->jumlah_bayar ?? 0) / ($booking->durasi_main ?: 1), 0, ',', '.') }}</td>
+                                <td class="text-right py-4">
+                                    @php
+                                        $durasi = $booking->type === 'event' ? max($booking->durasi_hari, 1) : max($booking->durasi_jam, 1);
+                                    @endphp
+                                    Rp {{ number_format(($pembayaran->jumlah_bayar ?? 0) / $durasi, 0, ',', '.') }}
+                                </td>
                                 <td class="text-right py-4 font-weight-bold text-dark">Rp {{ number_format($pembayaran->jumlah_bayar ?? 0, 0, ',', '.') }}</td>
                             </tr>
                         </tbody>

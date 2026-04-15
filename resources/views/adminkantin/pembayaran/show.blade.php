@@ -91,7 +91,7 @@
     <div class="card shadow mb-4">
         <div class="card-header py-3 d-flex justify-content-between align-items-center">
             <h6 class="m-0 font-weight-bold text-primary">Detail Pembayaran — Termin {{ $pembayaran->termin }}</h6>
-            @if($pembayaran->status === 'verifikasi')
+            @if($pembayaran->status === 'lunas')
                 <a href="{{ route('adminkantin.pembayaran.kwitansi', $pembayaran) }}"
                     class="btn btn-success btn-sm">
                     <i class="fas fa-download mr-1"></i> Download Kwitansi
@@ -132,8 +132,10 @@
                         <tr>
                             <td>Status</td>
                             <td>:
-                                @if($pembayaran->status === 'verifikasi')
-                                    <span class="badge badge-success">Terverifikasi</span>
+                                @if($pembayaran->status === 'lunas')
+                                    <span class="badge badge-success">Lunas</span>
+                                @elseif($pembayaran->status === 'verifikasi')
+                                    <span class="badge badge-info">Menunggu Verifikasi</span>
                                 @elseif($pembayaran->status === 'menunggu')
                                     <span class="badge badge-warning">Menunggu</span>
                                 @else
@@ -141,13 +143,34 @@
                                 @endif
                             </td>
                         </tr>
+                        @if($pembayaran->path_bukti)
+                        <tr>
+                            <td>Bukti Bayar</td>
+                            <td>: 
+                                <a href="{{ asset('storage/' . $pembayaran->path_bukti) }}" target="_blank" class="btn btn-xs btn-outline-primary py-0 px-2">
+                                    <i class="fas fa-eye mr-1"></i> Lihat Bukti
+                                </a>
+                            </td>
+                        </tr>
+                        @endif
                     </table>
                 </div>
             </div>
 
-            {{-- Form Input Pembayaran --}}
-            @if($pembayaran->status !== 'verifikasi')
+           {{-- Form / Status Pembayaran --}}
+            @if($pembayaran->status === 'lunas')
             <hr>
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle mr-1"></i>
+                Pembayaran ini sudah <strong>Lunas</strong>. No. Kwitansi: <strong>{{ $pembayaran->no_kwitansi }}</strong>
+            </div>
+
+            @elseif($pembayaran->status === 'verifikasi')
+            <hr>
+            <div class="alert alert-info mb-3">
+                <i class="fas fa-clock mr-1"></i>
+                Penyewa sudah mengupload bukti pembayaran. Silakan verifikasi dan konfirmasi sebagai lunas.
+            </div>
             <h6 class="font-weight-bold text-gray-700 mb-3">Konfirmasi Pembayaran</h6>
             <form action="{{ route('adminkantin.pembayaran.update', $pembayaran) }}" method="POST">
                 @csrf @method('PUT')
@@ -181,13 +204,20 @@
                     <div class="col-md-4 d-flex align-items-end">
                         <div class="form-group w-100">
                             <button type="submit" class="btn btn-primary btn-block"
-                                onclick="return confirm('Konfirmasi pembayaran ini?')">
-                                <i class="fas fa-check mr-1"></i> Konfirmasi Pembayaran
+                                onclick="return confirm('Konfirmasi pembayaran ini sebagai LUNAS?')">
+                                <i class="fas fa-check mr-1"></i> Konfirmasi Lunas
                             </button>
                         </div>
                     </div>
                 </div>
             </form>
+
+            @elseif($pembayaran->status === 'menunggu')
+            <hr>
+            <div class="alert alert-warning">
+                <i class="fas fa-hourglass-half mr-1"></i>
+                Menunggu penyewa mengupload bukti pembayaran.
+            </div>
             @endif
         </div>
     </div>

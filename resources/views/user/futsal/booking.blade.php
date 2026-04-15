@@ -10,8 +10,8 @@
         <h1 class="h3 mb-0 text-gray-800">
             <i class="fas fa-futbol text-primary mr-2"></i> Booking Lapangan Futsal
         </h1>
-        <a href="{{ route('user.futsal.dashboard') }}" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm">
-            <i class="fas fa-arrow-left fa-sm text-white-50 mr-1"></i> Kembali ke Dashboard
+        <a href="{{ route('user.dashboard') }}" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm">
+            <i class="fas fa-arrow-left fa-sm text-white-50 mr-1"></i> Kembali ke Dashboard Utama
         </a>
     </div>
 
@@ -59,6 +59,35 @@
                         </div>
                         @endif
 
+                        {{-- Jenis Booking --}}
+                        <div class="form-group">
+                            <label class="font-weight-bold text-gray-700">
+                                <i class="fas fa-tags text-primary mr-1"></i> Jenis Booking
+                            </label>
+                            <div class="d-flex gap-3" style="gap:12px;">
+                                <label class="payment-card flex-fill" :class="{'payment-card--selected': form.type === 'regular'}">
+                                    <input type="radio" name="type" value="regular" x-model="form.type" class="d-none">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-clock fa-lg text-primary mr-3"></i>
+                                        <div>
+                                            <div class="font-weight-bold">Regular</div>
+                                            <small class="text-muted">Booking per jam (maks 3 jam)</small>
+                                        </div>
+                                    </div>
+                                </label>
+                                <label class="payment-card flex-fill" :class="{'payment-card--selected': form.type === 'event'}">
+                                    <input type="radio" name="type" value="event" x-model="form.type" class="d-none">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-calendar-alt fa-lg text-warning mr-3"></i>
+                                        <div>
+                                            <div class="font-weight-bold">Event</div>
+                                            <small class="text-muted">Booking multi-hari (Rp 800rb/hari)</small>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
                         {{-- Pilih Lapangan --}}
                         <div class="form-group">
                             <label class="font-weight-bold text-gray-700">
@@ -82,8 +111,34 @@
                             @enderror
                         </div>
 
+                        {{-- Form Event --}}
+                        <div x-show="form.type === 'event'" x-cloak>
+                            <div class="form-group">
+                                <label class="font-weight-bold text-gray-700">Tanggal Mulai Event</label>
+                                <input type="date" class="form-control"
+                                    x-model="form.start_datetime" :min="today"
+                                    :required="form.type === 'event'">
+                            </div>
+                            <div class="form-group">
+                                <label class="font-weight-bold text-gray-700">Tanggal Selesai Event</label>
+                                <input type="date" class="form-control"
+                                    x-model="form.end_datetime" :min="form.start_datetime"
+                                    :required="form.type === 'event'">
+                            </div>
+                            <div class="alert alert-warning border-left-warning shadow-sm">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Booking event menggunakan pembayaran <strong>Cash/Reguler</strong>.
+                                Harga: <strong>Rp 800.000/hari</strong>
+                                <br>
+                                <span x-show="form.start_datetime && form.end_datetime">
+                                    × <span x-text="hitungHari()"></span> hari = 
+                                    <strong class="text-danger" x-text="'Rp ' + formatRupiah(hitungHari() * 800000)"></strong>
+                                </span>
+                            </div>
+                        </div>
+
                         {{-- Pilih Tanggal --}}
-                        <div class="form-group">
+                        <div class="form-group" x-show="form.type === 'regular'" :required="form.type === 'regular'" x-cloak>
                             <label class="font-weight-bold text-gray-700">
                                 <i class="fas fa-calendar text-primary mr-1"></i> Tanggal Main
                             </label>
@@ -95,14 +150,14 @@
                                    :min="today"
                                    @change="onTanggalChange"
                                    value="{{ old('tanggal') }}"
-                                   required>
+                                   :required="form.type === 'regular'">
                             @error('tanggal')
                             <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
 
                         {{-- Pilih Jam Mulai --}}
-                        <div class="form-group" x-show="slots.length > 0 || slotLoading" x-cloak>
+                        <div class="form-group" x-show="form.type === 'regular'" :required="form.type === 'regular' && (slots.length > 0 || slotLoading)" x-cloak>
                             <label class="font-weight-bold text-gray-700">
                                 <i class="fas fa-clock text-primary mr-1"></i> Jam Mulai
                             </label>
@@ -117,7 +172,7 @@
                             <div x-show="!slotLoading && slots.length > 0" class="slot-grid">
                                 <template x-for="slot in slots" :key="slot.id">
                                     <label class="slot-card"
-                                           :class="{ 'slot-card--selected': form.jam_mulai_id == slot.id }">
+                                           :class="{ 'slot-card--selected': form.jam_mulai_id == slot.id, 'slot-card--booked': slot.is_booked }">
                                         <input type="radio"
                                                name="jam_mulai_id"
                                                :value="slot.id"
@@ -126,9 +181,9 @@
                                                class="d-none">
                                         <div class="slot-time">
                                             <i class="fas fa-clock"></i>
-                                            <span x-text="formatTime(slot.jam_mulai)"></span>
+                                            <span x-text="slot.jam_mulai_display || formatTime(slot.jam_mulai)"></span>
                                         </div>
-                                        <small class="text-muted" x-text="'s/d ' + formatTime(slot.jam_selesai)"></small>
+                                        <small class="text-muted" x-text="'s/d ' + (slot.jam_selesai_display || formatTime(slot.jam_selesai))"></small>
                                     </label>
                                 </template>
                             </div>
@@ -139,15 +194,23 @@
                         </div>
 
                         {{-- Info jika tidak ada slot --}}
-                        <div x-show="!slotLoading && slots.length === 0 && form.lapangan_id && form.tanggal" x-cloak>
+                        <div x-show="form.type === 'regular' && !slotLoading && slots.length === 0 && form.lapangan_id && form.tanggal" x-cloak>
                             <div class="alert alert-warning">
                                 <i class="fas fa-exclamation-triangle mr-2"></i>
                                 Tidak ada slot tersedia untuk lapangan dan tanggal yang dipilih.
                             </div>
                         </div>
 
+                        {{-- Pesan jika ada booking event --}}
+                        <div x-show="eventPesan" x-cloak>
+                            <div class="alert alert-danger">
+                                <i class="fas fa-calendar-times mr-2"></i>
+                                <span x-text="eventPesan"></span>
+                            </div>
+                        </div>
+
                         {{-- Durasi Main --}}
-                        <div class="form-group" x-show="form.jam_mulai_id" x-cloak>
+                        <div class="form-group" x-show="form.type === 'regular' && form.jam_mulai_id" x-cloak>
                             <label class="font-weight-bold text-gray-700">
                                 <i class="fas fa-hourglass-half text-primary mr-1"></i> Durasi Main
                             </label>
@@ -158,7 +221,7 @@
                                             id="durasi_main"
                                             x-model="form.durasi_main"
                                             @change="onDurasiChange"
-                                            required>
+                                            :required="form.type === 'regular'"> ```
                                         <option value="1">1 Jam</option>
                                         <option value="2">2 Jam</option>
                                         <option value="3">3 Jam</option>
@@ -177,7 +240,7 @@
                         </div>
 
                         {{-- Jenis Pembayaran --}}
-                        <div class="form-group" x-show="form.jam_mulai_id" x-cloak>
+                        <div class="form-group" x-show="form.type === 'regular' && form.jam_mulai_id" x-cloak>
                             <label class="font-weight-bold text-gray-700">
                                 <i class="fas fa-credit-card text-primary mr-1"></i> Jenis Pembayaran
                             </label>
@@ -239,13 +302,17 @@
                         <input type="hidden" name="tanggal" x-bind:value="form.tanggal">
                         <input type="hidden" name="jam_mulai_id" x-bind:value="form.jam_mulai_id">
                         <input type="hidden" name="durasi_main" x-bind:value="form.durasi_main">
-                        <input type="hidden" name="jenis_pembayaran" x-bind:value="form.jenis_pembayaran">
+                        <input type="hidden" name="jenis_pembayaran" x-bind:value="form.type === 'event' ? 'reguler' : form.jenis_pembayaran">
+                        <input type="hidden" name="type" x-bind:value="form.type">
+                        <input type="hidden" name="start_datetime" x-bind:value="form.start_datetime">
+                        <input type="hidden" name="end_datetime" x-bind:value="form.end_datetime">
 
                         {{-- Submit Button --}}
-                        <div class="border-top pt-3 mt-3" x-show="form.jam_mulai_id" x-cloak>
+                        <div class="border-top pt-3 mt-3" x-show="(form.type === 'regular' && form.jam_mulai_id) || (form.type === 'event' && form.start_datetime && form.end_datetime)" x-cloak>
                             <button type="submit"
                                     class="btn btn-primary btn-block btn-lg shadow"
                                     :disabled="submitting || !isFormValid"
+                                    @click="console.log('isFormValid', isFormValid, 'form:', form)"
                                     id="btn-submit-booking">
                                 <span x-show="!submitting">
                                     <i class="fas fa-check-circle mr-1"></i> Konfirmasi & Buat Booking
@@ -402,6 +469,18 @@
         align-items: center;
         gap: 6px;
     }
+    .slot-card--booked {
+        opacity: 0.4;
+        background-color: #f8f9fc !important;
+        border-color: #e3e6f0 !important;
+        cursor: not-allowed !important;
+        pointer-events: none; /* User tidak bisa klik */
+        filter: grayscale(1);
+    }
+    .slot-card--booked .slot-time,
+    .slot-card--booked small {
+        color: #b7b9cc !important;
+    }
 
     /* Payment Options */
     .payment-options {
@@ -459,13 +538,17 @@ function bookingForm() {
         // Sisa kuota membership dari PHP (jika ada)
         membershipKuota: {{ $membership ? $membership->sisa_kuota : 0 }},
         hasMembership: {{ $membership ? 'true' : 'false' }},
+        eventPesan: '',
 
         form: {
+            type: '{{ old('type', 'regular') }}',
             lapangan_id: '{{ old('lapangan_id', '') }}',
             tanggal: '{{ old('tanggal', '') }}',
             jam_mulai_id: '{{ old('jam_mulai_id', '') }}',
             durasi_main: '{{ old('durasi_main', 1) }}',
             jenis_pembayaran: '{{ old('jenis_pembayaran', 'reguler') }}',
+            start_datetime: '{{ old('start_datetime', '') }}',
+            end_datetime: '{{ old('end_datetime', '') }}',
         },
 
         today: '',
@@ -482,18 +565,29 @@ function bookingForm() {
         get summary() {
             const lapEl = document.getElementById('lapangan_id');
             const lapNama = lapEl ? lapEl.options[lapEl.selectedIndex]?.text : '-';
+
+            let jamMulaiTampil = '-';
+            if (this.selectedSlot) {
+                jamMulaiTampil = this.form.type === 'regular'
+                ? this.selectedSlot.jam_mulai_display
+                : this.formatTime(this.selectedSlot.jam_mulai);
+            }
+        
             return {
                 lapangan: lapNama !== '-- Pilih Lapangan --' ? lapNama : '-',
                 tanggal: this.form.tanggal ? this.formatDate(this.form.tanggal) : '-',
-                jamMulai: this.selectedSlot ? this.formatTime(this.selectedSlot.jam_mulai) : '-',
+                jamMulai: jamMulaiTampil,
             };
         },
 
         get jamSelesai() {
             if (!this.selectedSlot || !this.form.durasi_main) return '';
-            const [h, m] = this.selectedSlot.jam_mulai.split(':');
-            const date = new Date();
-            date.setHours(parseInt(h), parseInt(m), 0);
+            let [h, m] = this.selectedSlot.jam_mulai.split(':').map(Number);
+            let date = new Date();
+            if (this.form.type === 'regular') {
+                m += 10;
+            }
+            date.setHours(h, m, 0);
             date.setHours(date.getHours() + parseInt(this.form.durasi_main));
             return date.getHours().toString().padStart(2, '0') + ':' + date.getMinutes().toString().padStart(2, '0');
         },
@@ -503,6 +597,9 @@ function bookingForm() {
         },
 
         get isFormValid() {
+            if (this.form.type === 'event') {
+                return this.form.lapangan_id && this.form.start_datetime && this.form.end_datetime;
+            }
             return this.form.lapangan_id &&
                    this.form.tanggal &&
                    this.form.jam_mulai_id &&
@@ -556,6 +653,7 @@ function bookingForm() {
         async fetchSlots() {
             this.slotLoading = true;
             this.slots = [];
+            this.eventPesan = '';
             try {
                 const response = await axios.get('{{ route('user.futsal.booking.check') }}', {
                     params: {
@@ -563,7 +661,9 @@ function bookingForm() {
                         tanggal: this.form.tanggal,
                     }
                 });
-                if (response.data.success) {
+                if (response.data.event) {
+                    this.eventPesan = response.data.pesan;
+                } else if (response.data.success) {
                     this.slots = response.data.slots;
 
                     // Restore old selected slot jika ada
@@ -598,6 +698,18 @@ function bookingForm() {
             if (!dateStr) return '-';
             const d = new Date(dateStr);
             return d.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        },
+
+        hitungHari() {
+            if (!this.form.start_datetime || !this.form.end_datetime) return 0;
+            const start = new Date(this.form.start_datetime);
+            const end = new Date(this.form.end_datetime);
+            const diff = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+            return Math.max(1, diff);
+        },
+
+        formatRupiah(angka) {
+            return 'Rp ' + angka.toLocaleString('id-ID');
         },
     };
 }

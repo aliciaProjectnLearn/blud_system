@@ -47,7 +47,24 @@ class TeknisiController extends Controller
             );
         }
 
-        return view('adminac.teknisi.index', compact('teknisis', 'search', 'filterStatus'));
+        // ── Data Kinerja Teknisi ────────────────────────────
+        $today = \Carbon\Carbon::today();
+        $filterBulan = $request->get('bulan_filter', $today->month);
+
+        $dataTeknisi = User::whereHas('roles', function($q) {
+                $q->where('nama', 'Teknisi');
+            })
+            ->withCount(['pekerjaanTeknisi as total_selesai_bulan_ini' => function($q) use ($filterBulan, $today) {
+                $q->where('status', 'selesai')
+                  ->whereMonth('updated_at', $filterBulan)
+                  ->whereYear('updated_at', $today->year);
+            }])
+            ->withCount(['pekerjaanTeknisi as total_aktif' => function($q) {
+                $q->where('status', 'proses');
+            }])
+            ->get();
+
+        return view('adminac.teknisi.index', compact('teknisis', 'search', 'filterStatus', 'dataTeknisi', 'filterBulan'));
     }
 
     public function create()

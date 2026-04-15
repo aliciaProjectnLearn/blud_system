@@ -12,6 +12,7 @@ use App\Models\DokumenPenyewaan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 
 class KantinDashboardController extends Controller
@@ -126,8 +127,27 @@ class KantinDashboardController extends Controller
     // ── Fitur Booking Self-Service ──────────────────────
     public function pilihUnit()
     {
-        $rukoList = Ruko::where('status_unit', 'kosong')->with('kategori', 'dokumentasiUnit')->get();
-        return view('user.kantin.katalog', compact('rukoList'));
+        $rukoList = Ruko::whereHas('kategori', function($q) {
+                $q->where('tipe', 'kantin');
+            })
+            ->with(['kategori', 'dokumentasiUnit'])
+            ->orderBy('kategori_id')
+            ->orderBy('kode_unit')
+            ->get();
+
+        $kategoriList = \App\Models\Kategori::where('tipe', 'kantin')->get();
+
+        $rukoDataJs = $rukoList->map(function($r) {
+            return [
+                'id'          => $r->id,
+                'kode_unit'   => $r->kode_unit,
+                'status_unit' => $r->status_unit,
+                'kategori_id' => $r->kategori_id,
+                'harga'       => $r->harga,
+            ];
+        })->values();
+
+        return view('user.kantin.katalog', compact('rukoList', 'kategoriList', 'rukoDataJs'));
     }
 
     public function formSewa($id)
@@ -157,6 +177,7 @@ class KantinDashboardController extends Controller
 
         // Validasi input
         $rules = [
+            'tgl_mulai'   => 'required|date|after_or_equal:today',
             'dokumen_ktp' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
         ];
 
@@ -174,13 +195,13 @@ class KantinDashboardController extends Controller
             // 1. Dapatkan atau Buat Penyewa
             $penyewa = $user->penyewa;
             if (!$penyewa) {
-                // Update User: Selalu perbarui kolom nik dan alamat di tabel users
+                // Update User
                 $user->update([
                     'nik' => $request->nik,
                     'alamat' => $request->alamat,
                 ]);
 
-                // Buat data di tabel penyewa (tanpa NIK, karena sudah di tabel users)
+                // Buat data di tabel penyewa
                 $penyewa = Penyewa::create([
                     'user_id' => $user->id,
                     'nama_usaha' => $request->nama_usaha,
@@ -188,30 +209,56 @@ class KantinDashboardController extends Controller
                 ]);
             }
 
-            // 2. Buat record Booking
+            // 2. Buat record Booking (optional, but keep for compatibility if needed elsewhere)
             $booking = Booking::create([
                 'user_id' => $user->id,
-                'status' => 'menunggu', // Status default booking
+                'status' => 'menunggu',
             ]);
 
-            // 3. Buat record SewaRuko (Pending)
-            $tglMulai = now()->format('Y-m-d');
-            $tglSelesai = now()->addYear()->format('Y-m-d'); // Otomatis 1 tahun sesuai requirment
+            // 3. Hitung tanggal mulai & selesai
+            $tglMulai = \Carbon\Carbon::parse($request->tgl_mulai);
+            $tglSelesai = $tglMulai->copy()->addYear();
 
+            // 4. Buat record SewaRuko (Pending)
             $sewaRuko = SewaRuko::create([
                 'booking_id' => $booking->id,
                 'penyewa_id' => $penyewa->id,
                 'ruko_id' => $ruko->id,
-                'tgl_mulai' => $tglMulai,
-                'tgl_selesai' => $tglSelesai,
+                'tgl_mulai' => $tglMulai->format('Y-m-d'),
+                'tgl_selesai' => $tglSelesai->format('Y-m-d'),
                 'harga_sewa_tahunan' => $ruko->harga,
                 'status' => 'pending',
             ]);
 
-            // 4. Update status ruko agar tidak dobel dipesan
+            // 5. Generate Pembayaran Termin
+            $jumlahPerTermin = intdiv($ruko->harga, 2);
+            
+            // Termin 1: Jatuh tempo hari ini / saat tgl_mulai
+            PembayaranRuko::create([
+                'sewa_ruko_id'       => $sewaRuko->id,
+                'booking_id'         => $booking->id,
+                'tipe_pembayaran_id' => 1, // Default Transfer, can be changed during upload
+                'termin'             => 1,
+                'tgl_jatuh_tempo'    => $tglMulai,
+                'jumlah_tagihan'     => $jumlahPerTermin,
+                'status'             => 'menunggu',
+            ]);
+
+            // Termin 2: Jatuh tempo 6 bulan setelah tgl_mulai
+            PembayaranRuko::create([
+                'sewa_ruko_id'       => $sewaRuko->id,
+                'booking_id'         => $booking->id,
+                'tipe_pembayaran_id' => 1,
+                'termin'             => 2,
+                'tgl_jatuh_tempo'    => $tglMulai->copy()->addMonths(6),
+                'jumlah_tagihan'     => $ruko->harga - $jumlahPerTermin,
+                'status'             => 'menunggu',
+            ]);
+
+            // 6. Update status ruko agar tidak dobel dipesan (sementara)
             $ruko->update(['status_unit' => 'terisi']);
 
-            // 5. Upload Dokumen Penyewaan
+            // 7. Upload Dokumen Penyewaan
             if ($request->hasFile('dokumen_ktp')) {
                 $path = $request->file('dokumen_ktp')->store('dokumen_penyewaan', 'public');
                 $noMou = 'MOU-' . time() . '-' . $sewaRuko->id;
@@ -226,10 +273,201 @@ class KantinDashboardController extends Controller
 
             DB::commit();
 
-            return redirect()->route('user.kantin.dashboard')->with('success', 'Pengajuan sewa berhasil dikirim! Tunggu Admin memverifikasi dan menyetujui pengajuan.');
+            return redirect()->route('user.kantin.tagihan')->with('success', 'Pengajuan sewa berhasil dikirim! Silakan lakukan pembayaran Termin 1 untuk mengaktifkan sewa.');
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Terjadi kesalahan sistem: ' . $e->getMessage());
         }
+    }
+    public function confirmPembayaran(Request $request, $id)
+    {
+        $pembayaran = PembayaranRuko::findOrFail($id);
+        
+        $request->validate([
+            'tipe_pembayaran_id' => 'required|exists:tipe_pembayaran,id',
+            'bukti_pembayaran'   => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+        ]);
+
+        if ($request->hasFile('bukti_pembayaran')) {
+            $path = $request->file('bukti_pembayaran')->store('bukti_pembayaran_ruko', 'public');
+            
+            $pembayaran->update([
+                'tipe_pembayaran_id' => $request->tipe_pembayaran_id,
+                'status'             => 'verifikasi',
+                'path_bukti'         => $path,
+                'tgl_bayar'          => now(),
+            ]);
+        }
+
+        return redirect()->route('user.kantin.tagihan')->with('success', 'Bukti pembayaran berhasil diunggah. Mohon tunggu verifikasi dari Admin.');
+    }
+
+    // ── Booking Langsung (Streamlined) ─────────────────────
+
+    /**
+     * Tampilkan form booking langsung (tanpa harus pilih dari halaman katalog).
+     */
+    public function showBookingForm()
+    {
+        $units = Ruko::whereHas('kategori', fn($q) => $q->where('tipe', 'kantin'))
+            ->where('status_unit', 'kosong')
+            ->with(['kategori', 'dokumentasiUnit'])
+            ->orderByRaw("CAST(SUBSTRING(kode_unit, 4) AS UNSIGNED) ASC")
+            ->get();
+
+        $user    = Auth::user();
+        $penyewa = $user->penyewa;
+
+        return view('user.kantin.booking-form', compact('units', 'user', 'penyewa'));
+    }
+
+    /**
+     * Endpoint AJAX — kembalikan detail unit dalam format JSON.
+     */
+    public function getUnitDetail($id)
+    {
+        $ruko = Ruko::with(['kategori', 'dokumentasiUnit'])
+            ->where('status_unit', 'kosong')
+            ->whereHas('kategori', fn($q) => $q->where('tipe', 'kantin'))
+            ->find($id);
+
+        if (!$ruko) {
+            return response()->json(['error' => 'Unit tidak ditemukan atau sudah terisi.'], 404);
+        }
+
+        $dokumentasi = $ruko->dokumentasiUnit->map(fn($d) => [
+            'id'            => $d->id,
+            'file'          => $d->file,
+            'tipe'          => $d->tipe,
+            'judul_dokumen' => $d->judul_dokumen,
+            'url'           => asset('storage/' . str_replace('\\', '/', $d->file)),
+        ]);
+
+        return response()->json([
+            'id'        => $ruko->id,
+            'kode_unit' => $ruko->kode_unit,
+            'no_unit'   => $ruko->no_unit ?? null,
+            'kategori'  => [
+                'id'   => $ruko->kategori->id ?? null,
+                'nama' => $ruko->kategori->nama ?? '-',
+                'tipe' => $ruko->kategori->tipe ?? '-',
+            ],
+            'harga'       => $ruko->harga,
+            'status_unit' => $ruko->status_unit,
+            'dokumentasi' => $dokumentasi,
+        ]);
+    }
+
+    /**
+     * Simpan pengajuan sewa baru dari form booking langsung.
+     */
+    public function storeBooking(Request $request)
+    {
+        $request->validate([
+            'ruko_id'           => 'required|exists:ruko,id',
+            'tgl_mulai'         => 'required|date|after_or_equal:today',
+            'metode_pembayaran' => 'required|in:tunai,qris',
+        ]);
+
+        $ruko = Ruko::find($request->ruko_id);
+
+        // Race condition guard
+        if (!$ruko || $ruko->status_unit !== 'kosong') {
+            return back()->with('error', 'Unit yang Anda pilih sudah tidak tersedia. Silakan pilih unit lain.');
+        }
+
+        $user = Auth::user();
+
+        DB::beginTransaction();
+        try {
+            // 1. Dapatkan atau buat record Penyewa secara otomatis
+            $penyewa = $user->penyewa;
+            if (!$penyewa) {
+                $penyewa = Penyewa::create([
+                    'user_id'    => $user->id,
+                    'nama_usaha' => $user->name,
+                    'alamat'     => $user->alamat ?? '-',
+                    'nik'        => $user->nik    ?? null,
+                ]);
+            }
+
+            // 2. Hitung tanggal
+            $tglMulai   = Carbon::parse($request->tgl_mulai);
+            $tglSelesai = $tglMulai->copy()->addYear();
+
+            // 3. Buat Booking (parent record)
+            $booking = Booking::create([
+                'user_id' => $user->id,
+                'status'  => 'menunggu',
+            ]);
+
+            // 4. Buat record SewaRuko
+            $sewaRuko = SewaRuko::create([
+                'booking_id'         => $booking->id,
+                'penyewa_id'         => $penyewa->id,
+                'ruko_id'            => $ruko->id,
+                'tgl_mulai'          => $tglMulai->format('Y-m-d'),
+                'tgl_selesai'        => $tglSelesai->format('Y-m-d'),
+                'harga_sewa_tahunan' => $ruko->harga,
+                'status'             => 'pending',
+            ]);
+
+            // 5. Generate 2 termin pembayaran
+            $jumlahPerTermin = intdiv((int) $ruko->harga, 2);
+
+            PembayaranRuko::create([
+                'sewa_ruko_id'       => $sewaRuko->id,
+                'booking_id'         => $booking->id,
+                'tipe_pembayaran_id' => 1,
+                'termin'             => 1,
+                'tgl_jatuh_tempo'    => $tglMulai->format('Y-m-d'),
+                'jumlah_tagihan'     => $jumlahPerTermin,
+                'status'             => 'menunggu',
+            ]);
+
+            PembayaranRuko::create([
+                'sewa_ruko_id'       => $sewaRuko->id,
+                'booking_id'         => $booking->id,
+                'tipe_pembayaran_id' => 1,
+                'termin'             => 2,
+                'tgl_jatuh_tempo'    => $tglMulai->copy()->addMonths(6)->format('Y-m-d'),
+                'jumlah_tagihan'     => $ruko->harga - $jumlahPerTermin,
+                'status'             => 'menunggu',
+            ]);
+
+            // 6. Tandai unit sebagai terisi
+            $ruko->update(['status_unit' => 'terisi']);
+
+            DB::commit();
+
+            return redirect()->route('user.kantin.dashboard')
+                ->with('success', 'Pengajuan sewa berhasil dikirim! Silakan lakukan pembayaran Termin 1 untuk mengaktifkan sewa Anda.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Terjadi kesalahan sistem: ' . $e->getMessage());
+        }
+    }
+
+    public function downloadKwitansi($id)
+    {
+        $pembayaran = PembayaranRuko::findOrFail($id);
+
+        // Pastikan hanya pemilik yang bisa download
+        $penyewa = Auth::user()->penyewa;
+        if (!$penyewa || $pembayaran->sewaRuko->penyewa_id !== $penyewa->id) {
+            abort(403);
+        }
+
+        if ($pembayaran->status !== 'lunas') {
+            return back()->with('error', 'Kwitansi hanya tersedia untuk pembayaran yang sudah lunas.');
+        }
+
+        if (!$pembayaran->path_kwitansi || !\Storage::disk('public')->exists($pembayaran->path_kwitansi)) {
+            return back()->with('error', 'File kwitansi belum tersedia. Hubungi admin.');
+        }
+
+        $namaFile = 'kwitansi-' . str_replace('/', '-', $pembayaran->no_kwitansi) . '.pdf';
+        return \Storage::disk('public')->download($pembayaran->path_kwitansi, $namaFile);
     }
 }

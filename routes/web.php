@@ -16,6 +16,7 @@ use App\Http\Controllers\AdminFutsal\PelangganController;
 use App\Http\Controllers\AdminFutsal\JadwalLapanganController;
 use App\Http\Controllers\AdminFutsal\LaporanController;
 use App\Http\Controllers\AdminFutsal\TransaksiController as AdminFutsalTransaksiController;
+use App\Http\Controllers\AdminFutsal\KeuanganController;
 use App\Http\Controllers\AdminKantin\DashboardController as AdminKantinDashboardController;
 use App\Http\Controllers\AdminKantin\UnitController as AdminKantinUnitController;
 use App\Http\Controllers\AdminKantin\PembayaranController;
@@ -168,6 +169,12 @@ Route::middleware(['auth', 'role:Adminfutsal'])->prefix('adminfutsal')
             ->name('pengaturan.index');
         Route::put('pengaturan/{id}', [\App\Http\Controllers\AdminFutsal\PengaturanController::class, 'update'])
             ->name('pengaturan.update');
+
+        // Manajemen Keuangan
+        Route::get('keuangan', [KeuanganController::class, 'index'])
+            ->name('keuangan.index');
+        Route::post('keuangan/tambah-pengeluaran', [KeuanganController::class, 'storePengeluaran'])
+            ->name('keuangan.store');
     });
 
 
@@ -292,6 +299,7 @@ Route::middleware(['auth', 'role:Pelanggan'])->prefix('user')->name('user.')->gr
     Route::prefix('futsal')->name('futsal.')->group(function () {
         Route::get('/dashboard', [\App\Http\Controllers\User\FutsalDashboardController::class, 'index'])->name('dashboard');
         Route::get('/history', [\App\Http\Controllers\User\FutsalDashboardController::class, 'history'])->name('history');
+        Route::get('/landing', [\App\Http\Controllers\User\FutsalDashboardController::class, 'landing'])->name('landing');
 
         // Booking Lapangan
         Route::get('/booking', [\App\Http\Controllers\User\FutsalDashboardController::class, 'showBookingForm'])->name('booking.form');
@@ -308,6 +316,10 @@ Route::middleware(['auth', 'role:Pelanggan'])->prefix('user')->name('user.')->gr
 
         Route::get('/booking/{id}/invoice', [\App\Http\Controllers\User\FutsalDashboardController::class, 'showInvoice'])->name('invoice');
         Route::get('/booking/{id}/download-invoice', [\App\Http\Controllers\User\FutsalDashboardController::class, 'downloadInvoice'])->name('download-invoice');
+
+        // Membership
+        Route::get('/membership', [\App\Http\Controllers\User\FutsalDashboardController::class, 'showMembershipForm'])->name('membership.form');
+        Route::post('/membership', [\App\Http\Controllers\User\FutsalDashboardController::class, 'storeMembership'])->name('membership.store');
     });
 
     // Kantin Manajemen
@@ -318,6 +330,13 @@ Route::middleware(['auth', 'role:Pelanggan'])->prefix('user')->name('user.')->gr
         Route::get('/katalog', [\App\Http\Controllers\User\KantinDashboardController::class, 'pilihUnit'])->name('katalog');
         Route::get('/booking/{id}', [\App\Http\Controllers\User\KantinDashboardController::class, 'formSewa'])->name('booking');
         Route::post('/booking/{id}', [\App\Http\Controllers\User\KantinDashboardController::class, 'storeSewa'])->name('store_booking');
+        Route::post('/pembayaran/{id}/confirm', [\App\Http\Controllers\User\KantinDashboardController::class, 'confirmPembayaran'])->name('confirm_pembayaran');
+        Route::get('/pembayaran/{id}/kwitansi', [\App\Http\Controllers\User\KantinDashboardController::class, 'downloadKwitansi'])->name('kwitansi');
+
+        // ── Booking Langsung (Streamlined) ──────────────────────────────
+        Route::get('/booking-form', [\App\Http\Controllers\User\KantinDashboardController::class, 'showBookingForm'])->name('booking.form');
+        Route::get('/unit/{id}/detail', [\App\Http\Controllers\User\KantinDashboardController::class, 'getUnitDetail'])->name('unit.detail');
+        Route::post('/booking-store', [\App\Http\Controllers\User\KantinDashboardController::class, 'storeBooking'])->name('booking.store');
     });
 
     // AC Manajemen
@@ -336,4 +355,8 @@ Route::middleware(['auth', 'role:Teknisi'])->prefix('teknisi')->name('teknisi.')
     Route::get('/dashboard', [\App\Http\Controllers\TeknisiAc\DashboardController::class, 'index'])->name('dashboard');
     Route::get('/pekerjaan/{id}', [\App\Http\Controllers\TeknisiAc\DashboardController::class, 'show'])->name('pekerjaan.show');
     Route::post('/pekerjaan/{id}/selesai', [\App\Http\Controllers\TeknisiAc\DashboardController::class, 'selesaikanPekerjaan'])->name('pekerjaan.selesai');
+    
+    // Pembayaran
+    Route::get('/pembayaran/{id}', [\App\Http\Controllers\TeknisiAc\PembayaranController::class, 'create'])->name('pembayaran.form');
+    Route::post('/pembayaran/{id}', [\App\Http\Controllers\TeknisiAc\PembayaranController::class, 'store'])->name('pembayaran.store');
 });

@@ -135,7 +135,7 @@
                             <th>Unit / Kategori</th>
                             <th>Termin</th>
                             <th>Jumlah Tagihan</th>
-                            <th>Tgl Bayar</th>
+                            <th class="d-none d-md-table-cell">Tgl Bayar</th>
                             <th>Status</th>
                         </tr>
                     </thead>
@@ -148,14 +148,16 @@
                             </td>
                             <td>
                                 <div class="font-weight-bold text-primary">{{ $t->sewaRuko->ruko->kode_unit ?? '-' }}</div>
-                                <small class="text-muted">{{ $t->sewaRuko->ruko->kategori->nama ?? '-' }}</small>
+                                <small class="text-muted d-none d-md-block">{{ $t->sewaRuko->ruko->kategori->nama ?? '-' }}</small>
                             </td>
                             <td>Termin {{ $t->termin }}</td>
                             <td>Rp {{ number_format($t->jumlah_tagihan, 0, ',', '.') }}</td>
-                            <td>{{ $t->tgl_bayar ? \Carbon\Carbon::parse($t->tgl_bayar)->format('d M Y') : '-' }}</td>
+                            <td class="d-none d-md-table-cell">{{ $t->tgl_bayar ? \Carbon\Carbon::parse($t->tgl_bayar)->format('d M Y') : '-' }}</td>
                             <td>
-                                @if($t->status === 'verifikasi')
-                                    <span class="badge badge-success">Terverifikasi</span>
+                                @if($t->status === 'lunas')
+                                    <span class="badge badge-success">Lunas</span>
+                                @elseif($t->status === 'verifikasi')
+                                    <span class="badge badge-info">Verifikasi</span>
                                 @elseif($t->status === 'menunggu')
                                     <span class="badge badge-warning">Menunggu</span>
                                 @else

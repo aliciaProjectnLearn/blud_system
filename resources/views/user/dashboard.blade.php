@@ -225,7 +225,7 @@
         </a>
     </div>
     <div class="col-md-4 mb-3">
-        <a href="{{ route('user.kantin.dashboard') }}" class="text-decoration-none">
+        <a href="{{ route('user.kantin.katalog') }}" class="text-decoration-none">
             <div class="card quick-access-card shadow-sm border-0">
                 <i class="fas fa-store quick-access-icon"></i>
                 <h6 class="font-weight-bold text-primary mb-1">Daftar Sewa Ruko</h6>
@@ -385,7 +385,7 @@
                         <h6><b>Informasi Booking</b></h6>
                         <table class="table table-sm table-borderless">
                             <tr><td>ID Booking</td><td>: <b>#${data.booking.id}</b></td></tr>
-                            <tr><td>Tanggal Main</td><td>: ${data.booking.tgl_main ?? ''}</td></tr>
+                            <tr><td>Waktu Mulai</td><td>: ${data.booking.start_datetime ?? ''}</td></tr>
                             <tr><td>Status</td><td>: <span class="badge badge-info">${data.booking.status}</span></td></tr>
                         </table>
                     </div>

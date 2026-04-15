@@ -9,19 +9,19 @@ class PembayaranRuko extends Model
     protected $table = 'pembayaran_ruko';
 
     protected $fillable = [
-        'booking_id', 'tipe_pembayaran_id', 'termin',
+        'sewa_ruko_id', 'booking_id', 'tipe_pembayaran_id', 'termin',
         'tgl_jatuh_tempo', 'jumlah_tagihan', 'tgl_bayar',
-        'status', 'no_kwitansi', 'path_kwitansi',
+        'status', 'path_bukti', 'no_kwitansi', 'path_kwitansi',
     ];
 
     public function sewaRuko()
     {
-        return $this->hasOne(SewaRuko::class, 'booking_id', 'booking_id');
+        return $this->belongsTo(SewaRuko::class, 'sewa_ruko_id');
     }
 
     public function booking()
     {
-        return $this->sewaRuko();
+        return $this->belongsTo(Booking::class, 'booking_id');
     }
 
     public function tipe()

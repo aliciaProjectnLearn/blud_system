@@ -9,6 +9,7 @@ use App\Models\Penyewa;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 class PembayaranController extends Controller
 {
@@ -55,8 +56,8 @@ class PembayaranController extends Controller
     public function update(Request $request, PembayaranRuko $pembayaran)
     {
         // Cegah pembayaran ganda
-        if ($pembayaran->status === 'verifikasi') {
-            return redirect()->back()->with('error', 'Pembayaran ini sudah terverifikasi.');
+        if ($pembayaran->status === 'lunas') {
+            return redirect()->back()->with('error', 'Pembayaran ini sudah lunas.');
         }
 
         $request->validate([
@@ -67,44 +68,68 @@ class PembayaranController extends Controller
         // Generate no kwitansi otomatis
         $noKwitansi = PembayaranRuko::generateNoKwitansi();
 
-        $pembayaran->update([
-            'tgl_bayar'          => $request->tgl_bayar,
-            'tipe_pembayaran_id' => $request->tipe_pembayaran_id,
-            'status'             => 'verifikasi',
-            'no_kwitansi'        => $noKwitansi,
-        ]);
+        DB::beginTransaction();
+        try {
+            $pembayaran->update([
+                'tgl_bayar'          => $request->tgl_bayar,
+                'tipe_pembayaran_id' => $request->tipe_pembayaran_id,
+                'status'             => 'lunas',
+                'no_kwitansi'        => $noKwitansi,
+            ]);
 
-        return redirect()->route('adminkantin.pembayaran.show', $pembayaran)
-            ->with('success', "Pembayaran berhasil dikonfirmasi. No. Kwitansi: {$noKwitansi}");
+            // Jika Termin 1 lunas, aktifkan status sewa
+            if ($pembayaran->termin == 1) {
+                $sewa = $pembayaran->sewaRuko;
+                if ($sewa) {
+                    $sewa->update(['status' => 'aktif']);
+                    // Update status unit ruko
+                    $sewa->ruko->update(['status_unit' => 'terisi']);
+                }
+            }
+
+            DB::commit();
+
+            // Auto-generate PDF Kwitansi after Lunas
+            $this->generateKwitansiFile($pembayaran);
+
+            return redirect()->route('adminkantin.pembayaran.show', $pembayaran)
+                ->with('success', "Pembayaran berhasil dikonfirmasi sebagai Lunas. No. Kwitansi: {$noKwitansi}");
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Gagal memproses pembayaran: ' . $e->getMessage());
+        }
     }
 
-    public function downloadKwitansi(PembayaranRuko $pembayaran)
+    private function generateKwitansiFile(PembayaranRuko $pembayaran)
     {
-        if ($pembayaran->status !== 'verifikasi') {
-            return redirect()->back()->with('error', 'Kwitansi hanya tersedia untuk pembayaran yang sudah terverifikasi.');
-        }
-
         $pembayaran->load([
             'sewaRuko.penyewa.user',
             'sewaRuko.ruko.kategori',
-            'sewaRuko.dokumen',
             'tipe',
         ]);
 
         $namaFile = 'kwitansi-' . str_replace('/', '-', $pembayaran->no_kwitansi) . '.pdf';
-
         $pdf = Pdf::loadView('adminkantin.pembayaran.kwitansi', compact('pembayaran'))
             ->setPaper('a5', 'portrait');
 
-        // Simpan ke storage
         $path = 'kwitansi/' . $namaFile;
         Storage::disk('public')->put($path, $pdf->output());
 
-        // Simpan path ke database jika belum ada
-        if (!$pembayaran->path_kwitansi) {
-            $pembayaran->update(['path_kwitansi' => $path]);
+        $pembayaran->update(['path_kwitansi' => $path]);
+    }
+
+    public function downloadKwitansi(PembayaranRuko $pembayaran)
+    {
+        if ($pembayaran->status !== 'lunas') {
+            return redirect()->back()->with('error', 'Kwitansi hanya tersedia untuk pembayaran yang sudah lunas.');
         }
 
-        return $pdf->download($namaFile);
+        if (!$pembayaran->path_kwitansi || !Storage::disk('public')->exists($pembayaran->path_kwitansi)) {
+            $this->generateKwitansiFile($pembayaran);
+        }
+
+        $namaFile = 'kwitansi-' . str_replace('/', '-', $pembayaran->no_kwitansi) . '.pdf';
+        return Storage::disk('public')->download($pembayaran->path_kwitansi, $namaFile);
     }
 }

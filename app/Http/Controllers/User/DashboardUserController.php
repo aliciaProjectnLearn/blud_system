@@ -41,7 +41,7 @@ class DashboardUserController extends Controller
         return BookingFutsal::where('user_id', $userId)
             ->whereHas('booking', fn($q) => $q->whereIn('status', ['menunggu', 'dikonfirmasi']))
             ->with('booking')
-            ->latest('tgl_main')
+            ->latest('start_datetime')
             ->first();
     }
 
@@ -115,22 +115,22 @@ class DashboardUserController extends Controller
     }
 
     private function getRecentRuko($penyewa): Collection
-    {
-        if (!$penyewa) return collect();
+{
+    if (!$penyewa) return collect();
 
-        return PembayaranRuko::with('booking')
-            ->whereHas('booking', fn($q) => $q->where('penyewa_id', $penyewa->getKey()))
-            ->latest()
-            ->take(5)
-            ->get()
-            ->map(fn($item) => $this->formatActivity(
-                'Sewa Ruko/Kantin',
-                $item->tgl_bayar ?? $item->created_at,
-                $item->jumlah_tagihan,
-                $item->booking?->status ?? $item->status,
-                $item
-            ));
-    }
+    return PembayaranRuko::with('sewaRuko.ruko')
+        ->whereHas('sewaRuko', fn($q) => $q->where('penyewa_id', $penyewa->getKey()))
+        ->latest()
+        ->take(5)
+        ->get()
+        ->map(fn($item) => $this->formatActivity(
+            'Sewa Ruko/Kantin',
+            $item->tgl_bayar ?? $item->created_at,
+            $item->jumlah_tagihan,
+            $item->status,
+            $item
+        ));
+}
 
     private function getRecentAc(int $userId): Collection
     {

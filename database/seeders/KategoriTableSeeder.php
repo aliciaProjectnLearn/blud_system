@@ -9,25 +9,30 @@ class KategoriTableSeeder extends Seeder
 {
     public function run(): void
     {
-        DB::table('kategori')->insert([
+        $kategoris = [
             [
                 'nama' => 'Kantin Besar',
                 'tipe' => 'kantin',
-                'created_at' => now(),
-                'updated_at' => now(),
             ],
             [
                 'nama' => 'Kantin Container',
                 'tipe' => 'kantin',
-                'created_at' => now(),
-                'updated_at' => now(),
+            ],
+            [
+                'nama' => 'Ruko Depan',
+                'tipe' => 'kantin',
             ],
             [
                 'nama' => 'Service AC',
                 'tipe' => 'ac',
-                'created_at' => now(),
-                'updated_at' => now(),
             ],
-        ]);
+        ];
+
+        foreach ($kategoris as $k) {
+            DB::table('kategori')->updateOrInsert(
+                ['nama' => $k['nama']],
+                array_merge($k, ['created_at' => now(), 'updated_at' => now()])
+            );
+        }
     }
 }
