@@ -7,11 +7,11 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use App\Models\User;
-use App\Traits\Loggable; // <-- tambahkan ini
+use App\Traits\Loggable;
 
 class AuthController extends Controller
 {
-    use Loggable; // <-- gunakan trait
+    use Loggable;
 
     // ── LOGIN ─────────────────────────────────────────────
 
@@ -57,7 +57,7 @@ class AuthController extends Controller
 
         return back()->with('error', 'Email atau password salah.')->withInput($request->only('email'));
     }
-    
+
     public function logout(Request $request)
     {
         // Catat log logout sebelum session dihapus
@@ -87,7 +87,6 @@ class AuthController extends Controller
             'nama_lengkap' => 'required|string|max:255',
             'username'     => 'required|string|unique:users,username',
             'no_hp'        => 'required|string|max:20',
-            'nik'          => 'nullable|string|max:20',
             'email'        => 'required|email|unique:users,email',
             'password'     => 'required|min:6|confirmed',
         ]);
@@ -100,7 +99,6 @@ class AuthController extends Controller
             'nama_lengkap' => $request->nama_lengkap,
             'username'     => $request->username,
             'no_hp'        => $request->no_hp,
-            'nik'          => $request->nik,
             'email'        => $request->email,
             'password'     => Hash::make($request->password),
         ]);

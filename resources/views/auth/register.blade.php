@@ -151,11 +151,6 @@
                     </div>
 
                     <div class="register-field">
-                        <label>NIK</label>
-                        <input type="text" name="nik" class="form-control" value="{{ old('nik') }}" required>
-                    </div>
-
-                    <div class="register-field">
                         <label>Email</label>
                         <input type="email" name="email" class="form-control" value="{{ old('email') }}" required>
                     </div>

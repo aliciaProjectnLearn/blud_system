@@ -5,459 +5,293 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>BLUD Portal - Satu Portal, Berbagai Layanan Publik</title>
-    
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <!-- Alpine.js untuk Hamburger Menu -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <style>
+        * { font-family: 'Poppins', sans-serif; }
+        body { background-color: #f8f9fc; -webkit-font-smoothing: antialiased; }
+        .card-hover { transition: transform .25s, box-shadow .25s; cursor: pointer; }
+        .card-hover:hover { transform: translateY(-6px); box-shadow: 0 12px 32px rgba(78,115,223,.15); }
+        .star { color: #f6c23e; }
+        @media (max-width: 768px) {
+            #home h1 { font-size: 1.8rem; }
+            #home p { font-size: 0.95rem; }
+            .p-8 { padding: 1rem !important; }
+            .text-5xl { font-size: 2rem; }
+            .text-4xl { font-size: 1.5rem; }
+        }
+        @media (max-width: 480px) {
+            #home h1 { font-size: 1.4rem; }
+            .text-5xl { font-size: 1.5rem; }
+        }
+    </style>
 </head>
-<body class="min-h-screen bg-[#f8f9fc]" style="font-family: 'Nunito', sans-serif;">
-    {{-- Header/Navigation Bar --}}
-    <header class="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-200 relative" x-data="{ open: false }">
-        <nav class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between bg-white relative z-50">
+<body class="min-h-screen">
+
+    {{-- Navbar --}}
+    <header class="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-200" x-data="{ open: false }">
+        <nav class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
             <div class="flex items-center gap-2">
-                <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background-color: #4e73df;">
+                <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background-color:#4e73df;">
                     <svg class="text-white" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 2v20M2 12h20"/>
-                        <path d="m6 6 12 12M18 6 6 18"/>
+                        <path d="M12 2v20M2 12h20"/><path d="m6 6 12 12M18 6 6 18"/>
                     </svg>
                 </div>
-                <span class="font-bold text-xl" style="color: #4e73df;">
-                    BLUD PORTAL
-                </span>
-            </div>
-            
-            <!-- Hamburger Toggle Mobile/Tablet -->
-            <div class="lg:hidden flex items-center">
-                <button @click="open = !open" type="button" class="text-gray-700 hover:text-[#4e73df] focus:outline-none p-2 m-0 border-0 bg-transparent">
-                    <svg class="w-7 h-7" x-show="!open" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                    </svg>
-                    <svg class="w-7 h-7" x-show="open" style="display: none;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
+                <span class="font-bold text-xl" style="color:#4e73df;">BLUD PORTAL</span>
             </div>
 
-            <!-- Desktop Menu -->
-            <div class="hidden lg:flex items-center gap-8">
-                <a href="#home" class="text-gray-700 hover:text-[#4e73df] transition-colors font-medium">Home</a>
-                <a href="#layanan" class="text-gray-700 hover:text-[#4e73df] transition-colors font-medium">Layanan</a>
-                <a href="#tentang" class="text-gray-700 hover:text-[#4e73df] transition-colors font-medium">Tentang Kami</a>
-                <a href="#kontak" class="text-gray-700 hover:text-[#4e73df] transition-colors font-medium">Kontak</a>
-                
-                <div class="flex items-center gap-4 border-l border-gray-300 pl-6 ml-2">
-                    @auth
-                    <a href="{{ route('user.dashboard') }}" class="flex items-center gap-2 text-gray-700 hover:text-[#4e73df] transition-colors font-medium">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                        </svg>
-                        Dashboard Saya
-                    </a>
+            <button @click="open = !open" class="lg:hidden p-2 text-gray-700 hover:text-[#4e73df] border-0 bg-transparent">
+                <svg x-show="!open" class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+                <svg x-show="open" style="display:none" class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
 
+            <div class="hidden lg:flex items-center gap-4 border-l border-gray-200 pl-6">
+                @auth
                     @php
                         $roleName = strtolower(auth()->user()->roles->first()->nama ?? '');
-                        $dashboardRoute = url('/');
-                        if ($roleName === 'superadmin') $dashboardRoute = route('dashboard');
-                        elseif ($roleName === 'adminfutsal') $dashboardRoute = route('adminfutsal.dashboard');
-                        elseif ($roleName === 'adminkantin') $dashboardRoute = route('adminkantin.dashboard');
-                        elseif ($roleName === 'adminac') $dashboardRoute = route('adminac.dashboard');
-                        elseif ($roleName === 'teknisi') $dashboardRoute = route('teknisi.dashboard');
+                        $dashboardRoute = match($roleName) {
+                            'superadmin'  => route('dashboard'),
+                            'adminfutsal' => route('adminfutsal.dashboard'),
+                            'adminkantin' => route('adminkantin.dashboard'),
+                            'adminac'     => route('adminac.dashboard'),
+                            'teknisi'     => route('teknisi.dashboard'),
+                            default       => route('user.dashboard'),
+                        };
                     @endphp
-                    @if($roleName !== 'pelanggan' && $roleName !== '')
-                    <a href="{{ $dashboardRoute }}" class="px-5 py-2 rounded-lg text-white font-medium transition-all hover:shadow-lg hover:scale-105" style="background-color: #4e73df;">
-                        KE DASHBOARD {{ strtoupper($roleName) }}
+                    <a href="{{ $dashboardRoute }}" class="flex items-center gap-2 text-gray-700 hover:text-[#4e73df] font-medium transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                        </svg>
+                        Dashboard
                     </a>
-                    @endif
                     <form method="POST" action="{{ route('logout') }}" class="inline m-0">
                         @csrf
-                        <button type="submit" class="px-5 py-2 rounded-lg text-white font-medium transition-colors hover:bg-red-700 cursor-pointer" style="background-color: #e53e3e;">
+                        <button type="submit" class="px-5 py-2 rounded-lg text-white font-medium cursor-pointer hover:opacity-90" style="background-color:#e53e3e;">
                             Logout
                         </button>
                     </form>
-                    @else
-                    <a href="{{ route('login') }}" class="px-5 py-2 rounded-lg text-white font-medium transition-all shadow-sm hover:shadow-md" style="background-color: #4e73df;">
-                        LOGIN
-                    </a>
-                    @endauth
-                </div>
-            </div>
-        </nav>
-        
-        <!-- Mobile Dropdown Menu -->
-        <div x-show="open" style="display: none;" class="lg:hidden absolute top-full left-0 w-full bg-[#f8f9fc] border-t border-gray-100 shadow-lg z-40">
-            <div class="px-6 py-4 space-y-3">
-                <a href="#home" class="block text-gray-700 hover:text-[#4e73df] transition-colors font-medium py-2">Home</a>
-                <a href="#layanan" class="block text-gray-700 hover:text-[#4e73df] transition-colors font-medium py-2">Layanan</a>
-                <a href="#tentang" class="block text-gray-700 hover:text-[#4e73df] transition-colors font-medium py-2">Tentang Kami</a>
-                <a href="#kontak" class="block text-gray-700 hover:text-[#4e73df] transition-colors font-medium py-2">Kontak</a>
-                
-                <hr class="border-gray-200 my-2">
-                
-                @auth
-                <a href="{{ route('user.dashboard') }}" class="flex items-center gap-2 text-gray-700 hover:text-[#4e73df] transition-colors font-medium py-2">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                    </svg>
-                    Dashboard Saya
-                </a>
-                
-                <div class="pt-2 pb-2">
-                    @if(isset($roleName) && $roleName !== 'pelanggan' && $roleName !== '')
-                    <a href="{{ $dashboardRoute ?? '#' }}" class="block text-center w-full px-6 py-3 rounded-lg text-white font-medium mb-3 shadow-sm hover:shadow-md" style="background-color: #4e73df;">
-                        KE DASHBOARD {{ strtoupper($roleName) }}
-                    </a>
-                    @endif
-                    <form method="POST" action="{{ route('logout') }}" class="m-0">
-                        @csrf
-                        <button type="submit" class="block text-center w-full px-6 py-3 rounded-lg text-white font-medium shadow-sm hover:shadow-md" style="background-color: #e53e3e;">
-                            Logout
-                        </button>
-                    </form>
-                </div>
                 @else
-                <div class="pt-2 pb-2">
-                    <a href="{{ route('login') }}" class="block text-center w-full px-6 py-3 rounded-lg text-white font-medium mb-3 shadow-sm hover:shadow-md" style="background-color: #4e73df;">
+                    <a href="{{ route('login') }}" class="px-5 py-2 rounded-lg text-white font-medium hover:opacity-90 shadow-sm" style="background-color:#4e73df;">
                         LOGIN
                     </a>
-                </div>
                 @endauth
             </div>
+        </nav>
+
+        <div x-show="open" style="display:none" class="lg:hidden border-t border-gray-100 bg-white px-6 py-4 space-y-3">
+            @auth
+                <a href="{{ $dashboardRoute ?? route('user.dashboard') }}" class="block text-center w-full px-6 py-3 rounded-lg text-white font-medium mb-2" style="background-color:#4e73df;">Dashboard</a>
+                <form method="POST" action="{{ route('logout') }}" class="m-0">
+                    @csrf
+                    <button type="submit" class="block w-full px-6 py-3 rounded-lg text-white font-medium" style="background-color:#e53e3e;">Logout</button>
+                </form>
+            @else
+                <a href="{{ route('login') }}" class="block text-center w-full px-6 py-3 rounded-lg text-white font-medium" style="background-color:#4e73df;">LOGIN</a>
+            @endauth
         </div>
     </header>
 
-    {{-- Hero Section --}}
-    <section id="home" class="relative py-24 overflow-hidden" style="background-color: #EEEEEE;">
+    {{-- Hero --}}
+    <section id="home" class="relative py-24 overflow-hidden" style="background-color:#EEEEEE;">
         <div class="absolute inset-0 opacity-10">
-            <img 
-                src="https://images.unsplash.com/photo-1764053430604-d585d1f1dad6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkaWdpdGFsJTIwdGVjaG5vbG9neSUyMG5ldHdvcmslMjBpbnRlZ3JhdGlvbnxlbnwxfHx8fDE3NzU0NDIyMzd8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
-                alt="Digital Integration"
-                class="w-full h-full object-cover"
-            />
+            <img src="{{ asset('img/depan_smk (1).JPG') }}" alt="SMK" class="w-full h-full object-cover"/>
         </div>
-        
         <div class="relative max-w-7xl mx-auto px-6 text-center">
-            <h1 class="text-5xl font-bold mb-6" style="color: #4e73df;">
-                Satu Portal, Berbagai Layanan Publik
-            </h1>
-            <p class="text-xl max-w-3xl mx-auto leading-relaxed" style="color: #4e73df;">
-                Akses mudah dan cepat untuk sewa lapangan futsal, penyewaan ruko/kantin, 
-                serta layanan servis AC profesional dalam satu tempat.
+            <h1 class="text-5xl font-bold mb-6" style="color:#4e73df;">Satu Portal, Berbagai Layanan Publik</h1>
+            <p class="text-xl max-w-3xl mx-auto leading-relaxed" style="color:#4e73df;">
+                Akses mudah dan cepat untuk sewa lapangan futsal, penyewaan ruko/kantin, serta layanan servis AC profesional dalam satu tempat.
             </p>
         </div>
     </section>
 
-    {{-- Service Grid Section --}}
+    {{-- Layanan --}}
     <section id="layanan" class="py-24 bg-[#f8f9fc]">
-        <div class="max-w-7xl mx-auto px-6">
+        <div class="max-w-5xl mx-auto px-4">
             <div class="text-center mb-16">
-                <h2 class="text-4xl font-bold mb-6" style="color: #4e73df;">
-                    Layanan Kami
-                </h2>
-                <p class="text-lg text-gray-600 max-w-2xl mx-auto">
-                    Pilih layanan yang Anda butuhkan dan nikmati kemudahan akses terintegrasi
-                </p>
+                <h2 class="text-4xl font-bold mb-6" style="color:#4e73df;">Layanan Kami</h2>
+                <p class="text-lg text-gray-600 max-w-2xl mx-auto">Pilih layanan yang Anda butuhkan. Login terlebih dahulu untuk melakukan booking.</p>
             </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {{-- Card 1 - Futsal --}}
-                <div class="bg-white rounded-2xl shadow-sm border-l-4 border-[#4e73df] hover:shadow-md transition-all duration-300 hover:-translate-y-2 flex flex-col h-full">
-                    <div class="p-8 flex flex-col flex-grow">
-                        <div 
-                            class="w-16 h-16 rounded-xl flex items-center justify-center mb-6 transition-transform duration-300 group-hover:scale-110"
-                            style="background-color: #4e73df;">
-                            <svg class="text-white" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="12" cy="12" r="10"/>
-                                <path d="M12 2v20"/>
-                                <path d="M2 12h20"/>
-                                <path d="m6 6 12 12"/>
-                                <path d="M18 6 6 18"/>
-                            </svg>
-                        </div>
-                        
-                        <h3 class="text-2xl font-bold mb-4" style="color: #4e73df;">
-                            Pusat Olahraga Futsal
-                        </h3>
-                        
-                        <p class="text-gray-600 mb-8 leading-relaxed flex-grow">
-                            Booking lapangan online, cek ketersediaan jadwal, dan kelola membership 
-                            dengan mudah.
-                        </p>
-                        
-                        @guest
-                        <button disabled class="mt-auto block w-full py-3 rounded-lg text-white font-medium text-center bg-gray-400 cursor-not-allowed hidden">
-                            Order
-                        </button>
-                        @else
-                        <a href="{{ route('user.futsal.index') }}" 
-                           class="mt-auto block w-full py-3 rounded-lg text-white font-medium text-center transition-all shadow-sm hover:shadow-lg focus:ring focus:ring-opacity-50"
-                           style="background-color: #4e73df;">
-                            Pesan Lapangan
-                        </a>
-                        @endguest
+                @auth
+                <a href="{{ route('user.futsal.index') }}" class="card-hover block bg-white p-8 rounded-2xl shadow-sm border-t-4 border-[#4e73df] text-center flex flex-col h-full no-underline">
+                @else
+                <a href="{{ route('login') }}" class="card-hover block bg-white p-8 rounded-2xl shadow-sm border-t-4 border-[#4e73df] text-center flex flex-col h-full no-underline">
+                @endauth
+                    <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm" style="background-color:#4e73df;">
+                        <svg class="text-white" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/><path d="M12 2v20M2 12h20m-6-6-12 12M18 6 6 18"/>
+                        </svg>
                     </div>
-                </div>
+                    <h3 class="text-xl font-bold mb-3" style="color:#4e73df;">Pusat Olahraga Futsal</h3>
+                    <p class="text-gray-600 mb-6 leading-relaxed text-sm flex-grow">Booking lapangan online, cek ketersediaan jadwal, dan kelola membership dengan mudah.</p>
+                    <span class="mt-auto w-full py-2 rounded-lg text-white font-medium text-sm text-center block" style="background-color:#4e73df;">
+                        @auth Pesan Lapangan @else Login untuk Pesan @endauth
+                    </span>
+                </a>
 
-                {{-- Card 2 - Ruko/Canteen --}}
-                <div class="bg-white rounded-2xl shadow-sm border-l-4 border-[#4e73df] hover:shadow-md transition-all duration-300 hover:-translate-y-2 flex flex-col h-full">
-                    <div class="p-8 flex flex-col flex-grow">
-                        <div 
-                            class="w-16 h-16 rounded-xl flex items-center justify-center mb-6 transition-transform duration-300 group-hover:scale-110"
-                            style="background-color: #4e73df;">
-                            <svg class="text-white" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M3 21h18"/>
-                                <path d="M4 21V7l8-4v18"/>
-                                <path d="M12 3v18"/>
-                                <path d="M12 7h8v14"/>
-                                <path d="M8 11h.01"/>
-                                <path d="M8 15h.01"/>
-                                <path d="M16 11h.01"/>
-                                <path d="M16 15h.01"/>
-                            </svg>
-                        </div>
-                        
-                        <h3 class="text-2xl font-bold mb-4" style="color: #4e73df;">
-                            Penyewaan Lahan & Ruko
-                        </h3>
-                        
-                        <p class="text-gray-600 mb-8 leading-relaxed flex-grow">
-                            Informasi unit tersedia, pengajuan sewa, dan manajemen dokumen kontrak 
-                            terpadu.
-                        </p>
-                        
-                        @guest
-                        <button disabled class="mt-auto block w-full py-3 rounded-lg text-white font-medium text-center bg-gray-400 cursor-not-allowed hidden">
-                            Order
-                        </button>
-                        @else
-                        <a href="{{ route('user.ruko.index') }}" 
-                           class="mt-auto block w-full py-3 rounded-lg text-white font-medium text-center transition-all shadow-sm hover:shadow-lg focus:ring focus:ring-opacity-50"
-                           style="background-color: #4e73df;">
-                            Cek Unit Ruko
-                        </a>
-                        @endguest
+                @auth
+                <a href="{{ route('user.kantin.katalog') }}" class="card-hover block bg-white p-8 rounded-2xl shadow-sm border-t-4 border-[#4e73df] text-center flex flex-col h-full no-underline">
+                @else
+                <a href="{{ route('login') }}" class="card-hover block bg-white p-8 rounded-2xl shadow-sm border-t-4 border-[#4e73df] text-center flex flex-col h-full no-underline">
+                @endauth
+                    <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm" style="background-color:#4e73df;">
+                        <svg class="text-white" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 21h18M4 21V7l8-4v18M12 3v18M12 7h8v14M8 11h.01M8 15h.01M16 11h.01M16 15h.01"/>
+                        </svg>
                     </div>
-                </div>
+                    <h3 class="text-xl font-bold mb-3" style="color:#4e73df;">Penyewaan Kantin & Ruko</h3>
+                    <p class="text-gray-600 mb-6 leading-relaxed text-sm flex-grow">Informasi unit tersedia, pengajuan sewa, dan manajemen dokumen kontrak terpadu.</p>
+                    <span class="mt-auto w-full py-2 rounded-lg text-white font-medium text-sm text-center block" style="background-color:#4e73df;">
+                        @auth Cek Unit Ruko @else Login untuk Akses @endauth
+                    </span>
+                </a>
 
-                {{-- Card 3 - AC Services --}}
-                <div class="bg-white rounded-2xl shadow-sm border-l-4 border-[#4e73df] hover:shadow-md transition-all duration-300 hover:-translate-y-2 flex flex-col h-full">
-                    <div class="p-8 flex flex-col flex-grow">
-                        <div 
-                            class="w-16 h-16 rounded-xl flex items-center justify-center mb-6 transition-transform duration-300 group-hover:scale-110"
-                            style="background-color: #4e73df;">
-                            <svg class="text-white" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/>
-                                <path d="M9.6 4.6A2 2 0 1 1 11 8H2"/>
-                                <path d="M12.6 19.4A2 2 0 1 0 14 16H2"/>
-                            </svg>
-                        </div>
-                        
-                        <h3 class="text-2xl font-bold mb-4" style="color: #4e73df;">
-                            Layanan Servis & Produk AC
-                        </h3>
-                        
-                        <p class="text-gray-600 mb-8 leading-relaxed flex-grow">
-                            Pesan jasa perbaikan AC profesional dari teknisi bersertifikat dan beli 
-                            sparepart berkualitas.
-                        </p>
-                        
-                        @guest
-                        <button disabled class="mt-auto block w-full py-3 rounded-lg text-white font-medium text-center bg-gray-400 cursor-not-allowed hidden">
-                            Order
-                        </button>
-                        @else
-                        <a href="{{ route('user.ac.index') }}" 
-                           class="mt-auto block w-full py-3 rounded-lg text-white font-medium text-center transition-all shadow-sm hover:shadow-lg focus:ring focus:ring-opacity-50"
-                           style="background-color: #4e73df;">
-                            Pesan Servis
-                        </a>
-                        @endguest
+                @auth
+                <a href="{{ route('user.ac.index') }}" class="card-hover block bg-white p-8 rounded-2xl shadow-sm border-t-4 border-[#4e73df] text-center flex flex-col h-full no-underline">
+                @else
+                <a href="{{ route('login') }}" class="card-hover block bg-white p-8 rounded-2xl shadow-sm border-t-4 border-[#4e73df] text-center flex flex-col h-full no-underline">
+                @endauth
+                    <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm" style="background-color:#4e73df;">
+                        <svg class="text-white" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2M9.6 4.6A2 2 0 1 1 11 8H2M12.6 19.4A2 2 0 1 0 14 16H2"/>
+                        </svg>
                     </div>
-                </div>
+                    <h3 class="text-xl font-bold mb-3" style="color:#4e73df;">Layanan Servis AC</h3>
+                    <p class="text-gray-600 mb-6 leading-relaxed text-sm flex-grow">Pesan jasa perbaikan AC profesional dari teknisi bersertifikat.</p>
+                    <span class="mt-auto w-full py-2 rounded-lg text-white font-medium text-sm text-center block" style="background-color:#4e73df;">
+                        @auth Pesan Servis @else Login untuk Pesan @endauth
+                    </span>
+                </a>
+
             </div>
         </div>
     </section>
 
-    {{-- Benefits Section --}}
-    <section id="tentang" class="py-24" style="background-color: #EEEEEE;">
-        <div class="max-w-7xl mx-auto px-6">
+    {{-- Keunggulan --}}
+    <section id="tentang" class="py-24" style="background-color:#EEEEEE;">
+        <div class="max-w-5xl mx-auto px-6">
             <div class="text-center mb-16">
-                <h2 class="text-4xl font-bold mb-6" style="color: #4e73df;">
-                    Mengapa Memilih Kami?
-                </h2>
-                <p class="text-lg text-gray-600 max-w-2xl mx-auto">
-                    Kami berkomitmen memberikan layanan cepat, terintegrasi, dan transparan
-                </p>
+                <h2 class="text-4xl font-bold mb-6" style="color:#4e73df;">Mengapa Memilih Kami?</h2>
+                <p class="text-lg text-gray-600 max-w-2xl mx-auto">Kami berkomitmen memberikan layanan cepat, terintegrasi, dan transparan.</p>
             </div>
-
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-24">
+                @foreach([
+                    ['path' => 'M13 2 3 14h9l-1 8 10-12h-9l1-8z', 'title' => 'Cepat & Sigap', 'desc' => 'Proses booking dan pengajuan yang efisien menghemat waktu Anda tanpa perlu antre panjang.'],
+                    ['path' => 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10', 'title' => 'Transparan', 'desc' => 'Informasi harga, ketersediaan, dan status 100% jelas, terbuka, dan dapat dipantau.'],
+                    ['path' => 'M12 2v20M2 12h20m-6-6-12 12M18 6 6 18', 'title' => 'Terintegrasi', 'desc' => 'Satu pintu akses untuk semua kebutuhan penyewaan dan layanan jasa Anda.'],
+                ] as $item)
                 <div class="bg-white p-8 rounded-2xl shadow-sm border-l-4 border-[#4e73df] text-center flex flex-col h-full hover:shadow-md transition-shadow">
-                    <div 
-                        class="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm"
-                        style="background-color: #4e73df;">
-                        <svg class="text-white" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>
+                    <div class="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm" style="background-color:#4e73df;">
+                        <svg class="text-white" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="{{ $item['path'] }}"/>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-bold mb-3" style="color: #4e73df;">
-                        Cepat & Sigap
-                    </h3>
-                    <p class="text-gray-600 leading-relaxed flex-grow">
-                        Proses booking dan pengajuan yang efisien menghemat waktu Anda tanpa perlu antre panjang
-                    </p>
+                    <h3 class="text-xl font-bold mb-3" style="color:#4e73df;">{{ $item['title'] }}</h3>
+                    <p class="text-gray-600 leading-relaxed flex-grow text-sm">{{ $item['desc'] }}</p>
                 </div>
-
-                <div class="bg-white p-8 rounded-2xl shadow-sm border-l-4 border-[#4e73df] text-center flex flex-col h-full hover:shadow-md transition-shadow">
-                    <div 
-                        class="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm"
-                        style="background-color: #4e73df;">
-                        <svg class="text-white" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/>
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-bold mb-3" style="color: #4e73df;">
-                        Transparan
-                    </h3>
-                    <p class="text-gray-600 leading-relaxed flex-grow">
-                        Informasi harga, ketersediaan, dan status proses yang 100% jelas, terbuka, dan dapat dipantau
-                    </p>
-                </div>
-
-                <div class="bg-white p-8 rounded-2xl shadow-sm border-l-4 border-[#4e73df] text-center flex flex-col h-full hover:shadow-md transition-shadow">
-                    <div 
-                        class="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm"
-                        style="background-color: #4e73df;">
-                        <svg class="text-white" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M12 2v20M2 12h20"/>
-                            <path d="m6 6 12 12M18 6 6 18"/>
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-bold mb-3" style="color: #4e73df;">
-                        Terintegrasi
-                    </h3>
-                    <p class="text-gray-600 leading-relaxed flex-grow">
-                        Satu pintu akses untuk semua kebutuhan penyewaan dan layanan jasa Anda
-                    </p>
-                </div>
+                @endforeach
             </div>
-            
-            {{-- Statistik Kredibilitas --}}
-            <div class="mt-12 max-w-7xl mx-auto border-t border-gray-300 pt-16">
-                <div class="text-center mb-16">
-                    <h3 class="text-3xl font-bold mb-4" style="color: #4e73df;">Statistik Kredibilitas</h3>
-                    <p class="text-lg text-gray-600 font-medium">Telah dipercaya oleh ratusan orang dengan ribuan testimoni positif.</p>
+
+            <div class="border-t border-gray-300 pt-16">
+                <div class="text-center mb-12">
+                    <h3 class="text-3xl font-bold mb-4" style="color:#4e73df;">Statistik Kredibilitas</h3>
+                    <p class="text-gray-600">Telah dipercaya oleh ratusan orang dengan ribuan testimoni positif.</p>
                 </div>
-                
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <!-- Stat 1 -->
-                    <div class="bg-white p-10 rounded-2xl shadow-sm border-l-4 border-[#4e73df] hover:shadow-md transition-all hover:-translate-y-1 text-center flex flex-col h-full justify-center">
-                        <div class="text-5xl font-black mb-4" style="color: #4e73df;">500+</div>
-                        <h4 class="font-bold text-lg" style="color: #4e73df;">Masyarakat Terdaftar</h4>
+                    @foreach([['500+','Masyarakat Terdaftar'],['1.500+','Transaksi Booking Berhasil'],['200+','Unit Ruko & Kantin Aktif']] as $s)
+                    <div class="bg-white p-10 rounded-2xl shadow-sm border-l-4 border-[#4e73df] hover:shadow-md hover:-translate-y-1 transition-all text-center">
+                        <div class="text-5xl font-black mb-4" style="color:#4e73df;">{{ $s[0] }}</div>
+                        <p class="font-bold" style="color:#4e73df;">{{ $s[1] }}</p>
                     </div>
-                    
-                    <!-- Stat 2 -->
-                    <div class="bg-white p-10 rounded-2xl shadow-sm border-l-4 border-[#4e73df] hover:shadow-md transition-all hover:-translate-y-1 text-center flex flex-col h-full justify-center">
-                        <div class="text-5xl font-black mb-4" style="color: #4e73df;">1.500+</div>
-                        <h4 class="font-bold text-lg" style="color: #4e73df;">Transaksi Booking Berhasil</h4>
-                    </div>
-                    
-                    <!-- Stat 3 -->
-                    <div class="bg-white p-10 rounded-2xl shadow-sm border-l-4 border-[#4e73df] hover:shadow-md transition-all hover:-translate-y-1 text-center flex flex-col h-full justify-center">
-                        <div class="text-5xl font-black mb-4" style="color: #4e73df;">200+</div>
-                        <h4 class="font-bold text-lg" style="color: #4e73df;">Unit Ruko & Kantin Aktif</h4>
-                    </div>
+                    @endforeach
                 </div>
             </div>
         </div>
     </section>
+
+    {{-- Testimoni — hanya tampil jika ada data --}}
+    @if($testimoni->isNotEmpty())
+    <section class="py-24 bg-[#f8f9fc]">
+        <div class="max-w-5xl mx-auto px-6">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold mb-4" style="color:#4e73df;">Kata Mereka</h2>
+                <p class="text-gray-600 max-w-xl mx-auto">Ribuan pengguna sudah merasakan kemudahan layanan BLUD Portal.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                @foreach($testimoni as $t)
+                <div class="bg-white rounded-2xl p-6 shadow-sm border-l-4 border-[#4e73df] hover:shadow-md transition-shadow">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0" style="background-color:#4e73df;">
+                            {{ strtoupper(substr($t->nama, 0, 1)) }}
+                        </div>
+                        <div>
+                            <div class="font-bold text-gray-800 text-sm">{{ $t->nama }}</div>
+                            <div class="text-xs text-gray-400">{{ $t->peran }}</div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        @for($i = 0; $i < $t->bintang; $i++)<span class="star text-sm">★</span>@endfor
+                        @for($i = $t->bintang; $i < 5; $i++)<span class="text-gray-300 text-sm">★</span>@endfor
+                    </div>
+                    <p class="text-gray-600 text-sm leading-relaxed">"{{ $t->isi }}"</p>
+                </div>
+                @endforeach
+            </div>
+        </div>
+    </section>
+    @endif
 
     {{-- Footer --}}
-    <footer id="kontak" class="py-16" style="background-color: #4e73df;">
-        <div class="max-w-7xl mx-auto px-6">
+    <footer id="kontak" class="py-16" style="background-color:#4e73df;">
+        <div class="max-w-5xl mx-auto px-6">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
-                {{-- Brand Column --}}
                 <div>
                     <div class="flex items-center gap-3 mb-6">
-                        <div class="w-12 h-12 rounded-lg flex items-center justify-center" style="background-color: #4e73df;">
-                            <svg class="text-white" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M12 2v20M2 12h20"/>
-                                <path d="m6 6 12 12M18 6 6 18"/>
+                        <div class="w-12 h-12 rounded-lg flex items-center justify-center bg-white/20">
+                            <svg class="text-white" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2v20M2 12h20"/><path d="m6 6 12 12M18 6 6 18"/>
                             </svg>
                         </div>
-                        <span class="font-bold text-2xl text-white">
-                            BLUD PORTAL
-                        </span>
+                        <span class="font-bold text-2xl text-white">BLUD PORTAL</span>
                     </div>
-                    <p class="text-gray-300 leading-relaxed text-lg">
-                        Platform terintegrasi untuk layanan publik yang lebih baik dan efisien.
-                    </p>
+                    <p class="text-gray-300 leading-relaxed text-sm">Platform terintegrasi untuk layanan publik SMKN 1 Cirebon yang lebih baik dan efisien.</p>
                 </div>
-
-                {{-- Quick Links --}}
                 <div>
                     <h4 class="font-bold text-white text-xl mb-6">Tautan Cepat</h4>
-                    <ul class="space-y-4">
-                        <li>
-                            <a href="#" class="text-gray-300 hover:text-white transition-colors">
-                                Kebijakan Privasi
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#" class="text-gray-300 hover:text-white transition-colors">
-                                Syarat & Ketentuan
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#" class="text-gray-300 hover:text-white transition-colors">
-                                Bantuan
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#" class="text-gray-300 hover:text-white transition-colors">
-                                FAQ
-                            </a>
-                        </li>
+                    <ul class="space-y-3 text-sm">
+                        @foreach(['Kebijakan Privasi','Syarat & Ketentuan','Bantuan','FAQ'] as $link)
+                        <li><a href="#" class="text-gray-300 hover:text-white transition-colors">{{ $link }}</a></li>
+                        @endforeach
                     </ul>
                 </div>
-
-                {{-- Social Media --}}
                 <div>
                     <h4 class="font-bold text-white text-xl mb-6">Ikuti Kami</h4>
-                    <div class="flex gap-4">
-                        <a 
-                            href="#" 
-                            class="w-12 h-12 rounded-lg flex items-center justify-center transition-all hover:scale-110 shadow-md"
-                            style="background-color: #4e73df;">
-                            <svg class="text-white w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                            </svg>
+                    <div class="flex gap-3">
+                        @foreach([
+                            'M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z',
+                            'M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z',
+                            'M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z',
+                        ] as $svg)
+                        <a href="#" class="w-10 h-10 rounded-lg flex items-center justify-center bg-white/20 hover:bg-white/30 transition-colors">
+                            <svg class="text-white w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="{{ $svg }}"/></svg>
                         </a>
-                        <a 
-                            href="#" 
-                            class="w-12 h-12 rounded-lg flex items-center justify-center transition-all hover:scale-110 shadow-md"
-                            style="background-color: #4e73df;">
-                            <svg class="text-white w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
-                            </svg>
-                        </a>
-                        <a 
-                            href="#" 
-                            class="w-12 h-12 rounded-lg flex items-center justify-center transition-all hover:scale-110 shadow-md"
-                            style="background-color: #4e73df;">
-                            <svg class="text-white w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-                            </svg>
-                        </a>
+                        @endforeach
                     </div>
                 </div>
             </div>
-
-            {{-- Copyright --}}
-            <div class="border-t border-gray-600 pt-8 text-center mt-12">
-                <p class="text-gray-300">
-                    © {{ date('Y') }} BLUD Portal. Semua hak dilindungi undang-undang.
-                </p>
+            <div class="border-t border-blue-400 pt-8 text-center">
+                <p class="text-gray-300 text-sm">© {{ date('Y') }} BLUD SMKN 1 Cirebon. Semua hak dilindungi undang-undang.</p>
             </div>
         </div>
     </footer>
+
 </body>
 </html>
