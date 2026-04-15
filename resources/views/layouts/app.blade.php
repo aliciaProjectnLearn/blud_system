@@ -9,7 +9,8 @@
     <meta name="description" content="">
     <meta name="author" content="">
     {{-- Logo BLUD --}}
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect width='24' height='24' rx='4' fill='%234e73df'/><g stroke='white' stroke-width='2' stroke-linecap='round'><path d='M12 2v20M2 12h20'/><path d='m6 6 12 12M18 6 6 18'/></g></svg>">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect width='24' height='24' rx='4' fill='%234e73df'/><g stroke='white' stroke-width='2' stroke-linecap='round'><path d='M12 2v20M2 12h20'/><path d='m6 6 12 12M18 6 6 18'/></g></svg>">
 
     <title>{{ config('app.name', 'MyApp') }} - @yield('title', 'Dashboard')</title>
 
@@ -17,10 +18,20 @@
     <link href="{{ asset('assets/vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet" type="text/css">
 
     {{-- Google Fonts --}}
-    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     {{-- SB Admin 2 CSS --}}
     <link href="{{ asset('assets/css/sb-admin-2.min.css') }}" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif !important;
+            line-height: 1.6;
+        }
+
+        h1,h2,h3,h4,h5,h6 {
+            font-weight: 600;
+        }
+    </style>
 
     <style>
     @media (max-width: 767.98px) {
@@ -256,7 +267,7 @@
                 <div class="container-fluid">
 
                     {{-- Flash Messages --}}
-                    @if(session('success'))
+                    @if (session('success'))
                         <div class="alert alert-success alert-dismissible fade show" role="alert">
                             <i class="fas fa-check-circle mr-2"></i>{{ session('success') }}
                             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
@@ -265,7 +276,7 @@
                         </div>
                     @endif
 
-                    @if(session('error'))
+                    @if (session('error'))
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
                             <i class="fas fa-exclamation-circle mr-2"></i>{{ session('error') }}
                             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
@@ -274,7 +285,7 @@
                         </div>
                     @endif
 
-                    @if(session('warning'))
+                    @if (session('warning'))
                         <div class="alert alert-warning alert-dismissible fade show" role="alert">
                             <i class="fas fa-exclamation-triangle mr-2"></i>{{ session('warning') }}
                             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
@@ -325,89 +336,17 @@
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    @if(session('success'))
-<script>
-
-Swal.fire({
-icon: 'success',
-title: 'Berhasil',
-text: '{{ session('success') }}',
-timer: 2000,
-showConfirmButton: false
-})
-
-</script>
+    @if (session('success'))
+        <script>
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil',
+                text: '{{ session('success') }}',
+                timer: 2000,
+                showConfirmButton: false
+            })
+        </script>
     @endif
-
-    <script>
-    $(function() {
-
-        function isMobile() {
-            return window.innerWidth < 768;
-        }
-
-        function openMobileNav() {
-            $('#mobile-nav').addClass('open');
-            $('#mobile-nav-backdrop').addClass('open');
-            $('body').css('overflow', 'hidden');
-        }
-
-        function closeMobileNav() {
-            $('#mobile-nav').removeClass('open');
-            $('#mobile-nav-backdrop').removeClass('open');
-            $('body').css('overflow', '');
-        }
-
-        // Intercept tombol hamburger SB Admin 2
-        $(document).on('click', '#sidebarToggle, #sidebarToggleTop', function(e) {
-            if (isMobile()) {
-                e.preventDefault();
-                e.stopPropagation();
-                if ($('#mobile-nav').hasClass('open')) {
-                    closeMobileNav();
-                } else {
-                    openMobileNav();
-                }
-            }
-        });
-
-        // Klik backdrop untuk tutup
-        $(document).on('click', '#mobile-nav-backdrop', function() {
-            closeMobileNav();
-        });
-
-        // Tombol X
-        $(document).on('click', '#btn-mobile-nav-close', function() {
-            closeMobileNav();
-        });
-
-        // Klik link (bukan toggle) untuk tutup
-        $(document).on('click', '#mobile-nav .mobile-nav-item, #mobile-nav .mobile-nav-subitem', function() {
-            closeMobileNav();
-        });
-
-        // Toggle submenu
-        $(document).on('click', '#mobile-nav .mobile-nav-toggle', function() {
-            const target = $(this).data('target');
-            const isCollapsed = $(this).hasClass('collapsed');
-
-            if (isCollapsed) {
-                $(this).removeClass('collapsed');
-                $(target).slideDown(200);
-            } else {
-                $(this).addClass('collapsed');
-                $(target).slideUp(200);
-            }
-        });
-
-        // Tutup saat resize ke desktop
-        $(window).on('resize', function() {
-            if (!isMobile()) {
-                closeMobileNav();
-            }
-        });
-    });
-    </script>
 
 </body>
 
