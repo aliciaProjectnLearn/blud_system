@@ -10,6 +10,7 @@ use App\Http\Controllers\SuperAdmin\DashboardController;
 use App\Http\Controllers\SuperAdmin\TransaksiController;
 use App\Http\Controllers\SuperAdmin\RekapKeuanganController;
 use App\Http\Controllers\AdminFutsal\DashboardController as AdminFutsalDashboardController;
+use App\Http\Controllers\SuperAdmin\PembagianPendapatanController;
 use App\Http\Controllers\AdminFutsal\PaketMembershipController;
 use App\Http\Controllers\AdminFutsal\MembershipController;
 use App\Http\Controllers\AdminFutsal\PelangganController;
@@ -86,6 +87,13 @@ Route::middleware(['auth', 'role:Superadmin'])->group(function () {
     // Rekap Keuangan
     Route::get('/rekap-keuangan', [RekapKeuanganController::class, 'index'])
         ->name('dashboard.rekap-keuangan');
+
+    // Pembagian Pendapatan
+    Route::get('/pembagian-pendapatan', [PembagianPendapatanController::class, 'index'])
+        ->name('dashboard.pembagian-pendapatan');
+    Route::put('/pembagian-pendapatan', [PembagianPendapatanController::class, 'updateKonfigurasi'])
+        ->name('dashboard.pembagian-pendapatan.update');
+
 });
 
 // Profile Semua Admin
@@ -355,7 +363,7 @@ Route::middleware(['auth', 'role:Teknisi'])->prefix('teknisi')->name('teknisi.')
     Route::get('/dashboard', [\App\Http\Controllers\TeknisiAc\DashboardController::class, 'index'])->name('dashboard');
     Route::get('/pekerjaan/{id}', [\App\Http\Controllers\TeknisiAc\DashboardController::class, 'show'])->name('pekerjaan.show');
     Route::post('/pekerjaan/{id}/selesai', [\App\Http\Controllers\TeknisiAc\DashboardController::class, 'selesaikanPekerjaan'])->name('pekerjaan.selesai');
-    
+
     // Pembayaran
     Route::get('/pembayaran/{id}', [\App\Http\Controllers\TeknisiAc\PembayaranController::class, 'create'])->name('pembayaran.form');
     Route::post('/pembayaran/{id}', [\App\Http\Controllers\TeknisiAc\PembayaranController::class, 'store'])->name('pembayaran.store');
