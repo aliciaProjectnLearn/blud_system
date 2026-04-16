@@ -116,7 +116,7 @@
                                 <div class="form-group">
                                     <label for="jumlah_bayar"><strong>Nominal Pembayaran (Rp)</strong></label>
                                     <input type="number" name="jumlah_bayar" id="jumlah_bayar"
-                                        class="form-control" placeholder="Contoh: 100000" min="1" 
+                                        class="form-control" placeholder="Masukkan Nominal Pembayaran" min="1" 
                                         value="{{ $transaksi->jumlah_bayar > 0 ? $transaksi->jumlah_bayar : '' }}"
                                         {{ $transaksi->jenis_transaksi == 'event' ? 'readonly' : 'required' }}>
                                     

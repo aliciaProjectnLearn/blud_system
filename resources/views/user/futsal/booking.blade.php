@@ -64,7 +64,7 @@
                             <label class="font-weight-bold text-gray-700">
                                 <i class="fas fa-tags text-primary mr-1"></i> Jenis Booking
                             </label>
-                            <div class="d-flex gap-3" style="gap:12px;">
+                            <div class="d-flex jenis-booking-wrap" style="gap:12px;">
                                 <label class="payment-card flex-fill" :class="{'payment-card--selected': form.type === 'regular'}">
                                     <input type="radio" name="type" value="regular" x-model="form.type" class="d-none">
                                     <div class="d-flex align-items-center">
@@ -421,6 +421,39 @@
 
 @push('styles')
 <style>
+    /* Mobile: Jenis Booking stack vertical */
+@media (max-width: 575.98px) {
+    /* Jenis Booking: stack jadi vertical */
+    .jenis-booking-wrap {
+        flex-direction: column !important;
+    }
+
+    .jenis-booking-wrap .payment-card {
+        width: 100%;
+    }
+
+    /* Payment card lebih compact di mobile */
+    .payment-card {
+        padding: 12px 14px;
+    }
+
+    /* Slot grid lebih rapat */
+    .slot-card {
+        min-width: 90px;
+        padding: 10px 12px;
+    }
+
+    .slot-time {
+        font-size: 0.9rem;
+    }
+
+    /* Durasi: full width di mobile */
+    .col-md-4 {
+        margin-bottom: 8px;
+    }
+}
+
+
     [x-cloak] { display: none !important; }
 
     /* Slot Grid */

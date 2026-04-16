@@ -18,7 +18,15 @@ class LapanganTableSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
-            // tambahkan data lain
+            
+            [
+                'nama' => 'Lapangan Kedua',
+                'spesifikasi' => 'lapangan ini memiliki ukuran 20x10',
+                'deskripsi' => 'Lapangan Futsal dengan fasilitas standar',
+                'foto' => 'lapangan_b.jpg',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
         ]);
     }
 }

@@ -96,6 +96,54 @@
     ::-webkit-scrollbar-track { background: #f1f1f1; }
     ::-webkit-scrollbar-thumb { background: #4e73df; border-radius: 10px; }
     ::-webkit-scrollbar-thumb:hover { background: #224abe; }
+
+    /* Print styling for detail modal */
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+        #detailModal, #detailModal * {
+            visibility: visible;
+        }
+        #detailModal {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+        }
+        .modal-footer {
+            display: none !important;
+        }
+        .modal-backdrop {
+            display: none !important;
+        }
+    }
+
+    /* Mobile: tabel history lebih readable */
+    @media (max-width: 575.98px) {
+        .card-header a {
+            font-size: 0.8rem;
+            padding: 4px 8px;
+        }
+
+        /* Sembunyikan kolom kurang penting di mobile */
+        .table thead th:nth-child(2),
+        .table tbody td:nth-child(2) {
+            display: none;
+        }
+        
+        .table thead th:nth-child(3),
+        .table tbody td:nth-child(3) {
+            display: none;
+        }
+
+        /* Font lebih kecil di tabel */
+        .table th, .table td {
+            font-size: 0.8rem;
+            padding: 8px 6px;
+            vertical-align: middle;
+        }
+    }
 </style>
 @endpush
 
@@ -277,7 +325,7 @@
                                     </span>
                                 </td>
                                 <td class="text-center">
-                                    <button class="btn btn-sm btn-outline-info" onclick="showDetail('{{ $act['layanan'] }}', {{ json_encode($act['raw']) }})">
+                                    <button class="btn btn-sm btn-outline-info" onclick='showDetail("{{ $act["layanan"] }}", @json($act["raw"]))'>
                                         <i class="fas fa-eye"></i> Detail
                                     </button>
                                 </td>
@@ -385,7 +433,7 @@
                         <h6><b>Informasi Booking</b></h6>
                         <table class="table table-sm table-borderless">
                             <tr><td>ID Booking</td><td>: <b>#${data.booking.id}</b></td></tr>
-                            <tr><td>Waktu Mulai</td><td>: ${data.booking.start_datetime ?? ''}</td></tr>
+                            <tr><td>Waktu Mulai</td><td>: ${data.booking.booking_futsal?.start_datetime ?? ''}</td></tr>
                             <tr><td>Status</td><td>: <span class="badge badge-info">${data.booking.status}</span></td></tr>
                         </table>
                     </div>

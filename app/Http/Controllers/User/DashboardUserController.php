@@ -100,7 +100,7 @@ class DashboardUserController extends Controller
 
     private function getRecentFutsal(int $userId): Collection
     {
-        return PembayaranFutsal::with('booking')
+        return PembayaranFutsal::with('booking.bookingFutsal')
             ->whereHas('booking', fn($q) => $q->where('user_id', $userId))
             ->latest()
             ->take(5)

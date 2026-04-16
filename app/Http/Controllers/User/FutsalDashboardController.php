@@ -115,7 +115,7 @@ class FutsalDashboardController extends Controller
                 'jenis' => ucfirst($booking->jenis_pembayaran ?? 'reguler'),
                 'total' => 'Rp ' . number_format($pay->jumlah_bayar ?? 0, 0, ',', '.'),
                 'status' => ucfirst($pay->status ?? 'Menunggu'),
-                'metode' => $pay->tipePembayaran->nama ?? 'Tunai',
+                'metode' => $booking->jenis_pembayaran === 'membership' ? 'Membership (Potong Kuota)' : ($pay->tipePembayaran->nama ?? 'Tunai'),
             ]
         ]);
     }
@@ -274,6 +274,29 @@ class FutsalDashboardController extends Controller
             ]);
         }
 
+        // --- Auto-Generate Jadwal Jika Belum Ada Berdasarkan Pengaturan ---
+        if ($pengaturan) {
+            $jamBukaSettings = Carbon::parse($jamBuka);
+            $jamTutupSettings = Carbon::parse($jamTutup);
+            $currentStart = $jamBukaSettings->copy();
+            
+            while ($currentStart < $jamTutupSettings) {
+                $jamMulai = $currentStart->format('H:i:s');
+                $jamSelesai = $currentStart->copy()->addHour()->format('H:i:s');
+                
+                JadwalLapangan::firstOrCreate([
+                    'tanggal' => $request->tanggal,
+                    'lapangan_id' => $request->lapangan_id,
+                    'jam_mulai' => $jamMulai,
+                ], [
+                    'jam_selesai' => $jamSelesai,
+                    'status' => 'tersedia'
+                ]);
+                
+                $currentStart->addHour();
+            }
+        }
+
         $jadwals = JadwalLapangan::where('lapangan_id', $request->lapangan_id)
             ->where('tanggal', $request->tanggal)
             ->where('jam_mulai', '>=', $jamBuka)
@@ -423,8 +446,12 @@ class FutsalDashboardController extends Controller
                         'tgl_bayar'          => now(),
                     ]);
                 }
-
-                $slot->update(['status' => 'terisi']);
+                $endJam = $endDatetime->format('H:i:s');
+                JadwalLapangan::where('lapangan_id', $validated['lapangan_id'])
+                    ->where('tanggal', $validated['tanggal'])
+                    ->where('jam_mulai', '>=', $slot->jam_mulai)
+                    ->where('jam_mulai', '<', $endJam)
+                    ->update(['status' => 'terisi']);
             });
         }
 

@@ -36,7 +36,7 @@ class LaporanController extends Controller
 
         // OPTIMASI: Hitung total langsung teragregasi di Database, BUKAN di level memori (Collection)
         $totalPendapatan = (clone $query)
-            ->where('status', PembayaranFutsal::STATUS_VERIFIKASI)
+            ->whereIn('status', ['verifikasi', 'lunas', 'berhasil', 'Lunas'])
             ->sum('jumlah_bayar');
 
         // Gunakan pagination agar data tidak berat, dan bawa query parameternya
@@ -67,7 +67,7 @@ class LaporanController extends Controller
         $query->orderBy('tgl_bayar', 'desc');
 
         $laporan = $query->get();
-        $totalPendapatan = $laporan->where('status', 'Berhasil')->sum('jumlah_bayar');
+        $totalPendapatan = $laporan->whereIn('status', ['verifikasi', 'lunas', 'berhasil', 'Lunas'])->sum('jumlah_bayar');
 
         $pdf = Pdf::loadView('adminfutsal.laporan.pdf', compact('laporan', 'totalPendapatan'));
         

@@ -208,7 +208,7 @@
             <div class="label">Total Pembayaran:</div>
             <div class="total-amount">Rp {{ number_format($pembayaran->jumlah_bayar ?? 0, 0, ',', '.') }}</div>
             <div style="margin-top: 5px; color: #858796;">
-                Metode Pembayaran: <strong>{{ $pembayaran->tipePembayaran->nama ?? 'Tunai' }}</strong>
+                Metode Pembayaran: <strong>{{ $booking->jenis_pembayaran === 'membership' ? 'Membership (Potong Kuota)' : ($pembayaran->tipePembayaran->nama ?? 'Tunai') }}</strong>
             </div>
         </div>
 

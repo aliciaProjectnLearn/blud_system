@@ -32,23 +32,28 @@
             <h6 class="m-0 font-weight-bold text-primary">Daftar Seluruh Booking</h6>
 
             <!-- Filter Buttons (Standard HTML Form) -->
-            <form action="{{ route('user.futsal.history') }}" method="GET" class="form-inline">
-                <select name="status" class="form-control form-control-sm mr-2">
-                    <option value="all">Semua Status</option>
-                    <option value="menunggu" {{ request('status') == 'menunggu' ? 'selected' : '' }}>Menunggu</option>
-                    <option value="dikonfirmasi" {{ request('status') == 'dikonfirmasi' ? 'selected' : '' }}>Dikonfirmasi</option>
-                    <option value="selesai" {{ request('status') == 'selesai' ? 'selected' : '' }}>Selesai</option>
-                    <option value="dibatalkan" {{ request('status') == 'dibatalkan' ? 'selected' : '' }}>Dibatalkan</option>
-                </select>
-                <input type="date" name="start_date" value="{{ request('start_date') }}" class="form-control form-control-sm mr-2">
-                <span class="mr-2 text-xs">s/d</span>
-                <input type="date" name="end_date" value="{{ request('end_date') }}" class="form-control form-control-sm mr-2">
-                <button type="submit" class="btn btn-sm btn-primary shadow-sm mr-1">
-                    <i class="fas fa-filter fa-sm text-white-50"></i> Filter
-                </button>
-                <a href="{{ route('user.futsal.history') }}" class="btn btn-sm btn-secondary shadow-sm">
-                    <i class="fas fa-undo fa-sm"></i> Reset
-                </a>
+            <form action="{{ route('user.futsal.history') }}" method="GET">
+                <div class="d-flex flex-wrap gap-2" style="gap: 8px">
+                    <select name="status" class="form-control form-control-sm">
+                        <option value="all">Semua Status</option>
+                        <option value="menunggu" {{ request('status') == 'menunggu' ? 'selected' : '' }}>Menunggu</option>
+                        <option value="dikonfirmasi" {{ request('status') == 'dikonfirmasi' ? 'selected' : '' }}>Dikonfirmasi</option>
+                        <option value="selesai" {{ request('status') == 'selesai' ? 'selected' : '' }}>Selesai</option>
+                        <option value="dibatalkan" {{ request('status') == 'dibatalkan' ? 'selected' : '' }}>Dibatalkan</option>
+                    </select>
+                </div>
+
+                <div class="d-flex flex-wrap align-items-center mt-2" style="gap: 6px">
+                    <input type="date" name="start_date" value="{{ request('start_date') }}" class="form-control form-control-sm" style="width: 120px; flex: 1;">
+                    <span class="text-xs text-muted">s/d</span>
+                    <input type="date" name="end_date" value="{{ request('end_date') }}" class="form-control form-control-sm" style="width: 120px; flex: 1;">
+                    <button type="submit" class="btn btn-sm btn-primary shadow-sm">
+                        <i class="fas fa-filter fa-sm text-white-50"></i> Filter
+                    </button>
+                    <a href="{{ route('user.futsal.history') }}" class="btn btn-sm btn-secondary shadow-sm">
+                        <i class="fas fa-undo fa-sm"></i> Reset
+                    </a>
+                </div>
             </form>
         </div>
         <div class="card-body">
@@ -140,6 +145,33 @@
     /* Pagination style fix for SB Admin 2 */
     .pagination {
         margin-bottom: 0;
+    }
+    
+    /* Mobile: tabel history lebih readable */
+    @media (max-width: 575.98px) {
+        /* Card header full width */
+        .card-header form {
+            width: 100%;
+        }
+
+        /* Sembunyikan kolom kurang penting di mobile */
+        .table thead th:nth-child(3),
+        .table tbody td:nth-child(3) {
+            display: none;
+        }
+
+        /* Font lebih kecil di tabel */
+        .table th, .table td {
+            font-size: 0.8rem;
+            padding: 8px 6px;
+            vertical-align: middle;
+        }
+
+        /* Tombol detail lebih compact */
+        .btn-outline-info.btn-sm {
+            padding: 4px 8px;
+            font-size: 0.75rem;
+        }
     }
 </style>
 @vite(['resources/css/app.css', 'resources/js/app.js'])
