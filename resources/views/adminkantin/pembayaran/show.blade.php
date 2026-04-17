@@ -169,10 +169,14 @@
             <hr>
             <div class="alert alert-info mb-3">
                 <i class="fas fa-clock mr-1"></i>
-                Penyewa sudah mengupload bukti pembayaran. Silakan verifikasi dan konfirmasi sebagai lunas.
+                @if($pembayaran->tipe_pembayaran_id == 2)
+                    Konfirmasi bahwa penyewa telah melakukan pembayaran secara tunai, dan pastikan uang yang diterima sesuai dengan nominal tagihan.
+                @else
+                    Penyewa sudah mengupload bukti pembayaran. Silakan verifikasi dan konfirmasi sebagai lunas.
+                @endif
             </div>
             <h6 class="font-weight-bold text-gray-700 mb-3">Konfirmasi Pembayaran</h6>
-            <form action="{{ route('adminkantin.pembayaran.update', $pembayaran) }}" method="POST">
+            <form id="formKonfirmasiPembayaran" action="{{ route('adminkantin.pembayaran.update', $pembayaran) }}" method="POST">
                 @csrf @method('PUT')
                 <div class="row">
                     <div class="col-md-4">
@@ -191,7 +195,7 @@
                             <select name="tipe_pembayaran_id" class="form-control @error('tipe_pembayaran_id') is-invalid @enderror" required>
                                 <option value="">-- Pilih Tipe --</option>
                                 @foreach(\App\Models\TipePembayaran::all() as $tipe)
-                                    <option value="{{ $tipe->id }}" {{ old('tipe_pembayaran_id') == $tipe->id ? 'selected' : '' }}>
+                                    <option value="{{ $tipe->id }}" {{ old('tipe_pembayaran_id', $pembayaran->tipe_pembayaran_id) == $tipe->id ? 'selected' : '' }}>
                                         {{ $tipe->nama }}
                                     </option>
                                 @endforeach
@@ -203,8 +207,7 @@
                     </div>
                     <div class="col-md-4 d-flex align-items-end">
                         <div class="form-group w-100">
-                            <button type="submit" class="btn btn-primary btn-block"
-                                onclick="return confirm('Konfirmasi pembayaran ini sebagai LUNAS?')">
+                            <button type="button" id="btnKonfirmasiLunas" class="btn btn-primary btn-block">
                                 <i class="fas fa-check mr-1"></i> Konfirmasi Lunas
                             </button>
                         </div>
@@ -223,4 +226,28 @@
     </div>
 
 </div>
+@push('scripts')
+<script>
+document.getElementById('btnKonfirmasiLunas')
+    ?.addEventListener('click', function(e) {
+    e.preventDefault();
+    Swal.fire({
+        title: 'Konfirmasi Pembayaran',
+        html: 'Tandai pembayaran ini sebagai <strong>LUNAS</strong>?<br><small class="text-muted">Kwitansi akan digenerate otomatis.</small>',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#4e73df',
+        cancelButtonColor: '#858796',
+        confirmButtonText: '<i class="fas fa-check mr-1"></i> Ya, Konfirmasi',
+        cancelButtonText: 'Batal',
+        reverseButtons: true
+    }).then((result) => {
+        if (result.isConfirmed) {
+            document.getElementById('formKonfirmasiPembayaran').submit();
+        }
+    });
+});
+</script>
+@endpush
+
 @endsection

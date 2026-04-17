@@ -120,6 +120,69 @@
         </div>
     </div>
 
+    {{-- Pengingat Pembayaran Termin 2 --}}
+    <div class="card shadow mb-4 border-left-warning">
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+            <h6 class="m-0 font-weight-bold text-warning">
+                <i class="fas fa-exclamation-triangle mr-1"></i> Pengingat Pembayaran Termin 2 (H-30)
+            </h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover" width="100%" cellspacing="0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>Unit</th>
+                            <th>Penyewa</th>
+                            <th>Jatuh Tempo</th>
+                            <th class="text-center">Sisa Hari</th>
+                            <th>Tagihan</th>
+                            <th class="text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($pengingatTermin2 as $p)
+                            <tr>
+                                <td class="font-weight-bold">{{ $p->sewaRuko->ruko->kode_unit ?? '-' }}</td>
+                                <td>{{ $p->sewaRuko->penyewa->user->nama_lengkap ?? $p->sewaRuko->penyewa->user->name ?? '-' }}</td>
+                                <td>
+                                    <span class="text-danger font-weight-bold">
+                                        {{ \Carbon\Carbon::parse($p->tgl_jatuh_tempo)->format('d M Y') }}
+                                    </span>
+                                    <br>
+                                <td class="font-weight-bold text-center">
+                                    @php
+                                        $sisaHari = now()->startOfDay()->diffInDays(\Carbon\Carbon::parse($p->tgl_jatuh_tempo), false);
+                                    @endphp
+                                    @if($sisaHari <= 0)
+                                        <span class="badge badge-danger">Jatuh Tempo</span>
+                                    @elseif($sisaHari <= 7)
+                                        <span class="badge badge-warning">{{ $sisaHari }} Hari lagi</span>
+                                    @else
+                                        <span class="badge badge-info">{{ $sisaHari }} Hari</span>
+                                    @endif
+                                </td>
+                                <td class="text-primary font-weight-bold">Rp {{ number_format($p->jumlah_tagihan, 0, ',', '.') }}</td>
+                                <td class="text-center">
+                                    <form action="{{ route('adminkantin.kirim-wa', $p->id) }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-success shadow-sm" onclick="return confirm('Kirim pengingat WhatsApp ke penyewa ini?')">
+                                            <i class="fab fa-whatsapp mr-1"></i> Kirim Pengingat
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5" class="text-center">Tidak ada tagihan termin 2 yang mendekati jatuh tempo.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
     {{-- Transaksi Terbaru --}}
     <div class="card shadow mb-4">
         <div class="card-header py-3">

@@ -119,7 +119,7 @@
                                     </span>
                                 @elseif($r->status === 'lunas')
                                     <a href="{{ route('user.kantin.kwitansi', $r->id) }}"
-                                        class="btn btn-sm btn-success" target="_blank">
+                                        class="btn btn-sm btn-success" download>
                                         <i class="fas fa-download"></i> <span class="d-none d-md-inline">Kwitansi</span>
                                     </a>
                                 @endif

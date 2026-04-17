@@ -37,25 +37,16 @@ class LaporanController extends Controller
 
         // OPTIMASI: Hitung total langsung teragregasi di Database, BUKAN di level memori (Collection)
         $totalPendapatan = (clone $query)
-            ->where('status', 'verifikasi')
+            ->where('status', 'lunas')
             ->sum('jumlah_tagihan');
 
-        // Tambahan: Hitung Pengeluaran
-        $queryPengeluaran = \App\Models\PengeluaranKantin::query();
-        if ($request->filled('tanggal_dari') && $request->filled('tanggal_sampai')) {
-            $queryPengeluaran->whereBetween('tanggal', [$request->tanggal_dari, $request->tanggal_sampai]);
-        } elseif ($request->filled('tanggal_dari')) {
-            $queryPengeluaran->where('tanggal', '>=', $request->tanggal_dari);
-        } elseif ($request->filled('tanggal_sampai')) {
-            $queryPengeluaran->where('tanggal', '<=', $request->tanggal_sampai);
-        }
-        $totalPengeluaran = $queryPengeluaran->sum('nominal');
-        $saldoAkhir = $totalPendapatan - $totalPengeluaran;
+        // Hitung total transaksi (count)
+        $totalTransaksi = (clone $query)->count();
 
         // Gunakan pagination agar data tidak berat, dan bawa query parameternya
         $laporan = $query->paginate(25)->withQueryString();
 
-        return view('adminkantin.laporan.index', compact('laporan', 'totalPendapatan', 'totalPengeluaran', 'saldoAkhir'));
+        return view('adminkantin.laporan.index', compact('laporan', 'totalPendapatan', 'totalTransaksi'));
     }
 
     /**
@@ -80,11 +71,11 @@ class LaporanController extends Controller
         $query->orderBy('tgl_bayar', 'desc')->orderBy('created_at', 'desc');
 
         $laporan = $query->get();
-        // sum jumlah_tagihan untuk yang verifikasi
-        $totalPendapatan = $laporan->where('status', 'verifikasi')->sum('jumlah_tagihan');
+        // sum jumlah_tagihan untuk yang lunas
+        $totalPendapatan = $laporan->where('status', 'lunas')->sum('jumlah_tagihan');
 
-        // Pemasukan terverifikasi untuk tabel di halaman 2
-        $pemasukan = $laporan->where('status', 'verifikasi');
+        // Pemasukan lunas untuk tabel di halaman 2
+        $pemasukan = $laporan->where('status', 'lunas');
 
         // Tambahan: Hitung Pengeluaran untuk PDF
         $queryPengeluaran = \App\Models\PengeluaranKantin::query();

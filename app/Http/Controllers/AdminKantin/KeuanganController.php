@@ -16,8 +16,8 @@ class KeuanganController extends Controller
         $tanggalSelesai = $request->tanggal_selesai;
         $tipe = $request->tipe;
 
-        // Query Pemasukan (Pembayaran Ruko yang sudah diverifikasi)
-        $queryPemasukan = PembayaranRuko::where('status', 'verifikasi');
+        // Query Pemasukan (Pembayaran Ruko yang sudah lunas)
+        $queryPemasukan = PembayaranRuko::where('status', 'lunas');
         if ($tanggalMulai) {
             $queryPemasukan->whereDate('tgl_bayar', '>=', $tanggalMulai);
         }

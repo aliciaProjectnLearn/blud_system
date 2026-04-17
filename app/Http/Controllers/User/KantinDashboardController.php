@@ -110,6 +110,7 @@ class KantinDashboardController extends Controller
         $riwayat = $penyewa
             ? PembayaranRuko::whereHas('sewaRuko', fn($q) => $q->where('penyewa_id', $penyewa->getKey()))
             ->with('sewaRuko.ruko')
+            ->where('status', 'lunas')
             ->orderBy('created_at', 'desc')
             ->get()
             : collect();
@@ -122,6 +123,22 @@ class KantinDashboardController extends Controller
             : collect();
 
         return view('user.kantin.riwayat', compact('riwayat', 'pengajuan'));
+    }
+
+    public function tagihan()
+    {
+        $user    = Auth::user();
+        $penyewa = $user->penyewa;
+
+        $tagihan = $penyewa
+            ? PembayaranRuko::whereHas('sewaRuko', fn($q) => $q->where('penyewa_id', $penyewa->getKey()))
+                ->with('sewaRuko.ruko')
+                ->whereIn('status', ['menunggu', 'verifikasi'])
+                ->orderBy('tgl_jatuh_tempo', 'asc')
+                ->get()
+            : collect();
+
+        return view('user.kantin.tagihan', compact('tagihan'));
     }
 
     // ── Fitur Booking Self-Service ──────────────────────
@@ -233,11 +250,17 @@ class KantinDashboardController extends Controller
             // 5. Generate Pembayaran Termin
             $jumlahPerTermin = intdiv($ruko->harga, 2);
             
+            $tipePembayaranId = 1;
+            if ($request->has('metode_pembayaran')) {
+                $tipePembayaranId = \App\Models\TipePembayaran::where('nama', 'like', '%' . $request->metode_pembayaran . '%')
+                    ->value('id') ?? 1;
+            }
+            
             // Termin 1: Jatuh tempo hari ini / saat tgl_mulai
             PembayaranRuko::create([
                 'sewa_ruko_id'       => $sewaRuko->id,
                 'booking_id'         => $booking->id,
-                'tipe_pembayaran_id' => 1, // Default Transfer, can be changed during upload
+                'tipe_pembayaran_id' => $tipePembayaranId, // Use the mapped ID
                 'termin'             => 1,
                 'tgl_jatuh_tempo'    => $tglMulai,
                 'jumlah_tagihan'     => $jumlahPerTermin,
@@ -248,7 +271,7 @@ class KantinDashboardController extends Controller
             PembayaranRuko::create([
                 'sewa_ruko_id'       => $sewaRuko->id,
                 'booking_id'         => $booking->id,
-                'tipe_pembayaran_id' => 1,
+                'tipe_pembayaran_id' => $tipePembayaranId,
                 'termin'             => 2,
                 'tgl_jatuh_tempo'    => $tglMulai->copy()->addMonths(6),
                 'jumlah_tagihan'     => $ruko->harga - $jumlahPerTermin,
@@ -285,19 +308,21 @@ class KantinDashboardController extends Controller
         
         $request->validate([
             'tipe_pembayaran_id' => 'required|exists:tipe_pembayaran,id',
-            'bukti_pembayaran'   => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'bukti_pembayaran'   => 'required_if:tipe_pembayaran_id,1,3|file|mimes:pdf,jpg,jpeg,png|max:2048',
         ]);
+
+        $data = [
+            'tipe_pembayaran_id' => $request->tipe_pembayaran_id,
+            'status'             => 'verifikasi',
+            'tgl_bayar'          => now(),
+        ];
 
         if ($request->hasFile('bukti_pembayaran')) {
             $path = $request->file('bukti_pembayaran')->store('bukti_pembayaran_ruko', 'public');
-            
-            $pembayaran->update([
-                'tipe_pembayaran_id' => $request->tipe_pembayaran_id,
-                'status'             => 'verifikasi',
-                'path_bukti'         => $path,
-                'tgl_bayar'          => now(),
-            ]);
+            $data['path_bukti'] = $path;
         }
+
+        $pembayaran->update($data);
 
         return redirect()->route('user.kantin.tagihan')->with('success', 'Bukti pembayaran berhasil diunggah. Mohon tunggu verifikasi dari Admin.');
     }
@@ -415,10 +440,13 @@ class KantinDashboardController extends Controller
             // 5. Generate 2 termin pembayaran
             $jumlahPerTermin = intdiv((int) $ruko->harga, 2);
 
+            $tipePembayaranId = \App\Models\TipePembayaran::where('nama', 'like', '%' . $request->metode_pembayaran . '%')
+                ->value('id') ?? 1;
+
             PembayaranRuko::create([
                 'sewa_ruko_id'       => $sewaRuko->id,
                 'booking_id'         => $booking->id,
-                'tipe_pembayaran_id' => 1,
+                'tipe_pembayaran_id' => $tipePembayaranId,
                 'termin'             => 1,
                 'tgl_jatuh_tempo'    => $tglMulai->format('Y-m-d'),
                 'jumlah_tagihan'     => $jumlahPerTermin,
@@ -428,7 +456,7 @@ class KantinDashboardController extends Controller
             PembayaranRuko::create([
                 'sewa_ruko_id'       => $sewaRuko->id,
                 'booking_id'         => $booking->id,
-                'tipe_pembayaran_id' => 1,
+                'tipe_pembayaran_id' => $tipePembayaranId,
                 'termin'             => 2,
                 'tgl_jatuh_tempo'    => $tglMulai->copy()->addMonths(6)->format('Y-m-d'),
                 'jumlah_tagihan'     => $ruko->harga - $jumlahPerTermin,
@@ -440,7 +468,7 @@ class KantinDashboardController extends Controller
 
             DB::commit();
 
-            return redirect()->route('user.kantin.dashboard')
+            return redirect()->route('user.kantin.tagihan')
                 ->with('success', 'Pengajuan sewa berhasil dikirim! Silakan lakukan pembayaran Termin 1 untuk mengaktifkan sewa Anda.');
 
         } catch (\Exception $e) {
@@ -468,6 +496,6 @@ class KantinDashboardController extends Controller
         }
 
         $namaFile = 'kwitansi-' . str_replace('/', '-', $pembayaran->no_kwitansi) . '.pdf';
-        return \Storage::disk('public')->download($pembayaran->path_kwitansi, $namaFile);
+        return response()->download(storage_path('app/public/' . $pembayaran->path_kwitansi), $namaFile);
     }
 }

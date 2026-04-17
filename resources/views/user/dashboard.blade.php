@@ -298,7 +298,7 @@
     <div class="col-lg-8 mb-4">
         <div class="card shadow mb-4">
             <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                <h6 class="m-0 font-weight-bold text-primary">Histori Aktivitas Terakhir</h6>
+                <h6 class="m-0 font-weight-bold text-primary">Log Aktivitas Terakhir</h6>
                 <a href="#" class="text-primary small">Lihat Semua</a>
             </div>
             <div class="card-body">
@@ -310,7 +310,6 @@
                                 <th>Tanggal</th>
                                 <th>Nominal</th>
                                 <th>Status</th>
-                                <th class="text-center">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -332,7 +331,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="5" class="text-center py-4">Belum ada transaksi</td>
+                                <td colspan="4" class="text-center py-4">Belum ada transaksi</td>
                             </tr>
                             @endforelse
                         </tbody>
@@ -390,27 +389,6 @@
                     <p class="text-muted small">Semua layanan telah selesai</p>
                 </div>
                 @endif
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal Detail -->
-<div class="modal fade" id="detailModal" tabindex="-1" role="dialog" aria-labelledby="detailModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content shadow border-0">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title font-weight-bold" id="detailModalLabel">Detail Transaksi</h5>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body" id="modalContent">
-                <!-- Content will be injected via JS -->
-            </div>
-            <div class="modal-footer border-0">
-                <button type="button" class="btn btn-secondary border-0" data-dismiss="modal">Tutup</button>
-                <button type="button" class="btn btn-primary border-0" onclick="window.print()">Cetak Bukti</button>
             </div>
         </div>
     </div>

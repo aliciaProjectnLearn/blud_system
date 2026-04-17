@@ -117,6 +117,13 @@
         </li>
 
         <li class="nav-item {{ request()->routeIs('users.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('dashboard.pembagian-pendapatan') }}">
+                <i class="fas fa-chart-pie"></i>
+                <span>Pembagian Pendapatan BLUD</span>
+            </a>
+        </li>
+
+        <li class="nav-item {{ request()->routeIs('users.*') ? 'active' : '' }}">
             <a class="nav-link" href="{{ route('dashboard.monitoring') }}">
                 <i class="fas fa-clipboard-list"></i>
                 <span>Log Activities</span>
@@ -417,7 +424,11 @@
                 <div class="bg-white py-2 collapse-inner rounded">
                     <a class="collapse-item {{ request()->routeIs('user.kantin.dashboard') ? 'active' : '' }}"
                         href="{{ route('user.kantin.dashboard') }}">
-                        <i class="fas fa-tachometer-alt mr-1"></i>Dashboard
+                        <i class="fas fa-tachometer-alt mr-1"></i> Dashboard
+                    </a>
+                    <a class="collapse-item {{ request()->routeIs('user.kantin.tagihan') ? 'active' : '' }}"
+                        href="{{ route('user.kantin.tagihan') }}">
+                        <i class="fas fa-file-invoice mr-2"></i> Tagihan
                     </a>
                     <a class="collapse-item {{ request()->routeIs('user.kantin.riwayat') ? 'active' : '' }}"
                         href="{{ route('user.kantin.riwayat') }}">
