@@ -60,7 +60,7 @@
     {{-- Informasi & Export --}}
     <div class="row mb-4">
         {{-- Total Pendapatan --}}
-        <div class="col-xl-3 col-md-6 mb-4">
+        <div class="col-xl-4 col-md-6 mb-4">
             <div class="card border-left-success shadow h-100 py-2">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
@@ -73,49 +73,28 @@
                             </div>
                         </div>
                         <div class="col-auto">
-                            <i class="fas fa-arrow-up fa-2x text-gray-300"></i>
+                            <i class="fas fa-money-bill-wave fa-2x text-gray-300"></i>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        {{-- Total Pengeluaran --}}
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-danger shadow h-100 py-2">
+        {{-- Total Transaksi --}}
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
-                                Pengeluaran
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Total Transaksi
                             </div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                Rp {{ number_format($totalPengeluaran, 0, ',', '.') }}
+                                {{ number_format($totalTransaksi, 0, ',', '.') }} Transaksi
                             </div>
                         </div>
                         <div class="col-auto">
-                            <i class="fas fa-arrow-down fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        {{-- Saldo Akhir --}}
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-primary shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                Saldo Akhir
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                Rp {{ number_format($saldoAkhir, 0, ',', '.') }}
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-wallet fa-2x text-gray-300"></i>
+                            <i class="fas fa-list fa-2x text-gray-300"></i>
                         </div>
                     </div>
                 </div>
@@ -123,13 +102,15 @@
         </div>
 
         {{-- Export Buttons --}}
-        <div class="col-xl-3 col-md-6 d-flex flex-column justify-content-center align-items-end mb-4">
-            <a href="{{ route('adminkantin.laporan.export.pdf', request()->all()) }}" target="_blank" class="btn btn-danger btn-block mb-2 shadow-sm">
-                <i class="fas fa-file-pdf fa-sm text-white-50"></i> Export PDF
-            </a>
-            <a href="{{ route('adminkantin.laporan.export.excel', request()->all()) }}" target="_blank" class="btn btn-success btn-block shadow-sm">
-                <i class="fas fa-file-excel fa-sm text-white-50"></i> Export Excel
-            </a>
+        <div class="col-xl-4 col-md-12 d-flex flex-column justify-content-center align-items-end mb-4">
+            <div class="w-100">
+                <a href="{{ route('adminkantin.laporan.export.pdf', request()->all()) }}" target="_blank" class="btn btn-danger btn-block mb-2 shadow-sm">
+                    <i class="fas fa-file-pdf fa-sm text-white-50"></i> Export PDF
+                </a>
+                <a href="{{ route('adminkantin.laporan.export.excel', request()->all()) }}" target="_blank" class="btn btn-success btn-block shadow-sm">
+                    <i class="fas fa-file-excel fa-sm text-white-50"></i> Export Excel
+                </a>
+            </div>
         </div>
     </div>
 
@@ -166,10 +147,12 @@
                                     Rp {{ number_format($item->jumlah_tagihan, 0, ',', '.') }}
                                 </td>
                                 <td class="align-middle text-center">
-                                    @if(strtolower($item->status) == 'verifikasi')
-                                        <span class="badge badge-success px-2 py-1">Verifikasi</span>
+                                    @if(strtolower($item->status) == 'lunas')
+                                        <span class="badge badge-success px-2 py-1">Lunas</span>
+                                    @elseif(strtolower($item->status) == 'verifikasi')
+                                        <span class="badge badge-info px-2 py-1">Menunggu Verifikasi</span>
                                     @elseif(strtolower($item->status) == 'menunggu')
-                                        <span class="badge badge-warning px-2 py-1">Menunggu</span>
+                                        <span class="badge badge-warning px-2 py-1">Menunggu Pembayaran</span>
                                     @elseif(strtolower($item->status) == 'dibatalkan')
                                         <span class="badge badge-danger px-2 py-1">Dibatalkan</span>
                                     @else

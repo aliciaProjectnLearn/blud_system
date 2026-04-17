@@ -185,6 +185,10 @@ Route::middleware(['auth', 'role:Adminkantin'])->prefix('adminkantin')->name('ad
     Route::get('/dashboard', [AdminKantinDashboardController::class, 'index'])
         ->name('dashboard');
 
+    // WhatsApp Manual
+    Route::post('kirim-wa/{id}', [AdminKantinDashboardController::class, 'kirimWaManual'])
+        ->name('kirim-wa');
+
     // Manajemen Unit Kantin
     Route::resource('unit', AdminKantinUnitController::class);
 

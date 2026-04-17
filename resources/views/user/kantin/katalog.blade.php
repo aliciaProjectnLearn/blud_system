@@ -96,8 +96,8 @@
         z-index: -1;
     }
     .step-circle {
-        width: 42px;
-        height: 42px;
+        width: 52px;
+        height: 52px;
         border-radius: 50%;
         background: #4e73df;
         color: #fff;
@@ -105,10 +105,11 @@
         align-items: center;
         justify-content: center;
         font-weight: 800;
-        font-size: 1rem;
+        font-size: 1.25rem;
         box-shadow: 0 3px 10px rgba(78,115,223,0.3);
         margin-bottom: 8px;
         border: 4px solid #fff;
+        line-height: 1;
     }
     .step-label {
         font-size: 0.75rem;
@@ -139,10 +140,13 @@
             width: 100%;
         }
         .step-item:not(:last-child)::after {
-            left: 21px;
-            top: 42px;
+            left: 26px;
+            top: 52px;
             width: 2px;
             height: calc(100% + 20px);
+        }
+        .step-circle {
+            min-width: 52px;
         }
         .step-desc {
             text-align: left;
@@ -151,6 +155,31 @@
         .step-label {
             text-align: left;
             font-size: 0.85rem;
+        }
+
+        /* Landscape Mobile Modal */
+        #modalZoomDenah .modal-dialog {
+            max-width: 95vw;
+            margin: 10px auto;
+        }
+        #zoom-content svg {
+            transform: rotate(90deg);
+            transform-origin: center center;
+            width: 80vh;
+            height: auto;
+            display: block;
+            margin: auto;
+        }
+        #modalZoomDenah .modal-body {
+            min-height: 90vw;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #zoom-content {
+            padding: 40px;
+            width: 100%;
         }
     }
 
@@ -200,6 +229,12 @@
     .unit-building:hover rect.badan {
         opacity: 0.78;
     }
+
+    /* Modal Styling */
+    #modalUnitDetail .modal-header { border-bottom: none; }
+    #modalUnitDetail .modal-footer { border-top: none; }
+    .detail-label { font-size: 0.75rem; color: #858796; text-transform: uppercase; font-weight: 700; }
+    .detail-value { font-size: 1.1rem; color: #2e59d9; font-weight: 800; display: block; }
 
     /* ── Kategori Header ── */
     .kategori-header {
@@ -357,27 +392,27 @@
         <div class="card-body py-4">
             <div class="step-indicator">
                 <div class="step-item">
-                    <div class="step-circle"><i class="fas fa-store fa-sm"></i></div>
+                    <div class="step-circle"><i class="fas fa-store"></i></div>
                     <div class="step-label">Pilih Unit</div>
                     <div class="step-desc">Pilih unit dari denah atau daftar</div>
                 </div>
                 <div class="step-item">
-                    <div class="step-circle"><i class="fas fa-file-alt fa-sm"></i></div>
+                    <div class="step-circle"><i class="fas fa-file-alt"></i></div>
                     <div class="step-label">Isi Form</div>
                     <div class="step-desc">Lengkapi data & tanggal mulai</div>
                 </div>
                 <div class="step-item">
-                    <div class="step-circle"><i class="fas fa-credit-card fa-sm"></i></div>
+                    <div class="step-circle"><i class="fas fa-credit-card"></i></div>
                     <div class="step-label">Bayar Termin 1</div>
                     <div class="step-desc">Pembayaran 50% untuk aktivasi</div>
                 </div>
                 <div class="step-item">
-                    <div class="step-circle"><i class="fas fa-check fa-sm"></i></div>
+                    <div class="step-circle"><i class="fas fa-check"></i></div>
                     <div class="step-label">Sewa Aktif</div>
                     <div class="step-desc">Aktif setelah admin verifikasi</div>
                 </div>
                 <div class="step-item">
-                    <div class="step-circle"><i class="fas fa-bell fa-sm"></i></div>
+                    <div class="step-circle"><i class="fas fa-bell"></i></div>
                     <div class="step-label">Pengingat</div>
                     <div class="step-desc">Notif WA H-7 jatuh tempo termin 2</div>
                 </div>
@@ -421,7 +456,13 @@
         <div class="card-body">
             {{-- Denah Container --}}
             <p class="text-muted small mb-2"><i class="fas fa-map-marker-alt mr-1"></i> Denah lokasi unit — klik unit <span class="text-success font-weight-bold">hijau</span> untuk menyewa</p>
-            <div class="denah-container">
+            
+            <button type="button" class="btn btn-outline-primary btn-block mb-3 d-md-none btn-zoom-trigger" 
+                data-title="{{ $cat['nama'] }}" data-target="#{{ $cat['svg_id'] }}">
+                <i class="fas fa-map mr-1"></i> Lihat Denah {{ $cat['nama'] }}
+            </button>
+
+            <div class="denah-container d-none d-md-flex">
                 <a href="javascript:void(0)" class="btn-zoom-denah btn-zoom-trigger" data-title="{{ $cat['nama'] }}" data-target="#{{ $cat['svg_id'] }}">
                     <i class="fas fa-search-plus"></i>
                 </a>
@@ -452,11 +493,11 @@
                             <h5 class="card-title">{{ $ruko->kode_unit }}</h5>
                             <div class="price-tag">Rp {{ number_format($ruko->harga, 0, ',', '.') }}<small>/tahun</small></div>
                             @if($ruko->status_unit == 'kosong')
-                                <a href="{{ route('user.kantin.booking', $ruko->id) }}" class="btn btn-primary btn-block btn-booking">
+                                <button type="button" class="btn btn-primary btn-block btn-booking btn-sm" onclick="showUnitDetail({{ $ruko->id }})">
                                     <i class="fas fa-calendar-check mr-1"></i> Pilih Unit
-                                </a>
+                                </button>
                             @else
-                                <button class="btn btn-secondary btn-block btn-booking" disabled>
+                                <button class="btn btn-secondary btn-block btn-booking btn-sm" disabled>
                                     <i class="fas fa-times-circle mr-1"></i> Tidak Tersedia
                                 </button>
                             @endif
@@ -470,6 +511,71 @@
     @endforeach
 
 </div>
+
+{{-- Modal Detail Unit (Fixed) --}}
+<div class="modal fade" id="modalUnitDetail" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-white pb-0">
+                <h5 class="modal-title font-weight-bold text-primary" id="detail_kode_unit">UNIT XXX</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-4">
+                    <div class="col-6">
+                        <span class="detail-label">Status Unit</span>
+                        <div id="detail_status_badge" class="mt-1"></div>
+                    </div>
+                    <div class="col-6">
+                        <span class="detail-label">Kategori</span>
+                        <span id="detail_kategori" class="detail-value text-dark">-</span>
+                    </div>
+                </div>
+                <div class="p-3 bg-light rounded border-left-primary">
+                    <span class="detail-label">Biaya Sewa</span>
+                    <span id="detail_harga" class="detail-value text-primary font-weight-bold" style="font-size: 1.5rem;">Rp 0</span>
+                    <small class="text-muted">Per Tahun (Bisa cicil 2 Termin)</small>
+                </div>
+            </div>
+            <div class="modal-footer pt-0">
+                <button type="button" class="btn btn-secondary px-4" data-dismiss="modal">Tutup</button>
+                <div id="booking_button_container"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showUnitDetail(id) {
+        // Loading state
+        $('#detail_kode_unit').text('Memuat...');
+        $('#modalUnitDetail').modal('show');
+        
+        $.get(`/user/kantin/unit/${id}/detail`, function(unit) {
+            $('#detail_kode_unit').text('UNIT ' + unit.kode_unit);
+            $('#detail_kategori').text(unit.kategori.nama);
+            $('#detail_harga').text('Rp ' + new Intl.NumberFormat('id-ID').format(unit.harga));
+            
+            let badgeClass = 'badge-success', badgeText = 'Tersedia';
+            if (unit.status_unit !== 'kosong') { badgeClass = 'badge-danger'; badgeText = 'Terisi'; }
+            
+            $('#detail_status_badge').html(`<span class="badge ${badgeClass} px-3 py-2" style="font-size:0.85rem">${badgeText}</span>`);
+
+            const btnContainer = $('#booking_button_container');
+            btnContainer.empty();
+            if (unit.status_unit === 'kosong') {
+                btnContainer.append(`<a href="/user/kantin/booking/${unit.id}" class="btn btn-primary px-4 shadow">Booking Sekarang</a>`);
+            } else {
+                btnContainer.append(`<button class="btn btn-secondary" disabled>Unit Tidak Tersedia</button>`);
+            }
+        }).fail(function() {
+            $('#detail_kode_unit').text('Error');
+            alert('Gagal mengambil data unit.');
+        });
+    }
+</script>
 
 {{-- Modal Zoom Denah --}}
 <div class="modal fade" id="modalZoomDenah" tabindex="-1" role="dialog" aria-hidden="true">
@@ -585,31 +691,115 @@ $(function() {
     (function() {
         const svg = document.getElementById('svg-kantin-besar');
         if (!svg) return;
-        svg.setAttribute('viewBox', '0 0 820 100');
-        svg.setAttribute('height', '100');
+        
         const units = rukoData.filter(r => r.kategori_id == 1).sort((a,b) => b.kode_unit.localeCompare(a.kode_unit));
         const W = 68, H = 55, GAP = 10, startX = 10, startY = 28;
+        
+        // Perluas viewBox jika ada banyak unit + masjid
+        const totalW = startX + (units.length + 1) * (W + GAP) + 20;
+        svg.setAttribute('viewBox', `0 0 ${Math.max(820, totalW)} 100`);
+        svg.setAttribute('height', '100');
+
+        // Render Unit Kantin
         units.forEach((u, i) => buatBangunan(svg, startX + i*(W+GAP), startY, W, H, u));
+
+        // ── Tambah Masjid di Ujung Kanan ──
+        const mX = startX + units.length * (W + GAP) + 10;
+        const mY = startY - 5;
+        const mW = 80, mH = 60;
+        const mCX = mX + mW/2;
+
+        const masjid = svgEl('g', { class: 'landmark', 'style': 'cursor:default' });
+        
+        // Label
+        const ml = svgEl('text', { x: mCX, y: mY - 5, 'text-anchor': 'middle', 'font-size': '10', 'font-weight': 'bold', fill: '#1cc88a' });
+        ml.textContent = 'MASJID';
+        masjid.appendChild(ml);
+
+        // Badan Masjid
+        masjid.appendChild(svgEl('rect', { x: mX, y: mY + 15, width: mW, height: mH - 10, fill: '#f8f9fc', stroke: '#1cc88a', 'stroke-width': '2', rx: '2' }));
+        
+        // Kubah Utama
+        masjid.appendChild(svgEl('path', { 
+            d: `M ${mX+10} ${mY+15} Q ${mCX} ${mY-15} ${mX+mW-10} ${mY+15} Z`, 
+            fill: '#1cc88a', stroke: 'white', 'stroke-width': '1' 
+        }));
+
+        // Pintu Masjid (Lengkung)
+        const dW = 20, dH = 25;
+        masjid.appendChild(svgEl('path', {
+            d: `M ${mCX-dW/2} ${mY+mH+5} L ${mCX-dW/2} ${mY+mH-dH+10} Q ${mCX} ${mY+mH-dH-5} ${mCX+dW/2} ${mY+mH-dH+10} L ${mCX+dW/2} ${mY+mH+5} Z`,
+            fill: '#858796', opacity: '0.3'
+        }));
+
+        svg.appendChild(masjid);
     })();
 
-    // 2. Kantin Container
+    // 2. Kantin Container (REVISI FINAL: Skala Seimbang)
     (function() {
         const svg = document.getElementById('svg-kantin-container');
         if (!svg) return;
-        svg.setAttribute('viewBox', '0 0 420 300');
-        svg.setAttribute('height', '300');
         
-        // Landmark Gerbang Belakang
-        const gb = svgEl('rect', { x: 40, y: 240, width: 200, height: 40, rx: 4, fill: '#858796' });
-        svg.appendChild(gb);
-        const txt = svgEl('text', { x: 140, y: 266, 'text-anchor': 'middle', 'font-size': '11', fill: 'white', 'font-weight': 'bold' });
-        txt.textContent = 'Gerbang Belakang';
-        svg.appendChild(txt);
+        svg.setAttribute('viewBox', '0 0 750 550');
+        svg.setAttribute('height', '380');
 
+        // ── LANDMARK: Gerbang Belakang (Gapura Estetik) ──
+        const gX = 40, gY = 50, gW = 60, gH = 320;
+        const gate = svgEl('g', { class: 'landmark' });
+        gate.appendChild(svgEl('path', { d: `M ${gX-10} ${gY+40} Q ${gX+30} ${gY-10} ${gX+70} ${gY+40}`, fill: '#4e73df', stroke: '#2e59d9', 'stroke-width': '2' }));
+        gate.appendChild(svgEl('rect', { x: gX, y: gY+40, width: 20, height: gH-40, fill: '#858796', rx: 2 }));
+        gate.appendChild(svgEl('rect', { x: gX+40, y: gY+40, width: 20, height: gH-40, fill: '#858796', rx: 2 }));
+        const gt = svgEl('text', { 
+            x: gX + 30, y: gY + gH/2 + 20, 'text-anchor': 'middle', 'font-size': '12', fill: '#4e73df', 'font-weight': 'bold',
+            transform: `rotate(-90, ${gX + 30}, ${gY + gH/2 + 20})`
+        });
+        gt.textContent = 'Gerbang Belakang';
+        gate.appendChild(gt);
+        svg.appendChild(gate);
+
+        // ── LANDMARK: Parkiran Siswa (Skala Seimbang) ──
+        const pk = svgEl('rect', { x: 130, y: 360, width: 130, height: 165, rx: 8, fill: 'none', stroke: '#adb5bd', 'stroke-width': '2', 'stroke-dasharray': '5,5' });
+        svg.appendChild(pk);
+        const pkText = svgEl('text', { x: 195, y: 442, 'text-anchor': 'middle', 'font-size': '13', fill: '#858796', 'font-weight': 'bold' });
+        pkText.textContent = 'Parkiran';
+        svg.appendChild(pkText);
+
+        // ── LANDMARK: Jejeran Ruang Kelas (Skala Seimbang) ──
+        const rkX = 300, rkY = 380, rkW = 380, rkH = 140;
+        const rkGroup = svgEl('g', { class: 'landmark' });
+        rkGroup.appendChild(svgEl('rect', { x: rkX, y: rkY, width: rkW, height: rkH, fill: '#f8f9fc', stroke: '#4e73df', 'stroke-width': '1.5', rx: 4 }));
+        rkGroup.appendChild(svgEl('rect', { x: rkX + 150, y: rkY + 30, width: 80, height: 45, fill: '#1cc88a', stroke: '#858796', 'stroke-width': '1.5' }));
+        const rkText = svgEl('text', { x: rkX + rkW/2, y: rkY + 105, 'text-anchor': 'middle', 'font-size': '16', fill: '#4e73df', 'font-weight': 'bold' });
+        rkText.textContent = 'Jejeran Ruang Kelas';
+        rkGroup.appendChild(rkText);
+        svg.appendChild(rkGroup);
+
+        // ── LANDMARK: Koperasi Siswa (Skala Seimbang) ──
+        const kopX = 400, kopY = 240, kopW = 85, kopH = 95;
+        const bodyH = 50, roofH = 40;
+        const cx = kopX + kopW/2;
+        const kop = svgEl('g', { class: 'landmark' });
+        kop.appendChild(svgEl('polygon', { points: `${kopX},${kopY+roofH} ${cx},${kopY} ${kopX+kopW},${kopY+roofH}`, fill: '#858796', stroke: 'white' }));
+        kop.appendChild(svgEl('rect', { x: kopX, y: kopY+roofH, width: kopW, height: bodyH, fill: '#dee2e6', stroke: '#858796', rx: 2 }));
+        const kt = svgEl('text', { x: cx, y: kopY + 75, 'text-anchor': 'middle', 'font-size': '10', fill: '#495057', 'font-weight': 'bold' });
+        kt.textContent = 'KOPERASI';
+        kop.appendChild(kt);
+        svg.appendChild(kop);
+
+        // ── UNIT KANTIN (Skala Seimbang - Atap Segitiga) ──
         const units = rukoData.filter(r => r.kategori_id == 2).sort((a,b) => a.kode_unit.localeCompare(b.kode_unit));
-        const pos = [[170, 15], [35, 105], [170, 105], [170, 175], [35, 185]];
-        const W = 58, H = 48;
-        units.forEach((u, i) => { if (pos[i]) buatBangunan(svg, pos[i][0], pos[i][1], W, H, u); });
+        const uW = 75, uH = 65; // Ukuran seimbang (antara kecil dan besar)
+        const pos = [
+            {x: 170, y: 50},
+            {x: 580, y: 60},
+            {x: 295, y: 250},
+            {x: 515, y: 250}
+        ];
+
+        units.forEach((u, i) => {
+            if (!pos[i]) return;
+            buatBangunan(svg, pos[i].x, pos[i].y, uW, uH, u);
+        });
     })();
 
     // 3. Ruko Depan

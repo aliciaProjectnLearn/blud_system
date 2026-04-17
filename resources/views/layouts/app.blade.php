@@ -331,6 +331,34 @@
     {{-- Custom scripts for all pages --}}
     <script src="{{ asset('assets/js/sb-admin-2.min.js') }}"></script>
 
+    {{-- Mobile Navigation Script --}}
+    <script>
+        $(document).ready(function() {
+            // Open Mobile Nav
+            $('#sidebarToggleTop').on('click', function() {
+                $('#mobile-nav').addClass('open');
+                $('#mobile-nav-backdrop').addClass('open');
+                $('body').css('overflow', 'hidden'); // Prevent background scroll
+            });
+
+            // Close Mobile Nav
+            function closeMobileNav() {
+                $('#mobile-nav').removeClass('open');
+                $('#mobile-nav-backdrop').removeClass('open');
+                $('body').css('overflow', 'auto');
+            }
+
+            $('#btn-mobile-nav-close, #mobile-nav-backdrop').on('click', closeMobileNav);
+
+            // Submenu Toggles in Mobile Nav
+            $('.mobile-nav-toggle').on('click', function() {
+                const target = $(this).data('target');
+                $(target).slideToggle(250);
+                $(this).toggleClass('collapsed');
+            });
+        });
+    </script>
+
     {{-- Custom JS tambahan per halaman --}}
     @stack('scripts')
 

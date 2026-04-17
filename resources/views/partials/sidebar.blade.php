@@ -417,7 +417,11 @@
                 <div class="bg-white py-2 collapse-inner rounded">
                     <a class="collapse-item {{ request()->routeIs('user.kantin.dashboard') ? 'active' : '' }}"
                         href="{{ route('user.kantin.dashboard') }}">
-                        <i class="fas fa-tachometer-alt mr-1"></i>Dashboard
+                        <i class="fas fa-tachometer-alt mr-1"></i> Dashboard
+                    </a>
+                    <a class="collapse-item {{ request()->routeIs('user.kantin.tagihan') ? 'active' : '' }}"
+                        href="{{ route('user.kantin.tagihan') }}">
+                        <i class="fas fa-file-invoice mr-2"></i> Tagihan
                     </a>
                     <a class="collapse-item {{ request()->routeIs('user.kantin.riwayat') ? 'active' : '' }}"
                         href="{{ route('user.kantin.riwayat') }}">
