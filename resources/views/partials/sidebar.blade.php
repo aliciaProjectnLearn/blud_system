@@ -117,6 +117,13 @@
         </li>
 
         <li class="nav-item {{ request()->routeIs('users.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('dashboard.pembagian-pendapatan') }}">
+                <i class="fas fa-chart-pie"></i>
+                <span>Pembagian Pendapatan BLUD</span>
+            </a>
+        </li>
+
+        <li class="nav-item {{ request()->routeIs('users.*') ? 'active' : '' }}">
             <a class="nav-link" href="{{ route('dashboard.monitoring') }}">
                 <i class="fas fa-clipboard-list"></i>
                 <span>Log Activities</span>
