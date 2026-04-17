@@ -3,7 +3,7 @@
 @section('title', 'Form Sewa Kantin Baru')
 
 @section('content')
-<div class="container-fluid">
+<div class="container-fluid pb-5">
 
     {{-- Page Heading --}}
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
@@ -59,6 +59,7 @@
                         </h6>
                     </div>
                     <div class="card-body">
+                        <div class="mb-4">
                         @if($units->isEmpty())
                             <div class="text-center py-4">
                                 <i class="fas fa-store-slash fa-3x text-gray-200 mb-3"></i>
@@ -178,11 +179,12 @@
                             </div>
                         </div>
 
-                        <div class="form-group row">
+                        <div class="form-group row mb-4">
                             <label class="col-sm-4 col-form-label font-weight-bold">Durasi Sewa</label>
-                            <div class="col-sm-8">
-                                <input type="text" class="form-control bg-light" value="1 Tahun" readonly>
-                                <small class="text-muted">Durasi sewa minimum adalah 1 tahun.</small>
+                            <div class="col-sm-8 text-right text-sm-left">
+                                <span class="badge badge-light p-2 border">
+                                    <i class="fas fa-clock mr-1"></i> 1 Tahun (Minimum)
+                                </span>
                             </div>
                         </div>
 
@@ -194,29 +196,31 @@
                         </div>
 
                         {{-- Ringkasan Pembayaran --}}
-                        <div class="alert alert-light border shadow-sm mt-3 mb-0" id="ringkasan-pembayaran" style="display:none;">
-                            <div class="font-weight-bold mb-2 text-gray-700">
-                                <i class="fas fa-calculator mr-1 text-primary"></i> Ringkasan Pembayaran
-                            </div>
-                            <div class="d-flex justify-content-between border-bottom pb-2 mb-2">
-                                <span class="text-sm text-gray-600">Total Sewa / Tahun</span>
-                                <span id="rp-total" class="font-weight-bold text-gray-800">—</span>
-                            </div>
-                            <div class="d-flex justify-content-between mb-1">
-                                <div>
-                                    <span class="badge badge-warning mr-1">Termin 1</span>
-                                    <span class="text-sm text-gray-600">Bayar saat mulai</span><br>
-                                    <small id="tanggal-termin1" class="text-muted"></small>
+                        <div class="card border-left-info shadow-sm mt-4 mb-0" id="ringkasan-pembayaran" style="display:none;">
+                            <div class="card-body p-3">
+                                <div class="font-weight-bold mb-3 text-info">
+                                    <i class="fas fa-calculator mr-1"></i> Estimasi Cicilan 2 Termin
                                 </div>
-                                <span id="rp-termin1" class="font-weight-bold text-warning align-self-center">—</span>
-                            </div>
-                            <div class="d-flex justify-content-between mt-2">
-                                <div>
-                                    <span class="badge badge-secondary mr-1">Termin 2</span>
-                                    <span class="text-sm text-gray-600">Bulan ke-6</span><br>
-                                    <small id="tanggal-termin2" class="text-muted"></small>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <div>
+                                        <span class="badge badge-warning mr-1">Termin 1</span>
+                                        <span class="text-xs text-gray-600">Terbayar saat awal sewa</span>
+                                        <div id="tanggal-termin1" class="text-muted small mt-1 font-weight-bold"></div>
+                                    </div>
+                                    <h6 id="rp-termin1" class="font-weight-bold text-warning mb-0 align-self-center">—</h6>
                                 </div>
-                                <span id="rp-termin2" class="font-weight-bold text-secondary align-self-center">—</span>
+                                <div class="border-top mt-2 pt-2 d-flex justify-content-between">
+                                    <div>
+                                        <span class="badge badge-secondary mr-1">Termin 2</span>
+                                        <span class="text-xs text-gray-600">Pelunasan di bulan ke-6</span>
+                                        <div id="tanggal-termin2" class="text-muted small mt-1 font-weight-bold"></div>
+                                    </div>
+                                    <h6 id="rp-termin2" class="font-weight-bold text-secondary mb-0 align-self-center">—</h6>
+                                </div>
+                                <div class="mt-3 text-right border-top pt-2">
+                                    <span class="text-xs text-gray-500">Total Biaya Sewa (1 Tahun)</span>
+                                    <h5 id="rp-total" class="font-weight-bold text-gray-800 mb-0">—</h5>
+                                </div>
                             </div>
                         </div>
 
@@ -290,7 +294,32 @@
                     </div>
                 </div>
 
-                {{-- Bagian E: Tombol Submit --}}
+                {{-- Bagian E: Persyaratan Dokumen (NEW) --}}
+                <div class="card shadow mb-4 mt-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">
+                            <i class="fas fa-file-upload mr-1"></i> Langkah 4 — Persyaratan Dokumen
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group mb-3">
+                            <label class="font-weight-bold">Upload KTP <span class="text-danger">*</span></label>
+                            <div class="custom-file">
+                                <input type="file" name="dokumen_ktp" class="custom-file-input" id="dokumen_ktp" required accept=".pdf,.jpg,.jpeg,.png">
+                                <label class="custom-file-label" for="dokumen_ktp">Pilih file...</label>
+                            </div>
+                            <small class="form-text text-muted mt-2">
+                                <i class="fas fa-info-circle mr-1"></i> 
+                                Gunakan format PDF, JPG, atau PNG (Maks 2MB). Dokumen ini diperlukan untuk verifikasi identitas dan pembuatan draf MOU.
+                            </small>
+                            @error('dokumen_ktp')
+                                <div class="text-danger small mt-1 font-weight-bold">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Bagian F: Tombol Submit --}}
                 <div class="card shadow">
                     <div class="card-body">
                         <div class="d-flex align-items-center justify-content-between">
@@ -302,13 +331,12 @@
                                     Pastikan data yang Anda isi sudah benar sebelum mengirim pengajuan.
                                 </small>
                             </div>
-                            <button type="submit" id="btn-submit" class="btn btn-primary px-4 py-2 shadow-sm"
-                                    onclick="return confirm('Apakah Anda yakin ingin mengajukan sewa ini?')">
+                            <button type="button" id="btn-submit-booking" class="btn btn-primary px-4 py-2 shadow-sm">
                                 <i class="fas fa-paper-plane mr-1"></i> Ajukan Sewa
                             </button>
                         </div>
-                        <div class="mt-2">
-                            <small class="text-muted">
+                        <div class="mt-2 text-right">
+                             <small class="text-muted">
                                 <i class="fas fa-shield-alt mr-1 text-info"></i>
                                 Pengajuan akan diproses oleh Admin dalam maksimal 2×24 jam.
                             </small>
@@ -321,6 +349,35 @@
         </div>{{-- /row --}}
     </form>
 
+</div>
+
+{{-- Modal Konfirmasi --}}
+<div class="modal fade" id="modalKonfirmasiSewa" tabindex="-1" role="dialog" aria-labelledby="modalKonfirmasiSewaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="modalKonfirmasiSewaLabel">
+                    <i class="fas fa-question-circle mr-2"></i>Konfirmasi Pengajuan
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <i class="fas fa-store fa-3x text-primary mb-3"></i>
+                <p class="font-weight-bold mb-1">Apakah Anda yakin ingin mengajukan sewa ini?</p>
+                <p class="text-muted small">Pastikan data yang Anda isi sudah benar.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    <i class="fas fa-times mr-1"></i> Batal
+                </button>
+                <button type="button" class="btn btn-primary" id="btnKonfirmasiYa">
+                    <i class="fas fa-check mr-1"></i> Ya, Ajukan
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <style>
@@ -483,16 +540,47 @@ $(function () {
         $('#metode-qris').prop('checked', true).trigger('change');
     @endif
 
-    // ── Trigger awal metode default --
+    // Trigger awal metode default --
     $('input[name="metode_pembayaran"]:checked').trigger('change');
 
-    // ── Disable submit jika belum pilih unit ─────────────────────
-    $('#form-booking').on('submit', function (e) {
+    // To show file name on custom-file-input
+    $(document).on('change', '.custom-file-input', function() {
+        let fileName = $(this).val().split('\\').pop();
+        $(this).next('.custom-file-label').addClass("selected").html(fileName);
+    });
+
+    // ── Logic Konfirmasi Modal ──────────────────────────────────
+    $('#btn-submit-booking').on('click', function (e) {
+        e.preventDefault();
+
+        // Validasi unit
         if (!$('#select-unit').val()) {
-            e.preventDefault();
-            alert('Silakan pilih unit terlebih dahulu.');
+            toastr ? toastr.warning('Silakan pilih unit terlebih dahulu.') : alert('Silakan pilih unit terlebih dahulu.');
             $('#select-unit').focus();
+            return;
         }
+
+        // Validasi tanggal
+        if (!$('#tgl-mulai').val()) {
+            toastr ? toastr.warning('Silakan isi tanggal mulai sewa.') : alert('Silakan isi tanggal mulai sewa.');
+            $('#tgl-mulai').focus();
+            return;
+        }
+
+        // Validasi dokumen (wajib)
+        if (!$('#dokumen_ktp').val()) {
+            toastr ? toastr.warning('Silakan upload dokumen KTP terlebih dahulu.') : alert('Silakan upload dokumen KTP terlebih dahulu.');
+            return;
+        }
+
+        // Jika semua valid, tampilkan modal konfirmasi
+        $('#modalKonfirmasiSewa').modal('show');
+    });
+
+    // Ketika tombol "Ya, Ajukan" di dalam modal diklik
+    $('#btnKonfirmasiYa').on('click', function() {
+        // Matikan event preventDefault dan submit form
+        $('#form-booking').submit();
     });
 });
 </script>

@@ -70,7 +70,7 @@
                     <h6 class="m-0 font-weight-bold text-primary">Detail Profil & Dokumen</h6>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('user.kantin.store_booking', $ruko->id) }}" method="POST" enctype="multipart/form-data">
+                    <form id="formBookingUnit" action="{{ route('user.kantin.store_booking', $ruko->id) }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         
                         <h6 class="font-weight-bold mb-3">Informasi Pemohon</h6>
@@ -158,7 +158,7 @@
                         </div>
 
                         <div class="form-group text-right mt-4">
-                            <button type="submit" class="btn btn-primary px-4 py-2" onclick="return confirm('Apakah Anda yakin ingin mengajukan sewa ini?')">
+                            <button type="button" id="btnAjukanSewa" class="btn btn-primary px-4 py-2">
                                 <i class="fas fa-paper-plane mr-1"></i> Ajukan Permohonan Sewa
                             </button>
                         </div>
@@ -176,6 +176,34 @@
     $('.custom-file-input').on('change', function() {
         let fileName = $(this).val().split('\\').pop();
         $(this).next('.custom-file-label').addClass("selected").html(fileName);
+    });
+
+    // SweetAlert2 Confirmation
+    document.getElementById('btnAjukanSewa')?.addEventListener('click', function(e) {
+        e.preventDefault();
+
+        // Validasi dasar HTML5 before SWAL
+        const form = document.getElementById('formBookingUnit');
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        Swal.fire({
+            title: 'Konfirmasi Pengajuan',
+            text: 'Apakah Anda yakin ingin mengajukan permohonan sewa untuk unit ini?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#4e73df',
+            cancelButtonColor: '#858796',
+            confirmButtonText: '<i class="fas fa-check mr-1"></i> Ya, Ajukan',
+            cancelButtonText: 'Batal',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            }
+        });
     });
 </script>
 @endpush

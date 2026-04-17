@@ -1,175 +1,248 @@
 @extends('layouts.app')
-
-@section('title', 'Tagihan Sewa Kantin')
-
+@section('title', 'Tagihan Pembayaran')
 @section('content')
 <div class="container-fluid">
-    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">Tagihan Sewa Saya</h1>
-        <a href="{{ route('user.kantin.dashboard') }}" class="btn btn-sm btn-secondary shadow-sm">
-            <i class="fas fa-arrow-left fa-sm text-white-50"></i> Kembali ke Dashboard
+    <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between mb-4">
+        <h1 class="h3 mb-2 mb-sm-0 text-gray-800">Tagihan Pembayaran</h1>
+        <a href="{{ route('user.kantin.dashboard') }}" class="btn btn-sm btn-secondary">
+            <i class="fas fa-arrow-left mr-1"></i> Kembali
         </a>
     </div>
 
-    @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            {{ session('success') }}
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
+    {{-- Banner Peringatan Termin 1 --}}
+    @php
+        $terminSatuBelumBayar = $tagihan->where('termin', 1)
+            ->whereIn('status', ['menunggu'])->first();
+    @endphp
+
+    @if($terminSatuBelumBayar)
+    <div class="alert alert-warning border-left-warning shadow-sm mb-4" role="alert">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-exclamation-triangle fa-2x text-warning mr-3"></i>
+            <div>
+                <h6 class="font-weight-bold mb-1">Aktivasi Unit Diperlukan</h6>
+                <p class="mb-0">
+                    Bayarkan <strong>Termin 1</strong> untuk mengaktifkan unit 
+                    <strong>{{ $terminSatuBelumBayar->sewaRuko->ruko->kode_unit ?? '' }}</strong> 
+                    yang Anda sewa. Unit tidak akan aktif sebelum pembayaran Termin 1 
+                    diverifikasi oleh admin.
+                </p>
+            </div>
         </div>
+    </div>
     @endif
 
-    <div class="row">
-        <div class="col-lg-8">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Daftar Tagihan & Termin</h6>
+    {{-- Tabel: Daftar Tagihan Aktif --}}
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Tagihan Aktif & Termin</h6>
+        </div>
+        <div class="card-body">
+            @if($tagihan->isEmpty())
+                <div class="text-center py-5">
+                    <i class="fas fa-check-circle fa-4x text-gray-200 mb-3"></i>
+                    <p class="text-muted">Tidak ada tagihan aktif saat ini.</p>
                 </div>
-                <div class="card-body">
-                    @forelse($tagihan as $item)
-                        <div class="card mb-3 border-left-{{ $item->status == 'lunas' ? 'success' : ($item->status == 'verifikasi' ? 'info' : 'warning') }}">
-                            <div class="card-body">
-                                <div class="row align-items-center">
-                                    <div class="col">
-                                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                            Termin {{ $item->termin }} - {{ $item->sewaRuko->ruko->kode_unit ?? 'Unit' }}
-                                        </div>
-                                        <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                            Rp {{ number_format($item->jumlah_tagihan, 0, ',', '.') }}
-                                        </div>
-                                        <div class="mt-2 small text-muted">
-                                            <i class="fas fa-calendar-alt mr-1"></i> Jatuh Tempo: {{ \Carbon\Carbon::parse($item->tgl_jatuh_tempo)->format('d M Y') }}
-                                        </div>
+            @else
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Unit</th>
+                            <th>Termin</th>
+                            <th>Jumlah Tagihan</th>
+                            <th class="d-none d-md-table-cell">Jatuh Tempo</th>
+                            <th>Status</th>
+                            <th class="text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($tagihan as $r)
+                        @php
+                            $badge = match($r->status) {
+                                'verifikasi' => 'info',
+                                'menunggu'   => 'warning',
+                                default      => 'secondary',
+                            };
+                            $statusText = match($r->status) {
+                                'verifikasi' => 'Menunggu Verifikasi',
+                                'menunggu'   => 'Menunggu Pembayaran',
+                                default      => ucfirst($r->status),
+                            };
+                        @endphp
+                        <tr>
+                            <td>{{ $r->sewaRuko->ruko->kode_unit ?? '-' }}</td>
+                            <td>Termin {{ $r->termin }}</td>
+                            <td>Rp {{ number_format($r->jumlah_tagihan, 0, ',', '.') }}</td>
+                            <td class="d-none d-md-table-cell">{{ $r->tgl_jatuh_tempo ? \Carbon\Carbon::parse($r->tgl_jatuh_tempo)->format('d M Y') : '-' }}</td>
+                            <td><span class="badge badge-{{ $badge }}">{{ $statusText }}</span></td>
+                            <td class="text-center">
+                                @if($r->status === 'menunggu')
+                                    <button type="button" class="btn btn-sm btn-primary"
+                                        data-toggle="modal"
+                                        data-target="#modalUpload-{{ $r->id }}">
+                                        <i class="fas fa-upload mr-1"></i> Bayar Sekarang
+                                    </button>
+                                @elseif($r->status === 'verifikasi')
+                                    <span class="text-info small">
+                                        <i class="fas fa-clock mr-1"></i> Bukti sedang ditinjau admin
+                                    </span>
+                                @endif
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+            @endif
+        </div>
+    </div>
+</div>
+
+{{-- Modal Upload Bukti Pembayaran --}}
+@if(isset($tagihan) && $tagihan->isNotEmpty())
+    @foreach($tagihan as $r)
+        @if($r->status === 'menunggu')
+        <div class="modal fade" id="modalUpload-{{ $r->id }}" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title font-weight-bold">
+                            <i class="fas fa-upload mr-2"></i>Upload Bukti Pembayaran
+                        </h5>
+                        <button type="button" class="close text-white" data-dismiss="modal">
+                            <span>&times;</span>
+                        </button>
+                    </div>
+                    <form action="{{ route('user.kantin.confirm_pembayaran', $r->id) }}" method="POST" enctype="multipart/form-data">
+                        @csrf
+                        <div class="modal-body">
+                            <div class="alert alert-info text-sm">
+                                <strong>Termin {{ $r->termin }}</strong> — 
+                                Rp {{ number_format($r->jumlah_tagihan, 0, ',', '.') }}<br>
+                                Jatuh tempo: {{ $r->tgl_jatuh_tempo ? \Carbon\Carbon::parse($r->tgl_jatuh_tempo)->format('d M Y') : '-' }}
+                            </div>
+                            <div class="form-group">
+                                <label class="font-weight-bold">Tipe Pembayaran <span class="text-danger">*</span></label>
+                                <select name="tipe_pembayaran_id" class="form-control select-tipe-bayar" required>
+                                    <option value="">-- Pilih --</option>
+                                    @foreach(\App\Models\TipePembayaran::all() as $tipe)
+                                        <option value="{{ $tipe->id }}" data-nama="{{ strtolower($tipe->nama) }}">
+                                            {{ $tipe->nama }}
+                                        </option>
+                                    @endforeach
+                                </select>
+
+                                {{-- QR Code (muncul hanya jika pilih QRIS) --}}
+                                <div class="qr-section mt-3" style="display:none;">
+                                    <div class="text-center p-3 border rounded bg-light">
+                                        <p class="font-weight-bold text-success mb-2">
+                                            <i class="fas fa-qrcode mr-1"></i> Scan QR untuk Pembayaran
+                                        </p>
+                                        <img src="{{ asset('img/qr-kantin.png') }}" 
+                                            alt="QR QRIS Kantin" 
+                                            style="width: 200px; height: 200px; object-fit: contain;">
+                                        <p class="text-muted small mt-2 mb-0">Scan menggunakan aplikasi mobile banking / e-wallet</p>
+                                        <p class="text-danger small">Setelah pembayaran, upload bukti screenshot di bawah</p>
                                     </div>
-                                    <div class="col-auto text-right">
-                                        @if($item->status == 'menunggu')
-                                            <span class="badge badge-warning mb-2 px-3 py-1">Menunggu Pembayaran</span>
-                                            <div>
-                                                <button class="btn btn-sm btn-primary" onclick="bayarTermin({{ $item->id }}, {{ $item->jumlah_tagihan }}, {{ $item->termin }})">
-                                                    <i class="fas fa-upload mr-1"></i> Bayar Sekarang
-                                                </button>
-                                            </div>
-                                        @elseif($item->status == 'verifikasi')
-                                            <span class="badge badge-info mb-2 px-3 py-1">Menunggu Verifikasi</span>
-                                            <div class="small text-muted">Bukti sudah diunggah</div>
-                                        @elseif($item->status == 'lunas')
-                                            <span class="badge badge-success mb-2 px-3 py-1">Lunas</span>
-                                            <div>
-                                                <a href="{{ route('user.kantin.riwayat') }}" class="btn btn-sm btn-outline-success">
-                                                    <i class="fas fa-file-invoice mr-1"></i> Lihat Kwitansi
-                                                </a>
-                                            </div>
-                                        @endif
+                                </div>
+
+                                {{-- Note Tunai --}}
+                                <div class="tunai-section mt-3" style="display:none;">
+                                    <div class="alert alert-success border-left-success shadow-sm mb-0">
+                                        <h6 class="font-weight-bold mb-1"><i class="fas fa-money-bill-wave mr-1"></i> Pembayaran Tunai</h6>
+                                        <p class="small mb-0">
+                                            Silakan temui admin sistem sewa ruko/kantin di <strong>kantor koperasi pegawai SMKN 1 Cirebon</strong> untuk melakukan pembayaran secara tunai.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {{-- Info Transfer --}}
+                                <div class="transfer-section mt-3" style="display:none;">
+                                    <div class="p-3 border rounded bg-light">
+                                        <h6 class="font-weight-bold mb-2 text-primary"><i class="fas fa-university mr-1"></i> Rekening Tujuan</h6>
+                                        <div class="text-sm">
+                                            <p class="mb-1"><strong>BANK MANDIRI</strong></p>
+                                            <p class="mb-1 h5 font-weight-bold">123-45678-9000-1</p>
+                                            <p class="mb-0 text-muted">a.n KOPERASI SMKN 1 CIREBON</p>
+                                        </div>
+                                        <p class="text-danger small mt-2 mb-0">Setelah transfer, mohon upload bukti transfer di bawah ini.</p>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    @empty
-                        <div class="text-center py-5">
-                            <i class="fas fa-check-circle fa-4x text-gray-200 mb-3"></i>
-                            <h5 class="text-gray-500">Semua tagihan Anda telah lunas!</h5>
-                        </div>
-                    @endforelse
-                </div>
-            </div>
-        </div>
 
-        <div class="col-lg-4">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Metode Pembayaran</h6>
-                </div>
-                <div class="card-body">
-                    <div class="mb-4">
-                        <label class="font-weight-bold small text-uppercase text-muted">Transfer Bank</label>
-                        <div class="d-flex align-items-center mb-2">
-                            <img src="https://upload.wikimedia.org/wikipedia/id/thumb/5/55/BNI_logo.svg/1200px-BNI_logo.svg.png" height="20" class="mr-3">
-                            <div>
-                                <div class="font-weight-bold">BNI: 1234567890</div>
-                                <div class="small text-muted">A.N. BLUD SMKN 1 CIREBON</div>
+                            <div class="form-group bukti-section">
+                                <label class="font-weight-bold">Bukti Pembayaran <span class="text-danger">*</span></label>
+                                <input type="file" name="bukti_pembayaran" class="form-control-file input-bukti" required
+                                    accept=".jpg,.jpeg,.png,.pdf">
+                                <small class="text-muted">Format: JPG, PNG, PDF. Maks 2MB.</small>
                             </div>
                         </div>
-                    </div>
-
-                    <div class="mb-2">
-                        <label class="font-weight-bold small text-uppercase text-muted">QRIS Statis</label>
-                        <div class="text-center p-3 border rounded">
-                           <!-- Placeholder QRIS -->
-                           <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=BLUDSMKNCIR" alt="QRIS" class="img-fluid mb-2">
-                           <div class="small font-weight-bold">SCAN UNTUK BAYAR</div>
-                           <div class="extra-small text-muted mt-1" style="font-size: 10px;">Dukung pembayaran via GoPay, OVO, Dana, LinkAja, dll.</div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                <i class="fas fa-paper-plane mr-1"></i> Kirim
+                            </button>
                         </div>
-                    </div>
+                    </form>
                 </div>
             </div>
         </div>
-    </div>
-</div>
-
-<!-- Modal Bayar -->
-<div class="modal fade" id="modalBayar" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content border-0 shadow">
-            <form action="" id="formBayar" method="POST" enctype="multipart/form-data">
-                @csrf
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title font-weight-bold">Unggah Bukti Pembayaran</h5>
-                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div id="pembayaranInfo" class="mb-4">
-                        <div class="alert alert-info border-0">
-                            Poyeksi Pembayaran <strong id="txtTermin"></strong>: <br>
-                            <h3 class="font-weight-bold mb-0" id="txtNominal"></h3>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="font-weight-bold">Pilih Metode <span class="text-danger">*</span></label>
-                        <select name="tipe_pembayaran_id" class="form-control" required>
-                            <option value="1">Transfer Bank</option>
-                            <option value="3">QRIS</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="font-weight-bold">Bukti Transfer (JPG/PNG/PDF) <span class="text-danger">*</span></label>
-                        <div class="custom-file">
-                            <input type="file" name="bukti_pembayaran" class="custom-file-input" id="customFile" required accept=".jpg,.jpeg,.png,.pdf">
-                            <label class="custom-file-label" for="customFile">Pilih file...</label>
-                        </div>
-                        <small class="text-muted">Maksimal ukuran file 2MB.</small>
-                    </div>
-                </div>
-                <div class="modal-footer bg-light">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary px-4">Kirim Bukti Pembayaran</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-@endsection
+        @endif
+    @endforeach
+@endif
 
 @push('scripts')
 <script>
-    function bayarTermin(id, nominal, termin) {
-        // Set action URL (needs route implementation)
-        const url = `/user/kantin/pembayaran/${id}/confirm`;
-        document.getElementById('formBayar').action = url;
+    $(document).on('change', '.select-tipe-bayar', function() {
+        const selectedOption = $(this).find('option:selected');
+        const namaTipe = selectedOption.data('nama') || '';
+        const modalBody = $(this).closest('.modal-body');
         
-        document.getElementById('txtTermin').innerText = 'Termin ' + termin;
-        document.getElementById('txtNominal').innerText = 'Rp ' + new Intl.NumberFormat('id-ID').format(nominal);
-        
-        $('#modalBayar').modal('show');
-    }
+        const qrSection = modalBody.find('.qr-section');
+        const tunaiSection = modalBody.find('.tunai-section');
+        const transferSection = modalBody.find('.transfer-section');
+        const buktiSection = modalBody.find('.bukti-section');
+        const inputBukti = modalBody.find('.input-bukti');
 
-    $('.custom-file-input').on('change', function() {
+        // Reset semua
+        qrSection.hide();
+        tunaiSection.hide();
+        transferSection.hide();
+        
+        if (namaTipe.includes('qris')) {
+            qrSection.slideDown();
+            buktiSection.show();
+            inputBukti.prop('required', true);
+        } else if (namaTipe.includes('tunai')) {
+            tunaiSection.slideDown();
+            buktiSection.hide();
+            inputBukti.prop('required', false);
+        } else if (namaTipe.includes('transfer')) {
+            transferSection.slideDown();
+            buktiSection.show();
+            inputBukti.prop('required', true);
+        } else {
+            // Default behaviour jika tidak memilih atau tipe tak dikenal
+            buktiSection.show();
+            inputBukti.prop('required', true);
+        }
+    });
+
+    // Reset saat modal ditutup
+    $('.modal').on('hidden.bs.modal', function() {
+        $(this).find('.select-tipe-bayar').val('');
+        $(this).find('.qr-section, .tunai-section, .transfer-section').hide();
+        $(this).find('.bukti-section').show();
+        $(this).find('.input-bukti').prop('required', true);
+    });
+
+    // Custom file name update
+    $('.form-control-file').on('change', function() {
         let fileName = $(this).val().split('\\').pop();
-        $(this).next('.custom-file-label').addClass("selected").html(fileName);
+        // logic is simpler here since it's not custom-file-input
     });
 </script>
 @endpush
+
+@endsection
