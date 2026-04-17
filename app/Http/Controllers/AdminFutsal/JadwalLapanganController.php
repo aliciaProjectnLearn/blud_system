@@ -64,17 +64,52 @@ class JadwalLapanganController extends Controller
         }
         // --- Akhir Fitur Auto-Generate ---
 
-        // Query dengan eager loading
+        // --- Rekonsiliasi: Sinkronkan jadwal_lapangan.status dengan booking_futsal aktif ---
+        // Ambil semua booking aktif untuk tanggal tersebut di semua lapangan
+        $bookings = \App\Models\BookingFutsal::with('booking')
+            ->where('type', 'regular')
+            ->whereHas('booking', fn($q) => $q->whereNotIn('status', ['dibatalkan']))
+            ->where(function($q) use ($tanggal) {
+                $start = Carbon::parse($tanggal)->startOfDay();
+                $end   = Carbon::parse($tanggal)->endOfDay();
+                $q->whereBetween('start_datetime', [$start, $end]);
+            })
+            ->get();
+
+        // Reset dulu semua slot hari itu ke 'tersedia' agar sinkron ulang
+        JadwalLapangan::whereDate('tanggal', $tanggal)
+            ->update(['status' => 'tersedia']);
+
+        // Tandai kembali slot yang benar-benar memiliki booking aktif
+        foreach ($bookings as $bf) {
+            $jamMulaiBooked   = Carbon::parse($bf->start_datetime)->format('H:i:s');
+            $jamSelesaiBooked = Carbon::parse($bf->end_datetime)->format('H:i:s');
+
+            JadwalLapangan::where('lapangan_id', $bf->lapangan_id)
+                ->whereDate('tanggal', $tanggal)
+                ->where('jam_mulai', '>=', $jamMulaiBooked)
+                ->where('jam_mulai', '<', $jamSelesaiBooked)
+                ->update(['status' => 'terisi']);
+        }
+        // --- Akhir Rekonsiliasi ---
+
+        // Query dengan eager loading dan grup per lapangan
+        $lapangangList = \App\Models\Lapangan::all();
         $jadwal = JadwalLapangan::with('lapangan')
             ->whereDate('tanggal', $tanggal)
             ->orderBy('jam_mulai', 'asc')
             ->get();
 
+        // Kelompokkan per lapangan_id
+        $grouped = $jadwal->groupBy('lapangan_id');
+
         // Kembalikan Response JSON yang rapi
         return response()->json([
-            'status'  => 'success',
-            'tanggal' => $tanggal,
-            'data'    => $jadwal
+            'status'    => 'success',
+            'tanggal'   => $tanggal,
+            'lapangans' => $lapangangList,   // daftar semua lapangan
+            'data'      => $jadwal,           // flat (untuk kompatibilitas)
+            'grouped'   => $grouped,          // grouped per lapangan_id
         ]);
     }
 

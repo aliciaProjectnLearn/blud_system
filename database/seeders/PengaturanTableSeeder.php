@@ -13,8 +13,10 @@ class PengaturanTableSeeder extends Seeder
     public function run(): void
     {
         \App\Models\Pengaturan::create([
-            'jam_buka' => '07:00:00',
-            'jam_tutup' => '22:00:00',
+            'jam_buka'             => '07:00:00',
+            'jam_tutup'            => '22:00:00',
+            'harga_reguler_futsal' => 75000,
+            'harga_event_futsal'   => 800000,
         ]);
     }
 }

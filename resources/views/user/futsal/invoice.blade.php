@@ -110,7 +110,7 @@
                     <div class="col-sm-6 text-sm-right mt-3 mt-sm-0">
                         <p class="text-muted mb-2 text-uppercase font-weight-bold small">Rincian Transaksi:</p>
                         <p class="text-dark mb-0"><strong>Tgl Terbit:</strong> {{ now()->format('d M Y, H:i') }}</p>
-                        <p class="text-dark mb-0"><strong>Metode:</strong> {{ $pembayaran->tipePembayaran->nama ?? 'Tunai' }}</p>
+                        <p class="text-dark mb-0"><strong>Metode:</strong> {{ $booking->jenis_pembayaran === 'membership' ? 'Membership (Potong Kuota)' : ($pembayaran->tipePembayaran->nama ?? 'Tunai') }}</p>
                     </div>
                 </div>
 

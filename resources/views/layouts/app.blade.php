@@ -331,32 +331,36 @@
     {{-- Custom scripts for all pages --}}
     <script src="{{ asset('assets/js/sb-admin-2.min.js') }}"></script>
 
-    {{-- Mobile Navigation Script --}}
+    {{-- Mobile Navigation --}}
     <script>
-        $(document).ready(function() {
-            // Open Mobile Nav
-            $('#sidebarToggleTop').on('click', function() {
-                $('#mobile-nav').addClass('open');
-                $('#mobile-nav-backdrop').addClass('open');
-                $('body').css('overflow', 'hidden'); // Prevent background scroll
-            });
+         $(document).ready(function () {
 
-            // Close Mobile Nav
-            function closeMobileNav() {
-                $('#mobile-nav').removeClass('open');
-                $('#mobile-nav-backdrop').removeClass('open');
-                $('body').css('overflow', 'auto');
-            }
-
-            $('#btn-mobile-nav-close, #mobile-nav-backdrop').on('click', closeMobileNav);
-
-            // Submenu Toggles in Mobile Nav
-            $('.mobile-nav-toggle').on('click', function() {
-                const target = $(this).data('target');
-                $(target).slideToggle(250);
-                $(this).toggleClass('collapsed');
-            });
+        // Buka menu
+        $('#sidebarToggleTop').on('click', function () {
+            $('#mobile-nav').toggleClass('open');
+            $('#mobile-nav-backdrop').toggleClass('open');
         });
+
+        // Tutup via tombol X
+        $('#btn-mobile-nav-close').on('click', function () {
+            $('#mobile-nav').removeClass('open');
+            $('#mobile-nav-backdrop').removeClass('open');
+        });
+
+        // Tutup via backdrop
+        $('#mobile-nav-backdrop').on('click', function () {
+            $('#mobile-nav').removeClass('open');
+            $('#mobile-nav-backdrop').removeClass('open');
+        });
+
+        // Handle submenu toggle
+        $('#mobile-nav').on('click', '.mobile-nav-toggle', function () {
+            var target = $(this).data('target');
+            $(target).slideToggle(200);
+            $(this).toggleClass('collapsed');
+        });
+
+    });
     </script>
 
     {{-- Custom JS tambahan per halaman --}}

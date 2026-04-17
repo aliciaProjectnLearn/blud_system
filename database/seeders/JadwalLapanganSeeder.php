@@ -54,7 +54,7 @@ class JadwalLapanganSeeder extends Seeder
             }
         }
 
-        // Gunakan bulk insert agar jauh lebih performant dibanding create di dalam loop
+        // Gunakan insert agar jauh lebih performant dibanding create di dalam loop
         JadwalLapangan::insert($jadwalData);
         
         $this->command->info('Berhasil men-generate Jadwal Lapangan dari tanggal ' . $today->format('Y-m-d') . ' sampai ' . $today->copy()->addDays(7)->format('Y-m-d'));

@@ -8,11 +8,6 @@
             <h1 class="h3 mb-0 text-gray-800">Monitoring Membership</h1>
         </div>
 
-        @if (session('success'))
-            <div class="alert alert-success alert-dismissible fade show">
-                {{ session('success') }} <button type="button" class="close" data-dismiss="alert">&times;</button>
-            </div>
-        @endif
         @if (session('error'))
             <div class="alert alert-danger alert-dismissible fade show">
                 {{ session('error') }} <button type="button" class="close" data-dismiss="alert">&times;</button>

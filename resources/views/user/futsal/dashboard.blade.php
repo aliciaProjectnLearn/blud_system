@@ -158,6 +158,20 @@
 @push('styles')
 <style>
     [x-cloak] { display: none !important; }
+
+    /* Mobile: tabel history lebih compact */
+    @media (max-width: 575.98px) {
+        .table thead th:nth-child(2),
+        .table tbody td:nth-child(2) {
+            display: none; /* Sembunyikan tanggal main jika sumpek, biarkan lapangan, waktu, status */
+        }
+        
+        .table th, .table td {
+            font-size: 0.8rem;
+            padding: 8px 6px;
+            vertical-align: middle;
+        }
+    }
 </style>
 @vite(['resources/css/app.css', 'resources/js/app.js'])
 @endpush

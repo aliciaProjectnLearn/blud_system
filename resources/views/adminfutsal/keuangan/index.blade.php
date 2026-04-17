@@ -10,18 +10,8 @@
         <h1 class="h3 mb-0 text-gray-800">Manajemen Keuangan Futsal</h1>
     </div>
 
-    <!-- Alert Success -->
-    <!-- @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            {{ session('success') }}
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
-        </div>
-    @endif -->
-
     <!-- Alert Error (Validation) -->
-    <!-- @if ($errors->any())
+    @if ($errors->any())
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
             <ul class="mb-0">
                 @foreach ($errors->all() as $error)
@@ -32,7 +22,7 @@
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>
-    @endif -->
+    @endif
 
     <!-- Bagian Atas: 3 Card Ringkasan -->
     <div class="row">

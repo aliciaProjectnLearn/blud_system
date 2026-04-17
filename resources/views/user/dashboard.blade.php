@@ -96,6 +96,54 @@
     ::-webkit-scrollbar-track { background: #f1f1f1; }
     ::-webkit-scrollbar-thumb { background: #4e73df; border-radius: 10px; }
     ::-webkit-scrollbar-thumb:hover { background: #224abe; }
+
+    /* Print styling for detail modal */
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+        #detailModal, #detailModal * {
+            visibility: visible;
+        }
+        #detailModal {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+        }
+        .modal-footer {
+            display: none !important;
+        }
+        .modal-backdrop {
+            display: none !important;
+        }
+    }
+
+    /* Mobile: tabel history lebih readable */
+    @media (max-width: 575.98px) {
+        .card-header a {
+            font-size: 0.8rem;
+            padding: 4px 8px;
+        }
+
+        /* Sembunyikan kolom kurang penting di mobile */
+        .table thead th:nth-child(2),
+        .table tbody td:nth-child(2) {
+            display: none;
+        }
+        
+        .table thead th:nth-child(3),
+        .table tbody td:nth-child(3) {
+            display: none;
+        }
+
+        /* Font lebih kecil di tabel */
+        .table th, .table td {
+            font-size: 0.8rem;
+            padding: 8px 6px;
+            vertical-align: middle;
+        }
+    }
 </style>
 @endpush
 
@@ -275,6 +323,11 @@
                                         {{ $act['status'] }}
                                     </span>
                                 </td>
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-outline-info" onclick='showDetail("{{ $act["layanan"] }}", @json($act["raw"]))'>
+                                        <i class="fas fa-eye"></i> Detail
+                                    </button>
+                                </td>
                             </tr>
                             @empty
                             <tr>
@@ -344,6 +397,80 @@
 
 @push('scripts')
 <script>
-    // Logic scripts for dashboard if any
+    function showDetail(layanan, data) {
+        let content = '';
+        const modalTitle = document.getElementById('detailModalLabel');
+        const modalBody = document.getElementById('modalContent');
+
+        modalTitle.innerText = `Detail ${layanan}`;
+
+        if (layanan === 'Booking Futsal') {
+            content = `
+                <div class="row">
+                    <div class="col-md-6 border-right">
+                        <h6><b>Informasi Booking</b></h6>
+                        <table class="table table-sm table-borderless">
+                            <tr><td>ID Booking</td><td>: <b>#${data.booking.id}</b></td></tr>
+                            <tr><td>Waktu Mulai</td><td>: ${data.booking.booking_futsal?.start_datetime ?? ''}</td></tr>
+                            <tr><td>Status</td><td>: <span class="badge badge-info">${data.booking.status}</span></td></tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><b>Informasi Pembayaran</b></h6>
+                        <table class="table table-sm table-borderless">
+                            <tr><td>Kode Bayar</td><td>: ${data.kode_pembayaran}</td></tr>
+                            <tr><td>Nominal</td><td>: Rp ${new Intl.NumberFormat('id-ID').format(data.jumlah_bayar)}</td></tr>
+                            <tr><td>Status</td><td>: <span class="badge badge-success">${data.status}</span></td></tr>
+                        </table>
+                    </div>
+                </div>
+            `;
+        } else if (layanan === 'Sewa Ruko/Kantin') {
+            content = `
+                <div class="row">
+                    <div class="col-md-6 border-right">
+                        <h6><b>Informasi Sewa</b></h6>
+                        <table class="table table-sm table-borderless">
+                            <tr><td>Booking ID</td><td>: <b>${data.booking.booking_id}</b></td></tr>
+                            <tr><td>Unit</td><td>: ${data.booking.ruko_id}</td></tr>
+                            <tr><td>Periode</td><td>: ${data.booking.tgl_mulai} s.d ${data.booking.tgl_selesai}</td></tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><b>Informasi Tagihan</b></h6>
+                        <table class="table table-sm table-borderless">
+                            <tr><td>Termin</td><td>: ${data.termin}</td></tr>
+                            <tr><td>Total Tagihan</td><td>: Rp ${new Intl.NumberFormat('id-ID').format(data.jumlah_tagihan)}</td></tr>
+                            <tr><td>Status</td><td>: <span class="badge badge-success">${data.status}</span></td></tr>
+                        </table>
+                    </div>
+                </div>
+            `;
+        } else if (layanan === 'Servis AC') {
+            content = `
+                <div class="row">
+                    <div class="col-md-6 border-right">
+                        <h6><b>Informasi Servis</b></h6>
+                        <table class="table table-sm table-borderless">
+                            <tr><td>Tanggal Kunjungan</td><td>: ${data.booking.tgl_kunjungan}</td></tr>
+                            <tr><td>Merek AC</td><td>: ${data.booking.merek_ac}</td></tr>
+                            <tr><td>Keluhan</td><td>: ${data.booking.detail_keluhan}</td></tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><b>Informasi Invoice</b></h6>
+                        <table class="table table-sm table-borderless">
+                            <tr><td>Invoice No</td><td>: <b>${data.invoice_no}</b></td></tr>
+                            <tr><td>Total Harga</td><td>: Rp ${new Intl.NumberFormat('id-ID').format(data.total_harga)}</td></tr>
+                            <tr><td>Status</td><td>: <span class="badge badge-success">${data.status}</span></td></tr>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        modalBody.innerHTML = content;
+        $('#detailModal').modal('show');
+    }
 </script>
 @endpush
