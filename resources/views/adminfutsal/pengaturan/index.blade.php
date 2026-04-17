@@ -37,6 +37,35 @@
                             @enderror
                         </div>
 
+                        <hr>
+                        <h6 class="font-weight-bold text-gray-800">Pengaturan Harga</h6>
+
+                        <div class="form-group">
+                            <label for="harga_reguler_futsal">Harga Per Jam (Reguler)</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">Rp</span>
+                                </div>
+                                <input type="number" class="form-control @error('harga_reguler_futsal') is-invalid @enderror" id="harga_reguler_futsal" name="harga_reguler_futsal" value="{{ old('harga_reguler_futsal', $pengaturan->harga_reguler_futsal) }}" required>
+                            </div>
+                            @error('harga_reguler_futsal')
+                                <div class="text-danger mt-1 small">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="form-group">
+                            <label for="harga_event_futsal">Harga Per Hari (Event)</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">Rp</span>
+                                </div>
+                                <input type="number" class="form-control @error('harga_event_futsal') is-invalid @enderror" id="harga_event_futsal" name="harga_event_futsal" value="{{ old('harga_event_futsal', $pengaturan->harga_event_futsal) }}" required>
+                            </div>
+                            @error('harga_event_futsal')
+                                <div class="text-danger mt-1 small">{{ $message }}</div>
+                            @enderror
+                        </div>
+
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-save fa-sm fa-fw mr-2"></i>Simpan
                         </button>

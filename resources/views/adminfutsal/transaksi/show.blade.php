@@ -92,13 +92,29 @@
                             <td>:</td>
                             <td>
                                 @if($transaksi->status == 'verifikasi')
-                                    <span class="badge badge-primary">Verifikasi (Berhasil)</span>
+                                    <span class="badge badge-success px-3 py-2"><i class="fas fa-check-double"></i> Lunas / Terverifikasi</span>
                                 @elseif($transaksi->status == 'menunggu')
-                                    <span class="badge badge-warning text-dark">Menunggu</span>
+                                    <span class="badge badge-warning text-dark px-3 py-2"><i class="fas fa-history"></i> Menunggu Verifikasi</span>
                                 @elseif($transaksi->status == 'dibatalkan')
-                                    <span class="badge badge-danger">Dibatalkan</span>
+                                    <span class="badge badge-danger px-3 py-2"><i class="fas fa-times-circle"></i> Dibatalkan / Ditolak</span>
                                 @else
-                                    <span class="badge badge-success">{{ ucfirst($transaksi->status) }}</span>
+                                    <span class="badge badge-secondary px-3 py-2">{{ ucfirst($transaksi->status) }}</span>
+                                @endif
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Metode Pembayaran</strong></td>
+                            <td>:</td>
+                            <td>
+                                @php $tipe = $transaksi->tipePembayaran->nama ?? null; @endphp
+                                @if($tipe === 'QRIS')
+                                    <span class="badge px-3 py-2" style="background:#6366f1;color:#fff;"><i class="fas fa-qrcode mr-1"></i> QRIS</span>
+                                @elseif($tipe === 'Tunai')
+                                    <span class="badge badge-success px-3 py-2"><i class="fas fa-money-bill-wave mr-1"></i> Tunai (Bayar di Kasir)</span>
+                                @elseif($tipe)
+                                    <span class="badge badge-secondary px-3 py-2">{{ $tipe }}</span>
+                                @else
+                                    <span class="text-muted">-</span>
                                 @endif
                             </td>
                         </tr>
@@ -133,9 +149,25 @@
                                 </div>
                             @endif
 
-                            <button type="submit" class="btn btn-success btn-block py-2">
-                                <i class="fas fa-check-circle"></i> Konfirmasi Pembayaran Berhasil
-                            </button>
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <button type="submit" class="btn btn-success btn-block py-2 mb-2">
+                                        <i class="fas fa-check-circle"></i> Konfirmasi Pembayaran Berhasil
+                                    </button>
+                                </div>
+                                <div class="col-md-4">
+                                    <button type="button" class="btn btn-danger btn-block py-2" 
+                                        onclick="if(confirm('Apakah Anda yakin ingin MENOLAK pembayaran ini? Booking akan otomatis dibatalkan.')) { document.getElementById('reject-form').submit(); }">
+                                        <i class="fas fa-times-circle"></i> Tolak
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+
+                        {{-- Hidden form for rejection --}}
+                        <form id="reject-form" action="{{ route('adminfutsal.transaksi.reject', $transaksi->id) }}" method="POST" style="display:none;">
+                            @csrf
+                            @method('PATCH')
                         </form>
                     @endif
                 </div>

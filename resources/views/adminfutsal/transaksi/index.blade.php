@@ -47,6 +47,7 @@
                             <th>Tanggal</th>
                             <th>Pelanggan</th>
                             <th>Jenis Transaksi</th>
+                            <th>Metode Bayar</th>
                             <th>Total Harga</th>
                             <th>Status</th>
                             <th>Aksi</th>
@@ -70,6 +71,18 @@
                                     <span class="badge badge-primary shadow-sm"><i class="fas fa-calendar-check"></i> Booking</span>
                                 @endif
                             </td>
+                            <td>
+                                @php $tipe = $trx->tipePembayaran->nama ?? null; @endphp
+                                @if($tipe === 'QRIS')
+                                    <span class="badge" style="background:#6366f1;color:#fff;"><i class="fas fa-qrcode mr-1"></i>QRIS</span>
+                                @elseif($tipe === 'Tunai')
+                                    <span class="badge badge-success"><i class="fas fa-money-bill-wave mr-1"></i>Tunai</span>
+                                @elseif($tipe)
+                                    <span class="badge badge-secondary">{{ $tipe }}</span>
+                                @else
+                                    <span class="text-muted small">-</span>
+                                @endif
+                            </td>
                             <td>Rp {{ number_format($trx->jumlah_bayar, 0, ',', '.') }}</td>
                             <td>
                                 @if($trx->status == 'verifikasi')
@@ -90,7 +103,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="8" class="text-center">Belum ada data transaksi.</td>
+                            <td colspan="9" class="text-center">Belum ada data transaksi.</td>
                         </tr>
                         @endforelse
                     </tbody>

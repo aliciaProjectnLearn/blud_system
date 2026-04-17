@@ -78,6 +78,12 @@
                                     <small class="text-uppercase text-muted font-weight-bold">Total Biaya</small>
                                     <h4 class="font-weight-bold text-success" x-text="detail.pembayaran.total"></h4>
                                 </div>
+                                <div class="mt-2" x-show="detail.pembayaran.bukti" x-cloak>
+                                    <small class="text-uppercase text-muted font-weight-bold d-block mb-1">Bukti Transfer</small>
+                                    <a :href="detail.pembayaran.bukti" target="_blank" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-image mr-1"></i> Lihat Bukti
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>

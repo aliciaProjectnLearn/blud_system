@@ -22,13 +22,17 @@ class PengaturanController extends Controller
     {
         $request->validate([
             'jam_buka' => 'required',
-            'jam_tutup' => 'required'
+            'jam_tutup' => 'required',
+            'harga_reguler_futsal' => 'required|numeric|min:0',
+            'harga_event_futsal' => 'required|numeric|min:0'
         ]);
 
         $pengaturan = Pengaturan::findOrFail($id);
         $pengaturan->update([
             'jam_buka' => $request->jam_buka,
-            'jam_tutup' => $request->jam_tutup
+            'jam_tutup' => $request->jam_tutup,
+            'harga_reguler_futsal' => $request->harga_reguler_futsal,
+            'harga_event_futsal' => $request->harga_event_futsal
         ]);
 
         return redirect()->route('adminfutsal.pengaturan.index')->with('success', 'Pengaturan berhasil diperbarui.');

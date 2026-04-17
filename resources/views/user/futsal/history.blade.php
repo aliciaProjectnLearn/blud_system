@@ -20,7 +20,7 @@
             <a href="{{ route('user.futsal.history') }}" class="btn btn-sm btn-light border shadow-sm mr-2 text-primary">
                 <i class="fas fa-sync-alt"></i> Refresh
             </a>
-            <a href="{{ route('adminfutsal.jadwal-lapangan.index') }}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+            <a href="{{ route('user.futsal.booking.form') }}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
                 <i class="fas fa-plus fa-sm text-white-50"></i> Booking Baru
             </a>
         </div>

@@ -155,6 +155,8 @@ Route::middleware(['auth', 'role:Adminfutsal'])->prefix('adminfutsal')
             ->name('transaksi.show');
         Route::patch('transaksi/{id}/konfirmasi', [AdminFutsalTransaksiController::class, 'konfirmasi'])
             ->name('transaksi.konfirmasi');
+        Route::patch('transaksi/{id}/reject', [AdminFutsalTransaksiController::class, 'reject'])
+            ->name('transaksi.reject');
 
         // Laporan Transaksi Futsal
         Route::get('laporan', [LaporanController::class, 'index'])

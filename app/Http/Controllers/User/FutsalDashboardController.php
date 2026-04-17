@@ -116,6 +116,7 @@ class FutsalDashboardController extends Controller
                 'total' => 'Rp ' . number_format($pay->jumlah_bayar ?? 0, 0, ',', '.'),
                 'status' => ucfirst($pay->status ?? 'Menunggu'),
                 'metode' => $booking->jenis_pembayaran === 'membership' ? 'Membership (Potong Kuota)' : ($pay->tipePembayaran->nama ?? 'Tunai'),
+                'bukti'  => $pay && $pay->bukti ? asset('storage/' . $pay->bukti) : null,
             ]
         ]);
     }
@@ -234,10 +235,23 @@ class FutsalDashboardController extends Controller
 
         $membership = Membership::where('user_id', $userId)
             ->where('status', 'aktif')
-            ->with('paket')
+            ->with(['paket', 'transaksi'])
             ->first();
 
-        return view('user.futsal.booking', compact('lapangans', 'paketMemberships', 'membership'));
+        // Check if this is the first payment for membership package
+        // Logic: membership exists but the payment transaction is still 'menunggu' or no transaction yet.
+        $isFirstBooking = false;
+        if ($membership) {
+            $existingPayment = PembayaranFutsal::where('booking_id', $membership->transaksi_id)
+                ->where('jenis_transaksi', 'membership')
+                ->first();
+            
+            if (!$existingPayment || in_array($existingPayment->status, ['menunggu', 'dibatalkan'])) {
+                $isFirstBooking = true;
+            }
+        }
+
+        return view('user.futsal.booking', compact('lapangans', 'paketMemberships', 'membership', 'isFirstBooking'));
     }
 
     /**
@@ -352,6 +366,18 @@ class FutsalDashboardController extends Controller
             // Untuk event
             'start_datetime'   => 'nullable|required_if:type,event|date|after_or_equal:today',
             'end_datetime'     => 'nullable|required_if:type,event|date|after:start_datetime',
+            // Bukti Pembayaran
+            'bukti_pembayaran' => [
+                'nullable',
+                function ($attribute, $value, $fail) {
+                    if (request('type') === 'regular' && request('jenis_pembayaran') === 'reguler' && (int)request('tipe_pembayaran_id') === 3 && empty($value)) {
+                        $fail('Bukti pembayaran wajib diunggah untuk metode QRIS.');
+                    }
+                },
+                'file',
+                'mimes:jpg,jpeg,png,pdf',
+                'max:2048'
+            ],
         ]);
 
         // --- FLOW REGULAR ---
@@ -382,32 +408,50 @@ class FutsalDashboardController extends Controller
                 return back()->withInput()->with('error', 'Waktu yang dipilih sudah bentrok dengan booking lain.');
             }
 
-            // Cek membership
-            $membership = null;
+            $pengaturan = \App\Models\Pengaturan::first();
+            $hargaRegulerPerHour = $pengaturan->harga_reguler_futsal ?? 75000;
+            $hargaEventPerDay = $pengaturan->harga_event_futsal ?? 800000;
+
+            // Strict Validation Before Transaction for QRIS First Booking
             if ($validated['jenis_pembayaran'] === 'membership') {
-                $membership = Membership::where('user_id', $userId)
-                    ->where('status', 'aktif')
-                    ->first();
-
-                if (!$membership) {
-                    return back()->withInput()->with('error', 'Anda tidak memiliki membership aktif.');
-                }
-
-                $durasiJam = $startDatetime->diffInHours($endDatetime);
-                if ($membership->sisa_kuota < $durasiJam) {
-                    return back()->withInput()->with('error', 'Sisa kuota membership tidak mencukupi.');
-                }
-            }
-
-            $isBookingMembershipPertama = false;
-            if ($validated['jenis_pembayaran'] === 'membership') {
-                $isBookingMembershipPertama = PembayaranFutsal::where('jenis_transaksi', 'membership')
+                $isFirst = PembayaranFutsal::where('jenis_transaksi', 'membership')
                     ->whereHas('booking', fn($q) => $q->where('user_id', $userId))
-                    ->where('jumlah_bayar', '>', 0)
+                    ->where('status', '!=', 'dibatalkan')
                     ->doesntExist();
+                
+                if ($isFirst && (int)request('tipe_pembayaran_id') === 3 && !request()->hasFile('bukti_pembayaran')) {
+                    return back()->withInput()->with('error', 'Bukti pembayaran wajib diunggah untuk pendaftaran membership melalui QRIS.');
+                }
             }
 
-            DB::transaction(function () use ($userId, $validated, $slot, $startDatetime, $endDatetime, $membership, $isBookingMembershipPertama) {
+            DB::beginTransaction();
+            try {
+                $isBookingMembershipPertama = false;
+                $membership = null;
+
+                if ($validated['jenis_pembayaran'] === 'membership') {
+                    // 1. Lock Membership record to prevent race condition
+                    $membership = Membership::where('user_id', $userId)
+                        ->where('status', 'aktif')
+                        ->lockForUpdate()
+                        ->first();
+
+                    if (!$membership) {
+                        throw new \Exception('Anda tidak memiliki membership aktif.');
+                    }
+
+                    // 2. Re-check isFirstBooking inside lock
+                    $isBookingMembershipPertama = PembayaranFutsal::where('jenis_transaksi', 'membership')
+                        ->whereHas('booking', fn($q) => $q->where('user_id', $userId))
+                        ->where('status', '!=', 'dibatalkan')
+                        ->doesntExist();
+
+                    $durasiJam = $startDatetime->diffInHours($endDatetime);
+                    if ($membership->sisa_kuota < $durasiJam && !$isBookingMembershipPertama) {
+                        throw new \Exception('Sisa kuota membership tidak mencukupi.');
+                    }
+                }
+
                 $booking = Booking::create([
                     'user_id' => $userId,
                     'status'  => ($validated['jenis_pembayaran'] === 'membership' && !$isBookingMembershipPertama)
@@ -426,24 +470,40 @@ class FutsalDashboardController extends Controller
 
                 if ($validated['jenis_pembayaran'] === 'membership') {
                     $membership->load('paket');
+                    
+                    $buktiPath = null;
+                    if (request()->hasFile('bukti_pembayaran')) {
+                        $buktiPath = request()->file('bukti_pembayaran')->store('bukti_pembayaran_futsal', 'public');
+                    }
+
                     PembayaranFutsal::create([
                         'booking_id'         => $booking->id,
                         'jenis_transaksi'    => 'membership',
-                        'tipe_pembayaran_id' => 2,
+                        'tipe_pembayaran_id' => request('tipe_pembayaran_id') ?? 2,
                         'jumlah_bayar'       => $isBookingMembershipPertama ? $membership->paket->harga : 0,
                         'status'             => $isBookingMembershipPertama ? 'menunggu' : 'verifikasi',
                         'tgl_bayar'          => now(),
+                        'bukti'              => $buktiPath,
                     ]);
+
                     $durasiJam = $startDatetime->diffInHours($endDatetime);
+                    // gunakanKuota inside transaction is safe because we Locked the record
                     $membership->gunakanKuota($durasiJam);
                 } else {
+                    $buktiPath = null;
+                    if (request()->hasFile('bukti_pembayaran')) {
+                        $buktiPath = request()->file('bukti_pembayaran')->store('bukti_pembayaran_futsal', 'public');
+                    }
+
+                    $durasiJam = $startDatetime->diffInHours($endDatetime);
                     PembayaranFutsal::create([
                         'booking_id'         => $booking->id,
                         'jenis_transaksi'    => 'booking',
-                        'tipe_pembayaran_id' => 2,
-                        'jumlah_bayar'       => 0,
-                        'status'             => 'menunggu',
+                        'tipe_pembayaran_id' => request('tipe_pembayaran_id') ?? 2,
+                        'jumlah_bayar'       => $durasiJam * $hargaRegulerPerHour,
+                        'status'             => 'menunggu', // Manual verification for all non-membership
                         'tgl_bayar'          => now(),
+                        'bukti'              => $buktiPath,
                     ]);
                 }
                 $endJam = $endDatetime->format('H:i:s');
@@ -452,7 +512,12 @@ class FutsalDashboardController extends Controller
                     ->where('jam_mulai', '>=', $slot->jam_mulai)
                     ->where('jam_mulai', '<', $endJam)
                     ->update(['status' => 'terisi']);
-            });
+
+                DB::commit();
+            } catch (\Exception $e) {
+                DB::rollBack();
+                return back()->withInput()->with('error', 'Gagal membuat booking: ' . $e->getMessage());
+            }
         }
 
         // --- FLOW EVENT ---
@@ -474,13 +539,16 @@ class FutsalDashboardController extends Controller
             }
 
             DB::transaction(function () use ($userId, $validated, $startDatetime, $endDatetime) {
+                $pengaturan = \App\Models\Pengaturan::first();
+                $hargaEventPerDay = $pengaturan->harga_event_futsal ?? 800000;
+                
                 $booking = Booking::create([
                     'user_id' => $userId,
                     'status'  => 'menunggu',
                 ]);
                 $durasiHari = $startDatetime->diffInDays($endDatetime);
                 $durasiHari = max(1, $durasiHari);
-                $hargaEvent = 800000 * $durasiHari;
+                $hargaEvent = $hargaEventPerDay * $durasiHari;
 
                 BookingFutsal::create([
                     'booking_id'       => $booking->id,
@@ -492,13 +560,19 @@ class FutsalDashboardController extends Controller
                     'jenis_pembayaran' => 'reguler',
                 ]);
 
+                $buktiPath = null;
+                if (request()->hasFile('bukti_pembayaran')) {
+                    $buktiPath = request()->file('bukti_pembayaran')->store('bukti_pembayaran_futsal', 'public');
+                }
+
                 PembayaranFutsal::create([
                     'booking_id'         => $booking->id,
                     'jenis_transaksi'    => 'event',
-                    'tipe_pembayaran_id' => 2,
+                    'tipe_pembayaran_id' => request('tipe_pembayaran_id') ?? 2,
                     'jumlah_bayar'       => $hargaEvent,
                     'status'             => 'menunggu',
                     'tgl_bayar'          => now(),
+                    'bukti'              => $buktiPath,
                 ]);
             });
         }

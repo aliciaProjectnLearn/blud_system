@@ -8,6 +8,8 @@ class Pengaturan extends Model
 {
     protected $fillable = [
         'jam_buka',
-        'jam_tutup'
+        'jam_tutup',
+        'harga_reguler_futsal',
+        'harga_event_futsal'
     ];
 }

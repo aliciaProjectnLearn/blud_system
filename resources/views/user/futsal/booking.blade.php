@@ -30,7 +30,7 @@
     @else
     <div class="alert alert-info border-left-info shadow-sm mb-4" role="alert">
         <i class="fas fa-info-circle mr-2"></i>
-        Anda belum memiliki membership aktif. Pembayaran hanya tersedia dengan metode <strong>Reguler</strong>.
+        Anda belum memiliki membership aktif. Pembayaran tersedia via <strong>QRIS</strong> atau <strong>Tunai (Bayar di Kasir)</strong>.
     </div>
     @endif
 
@@ -45,7 +45,7 @@
                     </h6>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('user.futsal.booking.store') }}" method="POST" @submit.prevent="submitForm">
+                    <form action="{{ route('user.futsal.booking.store') }}" method="POST" enctype="multipart/form-data" @submit.prevent="submitForm">
                         @csrf
 
                         {{-- Validation Errors --}}
@@ -70,7 +70,7 @@
                                     <div class="d-flex align-items-center">
                                         <i class="fas fa-clock fa-lg text-primary mr-3"></i>
                                         <div>
-                                            <div class="font-weight-bold">Regular</div>
+                                            <div class="font-weight-bold">Tunai/QRIS/Membership</div>
                                             <small class="text-muted">Booking per jam (maks 3 jam)</small>
                                         </div>
                                     </div>
@@ -132,7 +132,7 @@
                                 <br>
                                 <span x-show="form.start_datetime && form.end_datetime">
                                     × <span x-text="hitungHari()"></span> hari = 
-                                    <strong class="text-danger" x-text="'Rp ' + formatRupiah(hitungHari() * 800000)"></strong>
+                                    <strong class="text-danger" x-text="formatRupiah(hitungHari() * 800000)"></strong>
                                 </span>
                             </div>
                         </div>
@@ -221,7 +221,7 @@
                                             id="durasi_main"
                                             x-model="form.durasi_main"
                                             @change="onDurasiChange"
-                                            :required="form.type === 'regular'"> ```
+                                            :required="form.type === 'regular'">
                                         <option value="1">1 Jam</option>
                                         <option value="2">2 Jam</option>
                                         <option value="3">3 Jam</option>
@@ -240,21 +240,35 @@
                         </div>
 
                         {{-- Jenis Pembayaran --}}
-                        <div class="form-group" x-show="form.type === 'regular' && form.jam_mulai_id" x-cloak>
+                        <div class="form-group" x-show="(form.type === 'regular' && form.jam_mulai_id) || (form.type === 'event' && form.start_datetime && form.end_datetime)" x-cloak>
                             <label class="font-weight-bold text-gray-700">
                                 <i class="fas fa-credit-card text-primary mr-1"></i> Jenis Pembayaran
                             </label>
                             <div class="payment-options">
-                                {{-- Reguler --}}
+                                {{-- QRIS --}}
                                 <label class="payment-card"
-                                       :class="{ 'payment-card--selected': form.jenis_pembayaran === 'reguler' }">
-                                    <input type="radio" name="jenis_pembayaran" value="reguler"
-                                           x-model="form.jenis_pembayaran" class="d-none" checked>
+                                       :class="{ 'payment-card--selected': form.metode_pembayaran === 'transfer' }">
+                                    <input type="radio" value="transfer"
+                                           x-model="form.metode_pembayaran" class="d-none" checked>
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-qrcode fa-lg text-primary mr-3"></i>
+                                        <div>
+                                            <div class="font-weight-bold">QRIS</div>
+                                            <small class="text-muted">Scan QR, bayar, lalu upload bukti</small>
+                                        </div>
+                                    </div>
+                                </label>
+
+                                {{-- Tunai (Bayar di Tempat) --}}
+                                <label class="payment-card"
+                                       :class="{ 'payment-card--selected': form.metode_pembayaran === 'tunai' }">
+                                    <input type="radio" value="tunai"
+                                           x-model="form.metode_pembayaran" class="d-none">
                                     <div class="d-flex align-items-center">
                                         <i class="fas fa-money-bill-wave fa-lg text-success mr-3"></i>
                                         <div>
-                                            <div class="font-weight-bold">Reguler</div>
-                                            <small class="text-muted">Bayar tunai / transfer ke kasir</small>
+                                            <div class="font-weight-bold">Tunai (Bayar di Kasir)</div>
+                                            <small class="text-muted">Bayar langsung di lokasi</small>
                                         </div>
                                     </div>
                                 </label>
@@ -262,10 +276,10 @@
                                 {{-- Membership --}}
                                 @if($membership)
                                 <label class="payment-card"
-                                       :class="{ 'payment-card--selected': form.jenis_pembayaran === 'membership', 'payment-card--disabled': !isMembershipEnough }"
+                                       :class="{ 'payment-card--selected': form.metode_pembayaran === 'membership', 'payment-card--disabled': !isMembershipEnough }"
                                        :title="!isMembershipEnough ? 'Kuota membership tidak mencukupi' : ''">
-                                    <input type="radio" name="jenis_pembayaran" value="membership"
-                                           x-model="form.jenis_pembayaran"
+                                    <input type="radio" value="membership"
+                                           x-model="form.metode_pembayaran"
                                            :disabled="!isMembershipEnough"
                                            class="d-none">
                                     <div class="d-flex align-items-center">
@@ -295,6 +309,40 @@
                             @error('jenis_pembayaran')
                             <div class="text-danger small mt-1"><i class="fas fa-exclamation-circle"></i> {{ $message }}</div>
                             @enderror
+
+                            {{-- Bukti Pembayaran (Hanya untuk QRIS atau Pendaftaran Membership via QRIS) --}}
+                            <div class="mt-3 animate-in" x-show="form.metode_pembayaran === 'transfer' || (form.metode_pembayaran === 'membership' && isFirstMembership)" x-cloak>
+                                <div class="bg-gray-100 p-3 rounded border" x-show="form.metode_pembayaran === 'transfer' || (form.metode_pembayaran === 'membership' && isFirstMembership)">
+                                    <label class="font-weight-bold text-gray-700 mb-1">
+                                        <i class="fas fa-qrcode text-primary mr-1"></i> Bayar via QRIS & Upload Bukti
+                                    </label>
+                                    <div class="text-center my-2" x-show="form.metode_pembayaran === 'transfer' || (form.metode_pembayaran === 'membership' && isFirstMembership)">
+                                        <img src="{{ asset('assets/img/qris_blud.png') }}"
+                                             alt="QR Code QRIS BLUD SMKN 1 Cirebon"
+                                             class="img-fluid rounded shadow-sm border"
+                                             style="max-width: 220px; cursor:zoom-in;"
+                                             onclick="window.open(this.src, '_blank')">
+                                        <p class="small text-muted mt-2 mb-0" x-show="form.metode_pembayaran === 'membership' && isFirstMembership">
+                                            <i class="fas fa-exclamation-triangle mr-1"></i>
+                                            <strong>Pendaftaran Membership:</strong> Silahkan bayar biaya paket sebesar <strong x-text="summary.totalHargaTampil"></strong> via QRIS di atas.
+                                        </p>
+                                        <p class="small text-muted mt-2 mb-0" x-show="form.metode_pembayaran === 'transfer'">
+                                            <i class="fas fa-info-circle mr-1"></i>
+                                            Scan QR di atas, lalu screenshot bukti pembayaran dan unggah di bawah.
+                                        </p>
+                                    </div>
+                                    <input type="file"
+                                           class="form-control-file @error('bukti_pembayaran') is-invalid @enderror"
+                                           name="bukti_pembayaran"
+                                           id="bukti_pembayaran"
+                                           accept="image/*"
+                                           @change="onFileChange"
+                                           :required="(form.metode_pembayaran === 'transfer' || (form.metode_pembayaran === 'membership' && isFirstMembership))">
+                                    @error('bukti_pembayaran')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
                         </div>
 
                         {{-- Hidden form fields --}}
@@ -302,7 +350,8 @@
                         <input type="hidden" name="tanggal" x-bind:value="form.tanggal">
                         <input type="hidden" name="jam_mulai_id" x-bind:value="form.jam_mulai_id">
                         <input type="hidden" name="durasi_main" x-bind:value="form.durasi_main">
-                        <input type="hidden" name="jenis_pembayaran" x-bind:value="form.type === 'event' ? 'reguler' : form.jenis_pembayaran">
+                        <input type="hidden" name="jenis_pembayaran" x-bind:value="form.type === 'event' ? 'reguler' : (['transfer', 'tunai'].includes(form.metode_pembayaran) ? 'reguler' : 'membership')">
+                        <input type="hidden" name="tipe_pembayaran_id" x-bind:value="form.metode_pembayaran === 'transfer' ? 3 : 2">
                         <input type="hidden" name="type" x-bind:value="form.type">
                         <input type="hidden" name="start_datetime" x-bind:value="form.start_datetime">
                         <input type="hidden" name="end_datetime" x-bind:value="form.end_datetime">
@@ -322,15 +371,13 @@
                                 </span>
                             </button>
                         </div>
-
                     </form>
                 </div>
             </div>
         </div>
 
-        {{-- Ringkasan Booking --}}
+        {{-- Ringkasan Booking (Sidebar) --}}
         <div class="col-lg-4">
-
             {{-- Ringkasan Card --}}
             <div class="card shadow mb-4" x-show="showSummary" x-cloak>
                 <div class="card-header py-3 bg-primary">
@@ -339,6 +386,7 @@
                     </h6>
                 </div>
                 <div class="card-body">
+
                     <div class="summary-item">
                         <span class="text-muted small">Lapangan</span>
                         <span class="font-weight-bold" x-text="summary.lapangan || '-'"></span>
@@ -357,32 +405,31 @@
                     </div>
                     <div class="summary-item">
                         <span class="text-muted small">Durasi</span>
-                        <span class="font-weight-bold" x-text="form.durasi_main + ' Jam'"></span>
+                        <span class="font-weight-bold" x-text="form.type === 'event' ? hitungHari() + ' Hari' : form.durasi_main + ' Jam'"></span>
                     </div>
                     <hr>
                     <div class="summary-item">
                         <span class="text-muted small">Jenis Pembayaran</span>
                         <span class="badge"
-                              :class="form.jenis_pembayaran === 'membership' ? 'badge-info' : 'badge-success'"
-                              x-text="form.jenis_pembayaran === 'membership' ? 'Membership' : 'Reguler'">
+                              :class="{
+                                  'badge-info':    form.metode_pembayaran === 'membership',
+                                  'badge-primary': form.metode_pembayaran === 'transfer',
+                                  'badge-success': form.metode_pembayaran === 'tunai'
+                              }"
+                              x-text="form.metode_pembayaran === 'membership' ? 'Membership' : (form.metode_pembayaran === 'transfer' ? 'QRIS' : 'Tunai')">
                         </span>
                     </div>
-                    @if($membership)
-                    <div class="summary-item" x-show="form.jenis_pembayaran === 'membership'" x-cloak>
-                        <span class="text-muted small">Kuota Terpakai</span>
-                        <span class="font-weight-bold text-warning" x-text="form.durasi_main + ' Jam'"></span>
+
+                    <div class="summary-item mt-2 pt-2 border-top" x-show="form.metode_pembayaran !== 'membership' || isFirstMembership" x-cloak>
+                        <span class="text-gray-800 font-weight-bold">Total Pembayaran</span>
+                        <span class="h5 mb-0 font-weight-bold text-success" x-text="summary.totalHargaTampil"></span>
                     </div>
-                    <div class="summary-item" x-show="form.jenis_pembayaran === 'membership'" x-cloak>
-                        <span class="text-muted small">Sisa Kuota Setelah</span>
-                        <span class="font-weight-bold text-info"
-                              x-text="({{ $membership->sisa_kuota }} - parseInt(form.durasi_main)) + ' Jam'">
-                        </span>
-                    </div>
-                    @endif
+
                     <div class="mt-3 p-2 rounded" style="background:#f8f9fc;">
                         <small class="text-muted">
                             <i class="fas fa-info-circle mr-1"></i>
-                            Booking akan berstatus <strong>Menunggu</strong> hingga dikonfirmasi oleh admin.
+                            <span x-show="form.metode_pembayaran === 'membership' && !isFirstMembership">Booking menggunakan kuota membership. Berhasil otomatis.</span>
+                            <span x-show="form.metode_pembayaran !== 'membership' || isFirstMembership">Booking akan berstatus <strong>Menunggu</strong> hingga dikonfirmasi oleh admin.</span>
                         </small>
                     </div>
                 </div>
@@ -568,7 +615,12 @@
 <script>
 function bookingForm() {
     return {
-        // Sisa kuota membership dari PHP (jika ada)
+        // Harga dari settings
+        hargaReguler: {{ \App\Models\Pengaturan::first()->harga_reguler_futsal ?? 75000 }},
+        hargaEvent: {{ \App\Models\Pengaturan::first()->harga_event_futsal ?? 800000 }},
+        hargaPaket: {{ $membership->paket->harga ?? 0 }},
+
+        isFirstMembership: {{ $isFirstBooking ? 'true' : 'false' }},
         membershipKuota: {{ $membership ? $membership->sisa_kuota : 0 }},
         hasMembership: {{ $membership ? 'true' : 'false' }},
         eventPesan: '',
@@ -579,9 +631,10 @@ function bookingForm() {
             tanggal: '{{ old('tanggal', '') }}',
             jam_mulai_id: '{{ old('jam_mulai_id', '') }}',
             durasi_main: '{{ old('durasi_main', 1) }}',
-            jenis_pembayaran: '{{ old('jenis_pembayaran', 'reguler') }}',
+            metode_pembayaran: '{{ old('metode_pembayaran', 'transfer') }}',
             start_datetime: '{{ old('start_datetime', '') }}',
             end_datetime: '{{ old('end_datetime', '') }}',
+            has_bukti: false,
         },
 
         today: '',
@@ -592,6 +645,9 @@ function bookingForm() {
 
         // Computed: Ringkasan
         get showSummary() {
+            if (this.form.type === 'event') {
+                return this.form.lapangan_id && this.form.start_datetime && this.form.end_datetime;
+            }
             return this.form.lapangan_id && this.form.tanggal && this.form.jam_mulai_id;
         },
 
@@ -605,11 +661,26 @@ function bookingForm() {
                 ? this.selectedSlot.jam_mulai_display
                 : this.formatTime(this.selectedSlot.jam_mulai);
             }
+
+            let totalHarga = 0;
+            if (this.form.type === 'regular') {
+                if (this.form.metode_pembayaran === 'membership') {
+                    totalHarga = this.isFirstMembership ? this.hargaPaket : 0;
+                } else {
+                    totalHarga = this.form.durasi_main * this.hargaReguler;
+                }
+            } else {
+                totalHarga = this.hitungHari() * this.hargaEvent;
+            }
         
             return {
                 lapangan: lapNama !== '-- Pilih Lapangan --' ? lapNama : '-',
-                tanggal: this.form.tanggal ? this.formatDate(this.form.tanggal) : '-',
+                tanggal: this.form.type === 'event' 
+                    ? (this.form.start_datetime ? this.formatDate(this.form.start_datetime) : '-') + ' s/d ' + (this.form.end_datetime ? this.formatDate(this.form.end_datetime) : '-')
+                    : (this.form.tanggal ? this.formatDate(this.form.tanggal) : '-'),
                 jamMulai: jamMulaiTampil,
+                totalHargaTampil: this.formatRupiah(totalHarga),
+                rawHarga: totalHarga
             };
         },
 
@@ -631,13 +702,18 @@ function bookingForm() {
 
         get isFormValid() {
             if (this.form.type === 'event') {
-                return this.form.lapangan_id && this.form.start_datetime && this.form.end_datetime;
+                return this.form.lapangan_id && 
+                       this.form.start_datetime && 
+                       this.form.end_datetime &&
+                       this.form.metode_pembayaran &&
+                       (this.form.metode_pembayaran !== 'transfer' || this.form.has_bukti);
             }
             return this.form.lapangan_id &&
                    this.form.tanggal &&
                    this.form.jam_mulai_id &&
                    this.form.durasi_main &&
-                   this.form.jenis_pembayaran;
+                   this.form.metode_pembayaran &&
+                   (this.form.metode_pembayaran !== 'transfer' || this.form.has_bukti);
         },
 
         init() {
@@ -677,10 +753,14 @@ function bookingForm() {
         },
 
         onDurasiChange() {
-            // Jika jenis pembayaran membership dan kuota tidak cukup, reset ke reguler
-            if (this.form.jenis_pembayaran === 'membership' && !this.isMembershipEnough) {
-                this.form.jenis_pembayaran = 'reguler';
+            // Jika jenis pembayaran membership dan kuota tidak cukup, reset ke tunai
+            if (this.form.metode_pembayaran === 'membership' && !this.isMembershipEnough) {
+                this.form.metode_pembayaran = 'tunai';
             }
+        },
+
+        onFileChange(e) {
+            this.form.has_bukti = e.target.files.length > 0;
         },
 
         async fetchSlots() {
