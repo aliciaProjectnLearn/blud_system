@@ -79,4 +79,14 @@ class User extends Authenticatable
     {
         return $this->hasOne(Penyewa::class, 'user_id');
     }
+
+    public function bookingServis()
+    {
+        return $this->hasMany(BookingServis::class, 'user_id');
+    }
+
+    public function pembayaranServis()
+    {
+        return $this->hasManyThrough(PembayaranServis::class, BookingServis::class, 'user_id', 'booking_servis_id');
+    }
 }

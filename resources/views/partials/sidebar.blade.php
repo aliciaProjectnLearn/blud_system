@@ -348,6 +348,13 @@
     @if (auth()->user()->hasRole('Adminservis'))
         <div class="sidebar-heading">Menu Utama</div>
 
+        {{-- Manajemen Pelanggan --}}
+        <li class="nav-item {{ request()->routeIs('adminservis.pelanggan.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('adminservis.pelanggan.index') }}">
+                <i class="fas fa-fw fa-users"></i>
+                <span>Manajemen Pelanggan</span>
+            </a>
+        </li>
     @endif
 
     {{-- ================================= --}}
