@@ -46,6 +46,7 @@ class AuthController extends Controller
             elseif ($roleName === 'adminfutsal') $dashboardRoute = route('adminfutsal.dashboard');
             elseif ($roleName === 'adminkantin') $dashboardRoute = route('adminkantin.dashboard');
             elseif ($roleName === 'adminac') $dashboardRoute = route('adminac.dashboard');
+            elseif ($roleName === 'adminservis') $dashboardRoute = route('adminservis.dashboard');
             elseif ($roleName === 'teknisi') $dashboardRoute = route('teknisi.dashboard');
             elseif ($roleName === 'pelanggan') $dashboardRoute = route('user.dashboard');
 

@@ -17,6 +17,7 @@ class RoleTableSeeder extends Seeder
             ['nama' => 'Adminfutsal', 'created_at' => now(), 'updated_at' => now()],
             ['nama' => 'Adminkantin', 'created_at' => now(), 'updated_at' => now()],
             ['nama' => 'Adminac', 'created_at' => now(), 'updated_at' => now()],
+            ['nama' => 'Adminservis', 'created_at' => now(), 'updated_at' => now()],
             ['nama' => 'Pelanggan', 'created_at' => now(), 'updated_at' => now()],
             ['nama' => 'Teknisi', 'created_at' => now(), 'updated_at' => now()], // Existing Teknisi untuk Service AC
             ['nama' => 'Teknisi Motor', 'created_at' => now(), 'updated_at' => now()],

@@ -20,13 +20,14 @@ class RolesUsersTableSeeder extends Seeder
             ['user_id' => 2, 'role_id' => 2, 'created_at' => now(), 'updated_at' => now()], // Admin Futsal punya role Adminfutsal
             ['user_id' => 3, 'role_id' => 3, 'created_at' => now(), 'updated_at' => now()], // Admin Kantin punya role Adminkantin
             ['user_id' => 4, 'role_id' => 4, 'created_at' => now(), 'updated_at' => now()], // Admin AC punya role Adminac
-            ['user_id' => 5, 'role_id' => 5, 'created_at' => now(), 'updated_at' => now()], // Pelanggan 1
-            ['user_id' => 6, 'role_id' => 5, 'created_at' => now(), 'updated_at' => now()], // Pelanggan 2
-            ['user_id' => 7, 'role_id' => 5, 'created_at' => now(), 'updated_at' => now()], // Pelanggan 3
-            ['user_id' => 8, 'role_id' => 5, 'created_at' => now(), 'updated_at' => now()], // Pelanggan 4
-            ['user_id' => 9, 'role_id' => 6, 'created_at' => now(), 'updated_at' => now()], // Teknisi 1
-            ['user_id' => 10, 'role_id' => 6, 'created_at' => now(), 'updated_at' => now()], // Teknisi 2
-            ['user_id' => 11, 'role_id' => 6, 'created_at' => now(), 'updated_at' => now()], // Teknisi 3
+            ['user_id' => 5, 'role_id' => 5, 'created_at' => now(), 'updated_at' => now()], // Admin servis punya role Adminservis
+            ['user_id' => 6, 'role_id' => 6, 'created_at' => now(), 'updated_at' => now()], // Pelanggan 1
+            ['user_id' => 7, 'role_id' => 6, 'created_at' => now(), 'updated_at' => now()], // Pelanggan 2
+            ['user_id' => 8, 'role_id' => 6, 'created_at' => now(), 'updated_at' => now()], // Pelanggan 3
+            ['user_id' => 9, 'role_id' => 6, 'created_at' => now(), 'updated_at' => now()], // Pelanggan 4
+            ['user_id' => 10, 'role_id' => 7, 'created_at' => now(), 'updated_at' => now()], // Teknisi 1
+            ['user_id' => 11, 'role_id' => 7, 'created_at' => now(), 'updated_at' => now()], // Teknisi 2
+            ['user_id' => 12, 'role_id' => 7, 'created_at' => now(), 'updated_at' => now()], // Teknisi 3
         ]);
     }
 }

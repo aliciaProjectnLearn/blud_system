@@ -120,6 +120,26 @@
     </a>
 @endif
 
+{{-- ══ ADMIN SERVIS ══ --}}
+@if(auth()->user()->hasRole('Adminservis'))
+    <a href="{{ route('adminservis.dashboard') }}" class="mobile-nav-item {{ request()->routeIs('adminservis.dashboard') ? 'active' : '' }}">
+        <i class="fas fa-tachometer-alt"></i> Dashboard
+    </a>
+    <a href="{{ route('adminservis.profile') }}" class="mobile-nav-item {{ request()->routeIs('adminservis.profile') ? 'active' : '' }}">
+        <i class="fas fa-user"></i> Profil Admin
+    </a>
+    <div class="mobile-nav-divider"></div>
+    <div class="mobile-nav-heading">Layanan Servis</div>
+    <button class="mobile-nav-toggle collapsed" data-target="#mn-servis">
+        <i class="fas fa-car"></i> Manajemen Servis
+        <i class="fas fa-chevron-down toggle-icon"></i>
+    </button>
+    <div id="mn-servis" class="mobile-nav-submenu" style="display:none">
+        <a href="#" class="mobile-nav-subitem">Data Booking</a>
+        <a href="#" class="mobile-nav-subitem">Riwayat Servis</a>
+    </div>
+@endif
+
 {{-- ══ TEKNISI ══ --}}
 @if(auth()->user()->hasRole('Teknisi'))
     <a href="{{ route('teknisi.dashboard') }}" class="mobile-nav-item {{ request()->routeIs('teknisi.dashboard') ? 'active' : '' }}">
