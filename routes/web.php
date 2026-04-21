@@ -301,6 +301,15 @@ Route::middleware(['auth', 'role:Adminac'])->prefix('adminac')->name('adminac.')
         ->name('keuangan.store');
 });
 
+// ── Admin Servis ───────────────────────
+Route::middleware(['auth', 'role:Adminservis'])->prefix('admin-servis')
+    ->name('adminservis.')->group(function () {
+        Route::get('/dashboard', [\App\Http\Controllers\AdminServis\DashboardController::class, 'index'])
+            ->name('dashboard');
+        Route::get('/profile', [\App\Http\Controllers\AdminServis\ProfileController::class, 'index'])
+            ->name('profile');
+    });
+
 // Rute untuk Pelanggan (User Dashboard)
 Route::middleware(['auth', 'role:Pelanggan'])->prefix('user')->name('user.')->group(function () {
     Route::get('/dashboard', [DashboardUserController::class, 'index'])->name('dashboard');

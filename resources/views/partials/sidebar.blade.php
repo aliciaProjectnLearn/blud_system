@@ -13,6 +13,9 @@
         } elseif (auth()->user()->hasRole('Adminac')) {
             $brandLabel = 'Admin AC';
             $brandRoute = route('adminac.dashboard');
+        } elseif (auth()->user()->hasRole('Adminservis')) {
+            $brandLabel = 'Admin Servis';
+            $brandRoute = route('adminservis.dashboard');
         } elseif (auth()->user()->hasRole('Adminkantin')) {
             $brandLabel = 'Admin Kantin';
             $brandRoute = route('adminkantin.dashboard');
@@ -65,6 +68,13 @@
     @elseif(auth()->user()->hasRole('Adminkantin'))
         <li class="nav-item {{ request()->routeIs('adminkantin.dashboard') ? 'active' : '' }}">
             <a class="nav-link" href="{{ route('adminkantin.dashboard') }}">
+                <i class="fas fa-fw fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            </a>
+        </li>
+    @elseif(auth()->user()->hasRole('Adminservis'))
+        <li class="nav-item {{ request()->routeIs('adminservis.dashboard') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('adminservis.dashboard') }}">
                 <i class="fas fa-fw fa-tachometer-alt"></i>
                 <span>Dashboard</span>
             </a>
@@ -329,6 +339,41 @@
                 <i class="fas fa-fw fa-wallet"></i>
                 <span>Manajemen Keuangan</span>
             </a>
+        </li>
+    @endif
+
+    {{-- ================================= --}}
+    {{-- ADMIN SERVIS --}}
+    {{-- ================================= --}}
+    @if (auth()->user()->hasRole('Adminservis'))
+        <div class="sidebar-heading">Menu Utama</div>
+
+        <li class="nav-item {{ request()->routeIs('adminservis.dashboard') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('adminservis.dashboard') }}">
+                <i class="fas fa-fw fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            </a>
+        </li>
+
+        <li class="nav-item {{ request()->routeIs('adminservis.profile') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('adminservis.profile') }}">
+                <i class="fas fa-fw fa-user"></i>
+                <span>Profil Admin</span>
+            </a>
+        </li>
+
+        {{-- Section placeholder untuk fitur mendatang --}}
+        <li class="nav-item">
+            <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseServis">
+                <i class="fas fa-fw fa-car"></i>
+                <span>Layanan Servis</span>
+            </a>
+            <div id="collapseServis" class="collapse">
+                <div class="bg-white py-2 collapse-inner rounded">
+                    <a class="collapse-item" href="#">Data Booking</a>
+                    <a class="collapse-item" href="#">Riwayat Servis</a>
+                </div>
+            </div>
         </li>
     @endif
 
