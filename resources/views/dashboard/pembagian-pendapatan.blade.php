@@ -4,93 +4,40 @@
 
 @push('styles')
 <style>
-    /* ── Palet & Variabel ─────────────────────── */
     :root {
-        --ac-color:     #4e73df;
-        --kantin-color: #f6c23e;
-        --futsal-color: #1cc88a;
-        --jurusan-color:#6f42c1;
+        --ac-color:      #4e73df;
+        --kantin-color:  #f6c23e;
+        --futsal-color:  #1cc88a;
+        --servis-color:  #e74a3b;
+        --jurusan-color: #6f42c1;
         --aplikasi-color:#e83e8c;
-        --blud-color:   #17a2b8;
-        --bersih-color: #28a745;
+        --blud-color:    #17a2b8;
     }
 
-    /* ── Card sistem ─────────────────────────── */
-    .sistem-card {
-        border-radius: 12px;
-        border: none;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-        transition: transform .2s, box-shadow .2s;
-        overflow: hidden;
-    }
+    .sistem-card { border-radius: 12px; border: none; box-shadow: 0 4px 20px rgba(0,0,0,0.08); transition: transform .2s, box-shadow .2s; overflow: hidden; }
     .sistem-card:hover { transform: translateY(-3px); box-shadow: 0 8px 30px rgba(0,0,0,0.13); }
-
     .sistem-card.card-ac     { border-top: 4px solid var(--ac-color); }
     .sistem-card.card-kantin { border-top: 4px solid var(--kantin-color); }
     .sistem-card.card-futsal { border-top: 4px solid var(--futsal-color); }
+    .sistem-card.card-servis { border-top: 4px solid var(--servis-color); }
 
-    /* ── Badge penerima ──────────────────────── */
     .badge-jurusan  { background: var(--jurusan-color);  color:#fff; }
     .badge-aplikasi { background: var(--aplikasi-color); color:#fff; }
     .badge-blud     { background: var(--blud-color);     color:#fff; }
-    .badge-bersih   { background: var(--bersih-color);   color:#fff; }
 
-    /* ── Progress bar penerima ───────────────── */
     .penerima-bar { height: 10px; border-radius: 5px; }
     .bar-jurusan  { background: var(--jurusan-color); }
     .bar-aplikasi { background: var(--aplikasi-color); }
     .bar-blud     { background: var(--blud-color); }
-    .bar-bersih   { background: var(--bersih-color); }
 
-    /* ── Rekap card ──────────────────────────── */
-    .rekap-card {
-        border-radius: 10px;
-        border: none;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.07);
-    }
-
-    /* ── Konfigurasi panel ───────────────────── */
-    .config-panel {
-        background: #f8f9fc;
-        border-radius: 10px;
-        border: 1px solid #e3e6f0;
-        padding: 1.2rem;
-    }
-    .persen-input {
-        width: 80px;
-        text-align: center;
-        font-weight: 700;
-        border-radius: 8px;
-        border: 2px solid #e3e6f0;
-        transition: border-color .2s;
-    }
+    .rekap-card { border-radius: 10px; border: none; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+    .config-panel { background: #f8f9fc; border-radius: 10px; border: 1px solid #e3e6f0; padding: 1.2rem; }
+    .persen-input { width: 80px; text-align: center; font-weight: 700; border-radius: 8px; border: 2px solid #e3e6f0; transition: border-color .2s; }
     .persen-input:focus { border-color: #4e73df; outline: none; }
-    .total-badge {
-        font-size: 0.85rem;
-        font-weight: 700;
-        padding: 4px 10px;
-        border-radius: 20px;
-    }
-    .total-ok      { background: #d4edda; color: #155724; }
-    .total-not-ok  { background: #f8d7da; color: #721c24; }
-
-    /* ── Saldo highlight ─────────────────────── */
-    .saldo-highlight {
-        background: linear-gradient(135deg, #f8f9fc 0%, #e8ecf8 100%);
-        border-radius: 8px;
-        padding: 10px 14px;
-        margin-bottom: 16px;
-    }
-
-    /* ── Donut chart placeholder ─────────────── */
-    .donut-wrap { position: relative; }
-    .donut-center {
-        position: absolute;
-        top: 50%; left: 50%;
-        transform: translate(-50%,-50%);
-        text-align: center;
-        pointer-events: none;
-    }
+    .total-badge { font-size: 0.85rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; }
+    .total-ok     { background: #d4edda; color: #155724; }
+    .total-not-ok { background: #f8d7da; color: #721c24; }
+    .saldo-highlight { background: linear-gradient(135deg, #f8f9fc 0%, #e8ecf8 100%); border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; }
 </style>
 @endpush
 
@@ -126,25 +73,26 @@
                 <span class="mr-2">s/d</span>
                 <input type="date" name="end_date" class="form-control form-control-sm mr-2" value="{{ $endDate }}">
                 <button class="btn btn-primary btn-sm mr-2"><i class="fas fa-filter mr-1"></i>Filter</button>
-                <a href="{{ route('dashboard.pembagian-pendapatan') }}" class="btn btn-secondary btn-sm">Reset</a>
+                <a href="{{ route('dashboard.pembagian-pendapatan') }}" class="btn btn-outline-secondary btn-sm">
+                    <i class="fas fa-undo mr-1"></i>Reset
+                </a>
             </form>
         </div>
     </div>
 
     {{-- Rekap Global per Penerima --}}
-    <div class="row mb-4">
-        @php
-            $ikonPenerima = [
-                'jurusan'  => ['icon' => 'fa-graduation-cap', 'color' => 'jurusan',  'label' => 'Jurusan'],
-                'aplikasi' => ['icon' => 'fa-laptop-code',    'color' => 'aplikasi', 'label' => 'Aplikasi'],
-                'blud'     => ['icon' => 'fa-hospital',       'color' => 'blud',     'label' => 'BLUD'],
-                'bersih'   => ['icon' => 'fa-hand-holding-usd','color'=> 'bersih',   'label' => 'Bersih'],
-            ];
-        @endphp
+    @php
+        $ikonPenerima = [
+            'jurusan'  => ['icon' => 'fa-graduation-cap', 'color' => 'jurusan',  'label' => 'Jurusan'],
+            'aplikasi' => ['icon' => 'fa-laptop-code',    'color' => 'aplikasi', 'label' => 'Aplikasi'],
+            'blud'     => ['icon' => 'fa-hospital',       'color' => 'blud',     'label' => 'BLUD'],
+        ];
+    @endphp
 
+    <div class="row mb-4">
         @foreach($rekapPenerima as $penerima => $totalNominal)
         @php $meta = $ikonPenerima[$penerima] ?? ['icon'=>'fa-circle','color'=>'secondary','label'=>ucfirst($penerima)]; @endphp
-        <div class="col-xl-3 col-md-6 mb-4">
+        <div class="col-xl-4 col-md-6 mb-4">
             <div class="rekap-card card h-100 py-2">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
@@ -158,10 +106,7 @@
                             <small class="text-muted">Total dari semua sistem</small>
                         </div>
                         <div class="col-auto">
-                            <div class="rounded-circle d-flex align-items-center justify-content-center"
-                                 style="width:52px;height:52px;background:var(--{{ $meta['color'] }}-color);opacity:.15;">
-                            </div>
-                            <i class="fas {{ $meta['icon'] }} fa-2x position-absolute" style="margin-top:-42px;margin-left:14px;color:var(--{{ $meta['color'] }}-color)"></i>
+                            <i class="fas {{ $meta['icon'] }} fa-2x" style="color:var(--{{ $meta['color'] }}-color); opacity:.6"></i>
                         </div>
                     </div>
                 </div>
@@ -173,25 +118,23 @@
     {{-- Breakdown Per Sistem --}}
     @php
         $sistemMeta = [
-            'ac'     => ['label'=>'Sistem AC',     'color'=>'ac',     'icon'=>'fa-snowflake',    'saldo' => $saldoAc],
-            'kantin' => ['label'=>'Sistem Kantin',  'color'=>'kantin', 'icon'=>'fa-store',        'saldo' => $saldoKantin],
-            'futsal' => ['label'=>'Sistem Futsal',  'color'=>'futsal', 'icon'=>'fa-futbol',       'saldo' => $saldoFutsal],
+            'ac'     => ['label'=>'Sistem AC',            'color'=>'ac',     'icon'=>'fa-snowflake', 'saldo' => $saldoAc],
+            'kantin' => ['label'=>'Sistem Kantin',         'color'=>'kantin', 'icon'=>'fa-store',     'saldo' => $saldoKantin],
+            'futsal' => ['label'=>'Sistem Futsal',         'color'=>'futsal', 'icon'=>'fa-futbol',    'saldo' => $saldoFutsal],
+            'servis' => ['label'=>'Servis Kendaraan',      'color'=>'servis', 'icon'=>'fa-motorcycle','saldo' => $saldoServis],
         ];
-        $urutan = ['ac','kantin','futsal'];
+        $urutan = ['ac','kantin','futsal','servis'];
     @endphp
 
     <div class="row mb-4">
     @foreach($urutan as $sistem)
     @php
-        $meta  = $sistemMeta[$sistem];
-        $data  = $pembagian[$sistem];
-        $cfg   = $konfigurasi->get($sistem, collect());
+        $meta = $sistemMeta[$sistem];
+        $data = $pembagian[$sistem];
+        $cfg  = $konfigurasi->get($sistem, collect());
     @endphp
-
-    <div class="col-lg-4 mb-4">
+    <div class="col-lg-3 col-md-6 mb-4">
         <div class="card sistem-card card-{{ $sistem }} h-100">
-
-            {{-- Header --}}
             <div class="card-header py-3 d-flex align-items-center justify-content-between">
                 <div class="d-flex align-items-center">
                     <i class="fas {{ $meta['icon'] }} mr-2" style="color:var(--{{ $meta['color'] }}-color)"></i>
@@ -206,8 +149,6 @@
             </div>
 
             <div class="card-body">
-
-                {{-- Saldo --}}
                 <div class="saldo-highlight d-flex justify-content-between align-items-center">
                     <span class="text-muted small font-weight-bold text-uppercase">Saldo Bersih</span>
                     <span class="font-weight-bold" style="font-size:1.1rem; color:var(--{{ $meta['color'] }}-color)">
@@ -215,12 +156,9 @@
                     </span>
                 </div>
 
-                {{-- Pembagian detail --}}
                 <div class="mb-3">
                     @foreach($data['detail'] as $penerima => $info)
-                    @php
-                        $pm = $ikonPenerima[$penerima] ?? ['icon'=>'fa-circle','color'=>'secondary','label'=>ucfirst($penerima)];
-                    @endphp
+                    @php $pm = $ikonPenerima[$penerima] ?? ['icon'=>'fa-circle','color'=>'secondary','label'=>ucfirst($penerima)]; @endphp
                     <div class="mb-3">
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <div class="d-flex align-items-center">
@@ -239,7 +177,7 @@
                     @endforeach
                 </div>
 
-                {{-- Panel Konfigurasi (collapsible) --}}
+                {{-- Panel Konfigurasi --}}
                 <div class="collapse" id="config-{{ $sistem }}">
                     <div class="config-panel mt-2">
                         <p class="text-xs text-muted font-weight-bold text-uppercase mb-2">
@@ -279,18 +217,16 @@
                                     <i class="fas fa-save mr-1"></i>Simpan
                                 </button>
                             </div>
-
                         </form>
                     </div>
                 </div>
-
             </div>
         </div>
     </div>
     @endforeach
     </div>
 
-    {{-- Tabel Ringkasan Lengkap --}}
+    {{-- Tabel Ringkasan Pembagian --}}
     <div class="card shadow mb-4">
         <div class="card-header py-3">
             <h6 class="m-0 font-weight-bold text-primary">
@@ -343,7 +279,7 @@
                         <tr>
                             <td>TOTAL</td>
                             <td class="text-right">
-                                Rp {{ number_format($saldoAc + $saldoKantin + $saldoFutsal, 0, ',', '.') }}
+                                Rp {{ number_format($saldoAc + $saldoKantin + $saldoFutsal + $saldoServis, 0, ',', '.') }}
                             </td>
                             @foreach(array_keys($rekapPenerima) as $p)
                             <td class="text-right text-success">
@@ -362,29 +298,13 @@
 
 @push('scripts')
 <script>
-// Hitung total persentase realtime per sistem
 document.querySelectorAll('.persen-field').forEach(input => {
     input.addEventListener('input', function() {
-        const sistem = this.dataset.sistem;
-        const fields = document.querySelectorAll(`.persen-field[data-sistem="${sistem}"]`);
-        let total = 0;
-        fields.forEach(f => total += parseFloat(f.value) || 0);
-        total = Math.round(total * 100) / 100;
-
-        const badge    = document.querySelector(`.total-indicator-${sistem}`);
-        const valEl    = document.querySelector(`.total-val-${sistem}`);
-        valEl.textContent = total.toFixed(2);
-
-        if (Math.abs(total - 100) < 0.01) {
-            badge.className = `total-badge total-ok total-indicator-${sistem}`;
-        } else {
-            badge.className = `total-badge total-not-ok total-indicator-${sistem}`;
-        }
+        updateTotal(this.dataset.sistem);
     });
 });
 
-// Init total on load
-['ac','kantin','futsal'].forEach(sistem => {
+function updateTotal(sistem) {
     const fields = document.querySelectorAll(`.persen-field[data-sistem="${sistem}"]`);
     let total = 0;
     fields.forEach(f => total += parseFloat(f.value) || 0);
@@ -396,6 +316,8 @@ document.querySelectorAll('.persen-field').forEach(input => {
     if (badge) {
         badge.className = `total-badge ${Math.abs(total - 100) < 0.01 ? 'total-ok' : 'total-not-ok'} total-indicator-${sistem}`;
     }
-});
+}
+
+['ac','kantin','futsal','servis'].forEach(s => updateTotal(s));
 </script>
 @endpush

@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Role;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
@@ -43,7 +44,11 @@ class UserController extends Controller
 
     public function create()
     {
-        $roles = Role::orderBy('nama')->get();
+        // Filter hanya role yang diinginkan
+        $roles = DB::table('roles')
+            ->whereIn('nama', ['Adminfutsal', 'Adminkantin', 'Adminac'])
+            ->get();
+
         return view('dashboard.users.create', compact('roles'));
     }
 
@@ -51,7 +56,7 @@ class UserController extends Controller
     {
         $request->validate([
             'username'    => 'required|string|max:255|unique:users,username',
-            'nama_lengkap'=> 'required|string|max:255',
+            'nama_lengkap' => 'required|string|max:255',
             'no_hp'       => 'required|string|max:20',
             'email'       => 'required|email|unique:users,email',
             'password'    => 'required|min:6|confirmed',
