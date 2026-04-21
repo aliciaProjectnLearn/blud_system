@@ -69,6 +69,62 @@
     </div>
 </div>
 
+{{-- Summary Pendapatan Per Sistem --}}
+<div class="row">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Pendapatan Cuci AC</div>
+                        <div class="h6 mb-0 font-weight-bold text-gray-800">Rp {{ number_format($pendapatanAC, 0, ',', '.') }}</div>
+                    </div>
+                    <div class="col-auto"><i class="fas fa-snowflake fa-2x text-gray-300"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Pendapatan Futsal</div>
+                        <div class="h6 mb-0 font-weight-bold text-gray-800">Rp {{ number_format($pendapatanFutsal, 0, ',', '.') }}</div>
+                    </div>
+                    <div class="col-auto"><i class="fas fa-futbol fa-2x text-gray-300"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pendapatan Kantin</div>
+                        <div class="h6 mb-0 font-weight-bold text-gray-800">Rp {{ number_format($pendapatanRuko, 0, ',', '.') }}</div>
+                    </div>
+                    <div class="col-auto"><i class="fas fa-store fa-2x text-gray-300"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-danger shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Pendapatan Servis Kendaraan</div>
+                        <div class="h6 mb-0 font-weight-bold text-gray-800">Rp {{ number_format($pendapatanServis, 0, ',', '.') }}</div>
+                    </div>
+                    <div class="col-auto"><i class="fas fa-motorcycle fa-2x text-gray-300"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 {{-- Progres & Notifikasi --}}
 <div class="row">
     <div class="col-lg-6 mb-4">
@@ -101,9 +157,19 @@
                     Sewa Ruko Kantin
                     <span class="float-right">Rp {{ number_format($pendapatanRuko, 0, ',', '.') }}</span>
                 </h4>
-                <div class="progress">
+                <div class="progress mb-4">
                     <div class="progress-bar bg-warning" role="progressbar"
                          style="width: {{ $persenRuko }}%" aria-valuenow="{{ $persenRuko }}"
+                         aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+
+                <h4 class="small font-weight-bold">
+                    Servis Kendaraan
+                    <span class="float-right">Rp {{ number_format($pendapatanServis, 0, ',', '.') }}</span>
+                </h4>
+                <div class="progress">
+                    <div class="progress-bar bg-danger" role="progressbar"
+                         style="width: {{ $persenServis }}%" aria-valuenow="{{ $persenServis }}"
                          aria-valuemin="0" aria-valuemax="100"></div>
                 </div>
             </div>
@@ -164,11 +230,24 @@
                         <tbody>
                             @forelse($transaksiTerbaru as $t)
                             <tr>
-                                <td>{{ $t->layanan }}</td>
+                                <td>
+                                    @php
+                                        $badgeColor = match($t->layanan) {
+                                            'Cuci AC'          => 'primary',
+                                            'Futsal'           => 'success',
+                                            'Ruko'             => 'warning',
+                                            'Servis Kendaraan' => 'danger',
+                                            default            => 'secondary',
+                                        };
+                                    @endphp
+                                    <span class="badge badge-{{ $badgeColor }}">{{ $t->layanan }}</span>
+                                </td>
                                 <td>{{ $t->nama_user }}</td>
                                 <td>Rp {{ number_format($t->jumlah_bayar, 0, ',', '.') }}</td>
                                 <td><span class="badge badge-info">{{ $t->status }}</span></td>
-                                <td class="d-none d-md-table-cell">{{ $t->tgl_bayar ?? '-' }}</td>
+                                <td class="d-none d-md-table-cell">
+                                    {{ $t->tgl_bayar ? \Carbon\Carbon::parse($t->tgl_bayar)->format('d/m/Y') : '-' }}
+                                </td>
                             </tr>
                             @empty
                             <tr>

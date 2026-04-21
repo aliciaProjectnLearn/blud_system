@@ -13,6 +13,7 @@ class TransaksiController extends Controller
         $search = $request->search;
         $sistem = $request->sistem;
         $status = $request->status;
+        $perPage = in_array($request->per_page, [10, 25, 50, 100]) ? (int) $request->per_page : 10;
 
         $ac = DB::table('pembayaran_ac')
             ->select(
@@ -44,19 +45,29 @@ class TransaksiController extends Controller
                 'created_at'
             );
 
-        $union = $ac->unionAll($futsal)->unionAll($ruko);
+        $servis = DB::table('pembayaran_servis')
+            ->select(
+                'id',
+                DB::raw("'Servis Kendaraan' as sistem"),
+                'total_biaya as total',
+                'status_pembayaran as status',
+                'tanggal_bayar as tgl_bayar',
+                'created_at'
+            );
+
+        $union = $ac->unionAll($futsal)->unionAll($ruko)->unionAll($servis);
         $query = DB::query()->fromSub($union, 'transaksi');
 
-        if ($search) $query->where('id', $search);
+        if ($search) $query->where('id', 'like', "%{$search}%");
         if ($sistem)  $query->where('sistem', $sistem);
         if ($status)  $query->where('status', $status);
 
         $transaksi = $query
             ->orderBy('created_at', 'desc')
-            ->paginate(10)
+            ->paginate($perPage)
             ->withQueryString();
 
-        return view('dashboard.transaksi.index', compact('transaksi'));
+        return view('dashboard.transaksi.index', compact('transaksi', 'perPage'));
     }
 
     public function show(Request $request, $id)
@@ -114,6 +125,26 @@ class TransaksiController extends Controller
                     'sewa_ruko.tgl_mulai',
                     'sewa_ruko.tgl_selesai',
                     DB::raw("'Ruko' as sistem")
+                )
+                ->first();
+
+        } elseif ($sistem === 'Servis Kendaraan') {
+            $detail = DB::table('pembayaran_servis')
+                ->join('booking_servis', 'booking_servis.id', '=', 'pembayaran_servis.booking_servis_id')
+                ->join('users', 'users.id', '=', 'booking_servis.user_id')
+                ->join('layanan_servis', 'layanan_servis.id', '=', 'booking_servis.layanan_servis_id')
+                ->where('pembayaran_servis.id', $id)
+                ->select(
+                    'pembayaran_servis.*',
+                    'users.name as nama_pelanggan',
+                    'users.email',
+                    'users.no_hp',
+                    'layanan_servis.nama_layanan as nama_item',
+                    'booking_servis.tipe_kendaraan',
+                    'booking_servis.merek_kendaraan',
+                    'booking_servis.nomor_plat',
+                    'booking_servis.tanggal_booking',
+                    DB::raw("'Servis Kendaraan' as sistem")
                 )
                 ->first();
 

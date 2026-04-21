@@ -8,11 +8,12 @@ use Illuminate\Support\Facades\DB;
 
 class PembagianPendapatanController extends Controller
 {
-    // Penerima yang valid per sistem
+    // Penerima yang valid per sistem — "bersih" dihapus dari semua sistem
     private array $penerimaBySistem = [
-        'ac'     => ['jurusan', 'aplikasi', 'blud', 'bersih'],
-        'kantin' => ['aplikasi', 'blud', 'bersih'],
-        'futsal' => ['aplikasi', 'blud', 'bersih'],
+        'ac'     => ['jurusan', 'aplikasi', 'blud'],
+        'kantin' => ['aplikasi', 'blud'],
+        'futsal' => ['aplikasi', 'blud'],
+        'servis' => ['jurusan', 'aplikasi', 'blud'],
     ];
 
     public function index(Request $request)
@@ -27,15 +28,17 @@ class PembagianPendapatanController extends Controller
             ->map(fn($rows) => $rows->keyBy('penerima'));
 
         // ── Hitung saldo bersih per sistem ────────────────────────
-        $saldoAc = $this->getSaldoAc($startDate, $endDate);
+        $saldoAc     = $this->getSaldoAc($startDate, $endDate);
         $saldoKantin = $this->getSaldoKantin($startDate, $endDate);
         $saldoFutsal = $this->getSaldoFutsal($startDate, $endDate);
+        $saldoServis = $this->getSaldoServis($startDate, $endDate);
 
         // ── Hitung pembagian ──────────────────────────────────────
         $pembagian = [
             'ac'     => $this->hitungPembagian('ac',     $saldoAc,     $konfigurasi),
             'kantin' => $this->hitungPembagian('kantin', $saldoKantin, $konfigurasi),
             'futsal' => $this->hitungPembagian('futsal', $saldoFutsal, $konfigurasi),
+            'servis' => $this->hitungPembagian('servis', $saldoServis, $konfigurasi),
         ];
 
         // ── Rekapitulasi global per penerima ──────────────────────
@@ -48,6 +51,7 @@ class PembagianPendapatanController extends Controller
             'saldoAc',
             'saldoKantin',
             'saldoFutsal',
+            'saldoServis',
             'startDate',
             'endDate',
         ));
@@ -56,16 +60,14 @@ class PembagianPendapatanController extends Controller
     public function updateKonfigurasi(Request $request)
     {
         $request->validate([
-            'sistem'      => 'required|in:ac,kantin,futsal',
-            'persentase'  => 'required|array',
-            'persentase.*'=> 'required|numeric|min:0|max:100',
+            'sistem'       => 'required|in:ac,kantin,futsal,servis',
+            'persentase'   => 'required|array',
+            'persentase.*' => 'required|numeric|min:0|max:100',
         ]);
 
-        $sistem   = $request->sistem;
-        $valid    = $this->penerimaBySistem[$sistem];
-        $total    = collect($request->persentase)
-                        ->only($valid)
-                        ->sum();
+        $sistem = $request->sistem;
+        $valid  = $this->penerimaBySistem[$sistem];
+        $total  = collect($request->persentase)->only($valid)->sum();
 
         if (round($total, 2) != 100.00) {
             return back()->withErrors([
@@ -90,8 +92,7 @@ class PembagianPendapatanController extends Controller
 
     private function getSaldoAc(?string $start, ?string $end): float
     {
-        $masuk = DB::table('pembayaran_ac')
-            ->where('status', 'dibayar')
+        $masuk = DB::table('pembayaran_ac')->where('status', 'dibayar')
             ->when($start, fn($q) => $q->whereDate('tgl_bayar', '>=', $start))
             ->when($end,   fn($q) => $q->whereDate('tgl_bayar', '<=', $end))
             ->sum('total_harga');
@@ -106,8 +107,7 @@ class PembagianPendapatanController extends Controller
 
     private function getSaldoKantin(?string $start, ?string $end): float
     {
-        $masuk = DB::table('pembayaran_ruko')
-            ->where('status', 'verifikasi')
+        $masuk = DB::table('pembayaran_ruko')->where('status', 'verifikasi')
             ->when($start, fn($q) => $q->whereDate('tgl_bayar', '>=', $start))
             ->when($end,   fn($q) => $q->whereDate('tgl_bayar', '<=', $end))
             ->sum('jumlah_tagihan');
@@ -122,8 +122,7 @@ class PembagianPendapatanController extends Controller
 
     private function getSaldoFutsal(?string $start, ?string $end): float
     {
-        $masuk = DB::table('pembayaran_futsal')
-            ->where('status', 'verifikasi')
+        $masuk = DB::table('pembayaran_futsal')->where('status', 'verifikasi')
             ->when($start, fn($q) => $q->whereDate('tgl_bayar', '>=', $start))
             ->when($end,   fn($q) => $q->whereDate('tgl_bayar', '<=', $end))
             ->sum('jumlah_bayar');
@@ -136,14 +135,25 @@ class PembagianPendapatanController extends Controller
         return max(0, $masuk - $keluar);
     }
 
+    private function getSaldoServis(?string $start, ?string $end): float
+    {
+        $masuk = DB::table('pembayaran_servis')->where('status_pembayaran', 'lunas')
+            ->when($start, fn($q) => $q->whereDate('tanggal_bayar', '>=', $start))
+            ->when($end,   fn($q) => $q->whereDate('tanggal_bayar', '<=', $end))
+            ->sum('total_biaya');
+
+        $keluar = DB::table('pengeluaran_servis')
+            ->when($start, fn($q) => $q->whereDate('tanggal', '>=', $start))
+            ->when($end,   fn($q) => $q->whereDate('tanggal', '<=', $end))
+            ->sum('jumlah');
+
+        return max(0, $masuk - $keluar);
+    }
+
     private function hitungPembagian(string $sistem, float $saldo, $konfigurasi): array
     {
-        $result = [
-            'saldo_bersih' => $saldo,
-            'detail'       => [],
-        ];
-
-        $rows = $konfigurasi->get($sistem, collect());
+        $result = ['saldo_bersih' => $saldo, 'detail' => []];
+        $rows   = $konfigurasi->get($sistem, collect());
 
         foreach ($this->penerimaBySistem[$sistem] as $penerima) {
             $persen  = (float) ($rows->get($penerima)?->persentase ?? 0);
@@ -164,10 +174,7 @@ class PembagianPendapatanController extends Controller
 
         foreach ($pembagian as $sistem => $data) {
             foreach ($data['detail'] as $penerima => $info) {
-                if (!isset($rekap[$penerima])) {
-                    $rekap[$penerima] = 0;
-                }
-                $rekap[$penerima] += $info['nominal'];
+                $rekap[$penerima] = ($rekap[$penerima] ?? 0) + $info['nominal'];
             }
         }
 

@@ -11,7 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Redundant with 2026_04_14_114411_create_pengeluaran_futsals_table.php
+        Schema::create('pengeluaran_futsals', function (Blueprint $table) {
+            $table->id();
+            $table->string('kode_pengeluaran')->unique();
+            $table->date('tgl_pengeluaran');
+            $table->decimal('nominal', 15, 2);
+            $table->text('deskripsi');
+            $table->timestamps();
+        });
     }
 
     /**
@@ -19,7 +26,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // 
+        Schema::dropIfExists('pengeluaran_futsals');
     }
 };
 
