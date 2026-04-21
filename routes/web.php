@@ -312,6 +312,10 @@ Route::middleware(['auth', 'role:Adminservis'])->prefix('admin-servis')
             ->name('transaksi.invoice');
         Route::get('/transaksi/{kode}/download-pdf', [\App\Http\Controllers\AdminServis\DashboardController::class, 'downloadPdf'])
             ->name('transaksi.download-pdf');
+
+        // Pelanggan Management
+        Route::get('/pelanggan', [\App\Http\Controllers\AdminServis\PelangganController::class, 'index'])->name('pelanggan.index');
+        Route::get('/pelanggan/{id}', [\App\Http\Controllers\AdminServis\PelangganController::class, 'show'])->name('pelanggan.show');
     });
 
 // Rute untuk Pelanggan (User Dashboard)
