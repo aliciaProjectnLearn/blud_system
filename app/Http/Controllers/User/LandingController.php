@@ -19,6 +19,7 @@ class LandingController extends Controller
                 'adminfutsal' => redirect()->route('adminfutsal.dashboard'),
                 'adminkantin' => redirect()->route('adminkantin.dashboard'),
                 'adminac'     => redirect()->route('adminac.dashboard'),
+                'adminservis' => redirect()->route('adminservis.dashboard'),
                 'teknisi'     => redirect()->route('teknisi.dashboard'),
                 default       => redirect()->route('user.dashboard'),
             };

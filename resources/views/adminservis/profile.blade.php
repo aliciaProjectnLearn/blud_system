@@ -108,9 +108,9 @@
                             @foreach($aktivitas as $index => $item)
                             <tr>
                                 <td class="pl-4">{{ $index + 1 }}</td>
-                                <td>{{ $item['waktu'] }}</td>
-                                <td>{{ $item['aktivitas'] }}</td>
-                                <td><code class="text-primary">{{ $item['ip_address'] }}</code></td>
+                                <td>{{ $item->created_at->translatedFormat('d M Y, H:i') }}</td>
+                                <td>{{ $item->aktivitas }}</td>
+                                <td><code class="text-primary">-</code></td>
                             </tr>
                             @endforeach
                         </tbody>

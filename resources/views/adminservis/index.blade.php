@@ -19,12 +19,12 @@
 
 @section('content')
 <!-- Page Heading -->
-<div class="d-sm-flex align-items-center justify-content-between mb-4">
-    <h1 class="h3 mb-0 text-gray-800">Dashboard — Servis Kendaraan</h1>
+<div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between mb-4">
+    <h1 class="h3 mb-2 mb-sm-0 text-gray-800">Dashboard — Servis Kendaraan</h1>
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb bg-transparent p-0 mb-0">
             <li class="breadcrumb-item"><a href="#">Home</a></li>
-            <li class="breadcrumb-item">Admin Servis</li>
+            <li class="breadcrumb-item d-none d-md-inline">Admin Servis</li>
             <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
         </ol>
     </nav>
@@ -158,21 +158,24 @@
 
 <!-- Recent Transactions Table -->
 <div class="card shadow mb-4">
-    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-        <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-table mr-1"></i> Transaksi Terbaru</h6>
-        <div class="d-flex gap-2">
-            <select id="filterStatus" class="form-control form-control-sm mr-2" style="width: 150px;">
+    <div class="card-header py-3 d-flex flex-column flex-md-row align-items-md-center justify-content-between">
+        <h6 class="m-0 font-weight-bold text-primary mb-3 mb-md-0"><i class="fas fa-table mr-1"></i> Transaksi Terbaru</h6>
+        <div class="d-flex flex-wrap align-items-center" style="gap: 10px;">
+            <select id="filterStatus" class="form-control form-control-sm" style="width: auto; min-width: 130px;">
                 <option value="">Semua Status</option>
                 <option value="Selesai">Selesai</option>
                 <option value="Proses">Proses</option>
                 <option value="Menunggu">Menunggu</option>
                 <option value="Dibatalkan">Dibatalkan</option>
             </select>
-            <select id="filterKendaraan" class="form-control form-control-sm" style="width: 150px;">
+            <select id="filterKendaraan" class="form-control form-control-sm" style="width: auto; min-width: 130px;">
                 <option value="">Semua Kendaraan</option>
                 <option value="Motor">Motor</option>
                 <option value="Mobil">Mobil</option>
             </select>
+            <button id="btnResetTransaksi" class="btn btn-outline-secondary btn-sm d-none">
+                <i class="fas fa-undo mr-1"></i> Reset
+            </button>
         </div>
     </div>
     <div class="card-body">
@@ -195,25 +198,61 @@
                     @foreach($transaksiTerbaru as $index => $item)
                     <tr>
                         <td>{{ $index + 1 }}</td>
-                        <td><code>{{ $item['kode'] }}</code></td>
-                        <td>{{ $item['nama_pelanggan'] }}</td>
-                        <td>{{ $item['jenis_kendaraan'] }}</td>
-                        <td>{{ $item['jenis_servis'] }}</td>
-                        <td>{{ $item['teknisi'] }}</td>
-                        <td>Rp {{ number_format($item['total_biaya'], 0, ',', '.') }}</td>
+                        <td><code>{{ $item->kode_booking }}</code></td>
+                        <td>{{ $item->user->nama_lengkap ?? $item->user->name ?? '-' }}</td>
+                        <td>{{ ucfirst($item->tipe_kendaraan) }}</td>
+                        <td>{{ $item->layananServis->nama_layanan ?? '-' }}</td>
+                        <td>{{ $item->teknisi->name ?? '-' }}</td>
+                        <td>Rp {{ number_format(optional($item->pembayaranServis)->total_biaya ?? 0, 0, ',', '.') }}</td>
                         <td>
                             @php
+                                $status = strtolower($item->status);
                                 $badge = 'secondary';
-                                if($item['status'] == 'Selesai') $badge = 'success';
-                                elseif($item['status'] == 'Proses') $badge = 'primary';
-                                elseif($item['status'] == 'Menunggu') $badge = 'warning';
-                                elseif($item['status'] == 'Dibatalkan') $badge = 'danger';
+                                if($status == 'selesai') $badge = 'success';
+                                elseif($status == 'proses') $badge = 'primary';
+                                elseif($status == 'menunggu') $badge = 'warning';
+                                elseif($status == 'dibatalkan') $badge = 'danger';
                             @endphp
-                            <span class="badge badge-{{ $badge }}">{{ $item['status'] }}</span>
+                            <span class="badge badge-{{ $badge }}">{{ ucfirst($item->status) }}</span>
                         </td>
                         <td>
-                            <button class="btn btn-primary btn-sm"><i class="fas fa-eye"></i> Detail</button>
-                            <button class="btn btn-secondary btn-sm"><i class="fas fa-print"></i> Cetak</button>
+                            @php
+                                $detailData = json_encode([
+                                    'kode'          => $item->kode_booking,
+                                    'nama_pelanggan'=> $item->user->nama_lengkap ?? $item->user->name ?? '-',
+                                    'no_hp'         => $item->user->no_hp ?? '-',
+                                    'email'         => $item->user->email ?? '-',
+                                    'kendaraan'     => ucfirst($item->tipe_kendaraan) . ' - ' . ($item->merek_kendaraan ?? '-'),
+                                    'no_polisi'     => $item->nomor_plat,
+                                    'tanggal'       => $item->tanggal_booking->translatedFormat('d F Y'),
+                                    'jam'           => \Carbon\Carbon::parse($item->jam_booking)->format('H:i'),
+                                    'layanan'       => $item->layananServis->nama_layanan ?? '-',
+                                    'teknisi'       => $item->teknisi->name ?? '-',
+                                    'status'        => ucfirst($item->status),
+                                    'biaya'         => 'Rp ' . number_format(optional($item->pembayaranServis)->total_biaya ?? 0, 0, ',', '.'),
+                                    'status_bayar'  => ucfirst(optional($item->pembayaranServis)->status_pembayaran ?? 'Belum Bayar'),
+                                    'rincian'       => $item->rincianServis->map(function($r) {
+                                        return [
+                                            'nama'     => $r->nama_item,
+                                            'qty'      => $r->jumlah,
+                                            'harga'    => number_format($r->harga_satuan, 0, ',', '.'),
+                                            'subtotal' => number_format($r->subtotal, 0, ',', '.'),
+                                        ];
+                                    })->toArray(),
+                                ]);
+                            @endphp
+                            <div class="d-inline-flex align-items-center" style="gap: 5px;">
+                                <button class="btn btn-primary btn-sm btn-detail" 
+                                    data-item="{{ $detailData }}"
+                                    data-toggle="tooltip" title="Detail">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <a href="{{ route('adminservis.transaksi.invoice', $item->kode_booking) }}" 
+                                    target="_blank" class="btn btn-secondary btn-sm" 
+                                    data-toggle="tooltip" title="Cetak">
+                                    <i class="fas fa-print"></i>
+                                </a>
+                            </div>
                         </td>
                     </tr>
                     @endforeach
@@ -223,12 +262,107 @@
     </div>
 </div>
 
+<!-- Modal Detail Transaksi -->
+<div class="modal fade" id="modalDetail" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="exampleModalLabel"><i class="fas fa-info-circle mr-2"></i> Detail Transaksi Servis</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-4">
+                    <div class="col-md-6 border-right">
+                        <h6 class="font-weight-bold text-primary mb-3">Informasi Pelanggan</h6>
+                        <table class="table table-borderless table-sm">
+                            <tr><td width="35%">Nama</td><td>: <span id="det-nama">-</span></td></tr>
+                            <tr><td>No. HP</td><td>: <span id="det-hp">-</span></td></tr>
+                            <tr><td>Email</td><td>: <span id="det-email">-</span></td></tr>
+                        </table>
+                        <h6 class="font-weight-bold text-primary mt-4 mb-3">Informasi Kendaraan</h6>
+                        <table class="table table-borderless table-sm">
+                            <tr><td width="35%">Kendaraan</td><td>: <span id="det-kendaraan">-</span></td></tr>
+                            <tr><td>No. Polisi</td><td>: <span id="det-plat">-</span></td></tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="font-weight-bold text-primary mb-3">Rincian Booking</h6>
+                        <table class="table table-borderless table-sm">
+                            <tr><td width="35%">Kode</td><td>: <code id="det-kode">-</code></td></tr>
+                            <tr><td>Tanggal</td><td>: <span id="det-tgl">-</span></td></tr>
+                            <tr><td>Jam</td><td>: <span id="det-jam">-</span></td></tr>
+                            <tr><td>Layanan</td><td>: <span id="det-layanan">-</span></td></tr>
+                            <tr><td>Teknisi</td><td>: <span id="det-teknisi">-</span></td></tr>
+                            <tr><td>Status</td><td>: <span id="det-status" class="badge badge-info">-</span></td></tr>
+                        </table>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                        <h6 class="font-weight-bold text-primary mb-3">Rincian Biaya & Komponen</h6>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-sm">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th>Nama Item</th>
+                                        <th class="text-center">Qty</th>
+                                        <th class="text-right">Harga Satuan</th>
+                                        <th class="text-right">Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="det-rincian">
+                                    <!-- Dynamic -->
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <th colspan="3" class="text-right">Total Biaya</th>
+                                        <th class="text-right text-primary h5 font-weight-bold" id="det-biaya">Rp 0</th>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="3" class="text-right">Status Pembayaran</td>
+                                        <td class="text-right font-weight-bold" id="det-pembayaran">-</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+                <a href="#" id="btnCetakInvoiceModal" target="_blank" class="btn btn-primary">
+                    <i class="fas fa-print mr-1"></i> Cetak Invoice
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Today's Schedule Table -->
 <div class="card shadow mb-4">
     <div class="card-header py-3 bg-info text-white">
-        <h6 class="m-0 font-weight-bold"><i class="fas fa-calendar-day mr-1"></i> Jadwal Servis Hari Ini — {{ \Carbon\Carbon::now()->translatedFormat("d F Y") }}</h6>
+        <h6 class="m-0 font-weight-bold"><i class="fas fa-calendar-day mr-1"></i> Jadwal Servis Hari Ini</h6>
+        <small class="d-block d-md-inline">{{ \Carbon\Carbon::now()->translatedFormat("d F Y") }}</small>
     </div>
     <div class="card-body">
+        <div class="d-flex flex-wrap justify-content-md-end align-items-center mb-3" style="gap: 10px;">
+            <select id="filterKendaraanJadwal" class="form-control form-control-sm" style="width: auto; min-width: 130px;">
+                <option value="">Semua Kendaraan</option>
+                <option value="Motor">Motor</option>
+                <option value="Mobil">Mobil</option>
+            </select>
+            <select id="filterStatusJadwal" class="form-control form-control-sm" style="width: auto; min-width: 130px;">
+                <option value="">Semua Status</option>
+                <option value="Menunggu">Menunggu</option>
+                <option value="Sedang Dikerjakan">Sedang Dikerjakan</option>
+                <option value="Selesai">Selesai</option>
+            </select>
+            <button id="btnResetJadwal" class="btn btn-outline-secondary btn-sm d-none">
+                <i class="fas fa-undo mr-1"></i> Reset
+            </button>
+        </div>
         <div class="table-responsive">
             <table class="table table-bordered table-hover table-sm" id="tabelJadwal" width="100%" cellspacing="0">
                 <thead>
@@ -247,19 +381,20 @@
                     @foreach($jadwalHariIni as $index => $item)
                     <tr>
                         <td>{{ $index + 1 }}</td>
-                        <td class="font-weight-bold">{{ $item['jam'] }}</td>
-                        <td>{{ $item['nama_pelanggan'] }}</td>
-                        <td><span class="badge badge-dark">{{ $item['no_polisi'] }}</span></td>
-                        <td>{{ $item['jenis_kendaraan'] }}</td>
-                        <td>{{ $item['keluhan'] }}</td>
-                        <td>{{ $item['teknisi'] }}</td>
+                        <td class="font-weight-bold" style="color: #4e73df;">{{ \Carbon\Carbon::parse($item->jam_booking)->format('H:i') }}</td>
+                        <td>{{ $item->user->nama_lengkap ?? $item->user->name ?? '-' }}</td>
+                        <td><span class="badge badge-dark">{{ $item->nomor_plat }}</span></td>
+                        <td>{{ ucfirst($item->tipe_kendaraan) }}</td>
+                        <td>{{ $item->keluhan }}</td>
+                        <td>{{ $item->teknisi->name ?? '-' }}</td>
                         <td>
                             @php
+                                $status = strtolower($item->status);
                                 $badge = 'secondary';
-                                if($item['status'] == 'Selesai') $badge = 'success';
-                                elseif($item['status'] == 'Sedang Dikerjakan') $badge = 'warning text-white';
+                                if($status == 'selesai') $badge = 'success';
+                                elseif($status == 'proses' || $status == 'sedang dikerjakan') $badge = 'warning text-white';
                             @endphp
-                            <span class="badge badge-{{ $badge }}">{{ $item['status'] }}</span>
+                            <span class="badge badge-{{ $badge }}">{{ ucfirst($item->status) }}</span>
                         </td>
                     </tr>
                     @endforeach
@@ -277,6 +412,9 @@
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
     <script>
         $(document).ready(function() {
+            // Tooltip initialization
+            $('[data-toggle="tooltip"]').tooltip();
+
             // Chart.js initialization
             var ctx = document.getElementById('incomeChart').getContext('2d');
             var incomeChart = new Chart(ctx, {
@@ -318,25 +456,117 @@
                 }
             });
 
-            // DataTables initialization
+            // DataTables initialization - Transaksi
             var table = $('#tabelTransaksi').DataTable({
                 language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/id.json' },
                 pageLength: 10,
                 order: [[0, 'asc']]
             });
 
+            function cekResetTransaksi() {
+                var status    = $('#filterStatus').val();
+                var kendaraan = $('#filterKendaraan').val();
+                if (status !== '' || kendaraan !== '') {
+                    $('#btnResetTransaksi').removeClass('d-none');
+                } else {
+                    $('#btnResetTransaksi').addClass('d-none');
+                }
+            }
+
             $('#filterStatus').on('change', function() {
                 table.column(7).search(this.value).draw();
+                cekResetTransaksi();
             });
 
             $('#filterKendaraan').on('change', function() {
                 table.column(3).search(this.value).draw();
+                cekResetTransaksi();
             });
 
-            $('#tabelJadwal').DataTable({
+            $('#btnResetTransaksi').on('click', function () {
+                $('#filterStatus').val('');
+                $('#filterKendaraan').val('');
+                table.column(7).search('').draw();
+                table.column(3).search('').draw();
+                $(this).addClass('d-none');
+            });
+
+            // DataTables initialization - Jadwal
+            var tableJadwal = $('#tabelJadwal').DataTable({
                 language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/id.json' },
                 pageLength: 5,
                 order: [[1, 'asc']]
+            });
+
+            function cekResetJadwal() {
+                var kendaraan = $('#filterKendaraanJadwal').val();
+                var status    = $('#filterStatusJadwal').val();
+                if (kendaraan !== '' || status !== '') {
+                    $('#btnResetJadwal').removeClass('d-none');
+                } else {
+                    $('#btnResetJadwal').addClass('d-none');
+                }
+            }
+
+            $('#filterKendaraanJadwal').on('change', function () {
+                tableJadwal.column(4).search(this.value).draw();
+                cekResetJadwal();
+            });
+
+            $('#filterStatusJadwal').on('change', function () {
+                tableJadwal.column(7).search(this.value).draw();
+                cekResetJadwal();
+            });
+
+            $('#btnResetJadwal').on('click', function () {
+                $('#filterKendaraanJadwal').val('');
+                $('#filterStatusJadwal').val('');
+                tableJadwal.column(4).search('').draw();
+                tableJadwal.column(7).search('').draw();
+                $(this).addClass('d-none');
+            });
+
+            // Detail Modal Handler
+            $(document).on('click', '.btn-detail', function() {
+                var item = $(this).data('item');
+                
+                // Populate Modal
+                $('#det-kode').text(item.kode);
+                $('#det-nama').text(item.nama_pelanggan);
+                $('#det-hp').text(item.no_hp);
+                $('#det-email').text(item.email);
+                $('#det-kendaraan').text(item.kendaraan);
+                $('#det-plat').text(item.no_polisi);
+                $('#det-tgl').text(item.tanggal);
+                $('#det-jam').text(item.jam);
+                $('#det-layanan').text(item.layanan);
+                $('#det-teknisi').text(item.teknisi);
+                $('#det-status').text(item.status);
+                $('#det-biaya').text(item.biaya);
+                $('#det-pembayaran').text(item.status_bayar);
+
+                // Update Print Button URL
+                var invoiceUrl = "{{ route('adminservis.transaksi.invoice', ':kode') }}";
+                $('#btnCetakInvoiceModal').attr('href', invoiceUrl.replace(':kode', item.kode));
+
+                // Build Rincian Table
+                var rincianHtml = '';
+                if(item.rincian.length > 0) {
+                    item.rincian.forEach(function(r) {
+                        rincianHtml += '<tr>' +
+                            '<td>' + r.nama + '</td>' +
+                            '<td class="text-center">' + r.qty + '</td>' +
+                            '<td class="text-right">Rp ' + r.harga + '</td>' +
+                            '<td class="text-right font-weight-bold">Rp ' + r.subtotal + '</td>' +
+                            '</tr>';
+                    });
+                } else {
+                    rincianHtml = '<tr><td colspan="4" class="text-center italic">Tidak ada rincian komponen</td></tr>';
+                }
+                $('#det-rincian').html(rincianHtml);
+
+                // Show Modal
+                $('#modalDetail').modal('show');
             });
         });
     </script>

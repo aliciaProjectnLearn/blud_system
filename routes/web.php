@@ -308,6 +308,10 @@ Route::middleware(['auth', 'role:Adminservis'])->prefix('admin-servis')
             ->name('dashboard');
         Route::get('/profile', [\App\Http\Controllers\AdminServis\ProfileController::class, 'index'])
             ->name('profile');
+        Route::get('/transaksi/{kode}/invoice', [\App\Http\Controllers\AdminServis\DashboardController::class, 'invoice'])
+            ->name('transaksi.invoice');
+        Route::get('/transaksi/{kode}/download-pdf', [\App\Http\Controllers\AdminServis\DashboardController::class, 'downloadPdf'])
+            ->name('transaksi.download-pdf');
     });
 
 // Rute untuk Pelanggan (User Dashboard)

@@ -96,6 +96,17 @@
                         <i class="fas fa-tachometer-alt fa-sm fa-fw mr-2 text-gray-400"></i>
                         Dashboard
                     </a>
+                @elseif(Auth::user()->hasRole('Adminservis'))
+                    <a class="dropdown-item {{ request()->routeIs('adminservis.profile') ? 'active' : '' }}"
+                       href="{{ route('adminservis.profile') }}">
+                        <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
+                        Profile
+                    </a>
+                    <a class="dropdown-item {{ request()->routeIs('adminservis.dashboard') ? 'active' : '' }}"
+                       href="{{ route('adminservis.dashboard') }}">
+                        <i class="fas fa-tachometer-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                        Dashboard
+                    </a>
                 @else
                     <a class="dropdown-item {{ request()->routeIs('user.profile.*') ? 'active' : '' }}"
                        href="{{ route('user.profile.index') }}">

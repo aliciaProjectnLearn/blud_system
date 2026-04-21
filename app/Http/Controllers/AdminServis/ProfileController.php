@@ -4,30 +4,31 @@ namespace App\Http\Controllers\AdminServis;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use App\Models\LogActivity;
 
 class ProfileController extends Controller
 {
     public function index()
     {
+        $user = Auth::user();
+
         $admin = [
-            'nama'         => 'Ahmad Fauzi, S.Kom',
-            'nip'          => '198705142010011002',
-            'email'        => 'ahmad.fauzi@bludservis.go.id',
-            'telepon'      => '081234567890',
+            'nama'         => $user->nama_lengkap ?? $user->name,
+            'nip'          => $user->nik ?? '-',
+            'email'        => $user->email,
+            'telepon'      => $user->no_hp ?? '-',
             'jabatan'      => 'Administrator Sistem',
             'unit'         => 'BLUD Servis Kendaraan Daerah',
-            'tglBergabung' => '14 Januari 2022',
-            'totalLogin'   => 342,
-            'terakhirLogin'=> 'Hari ini, 08.45 WIB',
+            'tglBergabung' => $user->created_at->translatedFormat('d F Y'),
+            'totalLogin'   => '-',
+            'terakhirLogin'=> '-',
         ];
 
-        $aktivitas = [
-            ['waktu' => '21 Apr 2026, 08:45', 'aktivitas' => 'Login berhasil', 'ip_address' => '192.168.1.10'],
-            ['waktu' => '21 Apr 2026, 09:20', 'aktivitas' => 'Melihat laporan transaksi', 'ip_address' => '192.168.1.10'],
-            ['waktu' => '21 Apr 2026, 10:15', 'aktivitas' => 'Mengubah status servis #SRV-2026-0012', 'ip_address' => '192.168.1.10'],
-            ['waktu' => '20 Apr 2026, 16:30', 'aktivitas' => 'Export data PDF', 'ip_address' => '192.168.1.15'],
-            ['waktu' => '20 Apr 2026, 17:05', 'aktivitas' => 'Logout', 'ip_address' => '192.168.1.15'],
-        ];
+        $aktivitas = LogActivity::where('user_id', $user->id)
+            ->latest()
+            ->limit(5)
+            ->get();
 
         return view('adminservis.profile', compact('admin', 'aktivitas'));
     }

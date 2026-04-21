@@ -64,6 +64,18 @@ class UsersTableSeeder extends Seeder
                 'updated_at'        => now(),
             ],
             [
+                'name'              => 'Admin Servis',
+                'username'          => 'admin_servis',
+                'nama_lengkap'      => 'Admin Servis',
+                'no_hp'             => '081234567893',
+                'email'             => 'adminservis@example.com',
+                'email_verified_at' => now(),
+                'password'          => Hash::make('password'),
+                'remember_token'    => null,
+                'created_at'        => now(),
+                'updated_at'        => now(),
+            ],
+            [
                 'name'              => 'Pelanggan',
                 'username'          => 'pelanggan',
                 'nama_lengkap'      => 'Pelanggan',
