@@ -22,7 +22,7 @@ class DatabaseSeeder extends Seeder
         $this->call(PengaturanTableSeeder::class);
 
         // Tabel dengan foreign key ke tabel di atas
-        $this->call(RolesUsersTableSeeder::class);    // pastikan nama tepat
+        $this->call(RolesUsersTableSeeder::class); // Aktifkan kembali agar role base system (User ID 1-11) tidak hilang
         $this->call(RukoTableSeeder::class);
         $this->call(LayananAcTableSeeder::class);     // pastikan nama tepat
         $this->call(PaketMembershipSeeder::class);
@@ -52,5 +52,8 @@ class DatabaseSeeder extends Seeder
         $this->call(PengeluaranFutsalsSeeder::class);
         $this->call(PengeluaranAcSeeder::class);
         $this->call(PengeluaranKantinSeeder::class);
+
+        // Modul Servis Motor & Mobil Terpadu
+        $this->call(ServisKendaraanSeeder::class);
     }
 }
