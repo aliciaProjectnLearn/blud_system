@@ -316,6 +316,9 @@ Route::middleware(['auth', 'role:Adminservis'])->prefix('admin-servis')
         // Pelanggan Management
         Route::get('/pelanggan', [\App\Http\Controllers\AdminServis\PelangganController::class, 'index'])->name('pelanggan.index');
         Route::get('/pelanggan/{id}', [\App\Http\Controllers\AdminServis\PelangganController::class, 'show'])->name('pelanggan.show');
+
+        // Layanan Management
+        Route::resource('layanan', \App\Http\Controllers\AdminServis\LayananController::class);
     });
 
 // Rute untuk Pelanggan (User Dashboard)
