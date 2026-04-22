@@ -319,6 +319,9 @@ Route::middleware(['auth', 'role:Adminservis'])->prefix('admin-servis')
 
         // Layanan Management
         Route::resource('layanan', \App\Http\Controllers\AdminServis\LayananController::class);
+
+        // Produk Management
+        Route::resource('produk', \App\Http\Controllers\AdminServis\ProdukController::class)->except(['create', 'show', 'edit']);
     });
 
 // Rute untuk Pelanggan (User Dashboard)
