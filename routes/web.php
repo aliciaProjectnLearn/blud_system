@@ -329,6 +329,8 @@ Route::middleware(['auth', 'role:Adminservis'])->prefix('admin-servis')
             ->name('booking.update');
         Route::post('/booking/{id}/assign', [\App\Http\Controllers\AdminServis\BookingController::class, 'assignTeknisi'])
             ->name('booking.assign');
+        // Produk Management
+        Route::resource('produk', \App\Http\Controllers\AdminServis\ProdukController::class)->except(['create', 'show', 'edit']);
     });
 
 // Rute untuk Pelanggan (User Dashboard)
