@@ -26,4 +26,9 @@ class LayananServis extends Model
     {
         return $this->hasMany(BookingServis::class, 'layanan_servis_id');
     }
+
+    public function rincianServis()
+    {
+        return $this->hasManyThrough(RincianServis::class, BookingServis::class, 'layanan_servis_id', 'booking_servis_id');
+    }
 }
