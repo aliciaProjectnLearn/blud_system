@@ -12,6 +12,7 @@ class RincianServis extends Model
     protected $fillable = [
         'booking_servis_id',
         'kategori_komponen_id',
+        'produk_servis_id',
         'nama_item',
         'jumlah',
         'harga_satuan',
@@ -33,5 +34,10 @@ class RincianServis extends Model
     public function kategoriKomponen()
     {
         return $this->belongsTo(KategoriKomponen::class, 'kategori_komponen_id');
+    }
+
+    public function produkServis()
+    {
+        return $this->belongsTo(ProdukServis::class, 'produk_servis_id');
     }
 }
