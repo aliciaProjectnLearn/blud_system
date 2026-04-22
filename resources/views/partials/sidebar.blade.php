@@ -348,6 +348,7 @@
     @if (auth()->user()->hasRole('Adminservis'))
         <div class="sidebar-heading">Menu Utama</div>
 
+
         {{-- Manajemen Layanan --}}
         <li class="nav-item {{ request()->routeIs('adminservis.layanan.*') ? 'active' : '' }}">
             <a class="nav-link" href="{{ route('adminservis.layanan.index') }}">
@@ -361,6 +362,14 @@
             <a class="nav-link" href="{{ route('adminservis.pelanggan.index') }}">
                 <i class="fas fa-fw fa-users"></i>
                 <span>Manajemen Pelanggan</span>
+            </a>
+        </li>
+
+        {{-- Manajemen Booking --}}
+        <li class="nav-item {{ request()->routeIs('adminservis.booking.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('adminservis.booking.index') }}">
+                <i class="fas fa-fw fa-calendar-check"></i>
+                <span>Manajemen Booking</span>
             </a>
         </li>
     @endif

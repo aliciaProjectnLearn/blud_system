@@ -319,6 +319,16 @@ Route::middleware(['auth', 'role:Adminservis'])->prefix('admin-servis')
 
         // Layanan Management
         Route::resource('layanan', \App\Http\Controllers\AdminServis\LayananController::class);
+
+        // Manajemen Booking
+        Route::get('/booking', [\App\Http\Controllers\AdminServis\BookingController::class, 'index'])
+            ->name('booking.index');
+        Route::get('/booking/{id}', [\App\Http\Controllers\AdminServis\BookingController::class, 'show'])
+            ->name('booking.show');
+        Route::put('/booking/{id}', [\App\Http\Controllers\AdminServis\BookingController::class, 'update'])
+            ->name('booking.update');
+        Route::post('/booking/{id}/assign', [\App\Http\Controllers\AdminServis\BookingController::class, 'assignTeknisi'])
+            ->name('booking.assign');
     });
 
 // Rute untuk Pelanggan (User Dashboard)

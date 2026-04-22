@@ -48,6 +48,11 @@ class BookingServis extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    public function pelanggan()
+    {
+        return $this->user();
+    }
+
     public function layananServis()
     {
         return $this->belongsTo(LayananServis::class, 'layanan_servis_id');
@@ -63,8 +68,27 @@ class BookingServis extends Model
         return $this->hasMany(RincianServis::class, 'booking_servis_id');
     }
 
+    public function rincian()
+    {
+        return $this->rincianServis();
+    }
+
     public function pembayaranServis()
     {
         return $this->hasOne(PembayaranServis::class, 'booking_servis_id');
+    }
+
+    /**
+     * Check if a booking slot is available.
+     * Max 3 bookings per hour per day.
+     */
+    public static function isSlotAvailable($tanggal, $jam)
+    {
+        $count = self::where('tanggal_booking', $tanggal)
+            ->where('jam_booking', $jam)
+            ->whereNotIn('status', ['batal', 'selesai'])
+            ->count();
+
+        return $count < 3;
     }
 }
