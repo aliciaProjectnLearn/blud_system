@@ -462,15 +462,14 @@
     {{-- ================================= --}}
     @if (auth()->user()->hasRole('Kasir'))
 
-        {{-- sesuaikan kebutuhan saja --}}
+        {{-- Manajemen Booking --}}
         <div class="sidebar-heading">Menu Pekerjaan</div>
 
-         {{-- Detail Servis --}}
          <li
-            class="nav-item {{ request()->routeIs('kasir.pekerjaan.*') || request()->routeIs('kasir.dashboard*') ? 'active' : '' }}">
-            <a class="nav-link" href="#">
-                <i class="fas fa-fw fa-tools"></i>
-                <span>Detail Servis</span>
+            class="nav-item {{ request()->routeIs('kasir.booking.*') || request()->routeIs('kasir.dashboard*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('kasir.booking.index') }}">
+                <i class="fas fa-fw fa-calendar-check"></i>
+                <span>Manajemen Booking</span>
             </a>
         </li>
     @endif
