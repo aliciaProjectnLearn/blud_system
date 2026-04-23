@@ -25,6 +25,9 @@
         } elseif (auth()->user()->hasRole('Teknisi')) {
             $brandLabel = 'Teknisi AC';
             $brandRoute = route('teknisi.dashboard');
+        } elseif (auth()->user()->hasRole('Kasir')) {
+            $brandLabel = 'Kasir Servis';
+            $brandRoute = route('kasir.dashboard');
         } elseif (auth()->user()->hasRole('Pelanggan')) {
             $brandLabel = 'Sistem BLUD';
             $brandRoute = route('user.dashboard');
@@ -442,6 +445,24 @@
             <a class="nav-link" href="{{ route('adminac.laporan.index') }}">
                 <i class="fas fa-fw fa-file-pdf"></i>
                 <span>Laporan Transaksi</span>
+            </a>
+        </li>
+    @endif
+
+    {{-- ================================= --}}
+    {{-- KASIR SERVIS MOTOR MOBIL --}}
+    {{-- ================================= --}}
+    @if (auth()->user()->hasRole('Kasir'))
+
+        {{-- sesuaikan kebutuhan saja --}}
+        <div class="sidebar-heading">Menu Pekerjaan</div>
+
+         {{-- Detail Servis --}}
+         <li
+            class="nav-item {{ request()->routeIs('kasir.pekerjaan.*') || request()->routeIs('kasir.dashboard*') ? 'active' : '' }}">
+            <a class="nav-link" href="#">
+                <i class="fas fa-fw fa-tools"></i>
+                <span>Detail Servis</span>
             </a>
         </li>
     @endif
