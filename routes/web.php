@@ -30,6 +30,7 @@ use App\Http\Controllers\AdminAc\TransaksiController as AdminAcTransaksiControll
 use App\Http\Controllers\KasirServis\DashboardController as KasirDashboardController;
 use App\Http\Controllers\User\DashboardUserController;
 
+use App\Http\Controllers\KasirServis\BookingKasirController;
 
 // route lain...
 // ── Halaman Welcome ──────────────────────────────────────
@@ -364,6 +365,12 @@ Route::middleware(['auth', 'role:kasir'])->prefix('kasir')->name('kasir.')->grou
 
     Route::get('/dashboard', [KasirDashboardController::class, 'index'])
         ->name('dashboard');
+
+    // Manajemen Booking (Card #65)
+    Route::get('/booking', [BookingKasirController::class, 'index'])->name('booking.index');
+    Route::get('/booking/{id}', [BookingKasirController::class, 'show'])->name('booking.show');
+    Route::post('/booking/{id}/rincian', [BookingKasirController::class, 'simpanRincian'])->name('booking.simpan-rincian');
+    Route::post('/booking/{id}/lanjut-pembayaran', [BookingKasirController::class, 'lanjutPembayaran'])->name('booking.lanjut-pembayaran');
 
 });
 
