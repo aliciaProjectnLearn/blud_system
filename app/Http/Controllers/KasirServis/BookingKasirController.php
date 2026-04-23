@@ -123,27 +123,150 @@ class BookingKasirController extends Controller
     {
         $booking = BookingServis::with('rincianServis')->findOrFail($id);
 
+        // Validasi rincian tidak kosong
         if ($booking->rincianServis->isEmpty()) {
-            return back()->with('error', 'Rincian servis masih kosong. Harap isi rincian servis terlebih dahulu sebelum lanjut ke pembayaran.');
+            return back()->with('error',
+                'Rincian servis masih kosong. Harap isi rincian servis terlebih dahulu.');
         }
 
-        // Logic Lanjut ke Pembayaran:
-        // 1. Hitung total biaya dari rincian
+        // Validasi status
+        if (in_array($booking->status, ['selesai', 'batal', 'siap_bayar'])) {
+            return back()->with('error',
+                'Status booking tidak memungkinkan untuk lanjut pembayaran.');
+        }
+
+        DB::beginTransaction();
+        try {
+            $totalBiaya = $booking->rincianServis->sum('subtotal');
+
+            // Update status booking ke siap_bayar
+            $booking->status = 'siap_bayar';
+            $booking->save();
+
+            // Buat atau update record pembayaran
+            PembayaranServis::updateOrCreate(
+                ['booking_servis_id' => $booking->id],
+                [
+                    'kode_pembayaran' => $booking->pembayaranServis->kode_pembayaran
+                        ?? 'PAY-' . now()->format('YmdHis'),
+                    'total_biaya' => $totalBiaya,
+                    'status_pembayaran' => 'belum_bayar',
+                ]
+            );
+
+            DB::commit();
+            return redirect()->route('kasir.pembayaran.index')
+                ->with('success', 'Booking ' . $booking->kode_booking
+                    . ' telah dipindahkan ke antrian pembayaran.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Gagal: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Tampilkan daftar booking siap bayar (Menu Pembayaran Kasir)
+     */
+    public function indexPembayaran(Request $request)
+    {
+        $query = BookingServis::with(['pelanggan', 'layananServis', 'pembayaranServis'])
+            ->where('status', 'siap_bayar');
+
+        // Filter tanggal booking
+        if ($request->filled('tanggal')) {
+            $query->whereDate('tanggal_booking', $request->tanggal);
+        }
+
+        // Search nama pelanggan
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->whereHas('pelanggan', function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%");
+            });
+        }
+
+        $bookings = $query->latest('tanggal_booking')
+            ->paginate(15)
+            ->withQueryString();
+
+        return view('kasirservis.pembayaran.index', compact('bookings'));
+    }
+
+    /**
+     * Tampilkan detail booking dan form konfirmasi pembayaran
+     */
+    public function showPembayaran($id)
+    {
+        $booking = BookingServis::with([
+            'pelanggan',
+            'layananServis',
+            'rincianServis.produkServis',
+            'pembayaranServis'
+        ])->findOrFail($id);
+
+        // Validasi: harus status siap_bayar
+        if ($booking->status !== 'siap_bayar') {
+            return redirect()->route('kasir.pembayaran.index')
+                ->with('error', 'Booking ini tidak dalam status siap bayar.');
+        }
+
+        // Hitung total dari rincian
         $totalBiaya = $booking->rincianServis->sum('subtotal');
 
-        // 2. Pastikan record PembayaranServis tersedia
-        $pembayaran = PembayaranServis::updateOrCreate(
-            ['booking_servis_id' => $booking->id],
-            [
-                'kode_pembayaran' => $booking->pembayaranServis->kode_pembayaran ?? 'PAY-' . now()->format('YmdHis'),
-                'total_biaya' => $totalBiaya,
-                'status_pembayaran' => $booking->pembayaranServis->status_pembayaran ?? 'belum_bayar',
-            ]
-        );
+        return view('kasirservis.pembayaran.show', compact('booking', 'totalBiaya'));
+    }
 
-        // 3. Arahkan ke halaman input pembayaran (atau dashboard dengan pesan sukses jika halaman belum ada)
-        // Catatan: Karena route pembayaran belum didefinisikan secara spesifik di instruksi, 
-        // saya arahkan kembali ke detail dengan pesan sukses bahwa data siap dibayar.
-        return redirect()->route('kasir.booking.show', $booking->id)->with('success', 'Booking telah dikunci dan siap untuk proses pembayaran.');
+    /**
+     * Konfirmasi dan proses pembayaran booking
+     */
+    public function konfirmasiPembayaran(Request $request, $id)
+    {
+        $booking = BookingServis::with(['rincianServis', 'pembayaranServis'])->findOrFail($id);
+
+        // Validasi: harus status siap_bayar
+        if ($booking->status !== 'siap_bayar') {
+            return back()->with('error', 'Booking ini tidak dalam status siap bayar.');
+        }
+
+        // Validasi: rincian tidak boleh kosong
+        if ($booking->rincianServis->isEmpty()) {
+            return back()->with('error', 'Rincian servis kosong. Tidak dapat memproses pembayaran.');
+        }
+
+        $request->validate([
+            'tipe_pembayaran' => 'required|in:tunai,transfer,qris',
+            'catatan'         => 'nullable|string|max:500',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $totalBiaya = $booking->rincianServis->sum('subtotal');
+
+            // Update atau buat record pembayaran
+            PembayaranServis::updateOrCreate(
+                ['booking_servis_id' => $booking->id],
+                [
+                    'kode_pembayaran'   => $booking->pembayaranServis->kode_pembayaran
+                        ?? 'PAY-' . now()->format('YmdHis'),
+                    'total_biaya'       => $totalBiaya,
+                    'tipe_pembayaran'   => $request->tipe_pembayaran,
+                    'status_pembayaran' => 'lunas',
+                    'tanggal_bayar'     => now(),
+                    'catatan'           => $request->catatan,
+                ]
+            );
+
+            // Update status booking menjadi selesai
+            $booking->status = 'selesai';
+            $booking->save();
+
+            DB::commit();
+            return redirect()->route('kasir.pembayaran.index')
+                ->with('success', 'Pembayaran berhasil dikonfirmasi. Booking '
+                    . $booking->kode_booking . ' telah selesai.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Gagal memproses pembayaran: ' . $e->getMessage());
+        }
     }
 }

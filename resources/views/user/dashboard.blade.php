@@ -264,7 +264,7 @@
         <h2 class="font-weight-bold text-primary text-center">Layanan Cepat</h2>
     </div>
     <div class="col-md-4 mb-3">
-        <a href="{{ route('user.futsal.index') }}" class="text-decoration-none">
+        <a href="{{ route('user.futsal.landing') }}" class="text-decoration-none">
             <div class="card quick-access-card shadow-sm border-0">
                 <i class="fas fa-futbol quick-access-icon"></i>
                 <h6 class="font-weight-bold text-primary mb-1">Booking Futsal</h6>

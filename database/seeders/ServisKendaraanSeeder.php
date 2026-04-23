@@ -39,11 +39,11 @@ class ServisKendaraanSeeder extends Seeder
             $kasirId = DB::table('users')->where('username', 'kasir_bengkel')->value('id');
             if (!$kasirId) {
                 $kasirId = DB::table('users')->insertGetId([
-                    'name' => 'Siti Kasir',
+                    'name' => 'Kasir',
                     'username' => 'kasir_bengkel',
                     'email' => 'kasir@bengkel.com',
                     'password' => Hash::make('password'),
-                    'nama_lengkap' => 'Siti Aminah Kasir',
+                    'nama_lengkap' => 'Kasir',
                     'no_hp' => '08999999999',
                     'spesialisasi' => null, // Kasir tanpa spesialisasi
                     'created_at' => $now,
