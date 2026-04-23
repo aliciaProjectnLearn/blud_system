@@ -153,7 +153,7 @@
     <div class="row align-items-center">
         <div class="col-md-8">
             <h3 class="font-weight-bold">Selamat Datang, {{ $user->name }}!</h3>
-            <p class="lead mb-0" style="font-size: 16px;">Kelola booking futsal, sewa ruko, dan servis AC Anda dalam satu tempat yang nyaman.</p>
+            <p class="lead mb-0" style="font-size: 16px;">Kelola booking futsal, sewa ruko, servis AC, dan kendaraan Anda dalam satu tempat.</p>
         </div>
         <div class="col-md-4 text-right d-none d-md-block">
             <i class="fas fa-user-circle fa-5x opacity-50"></i>
@@ -164,24 +164,24 @@
 <!-- Summary Cards -->
 <div class="row mb-4">
     <!-- Card 1: Futsal -->
-    <div class="col-xl-3 col-md-6 mb-4">
+    <div class="col-xl col-md-4 mb-4">
         <div class="card border-left-primary h-100 py-2 shadow-sm">
             <div class="card-body">
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
                         <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                            Booking Futsal Aktif</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            Futsal Aktif</div>
+                        <div class="h6 mb-0 font-weight-bold text-gray-800">
                             @if($futsalAktif)
                                 #{{ $futsalAktif->booking->id }}
                                 <span class="badge badge-warning text-xs font-weight-normal">{{ $futsalAktif->booking->status }}</span>
                             @else
-                                <span class="text-muted">Tidak ada booking</span>
+                                <span class="text-muted text-xs">Tidak ada</span>
                             @endif
                         </div>
                     </div>
                     <div class="col-auto">
-                        <i class="fas fa-futbol fa-2x text-gray-300"></i>
+                        <i class="fas fa-futbol fa-lg text-gray-300"></i>
                     </div>
                 </div>
             </div>
@@ -189,28 +189,23 @@
     </div>
 
     <!-- Card 2: Ruko -->
-    <div class="col-xl-3 col-md-6 mb-4">
+    <div class="col-xl col-md-4 mb-4">
         <div class="card border-left-success h-100 py-2 shadow-sm">
             <div class="card-body">
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
                         <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                            Status Sewa Kantin/Ruko</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            Status Sewa</div>
+                        <div class="h6 mb-0 font-weight-bold text-gray-800">
                             @if($sewaRuko)
-                                Masa Aktif s.d
+                                <span class="text-xs">Aktif s.d {{ \Carbon\Carbon::parse($sewaRuko->tgl_selesai)->format('d/m/y') }}</span>
                             @else
-                                <span class="text-muted">Belum ada sewa</span>
+                                <span class="text-muted text-xs">Belum ada</span>
                             @endif
                         </div>
-                        @if($sewaRuko)
-                        <div class="mt-1 text-sm font-weight-bold">
-                            {{ \Carbon\Carbon::parse($sewaRuko->tgl_selesai)->format('d M Y') }}
-                        </div>
-                        @endif
                     </div>
                     <div class="col-auto">
-                        <i class="fas fa-store fa-2x text-gray-300"></i>
+                        <i class="fas fa-store fa-lg text-gray-300"></i>
                     </div>
                 </div>
             </div>
@@ -218,39 +213,58 @@
     </div>
 
     <!-- Card 3: AC -->
-    <div class="col-xl-3 col-md-6 mb-4">
+    <div class="col-xl col-md-4 mb-4">
         <div class="card border-left-info h-100 py-2 shadow-sm">
             <div class="card-body">
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Jadwal Servis AC</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Servis AC</div>
+                        <div class="h6 mb-0 font-weight-bold text-gray-800">
                             @if($acMendatang)
-                                {{ \Carbon\Carbon::parse($acMendatang->tgl_kunjungan)->format('d M Y') }}
+                                <span class="text-xs">{{ \Carbon\Carbon::parse($acMendatang->tgl_kunjungan)->format('d/m/y') }}</span>
                             @else
-                                <span class="text-muted">Tidak ada jadwal</span>
+                                <span class="text-muted text-xs">Tidak ada</span>
                             @endif
                         </div>
                     </div>
                     <div class="col-auto">
-                        <i class="fas fa-tools fa-2x text-gray-300"></i>
+                        <i class="fas fa-tools fa-lg text-gray-300"></i>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Card 4: Total -->
-    <div class="col-xl-3 col-md-6 mb-4">
+    <!-- Card 4: Servis Motor/Mobil (NEW Card #69) -->
+    <div class="col-xl col-md-6 mb-4">
+        <div class="card border-left-danger h-100 py-2 shadow-sm">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Servis Motor & Mobil</div>
+                        <div class="h6 mb-0 font-weight-bold text-gray-800">
+                            {{ $servisAktifCount }} <span class="text-xs font-weight-normal text-muted">Booking Aktif</span>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-car fa-lg text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card 5: Total Transaksi -->
+    <div class="col-xl col-md-6 mb-4">
         <div class="card border-left-warning h-100 py-2 shadow-sm">
             <div class="card-body">
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
                         <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Riwayat Transaksi</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $totalTransaksi }} Transaksi</div>
+                        <div class="h6 mb-0 font-weight-bold text-gray-800">{{ $totalTransaksi }} <span class="text-xs font-weight-normal text-muted">Total</span></div>
                     </div>
                     <div class="col-auto">
-                        <i class="fas fa-file-invoice-dollar fa-2x text-gray-300"></i>
+                        <i class="fas fa-file-invoice-dollar fa-lg text-gray-300"></i>
                     </div>
                 </div>
             </div>
@@ -263,7 +277,7 @@
     <div class="col-12 mb-3">
         <h2 class="font-weight-bold text-primary text-center">Layanan Cepat</h2>
     </div>
-    <div class="col-md-4 mb-3">
+    <div class="col-md-3 mb-3">
         <a href="{{ route('user.futsal.landing') }}" class="text-decoration-none">
             <div class="card quick-access-card shadow-sm border-0">
                 <i class="fas fa-futbol quick-access-icon"></i>
@@ -272,7 +286,7 @@
             </div>
         </a>
     </div>
-    <div class="col-md-4 mb-3">
+    <div class="col-md-3 mb-3">
         <a href="{{ route('user.kantin.katalog') }}" class="text-decoration-none">
             <div class="card quick-access-card shadow-sm border-0">
                 <i class="fas fa-store quick-access-icon"></i>
@@ -281,12 +295,21 @@
             </div>
         </a>
     </div>
-    <div class="col-md-4 mb-3">
+    <div class="col-md-3 mb-3">
         <a href="{{ route('user.ac.layanan') }}" class="text-decoration-none">
             <div class="card quick-access-card shadow-sm border-0">
                 <i class="fas fa-tools quick-access-icon"></i>
                 <h6 class="font-weight-bold text-primary mb-1">Order Servis AC</h6>
                 <small class="text-muted">Maintenance AC kantor/rumah</small>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-3 mb-3">
+        <a href="{{ route('user.gateway') }}#servis-section" class="text-decoration-none">
+            <div class="card quick-access-card shadow-sm border-0">
+                <i class="fas fa-car quick-access-icon"></i>
+                <h6 class="font-weight-bold text-primary mb-1">Servis Motor & Mobil</h6>
+                <small class="text-muted">Lihat katalog & booking servis</small>
             </div>
         </a>
     </div>
@@ -310,6 +333,7 @@
                                 <th>Tanggal</th>
                                 <th>Nominal</th>
                                 <th>Status</th>
+                                <th>Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -463,6 +487,28 @@
                             <tr><td>Invoice No</td><td>: <b>${data.invoice_no}</b></td></tr>
                             <tr><td>Total Harga</td><td>: Rp ${new Intl.NumberFormat('id-ID').format(data.total_harga)}</td></tr>
                             <tr><td>Status</td><td>: <span class="badge badge-success">${data.status}</span></td></tr>
+                        </table>
+                    </div>
+                </div>
+            `;
+        } else if (layanan === 'Servis Motor/Mobil') {
+            content = `
+                <div class="row">
+                    <div class="col-md-6 border-right">
+                        <h6><b>Informasi Booking</b></h6>
+                        <table class="table table-sm table-borderless">
+                            <tr><td>ID Booking</td><td>: <b>#${data.booking_servis.id}</b></td></tr>
+                            <tr><td>Kode Booking</td><td>: ${data.booking_servis.kode_booking}</td></tr>
+                            <tr><td>Kendaraan</td><td>: ${data.booking_servis.merek_kendaraan} ${data.booking_servis.tipe_kendaraan}</td></tr>
+                            <tr><td>Plat Nomor</td><td>: <span class="badge badge-dark">${data.booking_servis.nomor_plat}</span></td></tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><b>Informasi Pembayaran</b></h6>
+                        <table class="table table-sm table-borderless">
+                            <tr><td>Total Biaya</td><td>: Rp ${new Intl.NumberFormat('id-ID').format(data.total_biaya)}</td></tr>
+                            <tr><td>Status</td><td>: <span class="badge badge-success">${data.status_pembayaran}</span></td></tr>
+                            <tr><td>Tgl Bayar</td><td>: ${data.tanggal_bayar ? data.tanggal_bayar : '-'}</td></tr>
                         </table>
                     </div>
                 </div>

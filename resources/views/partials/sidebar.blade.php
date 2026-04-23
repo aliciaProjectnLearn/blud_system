@@ -582,6 +582,29 @@
                 </div>
             </div>
         </li>
+
+        <hr class="sidebar-divider">
+        <div class="sidebar-heading">Layanan Servis Motor & Mobil</div>
+
+        {{-- Sistem Servis --}}
+        @php $servisActive = request()->is('user/servis*'); @endphp
+        <li class="nav-item {{ $servisActive ? 'active' : '' }}">
+            <a class="nav-link {{ $servisActive ? '' : 'collapsed' }}" href="#" data-toggle="collapse"
+                data-target="#collapseServis" aria-expanded="{{ $servisActive ? 'true' : 'false' }}">
+                <i class="fas fa-fw fa-car"></i>
+                <span>Servis Motor & Mobil</span>
+            </a>
+            <div id="collapseServis" class="collapse {{ $servisActive ? 'show' : '' }}">
+                <div class="bg-white py-2 collapse-inner rounded">
+                    <a class="collapse-item {{ request()->routeIs('user.servis.index') ? 'active' : '' }}" href="{{ route('user.servis.index') }}">
+                        <i class="fas fa-tachometer-alt mr-1"></i> Dashboard Servis
+                    </a>
+                    <a class="collapse-item {{ request()->routeIs('user.servis.history') ? 'active' : '' }}" href="{{ route('user.servis.history') }}">
+                        <i class="fas fa-history mr-1"></i> Histori Servis
+                    </a>
+                </div>
+            </div>
+        </li>
     @endif
 
     <hr class="sidebar-divider d-none d-md-block">
