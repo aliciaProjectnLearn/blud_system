@@ -197,6 +197,30 @@ class ServisKendaraanSeeder extends Seeder
                 'created_at' => $now, 'updated_at' => $now
             ]);
 
+            // ===============================================
+            // 4. PENGELUARAN SERVIS
+            // ===============================================
+            DB::table('pengeluaran_servis')->insert([
+                [
+                    'tanggal' => $now->toDateString(),
+                    'keterangan' => 'Pembelian kunci pas set baru',
+                    'jumlah' => 150000,
+                    'kategori' => 'sparepart',
+                    'created_by' => $kasirId,
+                    'created_at' => $now,
+                    'updated_at' => $now
+                ],
+                [
+                    'tanggal' => $now->copy()->subDays(2)->toDateString(),
+                    'keterangan' => 'Uang makan teknisi lembur',
+                    'jumlah' => 50000,
+                    'kategori' => 'operasional',
+                    'created_by' => $kasirId,
+                    'created_at' => $now->copy()->subDays(2),
+                    'updated_at' => $now->copy()->subDays(2)
+                ]
+            ]);
+
             // Commit final apabila semua Insert sukses!
             DB::commit();
 

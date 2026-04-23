@@ -404,6 +404,14 @@
                 <span>Monitoring Transaksi</span>
             </a>
         </li>
+
+        {{-- Manajemen Keuangan --}}
+        <li class="nav-item {{ request()->routeIs('adminservis.keuangan.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('adminservis.keuangan.index') }}">
+                <i class="fas fa-fw fa-wallet"></i>
+                <span>Manajemen Keuangan</span>
+            </a>
+        </li>
     @endif
 
     {{-- ================================= --}}

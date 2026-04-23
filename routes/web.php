@@ -337,6 +337,10 @@ Route::middleware(['auth', 'role:Adminservis'])->prefix('admin-servis')
             ->name('booking.assign');
         // Produk Management
         Route::resource('produk', \App\Http\Controllers\AdminServis\ProdukController::class)->except(['create', 'show', 'edit']);
+
+        // Manajemen Keuangan
+        Route::get('/keuangan', [\App\Http\Controllers\AdminServis\KeuanganController::class, 'index'])->name('keuangan.index');
+        Route::post('/keuangan/pengeluaran', [\App\Http\Controllers\AdminServis\KeuanganController::class, 'store'])->name('keuangan.store');
     });
 
 // Rute untuk Pelanggan (User Dashboard)
