@@ -80,7 +80,7 @@ Route::middleware(['auth', 'role:Superadmin'])->group(function () {
     Route::get('/transaksi', [TransaksiController::class, 'index'])
         ->name('transaksi.index');
     Route::get('/transaksi/{id}', [TransaksiController::class, 'show'])
-    ->name('transaksi.show');
+        ->name('transaksi.show');
     Route::get('/monitoring', [AdminLogActivityController::class, 'index'])
         ->name('dashboard.monitoring');
 
@@ -93,7 +93,6 @@ Route::middleware(['auth', 'role:Superadmin'])->group(function () {
         ->name('dashboard.pembagian-pendapatan');
     Route::put('/pembagian-pendapatan', [PembagianPendapatanController::class, 'updateKonfigurasi'])
         ->name('dashboard.pembagian-pendapatan.update');
-
 });
 
 // Profile Semua Admin
@@ -337,6 +336,24 @@ Route::middleware(['auth', 'role:Adminservis'])->prefix('admin-servis')
             ->name('booking.assign');
         // Produk Management
         Route::resource('produk', \App\Http\Controllers\AdminServis\ProdukController::class)->except(['create', 'show', 'edit']);
+
+        // Manajemen Teknisi Servis
+        Route::get('/teknisi', [\App\Http\Controllers\AdminServis\TeknisiController::class, 'index'])
+            ->name('teknisi.index');
+        Route::get('/teknisi/create', [\App\Http\Controllers\AdminServis\TeknisiController::class, 'create'])
+            ->name('teknisi.create');
+        Route::post('/teknisi', [\App\Http\Controllers\AdminServis\TeknisiController::class, 'store'])
+            ->name('teknisi.store');
+        Route::get('/teknisi/{id}', [\App\Http\Controllers\AdminServis\TeknisiController::class, 'show'])
+            ->name('teknisi.show');
+        Route::get('/teknisi/{id}/edit', [\App\Http\Controllers\AdminServis\TeknisiController::class, 'edit'])
+            ->name('teknisi.edit');
+        Route::put('/teknisi/{id}', [\App\Http\Controllers\AdminServis\TeknisiController::class, 'update'])
+            ->name('teknisi.update');
+        Route::patch('/teknisi/{id}/toggle-status', [\App\Http\Controllers\AdminServis\TeknisiController::class, 'toggleStatus'])
+            ->name('teknisi.toggle-status');
+        Route::delete('/teknisi/{id}', [\App\Http\Controllers\AdminServis\TeknisiController::class, 'destroy'])
+            ->name('teknisi.destroy');
     });
 
 // Rute untuk Pelanggan (User Dashboard)

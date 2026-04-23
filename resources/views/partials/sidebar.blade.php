@@ -389,6 +389,14 @@
             </a>
         </li>
 
+        {{-- Manajemen Teknisi --}}
+        <li class="nav-item {{ request()->routeIs('adminservis.teknisi.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('adminservis.teknisi.index') }}">
+                <i class="fas fa-fw fa-user-cog"></i>
+                <span>Manajemen Teknisi</span>
+            </a>
+        </li>
+
         {{-- Manajemen Booking --}}
         <li class="nav-item {{ request()->routeIs('adminservis.booking.*') ? 'active' : '' }}">
             <a class="nav-link" href="{{ route('adminservis.booking.index') }}">
