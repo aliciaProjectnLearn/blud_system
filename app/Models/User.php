@@ -25,6 +25,7 @@ class User extends Authenticatable
         'role',
         'status_futsal',
         'alamat',
+        'status_aktif'
     ];
 
     protected $hidden = [
@@ -88,5 +89,10 @@ class User extends Authenticatable
     public function pembayaranServis()
     {
         return $this->hasManyThrough(PembayaranServis::class, BookingServis::class, 'user_id', 'booking_servis_id');
+    }
+    
+    public function pekerjaanTeknisiServis()
+    {
+        return $this->hasMany(BookingServis::class, 'teknisi_id');
     }
 }
