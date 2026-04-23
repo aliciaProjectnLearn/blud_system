@@ -471,11 +471,18 @@
         {{-- Manajemen Booking --}}
         <div class="sidebar-heading">Menu Pekerjaan</div>
 
-         <li
+        <li
             class="nav-item {{ request()->routeIs('kasir.booking.*') || request()->routeIs('kasir.dashboard*') ? 'active' : '' }}">
             <a class="nav-link" href="{{ route('kasir.booking.index') }}">
                 <i class="fas fa-fw fa-calendar-check"></i>
                 <span>Manajemen Booking</span>
+            </a>
+        </li>
+
+        <li class="nav-item {{ request()->routeIs('kasir.pembayaran.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('kasir.pembayaran.index') }}">
+                <i class="fas fa-fw fa-cash-register"></i>
+                <span>Menu Pembayaran</span>
             </a>
         </li>
     @endif

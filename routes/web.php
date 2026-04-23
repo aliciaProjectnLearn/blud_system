@@ -376,6 +376,14 @@ Route::middleware(['auth', 'role:kasir'])->prefix('kasir')->name('kasir.')->grou
     Route::post('/booking/{id}/rincian', [BookingKasirController::class, 'simpanRincian'])->name('booking.simpan-rincian');
     Route::post('/booking/{id}/lanjut-pembayaran', [BookingKasirController::class, 'lanjutPembayaran'])->name('booking.lanjut-pembayaran');
 
+    // Menu Pembayaran Kasir (Task #66)
+    Route::get('/pembayaran', [BookingKasirController::class, 'indexPembayaran'])
+        ->name('pembayaran.index');
+    Route::get('/pembayaran/{id}', [BookingKasirController::class, 'showPembayaran'])
+        ->name('pembayaran.show');
+    Route::post('/pembayaran/{id}/konfirmasi', [BookingKasirController::class, 'konfirmasiPembayaran'])
+        ->name('pembayaran.konfirmasi');
+
 });
 
 // Rute untuk Pelanggan (User Dashboard)
