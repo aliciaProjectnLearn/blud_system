@@ -31,6 +31,7 @@ use App\Http\Controllers\KasirServis\DashboardController as KasirDashboardContro
 use App\Http\Controllers\User\DashboardUserController;
 
 use App\Http\Controllers\KasirServis\BookingKasirController;
+use App\Http\Controllers\User\UserServisController;
 
 // route lain...
 // ── Halaman Welcome ──────────────────────────────────────
@@ -446,6 +447,13 @@ Route::middleware(['auth', 'role:Pelanggan'])->prefix('user')->name('user.')->gr
         Route::get('/history', [\App\Http\Controllers\User\AcDashboardController::class, 'history'])->name('history');
         Route::get('/{id}', [\App\Http\Controllers\User\AcDashboardController::class, 'show'])->name('show');
         Route::post('/{id}/cancel', [\App\Http\Controllers\User\AcDashboardController::class, 'cancel'])->name('cancel');
+    });
+
+    // Servis Manajemen (Card #69)
+    Route::prefix('servis')->name('servis.')->group(function () {
+        Route::get('/', [UserServisController::class, 'index'])->name('index');
+        Route::get('/history', [UserServisController::class, 'history'])->name('history');
+        Route::get('/{id}', [UserServisController::class, 'show'])->name('show');
     });
 });
 

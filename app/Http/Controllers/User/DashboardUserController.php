@@ -9,6 +9,8 @@ use App\Models\SewaRuko;
 use App\Models\PembayaranFutsal;
 use App\Models\PembayaranRuko;
 use App\Models\PembayaranAc;
+use App\Models\BookingServis;
+use App\Models\PembayaranServis;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Collection;
 
@@ -31,6 +33,7 @@ class DashboardUserController extends Controller
             'futsalAktif' => $this->getFutsalAktif($userId),
             'sewaRuko' => $this->getSewaRuko($penyewa),
             'acMendatang' => $this->getAcMendatang($userId),
+            'servisAktifCount' => $this->getServisAktifCount($userId),
             'totalTransaksi' => $this->getTotalTransaksi($userId, $penyewa),
             'recentActivities' => $this->getRecentActivities($userId, $penyewa),
         ]);
@@ -66,6 +69,13 @@ class DashboardUserController extends Controller
             ->first();
     }
 
+    private function getServisAktifCount(int $userId): int
+    {
+        return BookingServis::where('user_id', $userId)
+            ->whereIn('status', ['menunggu', 'diproses'])
+            ->count();
+    }
+
     private function getTotalTransaksi(int $userId, $penyewa): int
     {
         $futsal = PembayaranFutsal::whereHas('booking', fn($q) => $q->where('user_id', $userId))
@@ -82,7 +92,11 @@ class DashboardUserController extends Controller
             ->where('status', 'Lunas')
             ->count();
 
-        return $futsal + $ruko + $ac;
+        $servis = PembayaranServis::whereHas('bookingServis', fn($q) => $q->where('user_id', $userId))
+            ->where('status_pembayaran', 'lunas')
+            ->count();
+
+        return $futsal + $ruko + $ac + $servis;
     }
 
     /**
@@ -93,6 +107,7 @@ class DashboardUserController extends Controller
         return $this->getRecentFutsal($userId)
             ->concat($this->getRecentRuko($penyewa))
             ->concat($this->getRecentAc($userId))
+            ->concat($this->getRecentServis($userId))
             ->sortByDesc('tanggal')
             ->take(10)
             ->values();
@@ -144,6 +159,22 @@ class DashboardUserController extends Controller
                 $item->tgl_bayar ?? $item->created_at,
                 $item->total_harga,
                 $item->booking?->status ?? $item->status,
+                $item
+            ));
+    }
+
+    private function getRecentServis(int $userId): Collection
+    {
+        return PembayaranServis::with('bookingServis')
+            ->whereHas('bookingServis', fn($q) => $q->where('user_id', $userId))
+            ->latest()
+            ->take(5)
+            ->get()
+            ->map(fn($item) => $this->formatActivity(
+                'Servis Motor/Mobil',
+                $item->tanggal_bayar ?? $item->created_at,
+                $item->total_biaya,
+                $item->status_pembayaran,
                 $item
             ));
     }
