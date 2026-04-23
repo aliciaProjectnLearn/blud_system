@@ -412,6 +412,14 @@
                 <span>Monitoring Transaksi</span>
             </a>
         </li>
+
+        {{-- Laporan Transaksi --}}
+        <li class="nav-item {{ request()->routeIs('adminservis.laporan.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('adminservis.laporan.index') }}">
+                <i class="fas fa-fw fa-chart-bar"></i>
+                <span>Laporan Transaksi</span>
+            </a>
+        </li>
     @endif
 
     {{-- ================================= --}}

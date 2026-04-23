@@ -334,6 +334,14 @@ Route::middleware(['auth', 'role:Adminservis'])->prefix('admin-servis')
             ->name('booking.update');
         Route::post('/booking/{id}/assign', [\App\Http\Controllers\AdminServis\BookingController::class, 'assignTeknisi'])
             ->name('booking.assign');
+        // Laporan Transaksi Servis (Read-only)
+        Route::get('laporan', [\App\Http\Controllers\AdminServis\LaporanController::class, 'index'])
+            ->name('laporan.index');
+        Route::get('laporan/export-pdf', [\App\Http\Controllers\AdminServis\LaporanController::class, 'exportPdf'])
+            ->name('laporan.export.pdf');
+        Route::get('laporan/export-excel', [\App\Http\Controllers\AdminServis\LaporanController::class, 'exportExcel'])
+            ->name('laporan.export.excel');
+
         // Produk Management
         Route::resource('produk', \App\Http\Controllers\AdminServis\ProdukController::class)->except(['create', 'show', 'edit']);
 
