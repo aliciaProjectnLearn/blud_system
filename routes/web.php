@@ -27,6 +27,7 @@ use App\Http\Controllers\AdminAc\TeknisiController as AdminAcTeknisiController;
 use App\Http\Controllers\AdminAc\PelangganController as AdminAcPelangganController;
 use App\Http\Controllers\AdminAc\BookingController as AdminAcBookingController;
 use App\Http\Controllers\AdminAc\TransaksiController as AdminAcTransaksiController;
+use App\Http\Controllers\KasirServis\DashboardController as KasirDashboardController;
 use App\Http\Controllers\User\DashboardUserController;
 
 
@@ -37,13 +38,7 @@ Route::get('/', [LandingController::class, 'index'])->name('user.gateway');
 Route::middleware(['auth'])->group(function () {
     // Rute Layanan Pelanggan (Placeholder)
     Route::prefix('user')->name('user.')->group(function () {
-
-        Route::get('/futsal', function () {
-            return 'Halaman Futsal Pelanggan (Belum dibuat)';
-        })->name('futsal.index');
-        // Route ruko dihapus karena digantikan oleh module kantin.
-
-        Route::get('/futsal', [\App\Http\Controllers\User\FutsalDashboardController::class, 'landing'])->name('futsal.index');
+        
         Route::get('/ruko', function () {
             return 'Halaman Ruko Pelanggan (Belum dibuat)';
         })->name('ruko.index');
@@ -363,6 +358,14 @@ Route::middleware(['auth', 'role:Adminservis'])->prefix('admin-servis')
         Route::delete('/teknisi/{id}', [\App\Http\Controllers\AdminServis\TeknisiController::class, 'destroy'])
             ->name('teknisi.destroy');
     });
+
+// Route untuk Kasir Servis Mobil Motor
+Route::middleware(['auth', 'role:kasir'])->prefix('kasir')->name('kasir.')->group(function () {
+
+    Route::get('/dashboard', [KasirDashboardController::class, 'index'])
+        ->name('dashboard');
+
+});
 
 // Rute untuk Pelanggan (User Dashboard)
 Route::middleware(['auth', 'role:Pelanggan'])->prefix('user')->name('user.')->group(function () {
