@@ -48,6 +48,7 @@ class AuthController extends Controller
             elseif ($roleName === 'adminac') $dashboardRoute = route('adminac.dashboard');
             elseif ($roleName === 'adminservis') $dashboardRoute = route('adminservis.dashboard');
             elseif ($roleName === 'teknisi') $dashboardRoute = route('teknisi.dashboard');
+            elseif ($roleName === 'kasir') $dashboardRoute = route('kasir.dashboard');
             elseif ($roleName === 'pelanggan') $dashboardRoute = route('user.dashboard');
 
             // Catat log login

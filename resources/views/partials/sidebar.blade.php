@@ -25,6 +25,9 @@
         } elseif (auth()->user()->hasRole('Teknisi')) {
             $brandLabel = 'Teknisi AC';
             $brandRoute = route('teknisi.dashboard');
+        } elseif (auth()->user()->hasRole('Kasir')) {
+            $brandLabel = 'Kasir Servis';
+            $brandRoute = route('kasir.dashboard');
         } elseif (auth()->user()->hasRole('Pelanggan')) {
             $brandLabel = 'Sistem BLUD';
             $brandRoute = route('user.dashboard');
@@ -389,6 +392,14 @@
             </a>
         </li>
 
+        {{-- Manajemen Teknisi --}}
+        <li class="nav-item {{ request()->routeIs('adminservis.teknisi.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('adminservis.teknisi.index') }}">
+                <i class="fas fa-fw fa-user-cog"></i>
+                <span>Manajemen Teknisi</span>
+            </a>
+        </li>
+
         {{-- Manajemen Booking --}}
         <li class="nav-item {{ request()->routeIs('adminservis.booking.*') ? 'active' : '' }}">
             <a class="nav-link" href="{{ route('adminservis.booking.index') }}">
@@ -404,12 +415,18 @@
                 <span>Monitoring Transaksi</span>
             </a>
         </li>
-
+        
         {{-- Manajemen Keuangan --}}
         <li class="nav-item {{ request()->routeIs('adminservis.keuangan.*') ? 'active' : '' }}">
             <a class="nav-link" href="{{ route('adminservis.keuangan.index') }}">
                 <i class="fas fa-fw fa-wallet"></i>
                 <span>Manajemen Keuangan</span>
+                
+        {{-- Laporan Transaksi --}}
+        <li class="nav-item {{ request()->routeIs('adminservis.laporan.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('adminservis.laporan.index') }}">
+                <i class="fas fa-fw fa-chart-bar"></i>
+                <span>Laporan Transaksi</span>
             </a>
         </li>
     @endif
@@ -442,6 +459,23 @@
             <a class="nav-link" href="{{ route('adminac.laporan.index') }}">
                 <i class="fas fa-fw fa-file-pdf"></i>
                 <span>Laporan Transaksi</span>
+            </a>
+        </li>
+    @endif
+
+    {{-- ================================= --}}
+    {{-- KASIR SERVIS MOTOR MOBIL --}}
+    {{-- ================================= --}}
+    @if (auth()->user()->hasRole('Kasir'))
+
+        {{-- Manajemen Booking --}}
+        <div class="sidebar-heading">Menu Pekerjaan</div>
+
+         <li
+            class="nav-item {{ request()->routeIs('kasir.booking.*') || request()->routeIs('kasir.dashboard*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('kasir.booking.index') }}">
+                <i class="fas fa-fw fa-calendar-check"></i>
+                <span>Manajemen Booking</span>
             </a>
         </li>
     @endif

@@ -27,8 +27,10 @@ use App\Http\Controllers\AdminAc\TeknisiController as AdminAcTeknisiController;
 use App\Http\Controllers\AdminAc\PelangganController as AdminAcPelangganController;
 use App\Http\Controllers\AdminAc\BookingController as AdminAcBookingController;
 use App\Http\Controllers\AdminAc\TransaksiController as AdminAcTransaksiController;
+use App\Http\Controllers\KasirServis\DashboardController as KasirDashboardController;
 use App\Http\Controllers\User\DashboardUserController;
 
+use App\Http\Controllers\KasirServis\BookingKasirController;
 
 // route lain...
 // ── Halaman Welcome ──────────────────────────────────────
@@ -37,13 +39,7 @@ Route::get('/', [LandingController::class, 'index'])->name('user.gateway');
 Route::middleware(['auth'])->group(function () {
     // Rute Layanan Pelanggan (Placeholder)
     Route::prefix('user')->name('user.')->group(function () {
-
-        Route::get('/futsal', function () {
-            return 'Halaman Futsal Pelanggan (Belum dibuat)';
-        })->name('futsal.index');
-        // Route ruko dihapus karena digantikan oleh module kantin.
-
-        Route::get('/futsal', [\App\Http\Controllers\User\FutsalDashboardController::class, 'landing'])->name('futsal.index');
+        
         Route::get('/ruko', function () {
             return 'Halaman Ruko Pelanggan (Belum dibuat)';
         })->name('ruko.index');
@@ -80,7 +76,7 @@ Route::middleware(['auth', 'role:Superadmin'])->group(function () {
     Route::get('/transaksi', [TransaksiController::class, 'index'])
         ->name('transaksi.index');
     Route::get('/transaksi/{id}', [TransaksiController::class, 'show'])
-    ->name('transaksi.show');
+        ->name('transaksi.show');
     Route::get('/monitoring', [AdminLogActivityController::class, 'index'])
         ->name('dashboard.monitoring');
 
@@ -93,7 +89,6 @@ Route::middleware(['auth', 'role:Superadmin'])->group(function () {
         ->name('dashboard.pembagian-pendapatan');
     Route::put('/pembagian-pendapatan', [PembagianPendapatanController::class, 'updateKonfigurasi'])
         ->name('dashboard.pembagian-pendapatan.update');
-
 });
 
 // Profile Semua Admin
@@ -335,13 +330,53 @@ Route::middleware(['auth', 'role:Adminservis'])->prefix('admin-servis')
             ->name('booking.update');
         Route::post('/booking/{id}/assign', [\App\Http\Controllers\AdminServis\BookingController::class, 'assignTeknisi'])
             ->name('booking.assign');
+        // Laporan Transaksi Servis (Read-only)
+        Route::get('laporan', [\App\Http\Controllers\AdminServis\LaporanController::class, 'index'])
+            ->name('laporan.index');
+        Route::get('laporan/export-pdf', [\App\Http\Controllers\AdminServis\LaporanController::class, 'exportPdf'])
+            ->name('laporan.export.pdf');
+        Route::get('laporan/export-excel', [\App\Http\Controllers\AdminServis\LaporanController::class, 'exportExcel'])
+            ->name('laporan.export.excel');
+
         // Produk Management
         Route::resource('produk', \App\Http\Controllers\AdminServis\ProdukController::class)->except(['create', 'show', 'edit']);
-
+  
         // Manajemen Keuangan
         Route::get('/keuangan', [\App\Http\Controllers\AdminServis\KeuanganController::class, 'index'])->name('keuangan.index');
         Route::post('/keuangan/pengeluaran', [\App\Http\Controllers\AdminServis\KeuanganController::class, 'store'])->name('keuangan.store');
+
+        // Manajemen Teknisi Servis
+        Route::get('/teknisi', [\App\Http\Controllers\AdminServis\TeknisiController::class, 'index'])
+            ->name('teknisi.index');
+        Route::get('/teknisi/create', [\App\Http\Controllers\AdminServis\TeknisiController::class, 'create'])
+            ->name('teknisi.create');
+        Route::post('/teknisi', [\App\Http\Controllers\AdminServis\TeknisiController::class, 'store'])
+            ->name('teknisi.store');
+        Route::get('/teknisi/{id}', [\App\Http\Controllers\AdminServis\TeknisiController::class, 'show'])
+            ->name('teknisi.show');
+        Route::get('/teknisi/{id}/edit', [\App\Http\Controllers\AdminServis\TeknisiController::class, 'edit'])
+            ->name('teknisi.edit');
+        Route::put('/teknisi/{id}', [\App\Http\Controllers\AdminServis\TeknisiController::class, 'update'])
+            ->name('teknisi.update');
+        Route::patch('/teknisi/{id}/toggle-status', [\App\Http\Controllers\AdminServis\TeknisiController::class, 'toggleStatus'])
+            ->name('teknisi.toggle-status');
+        Route::delete('/teknisi/{id}', [\App\Http\Controllers\AdminServis\TeknisiController::class, 'destroy'])
+            ->name('teknisi.destroy');
     });
+
+// Route untuk Kasir Servis Mobil Motor
+Route::middleware(['auth', 'role:kasir'])->prefix('kasir')->name('kasir.')->group(function () {
+
+    Route::get('/dashboard', [KasirDashboardController::class, 'index'])
+        ->name('dashboard');
+
+    // Manajemen Booking (Card #65)
+    Route::get('/booking', [BookingKasirController::class, 'index'])->name('booking.index');
+    Route::get('/booking/{id}', [BookingKasirController::class, 'show'])->name('booking.show');
+    Route::post('/booking/{id}/rincian', [BookingKasirController::class, 'simpanRincian'])->name('booking.simpan-rincian');
+    Route::post('/booking/{id}/lanjut-pembayaran', [BookingKasirController::class, 'lanjutPembayaran'])->name('booking.lanjut-pembayaran');
+
+});
 
 // Rute untuk Pelanggan (User Dashboard)
 Route::middleware(['auth', 'role:Pelanggan'])->prefix('user')->name('user.')->group(function () {
