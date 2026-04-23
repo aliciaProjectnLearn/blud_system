@@ -317,6 +317,12 @@ Route::middleware(['auth', 'role:Adminservis'])->prefix('admin-servis')
         Route::get('/pelanggan', [\App\Http\Controllers\AdminServis\PelangganController::class, 'index'])->name('pelanggan.index');
         Route::get('/pelanggan/{id}', [\App\Http\Controllers\AdminServis\PelangganController::class, 'show'])->name('pelanggan.show');
 
+        // Monitoring Transaksi (Read-only)
+        Route::prefix('transaksi')->name('transaksi.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\AdminServis\TransaksiController::class, 'index'])->name('index');
+            Route::get('/{id}', [\App\Http\Controllers\AdminServis\TransaksiController::class, 'show'])->name('show');
+        });
+
         // Layanan Management
         Route::resource('layanan', \App\Http\Controllers\AdminServis\LayananController::class);
 

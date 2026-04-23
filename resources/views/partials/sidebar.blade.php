@@ -1,8 +1,11 @@
-<ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+@php
+    $isMobile = $isMobile ?? false;
+@endphp
 
-
+<ul class="{{ $isMobile ? 'navbar-nav' : 'navbar-nav bg-gradient-primary sidebar sidebar-dark accordion' }}" id="{{ $isMobile ? 'mobileAccordionSidebar' : 'accordionSidebar' }}">
 
     {{-- Sidebar Brand --}}
+    @if(!$isMobile)
     @php
         $brandLabel = 'Admin BLUD';
         $brandRoute = route('dashboard');
@@ -41,6 +44,14 @@
         <div class="sidebar-brand-text mx-3">{{ $brandLabel }}</div>
     </a>
     <hr class="sidebar-divider my-0">
+    @else
+    @php
+        // Status Active untuk Menu Dropdown Pelanggan (Tetap perlu di mobile)
+        $futsalActive = request()->is('user/futsal*');
+        $kantinActive = request()->is('user/kantin*');
+        $acActive = request()->is('user/ac*');
+    @endphp
+    @endif
 
     {{-- DASHBOARD --}}
     @if (auth()->user()->hasRole('Superadmin'))
@@ -77,6 +88,12 @@
             <a class="nav-link" href="{{ route('adminservis.dashboard') }}">
                 <i class="fas fa-fw fa-tachometer-alt"></i>
                 <span>Dashboard</span>
+            </a>
+        </li>
+        <li class="nav-item {{ request()->routeIs('adminservis.profile') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('adminservis.profile') }}">
+                <i class="fas fa-fw fa-user"></i>
+                <span>Profil Admin</span>
             </a>
         </li>
     @elseif(auth()->user()->hasRole('Teknisi'))
@@ -377,6 +394,14 @@
             <a class="nav-link" href="{{ route('adminservis.booking.index') }}">
                 <i class="fas fa-fw fa-calendar-check"></i>
                 <span>Manajemen Booking</span>
+            </a>
+        </li>
+
+        {{-- Monitoring Transaksi --}}
+        <li class="nav-item {{ request()->routeIs('adminservis.transaksi.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('adminservis.transaksi.index') }}">
+                <i class="fas fa-fw fa-file-invoice-dollar"></i>
+                <span>Monitoring Transaksi</span>
             </a>
         </li>
     @endif

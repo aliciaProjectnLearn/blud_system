@@ -109,37 +109,32 @@
             background: rgba(255,255,255,0.3);
         }
 
-        /* Section heading */
-        #mobile-nav .mobile-nav-heading {
+        /* Section heading (Sidebar & Mobile) */
+        #mobile-nav .mobile-nav-heading,
+        #mobile-nav .sidebar-heading {
             font-size: 0.65rem;
             font-weight: 800;
             text-transform: uppercase;
             color: rgba(255,255,255,0.4);
             letter-spacing: 0.1rem;
-            padding: 12px 16px 4px;
+            padding: 16px 24px 8px;
         }
 
-        /* Nav item */
-        #mobile-nav .mobile-nav-item {
-            display: block;
+        /* Nav items (Sidebar & Mobile) */
+        #mobile-nav .mobile-nav-item,
+        #mobile-nav .nav-link {
+            display: flex;
+            align-items: center;
             padding: 12px 24px;
-            color: rgba(255,255,255,0.8);
+            color: rgba(255,255,255,0.8) !important;
             text-decoration: none;
             font-size: 0.9rem;
             border-bottom: 1px solid rgba(255,255,255,0.05);
-            display: flex;
-            align-items: center;
             gap: 10px;
             transition: background 0.15s, color 0.15s;
         }
 
-        #mobile-nav .mobile-nav-item:hover,
-        #mobile-nav .mobile-nav-item.active {
-            background: rgba(255,255,255,0.1);
-            color: white;
-            text-decoration: none;
-        }
-
+        #mobile-nav .nav-link i,
         #mobile-nav .mobile-nav-item i {
             width: 20px;
             text-align: center;
@@ -147,69 +142,51 @@
             opacity: 0.8;
         }
 
-        /* Sub item (collapse) */
-        #mobile-nav .mobile-nav-toggle {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 24px;
-            color: rgba(255,255,255,0.8);
-            font-size: 0.9rem;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            cursor: pointer;
-            background: none;
-            border-top: none;
-            border-left: none;
-            border-right: none;
-            width: 100%;
-            text-align: left;
-            gap: 10px;
-        }
-
-        #mobile-nav .mobile-nav-toggle:hover {
+        #mobile-nav .nav-link:hover,
+        #mobile-nav .mobile-nav-item:hover,
+        #mobile-nav .nav-item.active .nav-link,
+        #mobile-nav .mobile-nav-item.active {
             background: rgba(255,255,255,0.1);
-            color: white;
+            color: white !important;
+            text-decoration: none;
         }
 
-        #mobile-nav .mobile-nav-toggle .toggle-icon {
-            font-size: 0.7rem;
-            transition: transform 0.2s;
-            margin-left: auto;
-        }
-
-        #mobile-nav .mobile-nav-toggle.collapsed .toggle-icon {
-            transform: rotate(-90deg);
-        }
-
-        #mobile-nav .mobile-nav-submenu {
-            background: rgba(0,0,0,0.2);
+        /* Sub item (collapse) */
+        #mobile-nav .collapse {
+            background: rgba(0,0,0,0.15);
             border-left: 3px solid rgba(255,255,255,0.3);
             margin-left: 24px;
             margin-right: 24px;
             border-radius: 0 0 8px 8px;
         }
 
-        #mobile-nav .mobile-nav-subitem {
+        #mobile-nav .collapse-inner {
+            background: transparent !important;
+            padding: 0;
+        }
+
+        #mobile-nav .collapse-item {
             display: block;
-            padding: 10px 20px 10px 20px;
-            color: rgba(255,255,255,0.7);
+            padding: 10px 20px;
+            color: rgba(255,255,255,0.7) !important;
             font-size: 0.85rem;
             text-decoration: none;
-            border-bottom: 1px solid rgba(255,255,255,0.04);
+            border-bottom: 1px solid rgba(255,255,255,0.03);
             transition: background 0.15s, color 0.15s;
         }
 
-        #mobile-nav .mobile-nav-subitem:hover,
-        #mobile-nav .mobile-nav-subitem.active {
+        #mobile-nav .collapse-item:hover {
             background: rgba(255,255,255,0.1);
-            color: white;
+            color: white !important;
             text-decoration: none;
         }
 
         /* Divider */
+        #mobile-nav .sidebar-divider,
         #mobile-nav .mobile-nav-divider {
-            border-top: 1px solid rgba(255,255,255,0.15);
+            border-top: 1px solid rgba(255,255,255,0.1);
             margin: 8px 0;
+            display: none; /* Hide dividers in mobile for cleaner look */
         }
 
         /* Content wrapper tidak terpengaruh */
@@ -242,9 +219,9 @@
             <div id="mobile-nav-close">
                 <button id="btn-mobile-nav-close"><i class="fas fa-times"></i></button>
             </div>
-            {{-- Diisi oleh JavaScript berdasarkan role --}}
+            {{-- Diisi oleh Sidebar Partial --}}
             <div id="mobile-nav-content">
-                @include('partials.mobile-nav')
+                @include('partials.sidebar', ['isMobile' => true])
             </div>
         </div>
         {{-- ===== END MOBILE NAV ===== --}}
