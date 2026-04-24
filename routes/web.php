@@ -385,6 +385,14 @@ Route::middleware(['auth', 'role:kasir'])->prefix('kasir')->name('kasir.')->grou
     Route::post('/pembayaran/{id}/konfirmasi', [BookingKasirController::class, 'konfirmasiPembayaran'])
         ->name('pembayaran.konfirmasi');
 
+    // Laporan Kasir Servis
+    Route::get('laporan', [\App\Http\Controllers\KasirServis\LaporanController::class, 'index'])
+        ->name('laporan.index');
+    Route::get('laporan/export-pdf', [\App\Http\Controllers\KasirServis\LaporanController::class, 'exportPdf'])
+        ->name('laporan.export.pdf');
+    Route::get('laporan/export-excel', [\App\Http\Controllers\KasirServis\LaporanController::class, 'exportExcel'])
+        ->name('laporan.export.excel');
+
 });
 
 // Rute untuk Pelanggan (User Dashboard)

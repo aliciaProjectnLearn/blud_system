@@ -485,6 +485,13 @@
                 <span>Menu Pembayaran</span>
             </a>
         </li>
+
+        <li class="nav-item {{ request()->routeIs('kasir.laporan.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('kasir.laporan.index') }}">
+                <i class="fas fa-fw fa-file-pdf"></i>
+                <span>Laporan Transaksi</span>
+            </a>
+        </li>
     @endif
 
     {{-- ================================= --}}
