@@ -475,3 +475,9 @@ Route::middleware(['auth', 'role:Teknisi'])->prefix('teknisi')->name('teknisi.')
     Route::get('/pembayaran/{id}', [\App\Http\Controllers\TeknisiAc\PembayaranController::class, 'create'])->name('pembayaran.form');
     Route::post('/pembayaran/{id}', [\App\Http\Controllers\TeknisiAc\PembayaranController::class, 'store'])->name('pembayaran.store');
 });
+
+// ── Teknisi Servis (Motor & Mobil) ───────────────────────────────────────────
+Route::middleware(['auth', 'role:Teknisi Motor|Teknisi Mobil'])->prefix('teknisi-servis')->name('teknisiservis.')->group(function () {
+    Route::get('/dashboard', [\App\Http\Controllers\TeknisiServis\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/pekerjaan/{id}', [\App\Http\Controllers\TeknisiServis\DashboardController::class, 'show'])->name('dashboard.show');
+});
