@@ -103,13 +103,46 @@ class JadwalLapanganController extends Controller
         // Kelompokkan per lapangan_id
         $grouped = $jadwal->groupBy('lapangan_id');
 
+        // --- Ambil event booking aktif yang mencakup tanggal ini ---
+        $tanggalCarbon = Carbon::parse($tanggal);
+        $eventBookings = \App\Models\BookingFutsal::with(['booking', 'lapangan', 'booking.user'])
+            ->where('type', 'event')
+            ->whereHas('booking', fn($q) => $q->whereNotIn('status', ['dibatalkan']))
+            ->where(function ($q) use ($tanggalCarbon) {
+                // Event yang sedang berlangsung mencakup tanggal ini
+                $q->whereDate('start_datetime', '<=', $tanggalCarbon->format('Y-m-d'))
+                  ->whereDate('end_datetime', '>=', $tanggalCarbon->format('Y-m-d'));
+            })
+            ->get();
+
+        // Kelompokkan events per lapangan_id
+        $eventsByLapangan = [];
+        foreach ($eventBookings as $ev) {
+            $lapId = $ev->lapangan_id;
+            if (!isset($eventsByLapangan[$lapId])) {
+                $eventsByLapangan[$lapId] = [];
+            }
+            $eventsByLapangan[$lapId][] = [
+                'booking_id'     => $ev->booking_id,
+                'status'         => $ev->booking->status ?? '-',
+                'pelanggan'      => optional($ev->booking->user)->name ?? 'Tidak diketahui',
+                'start_datetime' => $ev->start_datetime->format('Y-m-d'),
+                'end_datetime'   => $ev->end_datetime->format('Y-m-d'),
+                'start_label'    => $ev->start_datetime->translatedFormat('d M Y'),
+                'end_label'      => $ev->end_datetime->translatedFormat('d M Y'),
+                'durasi_hari'    => $ev->start_datetime->diffInDays($ev->end_datetime) + 1,
+            ];
+        }
+        // --- Akhir event booking ---
+
         // Kembalikan Response JSON yang rapi
         return response()->json([
-            'status'    => 'success',
-            'tanggal'   => $tanggal,
-            'lapangans' => $lapangangList,   // daftar semua lapangan
-            'data'      => $jadwal,           // flat (untuk kompatibilitas)
-            'grouped'   => $grouped,          // grouped per lapangan_id
+            'status'            => 'success',
+            'tanggal'           => $tanggal,
+            'lapangans'         => $lapangangList,   // daftar semua lapangan
+            'data'              => $jadwal,           // flat (untuk kompatibilitas)
+            'grouped'           => $grouped,          // grouped per lapangan_id
+            'events_by_lapangan'=> $eventsByLapangan, // event aktif per lapangan
         ]);
     }
 
