@@ -14,7 +14,7 @@
         overflow: hidden;
         margin-bottom: 32px;
         box-shadow: 0 8px 32px rgba(78,115,223,0.30);
-    }
+    }   
     .hero-futsal::before {
         content: '';
         position: absolute;
@@ -526,8 +526,8 @@
                         Selesaikan membership aktif Anda terlebih dahulu
                     </div>
                 @else
-                    <a href="{{ route('user.futsal.membership.form') }}" 
-                    class="btn btn-primary btn-sm btn-block font-weight-bold" 
+                    <a href="{{ route('user.futsal.membership.form') }}"
+                    class="btn btn-primary btn-sm btn-block font-weight-bold"
                     style="border-radius:8px;">
                         <i class="fas fa-shopping-cart mr-1"></i> Beli Membership
                     </a>

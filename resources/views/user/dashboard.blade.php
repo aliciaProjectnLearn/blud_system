@@ -131,7 +131,7 @@
         .table tbody td:nth-child(2) {
             display: none;
         }
-        
+
         .table thead th:nth-child(3),
         .table tbody td:nth-child(3) {
             display: none;
@@ -305,7 +305,7 @@
         </a>
     </div>
     <div class="col-md-3 mb-3">
-        <a href="{{ route('user.gateway') }}#servis-section" class="text-decoration-none">
+        <a href="{{ route('user.servis.katalog') }}#servis-section" class="text-decoration-none">
             <div class="card quick-access-card shadow-sm border-0">
                 <i class="fas fa-car quick-access-icon"></i>
                 <h6 class="font-weight-bold text-primary mb-1">Servis Motor & Mobil</h6>

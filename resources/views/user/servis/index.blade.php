@@ -7,14 +7,14 @@
     <!-- Page Heading -->
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">Dashboard Servis Motor & Mobil</h1>
-        <a href="{{ route('user.gateway') }}#servis-section" class="btn btn-primary shadow-sm">
+        <a href="{{ route('user.servis.booking') }}#servis-section" class="btn btn-primary shadow-sm">
             <i class="fas fa-plus fa-sm text-white-50 mr-1"></i> Buat Booking Baru
         </a>
     </div>
 
     <!-- Alert for active only -->
     <div class="alert alert-info border-left-info shadow-sm py-2 px-3 mb-4">
-        <i class="fas fa-info-circle mr-2"></i> Menampilkan data booking yang <strong>sedang aktif</strong> (Menunggu & Diproses). 
+        <i class="fas fa-info-circle mr-2"></i> Menampilkan data booking yang <strong>sedang aktif</strong> (Menunggu & Diproses).
         <a href="{{ route('user.servis.history') }}" class="font-weight-bold text-info ml-1">Lihat Histori Lengkap &raquo;</a>
     </div>
 

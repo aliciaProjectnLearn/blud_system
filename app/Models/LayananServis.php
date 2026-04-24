@@ -14,12 +14,15 @@ class LayananServis extends Model
         'deskripsi',
         'harga_estimasi',
         'tipe_kendaraan',
+        'durasi_estimasi',
+        'icon',
         'is_active',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
         'harga_estimasi' => 'decimal:2',
+        'durasi_estimasi' => 'integer',
     ];
 
     public function bookingServis()
