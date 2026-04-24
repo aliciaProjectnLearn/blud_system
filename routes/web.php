@@ -40,7 +40,7 @@ Route::get('/', [LandingController::class, 'index'])->name('user.gateway');
 Route::middleware(['auth'])->group(function () {
     // Rute Layanan Pelanggan (Placeholder)
     Route::prefix('user')->name('user.')->group(function () {
-        
+
         Route::get('/ruko', function () {
             return 'Halaman Ruko Pelanggan (Belum dibuat)';
         })->name('ruko.index');
@@ -341,7 +341,7 @@ Route::middleware(['auth', 'role:Adminservis'])->prefix('admin-servis')
 
         // Produk Management
         Route::resource('produk', \App\Http\Controllers\AdminServis\ProdukController::class)->except(['create', 'show', 'edit']);
-  
+
         // Manajemen Keuangan
         Route::get('/keuangan', [\App\Http\Controllers\AdminServis\KeuanganController::class, 'index'])->name('keuangan.index');
         Route::post('/keuangan/pengeluaran', [\App\Http\Controllers\AdminServis\KeuanganController::class, 'store'])->name('keuangan.store');
@@ -384,15 +384,6 @@ Route::middleware(['auth', 'role:kasir'])->prefix('kasir')->name('kasir.')->grou
         ->name('pembayaran.show');
     Route::post('/pembayaran/{id}/konfirmasi', [BookingKasirController::class, 'konfirmasiPembayaran'])
         ->name('pembayaran.konfirmasi');
-
-    // Laporan Kasir Servis
-    Route::get('laporan', [\App\Http\Controllers\KasirServis\LaporanController::class, 'index'])
-        ->name('laporan.index');
-    Route::get('laporan/export-pdf', [\App\Http\Controllers\KasirServis\LaporanController::class, 'exportPdf'])
-        ->name('laporan.export.pdf');
-    Route::get('laporan/export-excel', [\App\Http\Controllers\KasirServis\LaporanController::class, 'exportExcel'])
-        ->name('laporan.export.excel');
-
 });
 
 // Rute untuk Pelanggan (User Dashboard)
@@ -457,10 +448,27 @@ Route::middleware(['auth', 'role:Pelanggan'])->prefix('user')->name('user.')->gr
         Route::post('/{id}/cancel', [\App\Http\Controllers\User\AcDashboardController::class, 'cancel'])->name('cancel');
     });
 
-    // Servis Manajemen (Card #69)
+    // Servis Kendaraan Manajemen (User Side)
     Route::prefix('servis')->name('servis.')->group(function () {
+        // 1. Dashboard / Booking Aktif
         Route::get('/', [UserServisController::class, 'index'])->name('index');
+
+        // 2. Katalog Layanan (Halaman Pilih Servis)
+        Route::get('/katalog', [UserServisController::class, 'katalog'])->name('katalog');
+
+        // 3. Form Booking (Menerima parameter layanan_id dari katalog)
+        Route::get('/booking', [UserServisController::class, 'booking'])->name('booking');
+
+        // 4. Proses Simpan Data
+        Route::post('/store', [UserServisController::class, 'store'])->name('store');
+
+        // 5. Riwayat Booking
         Route::get('/history', [UserServisController::class, 'history'])->name('history');
+
+        // 6. API Slot Jam (AJAX) - Pastikan di atas /{id}
+        Route::get('/slots', [UserServisController::class, 'getSlot'])->name('slots');
+
+        // 7. Detail Booking (Wildcard harus paling bawah)
         Route::get('/{id}', [UserServisController::class, 'show'])->name('show');
     });
 });
