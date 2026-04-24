@@ -50,6 +50,8 @@ class AuthController extends Controller
             elseif ($roleName === 'teknisi') $dashboardRoute = route('teknisi.dashboard');
             elseif ($roleName === 'kasir') $dashboardRoute = route('kasir.dashboard');
             elseif ($roleName === 'pelanggan') $dashboardRoute = route('user.dashboard');
+            elseif ($roleName === 'teknisi motor') $dashboardRoute = route('teknisiservis.dashboard');
+            elseif ($roleName === 'teknisi mobil') $dashboardRoute = route('teknisiservis.dashboard');
 
             // Catat log login
             $this->function_log('Auth', 'login', 'User ' . Auth::user()->name . ' login');
