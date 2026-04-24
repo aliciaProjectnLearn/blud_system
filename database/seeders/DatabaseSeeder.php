@@ -55,5 +55,8 @@ class DatabaseSeeder extends Seeder
 
         // Modul Servis Motor & Mobil Terpadu
         $this->call(ServisKendaraanSeeder::class);
+
+        // Modul Teknisi Servis
+        $this->call(TeknisiServisSeeder::class);
     }
 }
