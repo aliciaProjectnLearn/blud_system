@@ -5,7 +5,7 @@
 @section('content')
 <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between mb-4">
     <h1 class="h3 mb-3 mb-sm-0 text-gray-800">Manajemen Teknisi AC</h1>
-    <a href="{{ route('adminac.teknisi.create') }}" class="btn btn-primary btn-sm shadow-sm w-100 w-sm-auto">
+    <a href="{{ route('admin.ac.teknisi.create') }}" class="btn btn-primary btn-sm shadow-sm w-100 w-sm-auto">
         <i class="fas fa-plus fa-sm text-white-50 mr-2"></i> Tambah Teknisi
     </a>
 </div>
@@ -15,7 +15,7 @@
             <h6 class="m-0 font-weight-bold text-primary">Kinerja Teknisi</h6>
             
             {{-- Filter Form --}}
-            <form method="GET" action="{{ route('adminac.teknisi.index') }}" class="form-inline">
+            <form method="GET" action="{{ route('admin.ac.teknisi.index') }}" class="form-inline">
                 <label for="bulan_filter" class="mr-2 small">Bulan:</label>
                 <select name="bulan_filter" id="bulan_filter" class="form-control form-control-sm mr-2" onchange="this.form.submit()">
                     @foreach(range(1, 12) as $m)
@@ -71,7 +71,7 @@
 <div class="card shadow mb-4">
     <div class="card-header py-3 d-flex flex-column flex-md-row align-items-md-center justify-content-between">
         <h6 class="m-0 font-weight-bold text-primary mb-2 mb-md-0">Daftar Teknisi</h6>
-        <form action="{{ route('adminac.teknisi.index') }}" method="GET" class="form-inline w-100 w-md-auto d-flex flex-column flex-sm-row flex-wrap gap-2">
+        <form action="{{ route('admin.ac.teknisi.index') }}" method="GET" class="form-inline w-100 w-md-auto d-flex flex-column flex-sm-row flex-wrap gap-2">
             <div class="input-group input-group-sm flex-grow-1 mb-2 mb-sm-0">
                 <input type="text" name="search" class="form-control" placeholder="Cari nama, email, no HP..." value="{{ request('search') }}">
                 <div class="input-group-append">
@@ -87,7 +87,7 @@
                     <option value="sibuk" {{ request('status') === 'sibuk' ? 'selected' : '' }}>Sibuk</option>
                 </select>
                 @if(request('search') || request('status'))
-                    <a href="{{ route('adminac.teknisi.index') }}" class="btn btn-secondary btn-sm flex-shrink-0">Reset</a>
+                    <a href="{{ route('admin.ac.teknisi.index') }}" class="btn btn-secondary btn-sm flex-shrink-0">Reset</a>
                 @endif
             </div>
         </form>
@@ -120,7 +120,7 @@
                                 @endif
                             </td>
                             <td>
-                                <a href="{{ route('adminac.teknisi.edit', $teknisi->id) }}" class="btn btn-info btn-sm" title="Edit">
+                                <a href="{{ route('admin.ac.teknisi.edit', $teknisi->id) }}" class="btn btn-info btn-sm" title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </a>
                                 <button class="btn btn-danger btn-sm" data-toggle="modal" data-target="#deleteModal{{ $teknisi->id }}" title="Hapus">
@@ -139,7 +139,7 @@
                                             <span aria-hidden="true">&times;</span>
                                         </button>
                                     </div>
-                                    <form action="{{ route('adminac.teknisi.destroy', $teknisi->id) }}" method="POST">
+                                    <form action="{{ route('admin.ac.teknisi.destroy', $teknisi->id) }}" method="POST">
                                         @csrf
                                         @method('DELETE')
                                         <div class="modal-body">

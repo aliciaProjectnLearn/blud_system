@@ -5,15 +5,15 @@
 @section('content')
 <div class="mb-4 d-flex align-items-center justify-content-between">
     <div class="d-flex align-items-center">
-        <a href="{{ route('adminservis.pelanggan.index') }}" class="btn btn-outline-secondary btn-circle mr-3 shadow-sm">
+        <a href="{{ route('admin.servis.pelanggan.index') }}" class="btn btn-outline-secondary btn-circle mr-3 shadow-sm">
             <i class="fas fa-arrow-left"></i>
         </a>
         <h1 class="h3 mb-0 text-gray-800">Detail Pelanggan</h1>
     </div>
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb bg-transparent p-0 mb-0">
-            <li class="breadcrumb-item"><a href="{{ route('adminservis.dashboard') }}">Dashboard</a></li>
-            <li class="breadcrumb-item"><a href="{{ route('adminservis.pelanggan.index') }}">Pelanggan</a></li>
+            <li class="breadcrumb-item"><a href="{{ route('admin.servis.dashboard') }}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{{ route('admin.servis.pelanggan.index') }}">Pelanggan</a></li>
             <li class="breadcrumb-item active" aria-current="page">Detail</li>
         </ol>
     </nav>

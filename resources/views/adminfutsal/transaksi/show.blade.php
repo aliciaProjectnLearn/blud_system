@@ -6,7 +6,7 @@
 <div class="container-fluid">
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">Detail Transaksi</h1>
-        <a href="{{ route('adminfutsal.transaksi.index') }}" class="btn btn-sm btn-secondary shadow-sm">
+        <a href="{{ route('admin.futsal.transaksi.index') }}" class="btn btn-sm btn-secondary shadow-sm">
             <i class="fas fa-arrow-left fa-sm text-white-50"></i> Kembali
         </a>
     </div>
@@ -123,7 +123,7 @@
                     {{-- Form Konfirmasi (hanya muncul jika status menunggu) --}}
                     @if($transaksi->status == 'menunggu')
                         <hr>
-                        <form action="{{ route('adminfutsal.transaksi.konfirmasi', $transaksi->id) }}" method="POST" 
+                        <form action="{{ route('admin.futsal.transaksi.konfirmasi', $transaksi->id) }}" method="POST" 
                             onsubmit="return confirm('Apakah Anda yakin ingin memverifikasi pembayaran ini?');">
                             @csrf
                             @method('PATCH')
@@ -165,7 +165,7 @@
                         </form>
 
                         {{-- Hidden form for rejection --}}
-                        <form id="reject-form" action="{{ route('adminfutsal.transaksi.reject', $transaksi->id) }}" method="POST" style="display:none;">
+                        <form id="reject-form" action="{{ route('admin.futsal.transaksi.reject', $transaksi->id) }}" method="POST" style="display:none;">
                             @csrf
                             @method('PATCH')
                         </form>

@@ -18,6 +18,7 @@ class BookingAc extends Model
         'merek_ac',
         'detail_keluhan',
         'status',
+        'access_token',
     ];
 
     public function booking()

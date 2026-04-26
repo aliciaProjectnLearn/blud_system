@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.publik')
 
 @section('title', 'Katalog Layanan Servis')
 
@@ -112,7 +112,7 @@
                 <p class="lead mb-4">Pilih layanan perawatan terbaik untuk kendaraan Anda. Teknisi ahli kami siap memberikan
                     performa maksimal.</p>
                 <div class="d-flex flex-wrap gap-2">
-                    <a href="{{ route('user.servis.history') }}" class="btn btn-outline-light font-weight-bold px-4">
+                    <a href="#" class="btn btn-outline-light font-weight-bold px-4"> {{-- TODO: ganti ke token-based route --}}
                         <i class="fas fa-history mr-2"></i> Riwayat Servis
                     </a>
                 </div>

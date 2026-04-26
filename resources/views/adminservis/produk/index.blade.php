@@ -35,7 +35,7 @@
 
     <div class="card shadow mb-4">
         <div class="card-header py-3">
-            <form method="GET" action="{{ route('adminservis.produk.index') }}" 
+            <form method="GET" action="{{ route('admin.servis.produk.index') }}" 
                   class="d-flex gap-2 align-items-center flex-wrap">
                 <input type="text" name="search" class="form-control form-control-sm w-auto"
                     placeholder="Cari nama produk..." value="{{ request('search') }}">
@@ -47,7 +47,7 @@
                 <button type="submit" class="btn btn-primary btn-sm">
                     <i class="fas fa-search"></i> Filter
                 </button>
-                <a href="{{ route('adminservis.produk.index') }}" class="btn btn-secondary btn-sm">Reset</a>
+                <a href="{{ route('admin.servis.produk.index') }}" class="btn btn-secondary btn-sm">Reset</a>
             </form>
         </div>
 
@@ -84,7 +84,7 @@
                                     <button class="btn btn-warning btn-sm" data-toggle="modal" data-target="#modalEdit{{ $item->id }}">
                                         <i class="fas fa-edit"></i>
                                     </button>
-                                    <form action="{{ route('adminservis.produk.destroy', $item->id) }}"
+                                    <form action="{{ route('admin.servis.produk.destroy', $item->id) }}"
                                           method="POST" class="d-inline form-hapus">
                                         @csrf
                                         @method('DELETE')
@@ -98,7 +98,7 @@
                             <!-- Modal Edit -->
                             <div class="modal fade" id="modalEdit{{ $item->id }}" tabindex="-1" role="dialog" aria-hidden="true">
                                 <div class="modal-dialog" role="document">
-                                    <form action="{{ route('adminservis.produk.update', $item->id) }}" method="POST">
+                                    <form action="{{ route('admin.servis.produk.update', $item->id) }}" method="POST">
                                         @csrf
                                         @method('PUT')
                                         <div class="modal-content">
@@ -177,7 +177,7 @@
 <!-- Modal Tambah -->
 <div class="modal fade" id="modalTambah" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog" role="document">
-        <form action="{{ route('adminservis.produk.store') }}" method="POST">
+        <form action="{{ route('admin.servis.produk.store') }}" method="POST">
             @csrf
             <div class="modal-content">
                 <div class="modal-header">

@@ -210,7 +210,7 @@ document.addEventListener('DOMContentLoaded', function () {
         tabNav.innerHTML = `<div class="text-muted small py-2 px-3"><i class="fas fa-spinner fa-spin mr-1"></i> Memuat lapangan...</div>`;
         tabContent.innerHTML = `<div class="text-center text-muted py-5"><i class="fas fa-spinner fa-spin fa-2x mb-3 text-primary"></i><p>Mengambil data jadwal...</p></div>`;
 
-        fetch(`{{ route('adminfutsal.jadwal-lapangan.api') }}?tanggal=${tanggal}`)
+        fetch(`{{ route('admin.futsal.jadwal-lapangan.api') }}?tanggal=${tanggal}`)
             .then(r => r.json())
             .then(res => {
                 if (res.status === 'success') {

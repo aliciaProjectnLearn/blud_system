@@ -89,7 +89,7 @@
                     </button>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('adminfutsal.keuangan.index') }}" method="GET">
+                    <form action="{{ route('admin.futsal.keuangan.index') }}" method="GET">
                         <div class="form-row align-items-end">
                             <div class="col-md-3 mb-3">
                                 <label for="tgl_mulai">Tanggal Mulai</label>
@@ -109,7 +109,7 @@
                             </div>
                             <div class="col-md-3 mb-3">
                                 <button type="submit" class="btn btn-primary"><i class="fas fa-filter"></i> Filter</button>
-                                <a href="{{ route('adminfutsal.keuangan.index') }}" class="btn btn-secondary"><i class="fas fa-sync"></i> Reset</a>
+                                <a href="{{ route('admin.futsal.keuangan.index') }}" class="btn btn-secondary"><i class="fas fa-sync"></i> Reset</a>
                             </div>
                         </div>
                     </form>
@@ -172,7 +172,7 @@
 <!-- Modal Tambah Pengeluaran -->
 <div class="modal fade" id="modalTambahPengeluaran" tabindex="-1" role="dialog" aria-labelledby="modalTambahPengeluaranLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
-        <form action="{{ route('adminfutsal.keuangan.store') }}" method="POST">
+        <form action="{{ route('admin.futsal.keuangan.store') }}" method="POST">
             @csrf
             <div class="modal-content">
                 <div class="modal-header">

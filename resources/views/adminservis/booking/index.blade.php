@@ -7,7 +7,7 @@
     <h1 class="h3 mb-2 mb-sm-0 text-gray-800">Manajemen Booking Servis</h1>
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb bg-transparent p-0 mb-0">
-            <li class="breadcrumb-item"><a href="{{ route('adminservis.dashboard') }}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{{ route('admin.servis.dashboard') }}">Dashboard</a></li>
             <li class="breadcrumb-item active" aria-current="page">Booking</li>
         </ol>
     </nav>
@@ -19,7 +19,7 @@
 <!-- Table Section -->
 <div class="card shadow mb-4" x-data="{ search: '{{ request('search') }}' }">
     <div class="card-header py-3">
-        <form action="{{ route('adminservis.booking.index') }}" method="GET" class="row gx-3 gy-2 align-items-center">
+        <form action="{{ route('admin.servis.booking.index') }}" method="GET" class="row gx-3 gy-2 align-items-center">
             <div class="col-md-3">
                 <label class="sr-only" for="search">Search</label>
                 <div class="input-group">
@@ -45,7 +45,7 @@
             </div>
             <div class="col-md-4">
                 <button type="submit" class="btn btn-primary">Filter</button>
-                <a href="{{ route('adminservis.booking.index') }}" class="btn btn-secondary">Reset</a>
+                <a href="{{ route('admin.servis.booking.index') }}" class="btn btn-secondary">Reset</a>
             </div>
         </form>
     </div>
@@ -101,7 +101,7 @@
                                 @endif
                             </td>
                             <td class="text-center">
-                                <a href="{{ route('adminservis.booking.show', $booking->id) }}" class="btn btn-info btn-sm btn-circle shadow-sm" title="Detail">
+                                <a href="{{ route('admin.servis.booking.show', $booking->id) }}" class="btn btn-info btn-sm btn-circle shadow-sm" title="Detail">
                                     <i class="fas fa-eye"></i>
                                 </a>
                             </td>

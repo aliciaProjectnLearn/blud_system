@@ -11,7 +11,7 @@
             <i class="fas fa-pencil-alt mr-2 text-warning"></i>Edit Unit
             <span class="text-primary">{{ $unit->kode_unit }}</span>
         </h1>
-        <a href="{{ route('adminkantin.unit.index') }}" class="btn btn-secondary btn-sm shadow-sm">
+        <a href="{{ route('admin.kantin.unit.index') }}" class="btn btn-secondary btn-sm shadow-sm">
             <i class="fas fa-arrow-left fa-sm mr-1"></i> Kembali
         </a>
     </div>
@@ -39,7 +39,7 @@
                         </div>
                     @endif
 
-                    <form action="{{ route('adminkantin.unit.update', $unit->id) }}"
+                    <form action="{{ route('admin.kantin.unit.update', $unit->id) }}"
                           method="POST"
                           enctype="multipart/form-data">
                         @csrf
@@ -228,7 +228,7 @@
                                 <button type="submit" class="btn btn-warning px-4">
                                     <i class="fas fa-save mr-1"></i> Simpan Perubahan
                                 </button>
-                                <a href="{{ route('adminkantin.unit.index') }}" class="btn btn-light ml-2">
+                                <a href="{{ route('admin.kantin.unit.index') }}" class="btn btn-light ml-2">
                                     <i class="fas fa-times mr-1"></i> Batal
                                 </a>
                             </div>

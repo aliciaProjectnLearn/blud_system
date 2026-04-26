@@ -7,7 +7,7 @@
     <h1 class="h3 mb-2 mb-sm-0 text-gray-800">Manajemen Pelanggan</h1>
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb bg-transparent p-0 mb-0">
-            <li class="breadcrumb-item"><a href="{{ route('adminservis.dashboard') }}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{{ route('admin.servis.dashboard') }}">Dashboard</a></li>
             <li class="breadcrumb-item active" aria-current="page">Pelanggan</li>
         </ol>
     </nav>
@@ -68,7 +68,7 @@
 <div class="card shadow mb-4">
     <div class="card-header py-3 d-flex flex-column flex-md-row align-items-md-center justify-content-between">
         <h6 class="m-0 font-weight-bold text-primary">Daftar Pelanggan Servis</h6>
-        <form action="{{ route('adminservis.pelanggan.index') }}" method="GET" class="d-flex flex-wrap align-items-center mt-3 mt-md-0" style="gap: 10px;">
+        <form action="{{ route('admin.servis.pelanggan.index') }}" method="GET" class="d-flex flex-wrap align-items-center mt-3 mt-md-0" style="gap: 10px;">
             <div class="input-group input-group-sm" style="width: 250px;">
                 <input type="text" name="search" class="form-control" placeholder="Cari nama, email, hp..." value="{{ request('search') }}">
                 <div class="input-group-append">
@@ -85,7 +85,7 @@
             </select>
 
             @if(request()->anyFilled(['search', 'sort', 'min_booking']))
-                <a href="{{ route('adminservis.pelanggan.index') }}" class="btn btn-outline-secondary btn-sm">
+                <a href="{{ route('admin.servis.pelanggan.index') }}" class="btn btn-outline-secondary btn-sm">
                     <i class="fas fa-undo mr-1"></i> Reset
                 </a>
             @endif
@@ -142,7 +142,7 @@
                             @endif
                         </td>
                         <td class="text-center">
-                            <a href="{{ route('adminservis.pelanggan.show', $pelanggan->id) }}" class="btn btn-info btn-sm btn-circle" title="Lihat Detail">
+                            <a href="{{ route('admin.servis.pelanggan.show', $pelanggan->id) }}" class="btn btn-info btn-sm btn-circle" title="Lihat Detail">
                                 <i class="fas fa-eye"></i>
                             </a>
                         </td>

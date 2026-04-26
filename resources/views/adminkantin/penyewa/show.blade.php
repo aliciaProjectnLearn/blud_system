@@ -9,7 +9,7 @@
         <h1 class="h3 mb-0 text-gray-800">
             <i class="fas fa-user text-primary mr-2"></i>Detail Penyewa
         </h1>
-        <a href="{{ route('adminkantin.penyewa.index') }}" class="btn btn-secondary btn-sm shadow-sm">
+        <a href="{{ route('admin.kantin.penyewa.index') }}" class="btn btn-secondary btn-sm shadow-sm">
             <i class="fas fa-arrow-left fa-sm mr-1"></i> Kembali
         </a>
     </div>
@@ -20,7 +20,7 @@
             <div class="card shadow mb-4">
                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
                     <h6 class="m-0 font-weight-bold text-primary">Informasi Penyewa</h6>
-                    <a href="{{ route('adminkantin.penyewa.edit', $penyewa->id) }}" class="btn btn-warning btn-sm" title="Edit Data">
+                    <a href="{{ route('admin.kantin.penyewa.edit', $penyewa->id) }}" class="btn btn-warning btn-sm" title="Edit Data">
                         <i class="fas fa-pencil-alt"></i>
                     </a>
                 </div>

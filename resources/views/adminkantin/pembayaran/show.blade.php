@@ -5,7 +5,7 @@
 
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">Detail Pembayaran</h1>
-        <a href="{{ route('adminkantin.pembayaran.index') }}" class="btn btn-secondary btn-sm">
+        <a href="{{ route('admin.kantin.pembayaran.index') }}" class="btn btn-secondary btn-sm">
             <i class="fas fa-arrow-left"></i> Kembali
         </a>
     </div>
@@ -92,7 +92,7 @@
         <div class="card-header py-3 d-flex justify-content-between align-items-center">
             <h6 class="m-0 font-weight-bold text-primary">Detail Pembayaran — Termin {{ $pembayaran->termin }}</h6>
             @if($pembayaran->status === 'lunas')
-                <a href="{{ route('adminkantin.pembayaran.kwitansi', $pembayaran) }}"
+                <a href="{{ route('admin.kantin.pembayaran.kwitansi', $pembayaran) }}"
                     class="btn btn-success btn-sm">
                     <i class="fas fa-download mr-1"></i> Download Kwitansi
                 </a>
@@ -176,7 +176,7 @@
                 @endif
             </div>
             <h6 class="font-weight-bold text-gray-700 mb-3">Konfirmasi Pembayaran</h6>
-            <form id="formKonfirmasiPembayaran" action="{{ route('adminkantin.pembayaran.update', $pembayaran) }}" method="POST">
+            <form id="formKonfirmasiPembayaran" action="{{ route('admin.kantin.pembayaran.update', $pembayaran) }}" method="POST">
                 @csrf @method('PUT')
                 <div class="row">
                     <div class="col-md-4">

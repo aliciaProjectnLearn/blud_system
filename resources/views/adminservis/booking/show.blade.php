@@ -8,7 +8,7 @@
         <h1 class="h3 text-gray-800">Detail Booking: #{{ $booking->kode_booking }}</h1>
         <p class="mb-0 text-muted">Dibuat pada {{ $booking->created_at->translatedFormat('d F Y, H:i') }}</p>
     </div>
-    <a href="{{ route('adminservis.booking.index') }}" class="btn btn-secondary shadow-sm">
+    <a href="{{ route('admin.servis.booking.index') }}" class="btn btn-secondary shadow-sm">
         <i class="fas fa-arrow-left mr-1 text-white-50"></i> Kembali
     </a>
 </div>
@@ -165,7 +165,7 @@
                 <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-tasks mr-2"></i> Update Status</h6>
             </div>
             <div class="card-body">
-                <form action="{{ route('adminservis.booking.update', $booking->id) }}" method="POST" x-data="{ originalStatus: '{{ $booking->status }}', currentStatus: '{{ $booking->status }}' }">
+                <form action="{{ route('admin.servis.booking.update', $booking->id) }}" method="POST" x-data="{ originalStatus: '{{ $booking->status }}', currentStatus: '{{ $booking->status }}' }">
                     @csrf
                     @method('PUT')
                     
@@ -212,7 +212,7 @@
                     </div>
                 @endif
 
-                <form action="{{ route('adminservis.booking.assign', $booking->id) }}" method="POST">
+                <form action="{{ route('admin.servis.booking.assign', $booking->id) }}" method="POST">
                     @csrf
                     <div class="form-group">
                         <label for="teknisi_id" class="small font-weight-bold">{{ $booking->teknisi ? 'Ubah Teknisi' : 'Pilih Teknisi' }}</label>
@@ -244,7 +244,7 @@
                 <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-sticky-note mr-2"></i> Catatan Admin</h6>
             </div>
             <div class="card-body">
-                <form action="{{ route('adminservis.booking.update', $booking->id) }}" method="POST">
+                <form action="{{ route('admin.servis.booking.update', $booking->id) }}" method="POST">
                     @csrf
                     @method('PUT')
                     <input type="hidden" name="status" value="{{ $booking->status }}"> {{-- Keep current status --}}

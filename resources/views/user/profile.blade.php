@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.publik')
 
 @section('title', 'Profil Saya')
 
@@ -40,7 +40,7 @@
                 <span class="small text-muted font-italic">* Wajib diisi</span>
             </div>
             <div class="card-body">
-                <form action="{{ route('user.profile.update') }}" method="POST">
+                <form action="{{ route('user.gateway') }}" method="GET">
                     @csrf
                     @method('PUT')
 

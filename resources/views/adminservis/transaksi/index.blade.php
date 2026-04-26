@@ -15,7 +15,7 @@
     <!-- Filter Card -->
     <div class="card shadow mb-4 border-left-primary">
         <div class="card-body">
-            <form action="{{ route('adminservis.transaksi.index') }}" method="GET" id="filterForm">
+            <form action="{{ route('admin.servis.transaksi.index') }}" method="GET" id="filterForm">
                 <div class="row align-items-end">
                     <div class="col-md-3 mb-3">
                         <label class="form-label small font-weight-bold">Dari Tanggal</label>
@@ -45,7 +45,7 @@
                             <button type="submit" class="btn btn-primary btn-sm">
                                 <i class="fas fa-search fa-sm"></i>
                             </button>
-                            <a href="{{ route('adminservis.transaksi.index') }}" class="btn btn-secondary btn-sm">
+                            <a href="{{ route('admin.servis.transaksi.index') }}" class="btn btn-secondary btn-sm">
                                 <i class="fas fa-undo fa-sm"></i>
                             </a>
                         </div>
@@ -105,7 +105,7 @@
                                     </span>
                                 </td>
                                 <td class="px-4 py-3 align-middle text-center">
-                                    <a href="{{ route('adminservis.transaksi.show', $item->id) }}" class="btn btn-info btn-sm btn-circle shadow-sm" title="Lihat Detail">
+                                    <a href="{{ route('admin.servis.transaksi.show', $item->id) }}" class="btn btn-info btn-sm btn-circle shadow-sm" title="Lihat Detail">
                                         <i class="fas fa-eye fa-sm"></i>
                                     </a>
                                 </td>

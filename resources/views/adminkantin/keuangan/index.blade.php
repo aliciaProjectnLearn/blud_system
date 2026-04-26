@@ -78,7 +78,7 @@
             <h6 class="m-0 font-weight-bold text-primary">Filter Transaksi</h6>
         </div>
         <div class="card-body">
-            <form action="{{ route('adminkantin.keuangan.index') }}" method="GET" class="form-inline">
+            <form action="{{ route('admin.kantin.keuangan.index') }}" method="GET" class="form-inline">
                 <div class="form-group mb-2 mr-3">
                     <label for="tanggal_mulai" class="mr-2">Dari</label>
                     <input type="date" class="form-control" id="tanggal_mulai" name="tanggal_mulai" value="{{ request('tanggal_mulai') }}">
@@ -96,7 +96,7 @@
                     </select>
                 </div>
                 <button type="submit" class="btn btn-primary mb-2">Filter</button>
-                <a href="{{ route('adminkantin.keuangan.index') }}" class="btn btn-secondary mb-2 ml-2">Reset</a>
+                <a href="{{ route('admin.kantin.keuangan.index') }}" class="btn btn-secondary mb-2 ml-2">Reset</a>
             </form>
         </div>
     </div>
@@ -147,7 +147,7 @@
 <!-- Modal Tambah Pengeluaran -->
 <div class="modal fade" id="modalTambahPengeluaran" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
-        <form action="{{ route('adminkantin.keuangan.store') }}" method="POST">
+        <form action="{{ route('admin.kantin.keuangan.store') }}" method="POST">
             @csrf
             <div class="modal-content">
                 <div class="modal-header">

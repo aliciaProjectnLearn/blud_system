@@ -27,6 +27,13 @@
             #home h1 { font-size: 1.4rem; }
             .text-5xl { font-size: 1.5rem; }
         }
+        .grid-layanan {
+            display: grid;
+            grid-template-columns: repeat(1, 1fr);
+            gap: 1.5rem;
+        }
+        @media (min-width: 768px) { .grid-layanan { grid-template-columns: repeat(2, 1fr); } }
+        @media (min-width: 1024px) { .grid-layanan { grid-template-columns: repeat(4, 1fr); } }
     </style>
 </head>
 <body class="min-h-screen">
@@ -43,59 +50,8 @@
                 <span class="font-bold text-xl" style="color:#4e73df;">BLUD PORTAL</span>
             </div>
 
-            <button @click="open = !open" class="lg:hidden p-2 text-gray-700 hover:text-[#4e73df] border-0 bg-transparent">
-                <svg x-show="!open" class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-                </svg>
-                <svg x-show="open" style="display:none" class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-            </button>
-
-            <div class="hidden lg:flex items-center gap-4 border-l border-gray-200 pl-6">
-                @auth
-                    @php
-                        $roleName = strtolower(auth()->user()->roles->first()->nama ?? '');
-                        $dashboardRoute = match($roleName) {
-                            'superadmin'  => route('dashboard'),
-                            'adminfutsal' => route('adminfutsal.dashboard'),
-                            'adminkantin' => route('adminkantin.dashboard'),
-                            'adminac'     => route('adminac.dashboard'),
-                            'teknisi'     => route('teknisi.dashboard'),
-                            default       => route('user.dashboard'),
-                        };
-                    @endphp
-                    <a href="{{ $dashboardRoute }}" class="flex items-center gap-2 text-gray-700 hover:text-[#4e73df] font-medium transition-colors">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-                        </svg>
-                        Dashboard
-                    </a>
-                    <form method="POST" action="{{ route('logout') }}" class="inline m-0">
-                        @csrf
-                        <button type="submit" class="px-5 py-2 rounded-lg text-white font-medium cursor-pointer hover:opacity-90" style="background-color:#e53e3e;">
-                            Logout
-                        </button>
-                    </form>
-                @else
-                    <a href="{{ route('login') }}" class="px-5 py-2 rounded-lg text-white font-medium hover:opacity-90 shadow-sm" style="background-color:#4e73df;">
-                        LOGIN
-                    </a>
-                @endauth
-            </div>
+            {{-- Jalur Publik: Tidak ada tombol login/dashboard di sini --}}
         </nav>
-
-        <div x-show="open" style="display:none" class="lg:hidden border-t border-gray-100 bg-white px-6 py-4 space-y-3">
-            @auth
-                <a href="{{ $dashboardRoute ?? route('user.dashboard') }}" class="block text-center w-full px-6 py-3 rounded-lg text-white font-medium mb-2" style="background-color:#4e73df;">Dashboard</a>
-                <form method="POST" action="{{ route('logout') }}" class="m-0">
-                    @csrf
-                    <button type="submit" class="block w-full px-6 py-3 rounded-lg text-white font-medium" style="background-color:#e53e3e;">Logout</button>
-                </form>
-            @else
-                <a href="{{ route('login') }}" class="block text-center w-full px-6 py-3 rounded-lg text-white font-medium" style="background-color:#4e73df;">LOGIN</a>
-            @endauth
-        </div>
     </header>
 
     {{-- Hero --}}
@@ -106,25 +62,21 @@
         <div class="relative max-w-7xl mx-auto px-6 text-center">
             <h1 class="text-5xl font-bold mb-6" style="color:#4e73df;">Satu Portal, Berbagai Layanan Publik</h1>
             <p class="text-xl max-w-3xl mx-auto leading-relaxed" style="color:#4e73df;">
-                Akses mudah dan cepat untuk sewa lapangan futsal, penyewaan ruko/kantin, serta layanan servis AC profesional dalam satu tempat.
+                Akses mudah dan cepat untuk sewa lapangan futsal, penyewaan ruko/kantin, layanan servis AC, hingga servis kendaraan profesional dalam satu tempat.
             </p>
         </div>
     </section>
 
     {{-- Layanan --}}
     <section id="layanan" class="py-24 bg-[#f8f9fc]">
-        <div class="max-w-5xl mx-auto px-4">
+        <div class="max-w-7xl mx-auto px-4">
             <div class="text-center mb-16">
                 <h2 class="text-4xl font-bold mb-6" style="color:#4e73df;">Layanan Kami</h2>
                 <p class="text-lg text-gray-600 max-w-2xl mx-auto">Pilih layanan yang Anda butuhkan. Login terlebih dahulu untuk melakukan booking.</p>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="grid-layanan">
 
-                @auth
-                <a href="{{ route('user.futsal.index') }}" class="card-hover block bg-white p-8 rounded-2xl shadow-sm border-t-4 border-[#4e73df] text-center flex flex-col h-full no-underline">
-                @else
-                <a href="{{ route('login') }}" class="card-hover block bg-white p-8 rounded-2xl shadow-sm border-t-4 border-[#4e73df] text-center flex flex-col h-full no-underline">
-                @endauth
+                <a href="{{ route('user.futsal.landing') }}" class="card-hover block bg-white p-6 rounded-2xl shadow-sm border-t-4 border-[#4e73df] text-center flex flex-col h-full no-underline">
                     <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm" style="background-color:#4e73df;">
                         <svg class="text-white" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="12" cy="12" r="10"/><path d="M12 2v20M2 12h20m-6-6-12 12M18 6 6 18"/>
@@ -133,15 +85,11 @@
                     <h3 class="text-xl font-bold mb-3" style="color:#4e73df;">Pusat Olahraga Futsal</h3>
                     <p class="text-gray-600 mb-6 leading-relaxed text-sm flex-grow">Booking lapangan online, cek ketersediaan jadwal, dan kelola membership dengan mudah.</p>
                     <span class="mt-auto w-full py-2 rounded-lg text-white font-medium text-sm text-center block" style="background-color:#4e73df;">
-                        @auth Pesan Lapangan @else Login untuk Pesan @endauth
+                        Lihat Layanan
                     </span>
                 </a>
 
-                @auth
-                <a href="{{ route('user.kantin.katalog') }}" class="card-hover block bg-white p-8 rounded-2xl shadow-sm border-t-4 border-[#4e73df] text-center flex flex-col h-full no-underline">
-                @else
-                <a href="{{ route('login') }}" class="card-hover block bg-white p-8 rounded-2xl shadow-sm border-t-4 border-[#4e73df] text-center flex flex-col h-full no-underline">
-                @endauth
+                <a href="{{ route('user.kantin.katalog') }}" class="card-hover block bg-white p-6 rounded-2xl shadow-sm border-t-4 border-[#4e73df] text-center flex flex-col h-full no-underline">
                     <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm" style="background-color:#4e73df;">
                         <svg class="text-white" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M3 21h18M4 21V7l8-4v18M12 3v18M12 7h8v14M8 11h.01M8 15h.01M16 11h.01M16 15h.01"/>
@@ -150,15 +98,11 @@
                     <h3 class="text-xl font-bold mb-3" style="color:#4e73df;">Penyewaan Kantin & Ruko</h3>
                     <p class="text-gray-600 mb-6 leading-relaxed text-sm flex-grow">Informasi unit tersedia, pengajuan sewa, dan manajemen dokumen kontrak terpadu.</p>
                     <span class="mt-auto w-full py-2 rounded-lg text-white font-medium text-sm text-center block" style="background-color:#4e73df;">
-                        @auth Cek Unit Ruko @else Login untuk Akses @endauth
+                        Lihat Layanan
                     </span>
                 </a>
 
-                @auth
-                <a href="{{ route('user.ac.index') }}" class="card-hover block bg-white p-8 rounded-2xl shadow-sm border-t-4 border-[#4e73df] text-center flex flex-col h-full no-underline">
-                @else
-                <a href="{{ route('login') }}" class="card-hover block bg-white p-8 rounded-2xl shadow-sm border-t-4 border-[#4e73df] text-center flex flex-col h-full no-underline">
-                @endauth
+                <a href="{{ route('user.ac.layanan') }}" class="card-hover block bg-white p-6 rounded-2xl shadow-sm border-t-4 border-[#4e73df] text-center flex flex-col h-full no-underline">
                     <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm" style="background-color:#4e73df;">
                         <svg class="text-white" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2M9.6 4.6A2 2 0 1 1 11 8H2M12.6 19.4A2 2 0 1 0 14 16H2"/>
@@ -167,7 +111,20 @@
                     <h3 class="text-xl font-bold mb-3" style="color:#4e73df;">Layanan Servis AC</h3>
                     <p class="text-gray-600 mb-6 leading-relaxed text-sm flex-grow">Pesan jasa perbaikan AC profesional dari teknisi bersertifikat.</p>
                     <span class="mt-auto w-full py-2 rounded-lg text-white font-medium text-sm text-center block" style="background-color:#4e73df;">
-                        @auth Pesan Servis @else Login untuk Pesan @endauth
+                        Lihat Layanan
+                    </span>
+                </a>
+
+                <a href="{{ route('user.servis.katalog') }}" class="card-hover block bg-white p-6 rounded-2xl shadow-sm border-t-4 border-[#4e73df] text-center flex flex-col h-full no-underline">
+                    <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm" style="background-color:#4e73df;">
+                        <svg class="text-white" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3" style="color:#4e73df;">Servis Motor & Mobil</h3>
+                    <p class="text-gray-600 mb-6 leading-relaxed text-sm flex-grow">Layanan servis kendaraan berkala dengan peralatan modern dan mekanik ahli.</p>
+                    <span class="mt-auto w-full py-2 rounded-lg text-white font-medium text-sm text-center block" style="background-color:#4e73df;">
+                        Lihat Layanan
                     </span>
                 </a>
 
@@ -177,7 +134,7 @@
 
     {{-- Keunggulan --}}
     <section id="tentang" class="py-24" style="background-color:#EEEEEE;">
-        <div class="max-w-5xl mx-auto px-6">
+        <div class="max-w-7xl mx-auto px-6">
             <div class="text-center mb-16">
                 <h2 class="text-4xl font-bold mb-6" style="color:#4e73df;">Mengapa Memilih Kami?</h2>
                 <p class="text-lg text-gray-600 max-w-2xl mx-auto">Kami berkomitmen memberikan layanan cepat, terintegrasi, dan transparan.</p>
@@ -220,7 +177,7 @@
     {{-- Testimoni — hanya tampil jika ada data --}}
     @if($testimoni->isNotEmpty())
     <section class="py-24 bg-[#f8f9fc]">
-        <div class="max-w-5xl mx-auto px-6">
+        <div class="max-w-7xl mx-auto px-6">
             <div class="text-center mb-12">
                 <h2 class="text-4xl font-bold mb-4" style="color:#4e73df;">Kata Mereka</h2>
                 <p class="text-gray-600 max-w-xl mx-auto">Ribuan pengguna sudah merasakan kemudahan layanan BLUD Portal.</p>
@@ -251,7 +208,7 @@
 
     {{-- Footer --}}
     <footer id="kontak" class="py-16" style="background-color:#4e73df;">
-        <div class="max-w-5xl mx-auto px-6">
+        <div class="max-w-7xl mx-auto px-6">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
                 <div>
                     <div class="flex items-center gap-3 mb-6">
@@ -289,6 +246,31 @@
             </div>
             <div class="border-t border-blue-400 pt-8 text-center">
                 <p class="text-gray-300 text-sm">© {{ date('Y') }} BLUD SMKN 1 Cirebon. Semua hak dilindungi undang-undang.</p>
+            </div>
+        </div>
+    </footer>
+
+    {{-- Footer --}}
+    <footer class="bg-white border-t border-gray-200 py-12">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded flex items-center justify-center" style="background-color:#4e73df;">
+                        <svg class="text-white" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M12 2v20M2 12h20"/><path d="m6 6 12 12M18 6 6 18"/>
+                        </svg>
+                    </div>
+                    <span class="font-bold text-gray-800">BLUD PORTAL</span>
+                </div>
+                
+                <div class="flex gap-8 text-sm text-gray-500">
+                    <a href="#" class="hover:text-[#4e73df]">Tentang Kami</a>
+                    <a href="#" class="hover:text-[#4e73df]">Syarat & Ketentuan</a>
+                </div>
+                
+                <div class="text-sm text-gray-400">
+                    &copy; {{ date('Y') }} BLUD SMKN 1 CIREBON. All rights reserved.
+                </div>
             </div>
         </div>
     </footer>

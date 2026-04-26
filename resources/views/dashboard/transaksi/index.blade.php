@@ -44,7 +44,7 @@
                     <i class="fas fa-filter mr-1"></i>Filter
                 </button>
 
-                <a href="{{ route('transaksi.index') }}"
+                <a href="{{ route('admin.transaksi.index') }}"
                    class="btn btn-outline-secondary btn-sm mb-2">
                     <i class="fas fa-undo mr-1"></i>Reset
                 </a>

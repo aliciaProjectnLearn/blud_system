@@ -8,7 +8,7 @@
         <i class="fas fa-file-invoice mr-2 text-primary"></i>Detail Transaksi
     </h1>
     <div>
-        <a href="{{ route('adminac.transaksi.index') }}" class="btn btn-secondary btn-sm shadow-sm">
+        <a href="{{ route('admin.ac.transaksi.index') }}" class="btn btn-secondary btn-sm shadow-sm">
             <i class="fas fa-arrow-left fa-sm mr-1"></i> Kembali
         </a>
         <button onclick="window.print()" class="btn btn-outline-primary btn-sm shadow-sm ml-2">
@@ -31,7 +31,7 @@
                         <small class="text-muted">Kelola status pembayaran dari pelanggan.</small>
                     </div>
                     <div class="col-md-6">
-                        <form action="{{ route('adminac.transaksi.update_status', $transaksi->id) }}" method="POST" class="form-inline justify-content-end">
+                        <form action="{{ route('admin.ac.transaksi.update_status', $transaksi->id) }}" method="POST" class="form-inline justify-content-end">
                             @csrf
                             @method('PATCH')
                             <select name="status" class="form-control form-control-sm mr-2 py-0" style="height: 31px;">

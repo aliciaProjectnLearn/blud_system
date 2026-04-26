@@ -9,7 +9,7 @@
         <button class="btn btn-outline-primary btn-sm shadow-sm mr-2" data-toggle="modal" data-target="#addKategoriModal">
             <i class="fas fa-layer-group fa-sm mr-2"></i> Tambah Kategori
         </button>
-        <a href="{{ route('adminac.layanan.create') }}" class="btn btn-primary btn-sm shadow-sm">
+        <a href="{{ route('admin.ac.layanan.create') }}" class="btn btn-primary btn-sm shadow-sm">
             <i class="fas fa-plus fa-sm text-white-50 mr-2"></i> Tambah Layanan
         </a>
     </div>
@@ -35,7 +35,7 @@
 
 <div class="card shadow mb-4">
     <div class="card-header py-3">
-        <form action="{{ route('adminac.layanan.index') }}" method="GET" class="form-inline">
+        <form action="{{ route('admin.ac.layanan.index') }}" method="GET" class="form-inline">
             <div class="form-group mr-2">
                 <input type="text" name="search" class="form-control form-control-sm" placeholder="Cari layanan..." value="{{ request('search') }}">
             </div>
@@ -53,7 +53,7 @@
                 <i class="fas fa-search fa-sm mr-1"></i> Filter
             </button>
             @if(request()->has('search') || request()->has('kategori_id'))
-                <a href="{{ route('adminac.layanan.index') }}" class="btn btn-secondary btn-sm ml-2">Reset</a>
+                <a href="{{ route('admin.ac.layanan.index') }}" class="btn btn-secondary btn-sm ml-2">Reset</a>
             @endif
         </form>
     </div>
@@ -83,7 +83,7 @@
                                 <span class="badge badge-success">Aktif</span>
                             </td>
                             <td>
-                                <a href="{{ route('adminac.layanan.edit', $layanan->id) }}" class="btn btn-info btn-sm" title="Edit">
+                                <a href="{{ route('admin.ac.layanan.edit', $layanan->id) }}" class="btn btn-info btn-sm" title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </a>
                                 <button class="btn btn-danger btn-sm" data-toggle="modal" data-target="#deleteModal{{ $layanan->id }}" title="Hapus">
@@ -102,7 +102,7 @@
                                             <span aria-hidden="true">&times;</span>
                                         </button>
                                     </div>
-                                    <form action="{{ route('adminac.layanan.destroy', $layanan->id) }}" method="POST">
+                                    <form action="{{ route('admin.ac.layanan.destroy', $layanan->id) }}" method="POST">
                                         @csrf
                                         @method('DELETE')
                                         <div class="modal-body text-left">
@@ -141,7 +141,7 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form action="{{ route('adminac.kategori.store') }}" method="POST">
+            <form action="{{ route('admin.ac.kategori.store') }}" method="POST">
                 @csrf
                 <div class="modal-body text-left">
                     <div class="form-group">

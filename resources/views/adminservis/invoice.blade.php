@@ -221,7 +221,7 @@
 
     <!-- Floating Toolbar -->
     <div class="toolbar no-print">
-        <a href="{{ route('adminservis.transaksi.download-pdf', $booking->kode_booking) }}" class="btn btn-primary btn-sm rounded-pill px-4 shadow-sm font-weight-bold">
+        <a href="{{ route('admin.servis.transaksi.download-pdf', $booking->kode_booking) }}" class="btn btn-primary btn-sm rounded-pill px-4 shadow-sm font-weight-bold">
             <i class="fas fa-print mr-2 text-white-50"></i> Cetak Sekarang
         </a>
         <button onclick="window.close()" class="btn btn-outline-danger btn-sm rounded-pill px-4 shadow-sm border-0 font-weight-bold ml-2">

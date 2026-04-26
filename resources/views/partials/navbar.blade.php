@@ -49,91 +49,92 @@
 
             {{-- Dropdown User Menu --}}
             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="userDropdown">
+                @auth
+                    {{-- Link Profile sesuai role --}}
+                    @if (Auth::user()->hasRole('Superadmin'))
+                        <a class="dropdown-item {{ request()->routeIs('profile.edit') ? 'active' : '' }}"
+                            href="{{ route('profile.edit') }}">
+                            <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
+                            Profile
+                        </a>
+                        <a class="dropdown-item {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}"
+                            href="{{ route('dashboard') }}">
+                            <i class="fas fa-tachometer-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                            Dashboard
+                        </a>
+                    @elseif(Auth::user()->hasRole('Adminfutsal'))
+                        <a class="dropdown-item {{ request()->routeIs('profile.edit') ? 'active' : '' }}"
+                            href="{{ route('profile.edit') }}">
+                            <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
+                            Profile
+                        </a>
+                        <a class="dropdown-item {{ request()->routeIs('admin.futsal.dashboard') ? 'active' : '' }}"
+                            href="{{ route('admin.futsal.dashboard') }}">
+                            <i class="fas fa-tachometer-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                            Dashboard
+                        </a>
+                    @elseif(Auth::user()->hasRole('Adminkantin'))
+                        <a class="dropdown-item {{ request()->routeIs('profile.edit') ? 'active' : '' }}"
+                            href="{{ route('profile.edit') }}">
+                            <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
+                            Profile
+                        </a>
+                        <a class="dropdown-item {{ request()->routeIs('admin.kantin.dashboard') ? 'active' : '' }}"
+                            href="{{ route('admin.kantin.dashboard') }}">
+                            <i class="fas fa-tachometer-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                            Dashboard
+                        </a>
+                    @elseif(Auth::user()->hasRole('Adminac'))
+                        <a class="dropdown-item {{ request()->routeIs('profile.edit') ? 'active' : '' }}"
+                            href="{{ route('profile.edit') }}">
+                            <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
+                            Profile
+                        </a>
+                        <a class="dropdown-item {{ request()->routeIs('admin.ac.dashboard') ? 'active' : '' }}"
+                            href="{{ route('admin.ac.dashboard') }}">
+                            <i class="fas fa-tachometer-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                            Dashboard
+                        </a>
+                    @elseif(Auth::user()->hasRole('Adminservis'))
+                        <a class="dropdown-item {{ request()->routeIs('admin.servis.profile') ? 'active' : '' }}"
+                            href="{{ route('admin.servis.profile') }}">
+                            <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
+                            Profile
+                        </a>
+                        <a class="dropdown-item {{ request()->routeIs('admin.servis.dashboard') ? 'active' : '' }}"
+                            href="{{ route('admin.servis.dashboard') }}">
+                            <i class="fas fa-tachometer-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                            Dashboard
+                        </a>
+                    @elseif(Auth::user()->hasRole('Kasir'))
+                        <a class="dropdown-item {{ request()->routeIs('profile.edit') ? 'active' : '' }}"
+                            href="{{ route('profile.edit') }}">
+                            <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
+                            Profile
+                        </a>
+                        <a class="dropdown-item {{ request()->routeIs('kasir.dashboard') ? 'active' : '' }}"
+                            href="{{ route('kasir.dashboard') }}">
+                            <i class="fas fa-tachometer-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                            Dashboard
+                        </a>
+                    @else
+                        <a class="dropdown-item" href="{{ route('user.gateway') }}">
+                            <i class="fas fa-tachometer-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                            Dashboard Utama
+                        </a>
+                    @endif
 
-                {{-- Link Profile sesuai role --}}
-                @if (Auth::user()->hasRole('Superadmin'))
-                    <a class="dropdown-item {{ request()->routeIs('profile.edit') ? 'active' : '' }}"
-                        href="{{ route('profile.edit') }}">
-                        <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
-                        Profile
-                    </a>
-                    <a class="dropdown-item {{ request()->routeIs('dashboard') ? 'active' : '' }}"
-                        href="{{ route('dashboard') }}">
-                        <i class="fas fa-tachometer-alt fa-sm fa-fw mr-2 text-gray-400"></i>
-                        Dashboard
-                    </a>
-                @elseif(Auth::user()->hasRole('Adminfutsal'))
-                    <a class="dropdown-item {{ request()->routeIs('profile.edit') ? 'active' : '' }}"
-                        href="{{ route('profile.edit') }}">
-                        <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
-                        Profile
-                    </a>
-                    <a class="dropdown-item {{ request()->routeIs('adminfutsal.dashboard') ? 'active' : '' }}"
-                        href="{{ route('adminfutsal.dashboard') }}">
-                        <i class="fas fa-tachometer-alt fa-sm fa-fw mr-2 text-gray-400"></i>
-                        Dashboard
-                    </a>
-                @elseif(Auth::user()->hasRole('Adminkantin'))
-                    <a class="dropdown-item {{ request()->routeIs('profile.edit') ? 'active' : '' }}"
-                        href="{{ route('profile.edit') }}">
-                        <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
-                        Profile
-                    </a>
-                    <a class="dropdown-item {{ request()->routeIs('adminkantin.dashboard') ? 'active' : '' }}"
-                        href="{{ route('adminkantin.dashboard') }}">
-                        <i class="fas fa-tachometer-alt fa-sm fa-fw mr-2 text-gray-400"></i>
-                        Dashboard
-                    </a>
-                @elseif(Auth::user()->hasRole('Adminac'))
-                    <a class="dropdown-item {{ request()->routeIs('profile.edit') ? 'active' : '' }}"
-                        href="{{ route('profile.edit') }}">
-                        <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
-                        Profile
-                    </a>
-                    <a class="dropdown-item {{ request()->routeIs('adminac.dashboard') ? 'active' : '' }}"
-                        href="{{ route('adminac.dashboard') }}">
-                        <i class="fas fa-tachometer-alt fa-sm fa-fw mr-2 text-gray-400"></i>
-                        Dashboard
-                    </a>
-                @elseif(Auth::user()->hasRole('Adminservis'))
-                    <a class="dropdown-item {{ request()->routeIs('adminservis.profile') ? 'active' : '' }}"
-                        href="{{ route('adminservis.profile') }}">
-                        <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
-                        Profile
-                    </a>
-                    <a class="dropdown-item {{ request()->routeIs('adminservis.dashboard') ? 'active' : '' }}"
-                        href="{{ route('adminservis.dashboard') }}">
-                        <i class="fas fa-tachometer-alt fa-sm fa-fw mr-2 text-gray-400"></i>
-                        Dashboard
-                    </a>
-                @elseif(Auth::user()->hasRole('Kasir'))
-                    <a class="dropdown-item {{ request()->routeIs('profile.edit') ? 'active' : '' }}"
-                        href="{{ route('profile.edit') }}">
-                        <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
-                        Profile
-                    </a>
-                    <a class="dropdown-item {{ request()->routeIs('kasir.dashboard') ? 'active' : '' }}"
-                        href="{{ route('kasir.dashboard') }}">
-                        <i class="fas fa-tachometer-alt fa-sm fa-fw mr-2 text-gray-400"></i>
-                        Dashboard
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
+                        <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                        Logout
                     </a>
                 @else
-                    <a class="dropdown-item {{ request()->routeIs('user.profile.*') ? 'active' : '' }}"
-                        href="{{ route('user.profile.index') }}">
-                        <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
-                        Profile
+                    <a class="dropdown-item" href="{{ route('login') }}">
+                        <i class="fas fa-sign-in-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                        Login Admin/Staff
                     </a>
-                    <a class="dropdown-item" href="{{ route('user.dashboard') }}">
-                        <i class="fas fa-tachometer-alt fa-sm fa-fw mr-2 text-gray-400"></i>
-                        Dashboard Saya
-                    </a>
-                @endif
-
-                <div class="dropdown-divider"></div>
-                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
-                    <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
-                    Logout
-                </a>
+                @endauth
             </div>
         </li>
 

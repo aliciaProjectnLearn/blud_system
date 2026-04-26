@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.publik')
 
 @section('title', 'Histori Booking Futsal')
 
@@ -10,14 +10,14 @@
         <div>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb bg-transparent p-0 mb-1">
-                    <li class="breadcrumb-item"><a href="{{ route('user.futsal.dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('user.gateway') }}">Dashboard</a></li>
                     <li class="breadcrumb-item active" aria-current="page">Histori Booking</li>
                 </ol>
             </nav>
             <h1 class="h3 mb-0 text-gray-800">Histori Booking Futsal</h1>
         </div>
         <div class="d-flex align-items-center">
-            <a href="{{ route('user.futsal.history') }}" class="btn btn-sm btn-light border shadow-sm mr-2 text-primary">
+            <a href="#" class="btn btn-sm btn-light border shadow-sm mr-2 text-primary"> {{-- TODO: ganti ke token-based route --}}
                 <i class="fas fa-sync-alt"></i> Refresh
             </a>
             <a href="{{ route('user.futsal.booking.form') }}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
@@ -32,7 +32,7 @@
             <h6 class="m-0 font-weight-bold text-primary">Daftar Seluruh Booking</h6>
 
             <!-- Filter Buttons (Standard HTML Form) -->
-            <form action="{{ route('user.futsal.history') }}" method="GET">
+            <form action="#" {{-- TODO: ganti ke token-based route --}} method="GET">
                 <div class="d-flex flex-wrap gap-2" style="gap: 8px">
                     <select name="status" class="form-control form-control-sm">
                         <option value="all">Semua Status</option>
@@ -50,7 +50,7 @@
                     <button type="submit" class="btn btn-sm btn-primary shadow-sm">
                         <i class="fas fa-filter fa-sm text-white-50"></i> Filter
                     </button>
-                    <a href="{{ route('user.futsal.history') }}" class="btn btn-sm btn-secondary shadow-sm">
+                    <a href="#" class="btn btn-sm btn-secondary shadow-sm"> {{-- TODO: ganti ke token-based route --}}
                         <i class="fas fa-undo fa-sm"></i> Reset
                     </a>
                 </div>

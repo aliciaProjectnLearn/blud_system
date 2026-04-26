@@ -9,7 +9,7 @@
         <h1 class="h3 mb-0 text-gray-800">
             <i class="fas fa-user-edit mr-2 text-primary"></i>Edit Data Penyewa
         </h1>
-        <a href="{{ route('adminkantin.penyewa.index') }}" class="btn btn-secondary btn-sm shadow-sm">
+        <a href="{{ route('admin.kantin.penyewa.index') }}" class="btn btn-secondary btn-sm shadow-sm">
             <i class="fas fa-arrow-left fa-sm mr-1"></i> Kembali
         </a>
     </div>
@@ -32,7 +32,7 @@
                         </div>
                     @endif
 
-                    <form action="{{ route('adminkantin.penyewa.update', $penyewa->id) }}" method="POST">
+                    <form action="{{ route('admin.kantin.penyewa.update', $penyewa->id) }}" method="POST">
                         @csrf
                         @method('PUT')
                         
@@ -78,7 +78,7 @@
                                 <button type="submit" class="btn btn-primary">
                                     <i class="fas fa-save mr-1"></i> Update Data Penyewa
                                 </button>
-                                <a href="{{ route('adminkantin.penyewa.index') }}" class="btn btn-light border ml-2 text-dark">
+                                <a href="{{ route('admin.kantin.penyewa.index') }}" class="btn btn-light border ml-2 text-dark">
                                     Batal
                                 </a>
                             </div>

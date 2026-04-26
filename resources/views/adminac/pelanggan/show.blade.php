@@ -7,7 +7,7 @@
     <h1 class="h3 mb-0 text-gray-800">
         <i class="fas fa-user-tag mr-2 text-primary"></i>Detail Pelanggan: <strong>{{ $pelanggan->name }}</strong>
     </h1>
-    <a href="{{ route('adminac.pelanggan.index') }}" class="btn btn-secondary btn-sm shadow-sm hover-shadow">
+    <a href="{{ route('admin.ac.pelanggan.index') }}" class="btn btn-secondary btn-sm shadow-sm hover-shadow">
         <i class="fas fa-arrow-left fa-sm mr-1"></i> Kembali ke Daftar
     </a>
 </div>

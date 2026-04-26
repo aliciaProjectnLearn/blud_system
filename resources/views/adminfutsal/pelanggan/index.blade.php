@@ -71,7 +71,7 @@
             <h6 class="m-0 font-weight-bold text-primary">Daftar Pelanggan Reguler</h6>
 
             {{-- Filter --}}
-            <form method="GET" action="{{ route('adminfutsal.pelanggan.index') }}" class="form-inline">
+            <form method="GET" action="{{ route('admin.futsal.pelanggan.index') }}" class="form-inline">
                 <input type="text" name="search" class="form-control form-control-sm mr-2"
                     placeholder="Cari nama / email..." value="{{ request('search') }}">
                 <select name="status" class="form-control form-control-sm mr-2">
@@ -83,7 +83,7 @@
                     <i class="fas fa-filter"></i> Filter
                 </button>
                 @if(request()->filled('search') || request()->filled('status'))
-                    <a href="{{ route('adminfutsal.pelanggan.index') }}" class="btn btn-sm btn-light ml-1">Reset</a>
+                    <a href="{{ route('admin.futsal.pelanggan.index') }}" class="btn btn-sm btn-light ml-1">Reset</a>
                 @endif
             </form>
         </div>
@@ -150,7 +150,7 @@
 {{-- Modal Tambah --}}
 <div class="modal fade" id="modalTambah" tabindex="-1">
     <div class="modal-dialog">
-        <form action="{{ route('adminfutsal.pelanggan.store') }}" method="POST">
+        <form action="{{ route('admin.futsal.pelanggan.store') }}" method="POST">
             @csrf
             <div class="modal-content">
                 <div class="modal-header">

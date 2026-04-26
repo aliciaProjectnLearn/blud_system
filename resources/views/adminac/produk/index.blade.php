@@ -28,7 +28,7 @@
             <h6 class="m-0 font-weight-bold text-primary">Daftar Produk</h6>
         </div>
         <div class="card-body">
-            <form method="GET" action="{{ route('adminac.produk.index') }}" class="mb-4">
+            <form method="GET" action="{{ route('admin.ac.produk.index') }}" class="mb-4">
                 <div class="row">
                     <div class="col-md-4 mb-2">
                         <input type="text" name="search" class="form-control" placeholder="Cari Nama Produk..." value="{{ $search }}">
@@ -45,7 +45,7 @@
                     </div>
                     <div class="col-md-4 mb-2">
                         <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> Tampilkan</button>
-                        <a href="{{ route('adminac.produk.index') }}" class="btn btn-secondary">Reset</a>
+                        <a href="{{ route('admin.ac.produk.index') }}" class="btn btn-secondary">Reset</a>
                     </div>
                 </div>
             </form>
@@ -82,7 +82,7 @@
                             <button class="btn btn-sm btn-info mb-1" data-toggle="modal" data-target="#editModal{{ $produk->id }}">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                <form action="{{ route('adminac.produk.destroy', $produk->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus produk ini?');">
+                                <form action="{{ route('admin.ac.produk.destroy', $produk->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus produk ini?');">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-sm btn-danger mb-1">
@@ -98,7 +98,7 @@
                         <div class="modal fade" id="editModal{{ $produk->id }}" tabindex="-1" role="dialog" aria-labelledby="editModalLabel{{ $produk->id }}" aria-hidden="true">
                             <div class="modal-dialog" role="document">
                                 <div class="modal-content">
-                                    <form action="{{ route('adminac.produk.update', $produk->id) }}" method="POST">
+                                    <form action="{{ route('admin.ac.produk.update', $produk->id) }}" method="POST">
                                         @csrf
                                         @method('PUT')
                                         <div class="modal-header">
@@ -168,7 +168,7 @@
 <div class="modal fade" id="tambahModal" tabindex="-1" role="dialog" aria-labelledby="tambahModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
-            <form action="{{ route('adminac.produk.store') }}" method="POST">
+            <form action="{{ route('admin.ac.produk.store') }}" method="POST">
                 @csrf
                 <div class="modal-header">
                     <h5 class="modal-title" id="tambahModalLabel">Tambah Produk Baru</h5>
@@ -222,7 +222,7 @@
 <div class="modal fade" id="tambahKategoriModal" tabindex="-1" role="dialog" aria-labelledby="tambahKategoriModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
-            <form action="{{ route('adminac.kategori_komponen.store') }}" method="POST">
+            <form action="{{ route('admin.ac.kategori_komponen.store') }}" method="POST">
                 @csrf
                 <div class="modal-header">
                     <h5 class="modal-title" id="tambahKategoriModalLabel">Tambah Kategori Komponen Baru</h5>

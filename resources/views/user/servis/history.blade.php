@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.publik')
 
 @section('title', 'Histori Servis Motor & Mobil')
 
@@ -15,7 +15,7 @@
     <!-- Filter Card -->
     <div class="card shadow mb-4">
         <div class="card-body">
-            <form action="{{ route('user.servis.history') }}" method="GET" class="row">
+            <form action="#" {{-- TODO: ganti ke token-based route --}} method="GET" class="row">
                 <div class="col-md-4 mb-3">
                     <label class="small font-weight-bold">Status</label>
                     <select name="status" class="form-control">
@@ -43,7 +43,7 @@
     <div class="card shadow mb-4">
         <div class="card-header py-3 bg-white d-flex justify-content-between align-items-center">
             <h6 class="m-0 font-weight-bold text-primary">Riwayat Booking Lengkap</h6>
-            <a href="{{ route('user.servis.index') }}" class="btn btn-sm btn-outline-secondary">
+            <a href="{{ route('user.gateway') }}" class="btn btn-sm btn-outline-secondary">
                 <i class="fas fa-tachometer-alt mr-1"></i> Kembali ke Dashboard
             </a>
         </div>

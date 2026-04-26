@@ -10,7 +10,7 @@
             <h6 class="m-0 font-weight-bold text-primary">Filter Pencarian</h6>
         </div>
         <div class="card-body">
-            <form action="{{ route('adminkantin.penyewaan.index') }}" method="GET" class="row">
+            <form action="{{ route('admin.kantin.penyewaan.index') }}" method="GET" class="row">
                 <div class="col-6 col-md-3 mb-3">
                     <label>Status Sewa</label>
                     <select name="status" class="form-control">
@@ -44,7 +44,7 @@
                 </div>
                 <div class="col-md-3 mb-3 d-flex align-items-end">
                     <button type="submit" class="btn btn-primary mr-2">Cari</button>
-                    <a href="{{ route('adminkantin.penyewaan.index') }}" class="btn btn-secondary">Reset</a>
+                    <a href="{{ route('admin.kantin.penyewaan.index') }}" class="btn btn-secondary">Reset</a>
                 </div>
             </form>
         </div>
@@ -96,7 +96,7 @@
                                 @endif
                             </td>
                             <td>
-                                <a href="{{ route('adminkantin.penyewaan.show', $item->id) }}" class="btn btn-info btn-sm">
+                                <a href="{{ route('admin.kantin.penyewaan.show', $item->id) }}" class="btn btn-info btn-sm">
                                     <i class="fas fa-eye"></i> <span class="d-none d-md-inline">Detail</span>
                                 </a>
                                 
@@ -105,7 +105,7 @@
                                 </button>
 
                                 @if($item->status != 'aktif')
-                                <form action="{{ route('adminkantin.penyewaan.destroy', $item->id) }}" method="POST" style="display:inline;" class="delete-form">
+                                <form action="{{ route('admin.kantin.penyewaan.destroy', $item->id) }}" method="POST" style="display:inline;" class="delete-form">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-danger btn-sm" onclick="return confirmDelete(event)">
@@ -120,7 +120,7 @@
                         <div class="modal fade" id="editModal{{ $item->id }}" tabindex="-1" role="dialog" aria-hidden="true">
                             <div class="modal-dialog" role="document">
                                 <div class="modal-content">
-                                    <form action="{{ route('adminkantin.penyewaan.update', $item->id) }}" method="POST">
+                                    <form action="{{ route('admin.kantin.penyewaan.update', $item->id) }}" method="POST">
                                         @csrf
                                         @method('PUT')
                                         <div class="modal-header">

@@ -1,10 +1,10 @@
-@extends('layouts.app')
+@extends('layouts.publik')
 @section('title', 'Tagihan Pembayaran')
 @section('content')
 <div class="container-fluid">
     <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between mb-4">
         <h1 class="h3 mb-2 mb-sm-0 text-gray-800">Tagihan Pembayaran</h1>
-        <a href="{{ route('user.kantin.dashboard') }}" class="btn btn-sm btn-secondary">
+        <a href="{{ route('user.gateway') }}" class="btn btn-sm btn-secondary">
             <i class="fas fa-arrow-left mr-1"></i> Kembali
         </a>
     </div>

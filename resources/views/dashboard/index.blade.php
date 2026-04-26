@@ -211,7 +211,7 @@
         <div class="card shadow">
             <div class="card-header py-3 d-flex justify-content-between align-items-center">
                 <h6 class="m-0 font-weight-bold text-primary">Transaksi Terbaru</h6>
-                <a href="{{ route('transaksi.index') }}" class="btn btn-sm btn-outline-primary">
+                <a href="{{ route('admin.transaksi.index') }}" class="btn btn-sm btn-outline-primary">
                     Lihat Semua
                 </a>
             </div>

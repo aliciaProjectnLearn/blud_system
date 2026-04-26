@@ -293,7 +293,7 @@
                 <img src="{{ asset('img/logo_smk.png') }}" alt="Logo BLUD System" class="login-logo">
                 <h1>Selamat Datang di</h1>
                 <h1>BLUD SMKN 1 CIREBON</h1>
-                <p>Masuk untuk mengakses layanan kamu</p>
+                <p>Masuk untuk mengakses dashboard Anda</p>
             </div>
 
             {{-- Body --}}
@@ -304,7 +304,7 @@
                     <div class="login-alert">{{ $errors->first() }}</div>
                 @endif
 
-                <form method="POST" action="{{ route('login') }}" novalidate>
+                <form method="POST" action="{{ route('login.post') }}" novalidate>
                     @csrf
 
                     {{-- Email --}}

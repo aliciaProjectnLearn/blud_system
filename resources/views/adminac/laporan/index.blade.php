@@ -27,7 +27,7 @@
             <h6 class="m-0 font-weight-bold text-primary">Filter Laporan</h6>
         </div>
         <div class="card-body">
-            <form method="GET" action="{{ route('adminac.laporan.index') }}">
+            <form method="GET" action="{{ route('admin.ac.laporan.index') }}">
                 <div class="form-row align-items-end">
                     
                     {{-- Filter Dari Tanggal --}}
@@ -47,7 +47,7 @@
                         <button type="submit" class="btn btn-primary mr-2">
                             <i class="fas fa-search fa-sm"></i> Cari
                         </button>
-                        <a href="{{ route('adminac.laporan.index') }}" class="btn btn-secondary">
+                        <a href="{{ route('admin.ac.laporan.index') }}" class="btn btn-secondary">
                             <i class="fas fa-undo fa-sm"></i> Reset
                         </a>
                     </div>
@@ -82,10 +82,10 @@
 
         {{-- Export Buttons --}}
         <div class="col-xl-6 col-md-6 d-flex justify-content-end align-items-center">
-            <a href="{{ route('adminac.laporan.export.pdf', request()->all()) }}" target="_blank" class="btn btn-danger mr-2 shadow-sm">
+            <a href="{{ route('admin.ac.laporan.export.pdf', request()->all()) }}" target="_blank" class="btn btn-danger mr-2 shadow-sm">
                 <i class="fas fa-file-pdf fa-sm text-white-50"></i> Export PDF
             </a>
-            <a href="{{ route('adminac.laporan.export.excel', request()->all()) }}" target="_blank" class="btn btn-success shadow-sm">
+            <a href="{{ route('admin.ac.laporan.export.excel', request()->all()) }}" target="_blank" class="btn btn-success shadow-sm">
                 <i class="fas fa-file-excel fa-sm text-white-50"></i> Export Excel
             </a>
         </div>

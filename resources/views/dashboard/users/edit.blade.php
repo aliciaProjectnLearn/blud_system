@@ -83,7 +83,7 @@
                 </div>
 
                 <button class="btn btn-primary mt-3">Update</button>
-                <a href="{{ route('users.index') }}" class="btn btn-secondary mt-3">Kembali</a>
+                <a href="{{ route('admin.users.index') }}" class="btn btn-secondary mt-3">Kembali</a>
             </form>
         </div>
     </div>

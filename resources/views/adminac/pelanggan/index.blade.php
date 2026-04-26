@@ -10,7 +10,7 @@
 <div class="card shadow mb-4">
     <div class="card-header py-3 d-flex justify-content-between align-items-center">
         <h6 class="m-0 font-weight-bold text-primary">Daftar Pelanggan Aktif</h6>
-        <form action="{{ route('adminac.pelanggan.index') }}" method="GET" class="form-inline">
+        <form action="{{ route('admin.ac.pelanggan.index') }}" method="GET" class="form-inline">
             <div class="input-group input-group-sm">
                 <input type="text" name="search" class="form-control" placeholder="Cari nama atau email..." value="{{ request('search') }}">
                 <div class="input-group-append">
@@ -20,7 +20,7 @@
                 </div>
             </div>
             @if(request()->has('search') && request('search') != '')
-                <a href="{{ route('adminac.pelanggan.index') }}" class="btn btn-secondary btn-sm ml-2">Reset</a>
+                <a href="{{ route('admin.ac.pelanggan.index') }}" class="btn btn-secondary btn-sm ml-2">Reset</a>
             @endif
         </form>
     </div>
@@ -52,7 +52,7 @@
                                 </span>
                             </td>
                             <td class="text-center">
-                                <a href="{{ route('adminac.pelanggan.show', $pelanggan->id) }}" class="btn btn-info btn-sm shadow-sm">
+                                <a href="{{ route('admin.ac.pelanggan.show', $pelanggan->id) }}" class="btn btn-info btn-sm shadow-sm">
                                     <i class="fas fa-history mr-1"></i> Riwayat Layanan
                                 </a>
                             </td>

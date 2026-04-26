@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.publik')
 
 @section('title', 'Form Sewa Kantin Baru')
 
@@ -8,7 +8,7 @@
     {{-- Page Heading --}}
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">Form Sewa Kantin Baru</h1>
-        <a href="{{ route('user.kantin.dashboard') }}" class="btn btn-sm btn-secondary shadow-sm">
+        <a href="{{ route('user.gateway') }}" class="btn btn-sm btn-secondary shadow-sm">
             <i class="fas fa-arrow-left fa-sm"></i> Kembali ke Dashboard
         </a>
     </div>
@@ -50,6 +50,24 @@
                  KOLOM KIRI — Pilih Unit + Info Unit
             ════════════════════════════════════════════════ --}}
             <div class="col-lg-5 mb-4">
+                {{-- Langkah 0: Identitas --}}
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">
+                            <i class="fas fa-user mr-1"></i> Identitas Penyewa
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label class="small font-weight-bold">Nama Lengkap</label>
+                            <input type="text" name="nama" class="form-control" value="{{ Auth::user()->nama_lengkap ?? old('nama') }}" required placeholder="Nama Lengkap">
+                        </div>
+                        <div class="form-group">
+                            <label class="small font-weight-bold">Nomor WhatsApp</label>
+                            <input type="text" name="no_hp" class="form-control" value="{{ Auth::user()->no_hp ?? old('no_hp') }}" required placeholder="0812...">
+                        </div>
+                    </div>
+                </div>
 
                 {{-- Bagian A: Pilih Unit --}}
                 <div class="card shadow mb-4">
@@ -64,7 +82,7 @@
                             <div class="text-center py-4">
                                 <i class="fas fa-store-slash fa-3x text-gray-200 mb-3"></i>
                                 <p class="text-muted">Tidak ada unit kantin yang tersedia saat ini.</p>
-                                <a href="{{ route('user.kantin.dashboard') }}" class="btn btn-sm btn-secondary">
+                                <a href="{{ route('user.gateway') }}" class="btn btn-sm btn-secondary">
                                     Kembali ke Dashboard
                                 </a>
                             </div>

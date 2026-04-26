@@ -8,7 +8,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h4 class="mb-0">Detail Transaksi</h4>
 
-        <a href="{{ route('transaksi.index') }}" class="btn btn-secondary">
+        <a href="{{ route('admin.transaksi.index') }}" class="btn btn-secondary">
             <i class="fas fa-arrow-left mr-1"></i> Kembali
         </a>
     </div>

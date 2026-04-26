@@ -7,7 +7,7 @@
 {{-- Page Header --}}
 <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between mb-4">
     <h1 class="h3 mb-2 mb-sm-0 text-gray-800">Manajemen Teknisi Servis</h1>
-    <a href="{{ route('adminservis.teknisi.create') }}" class="btn btn-primary btn-sm shadow-sm">
+    <a href="{{ route('admin.servis.teknisi.create') }}" class="btn btn-primary btn-sm shadow-sm">
         <i class="fas fa-plus fa-sm text-white-50 mr-2"></i> Tambah Teknisi
     </a>
 </div>
@@ -30,7 +30,7 @@
 <div class="card shadow mb-4">
     <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
         <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-chart-bar mr-1"></i> Kinerja Teknisi Bulan Ini</h6>
-        <form method="GET" action="{{ route('adminservis.teknisi.index') }}" class="form-inline">
+        <form method="GET" action="{{ route('admin.servis.teknisi.index') }}" class="form-inline">
             <label for="bulan_filter" class="mr-2 small">Bulan:</label>
             <select name="bulan_filter" id="bulan_filter" class="form-control form-control-sm mr-2" onchange="this.form.submit()">
                 @foreach(range(1, 12) as $m)
@@ -63,7 +63,7 @@
                         @foreach($teknisis as $t)
                             <tr>
                                 <td>
-                                    <a href="{{ route('adminservis.teknisi.show', $t->id) }}" class="font-weight-bold text-dark">
+                                    <a href="{{ route('admin.servis.teknisi.show', $t->id) }}" class="font-weight-bold text-dark">
                                         {{ $t->nama_lengkap ?? $t->name }}
                                     </a><br>
                                     <small class="text-muted">{{ $t->no_hp ?? '-' }}</small>
@@ -99,7 +99,7 @@
 <div class="card shadow mb-4">
     <div class="card-header py-3 d-flex flex-column flex-md-row align-items-md-center justify-content-between">
         <h6 class="m-0 font-weight-bold text-primary mb-2 mb-md-0">Daftar Teknisi</h6>
-        <form action="{{ route('adminservis.teknisi.index') }}" method="GET"
+        <form action="{{ route('admin.servis.teknisi.index') }}" method="GET"
               class="d-flex flex-column flex-sm-row align-items-sm-center" style="gap: 8px;">
             {{-- Pertahankan bulan_filter --}}
             <input type="hidden" name="bulan_filter" value="{{ $bulanFilter }}">
@@ -128,7 +128,7 @@
             </select>
 
             @if(request('search') || request('tipe') || request('status'))
-                <a href="{{ route('adminservis.teknisi.index', ['bulan_filter' => $bulanFilter]) }}"
+                <a href="{{ route('admin.servis.teknisi.index', ['bulan_filter' => $bulanFilter]) }}"
                    class="btn btn-secondary btn-sm">Reset</a>
             @endif
         </form>
@@ -153,7 +153,7 @@
                         <tr class="{{ !$teknisi->status_aktif ? 'table-secondary' : '' }}">
                             <td>{{ $teknisis->firstItem() + $index }}</td>
                             <td>
-                                <a href="{{ route('adminservis.teknisi.show', $teknisi->id) }}" class="font-weight-bold">
+                                <a href="{{ route('admin.servis.teknisi.show', $teknisi->id) }}" class="font-weight-bold">
                                     {{ $teknisi->nama_lengkap ?? $teknisi->name }}
                                 </a>
                             </td>
@@ -174,11 +174,11 @@
                                 @endif
                             </td>
                             <td class="text-center">
-                                <a href="{{ route('adminservis.teknisi.show', $teknisi->id) }}"
+                                <a href="{{ route('admin.servis.teknisi.show', $teknisi->id) }}"
                                    class="btn btn-primary btn-sm" title="Detail">
                                     <i class="fas fa-eye"></i>
                                 </a>
-                                <a href="{{ route('adminservis.teknisi.edit', $teknisi->id) }}"
+                                <a href="{{ route('admin.servis.teknisi.edit', $teknisi->id) }}"
                                    class="btn btn-info btn-sm" title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </a>
@@ -226,7 +226,7 @@
                                     </div>
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                                        <form action="{{ route('adminservis.teknisi.toggle-status', $teknisi->id) }}" method="POST">
+                                        <form action="{{ route('admin.servis.teknisi.toggle-status', $teknisi->id) }}" method="POST">
                                             @csrf
                                             @method('PATCH')
                                             <button type="submit" class="btn {{ $teknisi->status_aktif ? 'btn-warning' : 'btn-success' }}">
@@ -262,7 +262,7 @@
                                     </div>
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                                        <form action="{{ route('adminservis.teknisi.destroy', $teknisi->id) }}" method="POST">
+                                        <form action="{{ route('admin.servis.teknisi.destroy', $teknisi->id) }}" method="POST">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-danger"

@@ -6,7 +6,7 @@
 
 <div class="d-sm-flex align-items-center justify-content-between mb-4">
     <h1 class="h3 mb-0 text-gray-800">Detail Teknisi</h1>
-    <a href="{{ route('adminservis.teknisi.index') }}" class="btn btn-secondary btn-sm shadow-sm">
+    <a href="{{ route('admin.servis.teknisi.index') }}" class="btn btn-secondary btn-sm shadow-sm">
         <i class="fas fa-arrow-left fa-sm text-white-50 mr-2"></i> Kembali
     </a>
 </div>
@@ -75,7 +75,7 @@
 
                 <hr>
                 <div class="d-flex" style="gap: 8px;">
-                    <a href="{{ route('adminservis.teknisi.edit', $teknisi->id) }}"
+                    <a href="{{ route('admin.servis.teknisi.edit', $teknisi->id) }}"
                        class="btn btn-info btn-sm flex-grow-1">
                         <i class="fas fa-edit mr-1"></i> Edit
                     </a>
@@ -158,7 +158,7 @@
         <h6 class="m-0 font-weight-bold text-primary mb-2 mb-md-0">
             <i class="fas fa-history mr-1"></i> Riwayat Pekerjaan
         </h6>
-        <form action="{{ route('adminservis.teknisi.show', $teknisi->id) }}" method="GET" class="form-inline">
+        <form action="{{ route('admin.servis.teknisi.show', $teknisi->id) }}" method="GET" class="form-inline">
             <select name="status_riwayat" class="form-control form-control-sm mr-2"
                     onchange="this.form.submit()">
                 <option value="">Semua Status</option>
@@ -169,7 +169,7 @@
                 <option value="dibatalkan"  {{ request('status_riwayat') === 'dibatalkan'  ? 'selected' : '' }}>Dibatalkan</option>
             </select>
             @if(request('status_riwayat'))
-                <a href="{{ route('adminservis.teknisi.show', $teknisi->id) }}"
+                <a href="{{ route('admin.servis.teknisi.show', $teknisi->id) }}"
                    class="btn btn-secondary btn-sm">Reset</a>
             @endif
         </form>
@@ -271,7 +271,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                <form action="{{ route('adminservis.teknisi.toggle-status', $teknisi->id) }}" method="POST">
+                <form action="{{ route('admin.servis.teknisi.toggle-status', $teknisi->id) }}" method="POST">
                     @csrf
                     @method('PATCH')
                     <button type="submit"

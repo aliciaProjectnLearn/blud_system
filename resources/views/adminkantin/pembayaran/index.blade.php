@@ -22,7 +22,7 @@
         <div class="card-header py-3">
             <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between">
                 <h6 class="m-0 font-weight-bold text-primary mb-2 mb-md-0">Daftar Pembayaran</h6>
-                <form method="GET" action="{{ route('adminkantin.pembayaran.index') }}">
+                <form method="GET" action="{{ route('admin.kantin.pembayaran.index') }}">
                     <div class="row g-2">
                         <div class="col-12 col-md-auto">
                             <input type="text" name="search" class="form-control form-control-sm"
@@ -49,7 +49,7 @@
                                 <i class="fas fa-filter"></i> Filter
                             </button>
                             @if(request()->filled('search') || request()->filled('status') || request()->filled('termin'))
-                                <a href="{{ route('adminkantin.pembayaran.index') }}" class="btn btn-sm btn-light">Reset</a>
+                                <a href="{{ route('admin.kantin.pembayaran.index') }}" class="btn btn-sm btn-light">Reset</a>
                             @endif
                         </div>
                     </div>
@@ -108,12 +108,12 @@
                                 @endif
                             </td>
                             <td>
-                                <a href="{{ route('adminkantin.pembayaran.show', $p) }}"
+                                <a href="{{ route('admin.kantin.pembayaran.show', $p) }}"
                                     class="btn btn-info btn-sm">
                                     <i class="fas fa-eye"></i>
                                 </a>
                                 @if($p->status === 'verifikasi')
-                                    <a href="{{ route('adminkantin.pembayaran.kwitansi', $p) }}"
+                                    <a href="{{ route('admin.kantin.pembayaran.kwitansi', $p) }}"
                                         class="btn btn-success btn-sm">
                                         <i class="fas fa-download"></i>
                                     </a>

@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.publik')
 
 @section('title', 'Futsal Dashboard')
 
@@ -83,7 +83,7 @@
             <div class="card shadow mb-4">
                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
                     <h6 class="m-0 font-weight-bold text-primary">Aktivitas Terbaru</h6>
-                    <a href="{{ route('user.futsal.history') }}" class="btn btn-sm btn-outline-primary shadow-sm">
+                    <a href="#" class="btn btn-sm btn-outline-primary shadow-sm"> {{-- TODO: ganti ke token-based route --}}
                         <i class="fas fa-list fa-sm"></i> Lihat Histori
                     </a>
                 </div>
