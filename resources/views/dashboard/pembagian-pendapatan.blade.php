@@ -73,7 +73,7 @@
                 <span class="mr-2">s/d</span>
                 <input type="date" name="end_date" class="form-control form-control-sm mr-2" value="{{ $endDate }}">
                 <button class="btn btn-primary btn-sm mr-2"><i class="fas fa-filter mr-1"></i>Filter</button>
-                <a href="{{ route('dashboard.pembagian-pendapatan') }}" class="btn btn-outline-secondary btn-sm">
+                <a href="{{ route('admin.dashboard.pembagian-pendapatan') }}" class="btn btn-outline-secondary btn-sm">
                     <i class="fas fa-undo mr-1"></i>Reset
                 </a>
             </form>

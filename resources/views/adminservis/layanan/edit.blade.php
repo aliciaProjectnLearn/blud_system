@@ -4,14 +4,14 @@
 <div class="container-fluid">
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">Edit Layanan Servis</h1>
-        <a href="{{ route('adminservis.layanan.index') }}" class="btn btn-secondary btn-sm">
+        <a href="{{ route('admin.servis.layanan.index') }}" class="btn btn-secondary btn-sm">
             <i class="fas fa-arrow-left"></i> Kembali
         </a>
     </div>
 
     <div class="card shadow mb-4">
         <div class="card-body">
-            <form action="{{ route('adminservis.layanan.update', $layanan->id) }}" method="POST">
+            <form action="{{ route('admin.servis.layanan.update', $layanan->id) }}" method="POST">
                 @csrf
                 @method('PUT')
 
@@ -71,7 +71,7 @@
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-save"></i> Update
                     </button>
-                    <a href="{{ route('adminservis.layanan.index') }}" class="btn btn-secondary">Batal</a>
+                    <a href="{{ route('admin.servis.layanan.index') }}" class="btn btn-secondary">Batal</a>
                 </div>
             </form>
         </div>

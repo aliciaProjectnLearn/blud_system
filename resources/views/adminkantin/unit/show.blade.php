@@ -12,10 +12,10 @@
             <span class="text-primary">{{ $unit->kode_unit }}</span>
         </h1>
         <div>
-            <a href="{{ route('adminkantin.unit.edit', $unit->id) }}" class="btn btn-warning btn-sm shadow-sm mr-1">
+            <a href="{{ route('admin.kantin.unit.edit', $unit->id) }}" class="btn btn-warning btn-sm shadow-sm mr-1">
                 <i class="fas fa-pencil-alt mr-1"></i> Edit
             </a>
-            <a href="{{ route('adminkantin.unit.index') }}" class="btn btn-secondary btn-sm shadow-sm">
+            <a href="{{ route('admin.kantin.unit.index') }}" class="btn btn-secondary btn-sm shadow-sm">
                 <i class="fas fa-arrow-left mr-1"></i> Kembali
             </a>
         </div>
@@ -218,7 +218,7 @@
                                                         data-judul="{{ $dok->judul_dokumen }}"
                                                         data-deskripsi="{{ $dok->deskripsi }}"
                                                         data-tipe="{{ $dok->tipe }}"
-                                                        data-url="{{ route('adminkantin.unit.dokumen.updateDetail', $dok->id) }}">
+                                                        data-url="{{ route('admin.kantin.unit.dokumen.updateDetail', $dok->id) }}">
                                                     <i class="fas fa-pencil-alt"></i>
                                                 </button>
                                                 <a href="{{ asset('storage/' . $dok->file) }}"
@@ -237,7 +237,7 @@
                         <div class="text-center py-3 text-muted small">
                             <i class="fas fa-folder-open fa-2x mb-2 d-block"></i>
                             Belum ada dokumentasi.
-                            <a href="{{ route('adminkantin.unit.edit', $unit->id) }}">Upload sekarang</a>
+                            <a href="{{ route('admin.kantin.unit.edit', $unit->id) }}">Upload sekarang</a>
                         </div>
                     @endif
                 </div>

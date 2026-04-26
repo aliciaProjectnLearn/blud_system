@@ -5,44 +5,15 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use App\Models\LayananServis;
 use App\Models\BookingServis;
+use App\Models\User;
+use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use Illuminate\Support\Str;
 
 class UserServisController extends Controller
 {
-    /**
-     * Tampilkan Dashboard Servis (Booking Aktif/Sedang Berjalan).
-     */
-    public function index(Request $request)
-    {
-        $user = Auth::user();
-
-        $query = BookingServis::with(['rincianServis', 'pembayaranServis'])
-            ->where('user_id', $user->id)
-            ->whereIn('status', ['menunggu', 'diproses']);
-
-        // Filter Status
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        // Search (Nomor Plat atau Tanggal)
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('nomor_plat', 'like', "%{$search}%")
-                    ->orWhere('tanggal_booking', 'like', "%{$search}%");
-            });
-        }
-
-        $bookings = $query->latest('tanggal_booking')
-            ->paginate(10)
-            ->withQueryString();
-
-        return view('user.servis.index', compact('bookings'));
-    }
-
     /**
      * Tampilkan Katalog Layanan.
      */
@@ -53,11 +24,10 @@ class UserServisController extends Controller
     }
 
     /**
-     * Tampilkan Form Booking (Layanan di-select dari katalog).
+     * Tampilkan Form Booking.
      */
     public function booking(Request $request)
     {
-        // Validasi: Harus pilih layanan dari katalog dulu
         if (!$request->has('layanan_id')) {
             return redirect()->route('user.servis.katalog')->with('error', 'Silakan pilih layanan dari katalog terlebih dahulu.');
         }
@@ -73,8 +43,10 @@ class UserServisController extends Controller
     public function store(Request $request)
     {
         $request->validate([
+            'nama'              => 'required|string|max:255',
+            'no_hp'             => 'required|string|max:20',
             'layanan_servis_id' => 'required|exists:layanan_servis,id',
-            'tipe_kendaraan' => 'required|in:motor,mobil',
+            'tipe_kendaraan'    => 'required|in:motor,mobil',
             'merek_kendaraan'   => 'required|string|max:100',
             'nomor_plat'        => 'required|string|max:20',
             'tahun_kendaraan'   => 'nullable|digits:4|integer|min:1990|max:' . date('Y'),
@@ -83,24 +55,36 @@ class UserServisController extends Controller
             'jam_booking'       => 'required|in:' . implode(',', $this->generateJamSlot()),
         ]);
 
-        // Validasi: tanggal + jam tidak boleh di masa lalu
         $waktuBooking = Carbon::parse($request->tanggal_booking . ' ' . $request->jam_booking);
         if ($waktuBooking->isPast()) {
-            return back()
-                ->withErrors(['jam_booking' => 'Waktu yang dipilih sudah lewat.'])
-                ->withInput();
+            return back()->withErrors(['jam_booking' => 'Waktu yang dipilih sudah lewat.'])->withInput();
         }
 
-        // Validasi slot via method model BookingServis::isSlotAvailable
         if (!BookingServis::isSlotAvailable($request->tanggal_booking, $request->jam_booking)) {
-            return back()
-                ->withErrors(['jam_booking' => 'Slot pada jam ini sudah penuh (Maks. 3).'])
-                ->withInput();
+            return back()->withErrors(['jam_booking' => 'Slot pada jam ini sudah penuh (Maks. 3).'])->withInput();
         }
 
-        // Simpan Data
-        BookingServis::create([
-            'user_id'           => Auth::id(),
+        // Find or create user
+        $user = User::where('no_hp', $request->no_hp)->first();
+        if (!$user) {
+            $user = User::create([
+                'name' => explode(' ', $request->nama)[0],
+                'nama_lengkap' => $request->nama,
+                'no_hp' => $request->no_hp,
+                'role' => 'pelanggan',
+                'password' => bcrypt(Str::random(16)),
+            ]);
+            
+            $role = Role::where('nama', 'pelanggan')->first();
+            if ($role) {
+                $user->roles()->attach($role->id);
+            }
+        }
+
+        $accessToken = bin2hex(random_bytes(32));
+
+        $booking = BookingServis::create([
+            'user_id'           => $user->id,
             'layanan_servis_id' => $request->layanan_servis_id,
             'tipe_kendaraan'    => $request->tipe_kendaraan,
             'merek_kendaraan'   => $request->merek_kendaraan,
@@ -110,10 +94,11 @@ class UserServisController extends Controller
             'tanggal_booking'   => $request->tanggal_booking,
             'jam_booking'       => $request->jam_booking,
             'status'            => 'menunggu',
+            'access_token'      => $accessToken,
         ]);
 
-        return redirect()->route('user.servis.katalog')
-            ->with('success', 'Booking berhasil dikirim! Silakan cek berkala status booking Anda.');
+        return redirect()->route('user.token.show', $accessToken)
+            ->with('success', 'Booking berhasil dikirim!');
     }
 
     /**
@@ -128,7 +113,6 @@ class UserServisController extends Controller
         $tanggal = $request->tanggal;
         $jamTersedia = $this->generateJamSlot();
 
-        // Hitung booking per jam (exclude status batal & selesai)
         $bookingPerJam = BookingServis::where('tanggal_booking', $tanggal)
             ->whereNotIn('status', ['batal', 'selesai'])
             ->selectRaw('jam_booking, COUNT(*) as total')
@@ -150,48 +134,6 @@ class UserServisController extends Controller
         return response()->json($slots);
     }
 
-    /**
-     * Tampilkan Histori Servis (Semua data).
-     */
-    public function history(Request $request)
-    {
-        $user = Auth::user();
-
-        $query = BookingServis::with(['rincianServis', 'pembayaranServis', 'layananServis'])
-            ->where('user_id', $user->id);
-
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('nomor_plat', 'like', "%{$search}%")
-                    ->orWhere('kode_booking', 'like', "%{$search}%");
-            });
-        }
-
-        $bookings = $query->latest('tanggal_booking')->paginate(15)->withQueryString();
-
-        return view('user.servis.history', compact('bookings'));
-    }
-
-    /**
-     * Tampilkan Detail Booking.
-     */
-    public function show($id)
-    {
-        $booking = BookingServis::with(['rincianServis.produkServis', 'pembayaranServis', 'layananServis', 'teknisi'])
-            ->where('user_id', Auth::id())
-            ->findOrFail($id);
-
-        return view('user.servis.show', compact('booking'));
-    }
-
-    /**
-     * Helper: Jam operasional 08:00 - 16:00.
-     */
     private function generateJamSlot(): array
     {
         $slots = [];

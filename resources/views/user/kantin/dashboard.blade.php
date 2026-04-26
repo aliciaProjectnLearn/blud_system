@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.publik')
 
 @section('title', 'Dashboard Sewa Kantin')
 
@@ -73,7 +73,7 @@
                     <a href="{{ route('user.kantin.booking.form') }}" class="btn btn-sm btn-primary shadow-sm mr-2">
                         <i class="fas fa-plus fa-sm text-white-50"></i> Sewa Kantin Baru
                     </a>
-                    <a href="{{ route('user.dashboard') }}" class="btn btn-sm btn-secondary shadow-sm">
+                    <a href="{{ route('user.gateway') }}" class="btn btn-sm btn-secondary shadow-sm">
                         <i class="fas fa-arrow-left fa-sm text-white-50"></i> Kembali
                     </a>
                 </div>

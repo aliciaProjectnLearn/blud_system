@@ -7,7 +7,7 @@
     <h1 class="h3 mb-0 text-gray-800">
         <i class="fas fa-history mr-2 text-primary"></i>Histori Pembayaran
     </h1>
-    <a href="{{ route('adminac.transaksi.index') }}" class="btn btn-secondary btn-sm shadow-sm">
+    <a href="{{ route('admin.ac.transaksi.index') }}" class="btn btn-secondary btn-sm shadow-sm">
         <i class="fas fa-arrow-left fa-sm mr-1"></i> Kembali ke Daftar Transaksi
     </a>
 </div>
@@ -50,7 +50,7 @@
                                 </div>
                             </td>
                             <td class="pr-4 align-middle text-center">
-                                <a href="{{ route('adminac.transaksi.show', $transaksi->id) }}" class="btn btn-outline-info btn-sm shadow-sm">
+                                <a href="{{ route('admin.ac.transaksi.show', $transaksi->id) }}" class="btn btn-outline-info btn-sm shadow-sm">
                                     <i class="fas fa-file-invoice mr-1 text-info"></i> Invoice
                                 </a>
                             </td>

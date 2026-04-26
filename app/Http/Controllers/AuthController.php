@@ -18,8 +18,14 @@ class AuthController extends Controller
     public function showLogin()
     {
         if (Auth::check()) {
-            return redirect('/');
+            return redirect()->route('home');
         }
+
+        // Jika rute adalah /login (default), redirect ke home (pelanggan tidak login)
+        if (request()->is('login')) {
+            return redirect()->route('home');
+        }
+
         return view('auth.login');
     }
 
@@ -41,17 +47,28 @@ class AuthController extends Controller
                 ->value('roles.nama');
 
             $roleName = strtolower($role ?? '');
-            $dashboardRoute = route('user.gateway');
-            if ($roleName === 'superadmin') $dashboardRoute = route('dashboard');
-            elseif ($roleName === 'adminfutsal') $dashboardRoute = route('adminfutsal.dashboard');
-            elseif ($roleName === 'adminkantin') $dashboardRoute = route('adminkantin.dashboard');
-            elseif ($roleName === 'adminac') $dashboardRoute = route('adminac.dashboard');
-            elseif ($roleName === 'adminservis') $dashboardRoute = route('adminservis.dashboard');
-            elseif ($roleName === 'teknisi') $dashboardRoute = route('teknisi.dashboard');
-            elseif ($roleName === 'kasir') $dashboardRoute = route('kasir.dashboard');
-            elseif ($roleName === 'pelanggan') $dashboardRoute = route('user.dashboard');
-            elseif ($roleName === 'teknisi motor') $dashboardRoute = route('teknisiservis.dashboard');
-            elseif ($roleName === 'teknisi mobil') $dashboardRoute = route('teknisiservis.dashboard');
+            
+            // Redirect based on the NEW route structure (STEP 2)
+            $dashboardRoute = route('home');
+            
+            if ($roleName === 'superadmin') {
+                $dashboardRoute = route('admin.dashboard');
+            } elseif (in_array($roleName, ['adminfutsal', 'adminkantin', 'adminac', 'adminservis'])) {
+                // Semua admin mengarah ke prefix admin.[sub]
+                $sub = str_replace('admin', '', $roleName);
+                if ($roleName === 'adminservis') $sub = 'servis';
+                $dashboardRoute = route("admin.$sub.dashboard");
+            } elseif ($roleName === 'teknisi') {
+                $dashboardRoute = route('teknisi.dashboard');
+            } elseif (in_array($roleName, ['teknisi motor', 'teknisi mobil'])) {
+                $dashboardRoute = route('teknisi.servis.dashboard');
+            } elseif ($roleName === 'kasir') {
+                $dashboardRoute = route('kasir.dashboard');
+            } elseif ($roleName === 'pelanggan') {
+                // Pelanggan tidak seharusnya login via internal page
+                Auth::logout();
+                return redirect()->route('home')->with('error', 'Akses ditolak.');
+            }
 
             // Catat log login
             $this->function_log('Auth', 'login', 'User ' . Auth::user()->name . ' login');
@@ -72,7 +89,7 @@ class AuthController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect()->route('user.gateway');
+        return redirect()->route('staff.login');
     }
 
     // ── REGISTER ──────────────────────────────────────────
@@ -118,6 +135,6 @@ class AuthController extends Controller
 
         Auth::login($user);
 
-        return redirect()->route('user.dashboard');
+        return redirect()->route('home');
     }
 }

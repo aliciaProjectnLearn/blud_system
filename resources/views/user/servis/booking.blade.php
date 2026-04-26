@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.publik')
 
 @section('title', 'Booking Jadwal Servis')
 
@@ -96,6 +96,18 @@
                         <form action="{{ route('user.servis.store') }}" method="POST">
                             @csrf
                             <input type="hidden" name="layanan_servis_id" value="{{ $layananTerpilih->id }}">
+
+                            <div class="form-section-title">Informasi Pribadi</div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="small font-weight-bold">Nama Lengkap</label>
+                                    <input type="text" name="nama" class="form-control" value="{{ Auth::user()->nama_lengkap ?? old('nama') }}" required placeholder="Nama Lengkap">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="small font-weight-bold">Nomor WhatsApp</label>
+                                    <input type="text" name="no_hp" class="form-control" value="{{ Auth::user()->no_hp ?? old('no_hp') }}" required placeholder="0812...">
+                                </div>
+                            </div>
 
                             <div class="form-section-title">Informasi Kendaraan</div>
                             <div class="row">

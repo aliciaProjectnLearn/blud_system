@@ -62,7 +62,7 @@
                     <button class="btn btn-primary btn-sm mr-2">
                         <i class="fas fa-filter mr-1"></i>Filter
                     </button>
-                    <a href="{{ route('dashboard.rekap-keuangan') }}" class="btn btn-outline-secondary btn-sm">
+                    <a href="{{ route('admin.dashboard.rekap-keuangan') }}" class="btn btn-outline-secondary btn-sm">
                         <i class="fas fa-undo mr-1"></i>Reset
                     </a>
                 </form>

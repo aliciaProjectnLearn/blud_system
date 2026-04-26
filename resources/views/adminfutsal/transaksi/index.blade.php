@@ -15,7 +15,7 @@
             <h6 class="m-0 font-weight-bold text-primary">Data Transaksi Pembayaran</h6>
             
             <!-- Filter Form -->
-            <form method="GET" action="{{ route('adminfutsal.transaksi.index') }}" class="form-inline">
+            <form method="GET" action="{{ route('admin.futsal.transaksi.index') }}" class="form-inline">
                 <select name="jenis_transaksi" class="form-control form-control-sm mr-2">
                     <option value="">-- Semua Jenis --</option>
                     <option value="booking" {{ request('jenis_transaksi') == 'booking' ? 'selected' : '' }}>Booking</option>
@@ -33,7 +33,7 @@
                 
                 <button type="submit" class="btn btn-sm btn-secondary"><i class="fas fa-filter"></i> Filter</button>
                 @if(request()->filled('jenis_transaksi') || request()->filled('status'))
-                    <a href="{{ route('adminfutsal.transaksi.index') }}" class="btn btn-sm btn-light ml-1">Reset</a>
+                    <a href="{{ route('admin.futsal.transaksi.index') }}" class="btn btn-sm btn-light ml-1">Reset</a>
                 @endif
             </form>
         </div>
@@ -96,7 +96,7 @@
                                 @endif
                             </td>
                             <td>
-                                <a href="{{ route('adminfutsal.transaksi.show', $trx->id) }}" class="btn btn-info btn-sm btn-circle" title="Detail Transaksi">
+                                <a href="{{ route('admin.futsal.transaksi.show', $trx->id) }}" class="btn btn-info btn-sm btn-circle" title="Detail Transaksi">
                                     <i class="fas fa-eye"></i>
                                 </a>
                             </td>

@@ -5,7 +5,7 @@
 @section('content')
 <div class="d-sm-flex align-items-center justify-content-between mb-4">
     <h1 class="h3 mb-0 text-gray-800">Edit Teknisi</h1>
-    <a href="{{ route('adminac.teknisi.index') }}" class="btn btn-secondary btn-sm shadow-sm">
+    <a href="{{ route('admin.ac.teknisi.index') }}" class="btn btn-secondary btn-sm shadow-sm">
         <i class="fas fa-arrow-left fa-sm text-white-50 mr-2"></i> Kembali
     </a>
 </div>
@@ -25,7 +25,7 @@
             </div>
         @endif
 
-        <form action="{{ route('adminac.teknisi.update', $teknisi->id) }}" method="POST">
+        <form action="{{ route('admin.ac.teknisi.update', $teknisi->id) }}" method="POST">
             @csrf
             @method('PUT')
 
@@ -96,7 +96,7 @@
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-save mr-1"></i> Simpan Perubahan
                     </button>
-                    <a href="{{ route('adminac.teknisi.index') }}" class="btn btn-secondary">Batal</a>
+                    <a href="{{ route('admin.ac.teknisi.index') }}" class="btn btn-secondary">Batal</a>
                 </div>
             </div>
         </form>

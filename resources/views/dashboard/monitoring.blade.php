@@ -12,7 +12,7 @@
             <h6 class="m-0 font-weight-bold text-primary">Filter</h6>
         </div>
         <div class="card-body">
-            <form method="GET" action="{{ route('dashboard.monitoring') }}">
+            <form method="GET" action="{{ route('admin.dashboard.monitoring') }}">
                 <div class="row">
                     <div class="col-md-3 mb-3">
                         <label for="sistem">Sistem</label>
@@ -49,7 +49,7 @@
                     </div>
                     <div class="col-md-9 mb-3 d-flex align-items-end">
                         <button type="submit" class="btn btn-primary mr-2">Filter</button>
-                        <a href="{{ route('dashboard.monitoring') }}" class="btn btn-secondary">Reset</a>
+                        <a href="{{ route('admin.dashboard.monitoring') }}" class="btn btn-secondary">Reset</a>
                     </div>
                 </div>
             </form>

@@ -9,7 +9,7 @@
         <h1 class="h3 mb-0 text-gray-800">
             <i class="fas fa-user-plus mr-2 text-primary"></i>Tambah Penyewa Baru
         </h1>
-        <a href="{{ route('adminkantin.penyewa.index') }}" class="btn btn-secondary btn-sm shadow-sm">
+        <a href="{{ route('admin.kantin.penyewa.index') }}" class="btn btn-secondary btn-sm shadow-sm">
             <i class="fas fa-arrow-left fa-sm mr-1"></i> Kembali
         </a>
     </div>
@@ -32,7 +32,7 @@
                         </div>
                     @endif
 
-                    <form action="{{ route('adminkantin.penyewa.store') }}" method="POST">
+                    <form action="{{ route('admin.kantin.penyewa.store') }}" method="POST">
                         @csrf
                         
                         <div class="form-group row">

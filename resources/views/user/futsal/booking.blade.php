@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.publik')
 
 @section('title', 'Booking Lapangan Futsal')
 
@@ -10,7 +10,7 @@
         <h1 class="h3 mb-0 text-gray-800">
             <i class="fas fa-futbol text-primary mr-2"></i> Booking Lapangan Futsal
         </h1>
-        <a href="{{ route('user.dashboard') }}" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm">
+        <a href="{{ route('user.gateway') }}" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm">
             <i class="fas fa-arrow-left fa-sm text-white-50 mr-1"></i> Kembali ke Dashboard Utama
         </a>
     </div>
@@ -45,7 +45,7 @@
                     </h6>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('user.futsal.booking.store') }}" method="POST" enctype="multipart/form-data" @submit.prevent="submitForm">
+                    <form action="{{ route('user.futsal.booking.store') }}" method="POST" enctype="multipart/form-data">
                         @csrf
 
                         {{-- Validation Errors --}}
@@ -58,6 +58,26 @@
                             </ul>
                         </div>
                         @endif
+
+                        {{-- Nama & No HP --}}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="font-weight-bold text-gray-700">
+                                        <i class="fas fa-user text-primary mr-1"></i> Nama Lengkap
+                                    </label>
+                                    <input type="text" name="nama" class="form-control" value="{{ Auth::user()->nama_lengkap ?? old('nama') }}" required placeholder="Contoh: Budi Santoso">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="font-weight-bold text-gray-700">
+                                        <i class="fas fa-phone text-primary mr-1"></i> Nomor WhatsApp
+                                    </label>
+                                    <input type="text" name="no_hp" class="form-control" value="{{ Auth::user()->no_hp ?? old('no_hp') }}" required placeholder="Contoh: 08123456789">
+                                </div>
+                            </div>
+                        </div>
 
                         {{-- Jenis Booking --}}
                         <div class="form-group">

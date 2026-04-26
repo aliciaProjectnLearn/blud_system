@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.publik')
 
 @section('title', 'Histori Booking Layanan AC')
 
@@ -10,14 +10,14 @@
         <div>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb bg-transparent p-0 mb-1">
-                    <li class="breadcrumb-item"><a href="{{ route('user.ac.index') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('user.gateway') }}">Dashboard</a></li>
                     <li class="breadcrumb-item active" aria-current="page">Histori Booking</li>
                 </ol>
             </nav>
             <h1 class="h3 mb-0 text-gray-800 font-weight-bold">Histori Booking Layanan AC</h1>
         </div>
         <div class="d-flex align-items-center">
-            <a href="{{ route('user.ac.history') }}" class="btn btn-sm btn-light border shadow-sm mr-2 text-primary">
+            <a href="#" class="btn btn-sm btn-light border shadow-sm mr-2 text-primary"> {{-- TODO: ganti ke token-based route --}}
                 <i class="fas fa-sync-alt"></i> Refresh
             </a>
         </div>

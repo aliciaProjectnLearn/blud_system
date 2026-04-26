@@ -41,7 +41,22 @@ class AuthenticatedSessionController extends Controller
             'User ' . $user->email . ' berhasil login'
         );
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        // Redirect berdasarkan role
+        $roleName = strtolower($user->roles->first()->nama ?? '');
+        
+        $dashboardRoute = match($roleName) {
+            'superadmin'   => route('dashboard'),
+            'adminfutsal'  => route('adminfutsal.dashboard'),
+            'adminkantin'  => route('adminkantin.dashboard'),
+            'adminac'      => route('adminac.dashboard'),
+            'adminservis'  => route('adminservis.dashboard'),
+            'kasirservis'  => route('kasir.dashboard'),
+            'teknisiac'    => route('teknisi.dashboard'),
+            'teknisiservis' => route('teknisi.dashboard'),
+            default        => route('gateway'),
+        };
+
+        return redirect()->intended($dashboardRoute);
     }
 
     /**

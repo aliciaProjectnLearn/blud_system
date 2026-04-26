@@ -96,7 +96,7 @@
                                     data-status="{{ $paket->status }}">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                <form action="{{ route('adminfutsal.paket-membership.destroy', $paket) }}"
+                                <form action="{{ route('admin.futsal.paket-membership.destroy', $paket) }}"
                                     method="POST" class="d-inline"
                                     onsubmit="return confirm('Hapus paket ini?')">
                                     @csrf @method('DELETE')
@@ -117,7 +117,7 @@
 {{-- Modal Tambah --}}
 <div class="modal fade" id="modalTambah" tabindex="-1">
     <div class="modal-dialog">
-        <form action="{{ route('adminfutsal.paket-membership.store') }}" method="POST">
+        <form action="{{ route('admin.futsal.paket-membership.store') }}" method="POST">
             @csrf
             <div class="modal-content">
                 <div class="modal-header">

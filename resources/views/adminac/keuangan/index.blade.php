@@ -87,7 +87,7 @@
             <h6 class="m-0 font-weight-bold text-primary">Filter Data</h6>
         </div>
         <div class="card-body">
-            <form action="{{ route('adminac.keuangan.index') }}" method="GET" class="form-inline">
+            <form action="{{ route('admin.ac.keuangan.index') }}" method="GET" class="form-inline">
                 <div class="form-group mb-2 mr-sm-2">
                     <label for="start_date" class="mr-2">Mulai</label>
                     <input type="date" class="form-control" name="start_date" id="start_date" value="{{ request('start_date') }}">
@@ -105,7 +105,7 @@
                     </select>
                 </div>
                 <button type="submit" class="btn btn-primary mb-2 mr-2"><i class="fas fa-filter"></i> Filter</button>
-                <a href="{{ route('adminac.keuangan.index') }}" class="btn btn-secondary mb-2"><i class="fas fa-sync"></i> Reset</a>
+                <a href="{{ route('admin.ac.keuangan.index') }}" class="btn btn-secondary mb-2"><i class="fas fa-sync"></i> Reset</a>
             </form>
         </div>
     </div>
@@ -158,7 +158,7 @@
     <div class="modal fade" id="modalPengeluaran" tabindex="-1" role="dialog" aria-labelledby="modalPengeluaranTitle" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
-                <form action="{{ route('adminac.keuangan.store') }}" method="POST">
+                <form action="{{ route('admin.ac.keuangan.store') }}" method="POST">
                     @csrf
                     <div class="modal-header">
                         <h5 class="modal-title" id="modalPengeluaranTitle">Tambah Pengeluaran Baru</h5>

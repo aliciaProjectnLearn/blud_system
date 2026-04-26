@@ -7,30 +7,30 @@
     {{-- Sidebar Brand --}}
     @if(!$isMobile)
     @php
-        $brandLabel = 'Admin BLUD';
-        $brandRoute = route('dashboard');
+        $brandLabel = 'Sistem BLUD';
+        $brandRoute = route('user.gateway');
 
-        if (auth()->user()->hasRole('Adminfutsal')) {
-            $brandLabel = 'AdminFutsal';
-            $brandRoute = route('adminfutsal.dashboard');
-        } elseif (auth()->user()->hasRole('Adminac')) {
-            $brandLabel = 'Admin AC';
-            $brandRoute = route('adminac.dashboard');
-        } elseif (auth()->user()->hasRole('Adminservis')) {
-            $brandLabel = 'Admin Servis';
-            $brandRoute = route('adminservis.dashboard');
-        } elseif (auth()->user()->hasRole('Adminkantin')) {
-            $brandLabel = 'Admin Kantin';
-            $brandRoute = route('adminkantin.dashboard');
-        } elseif (auth()->user()->hasRole('Teknisi')) {
-            $brandLabel = 'Teknisi AC';
-            $brandRoute = route('teknisi.dashboard');
-        } elseif (auth()->user()->hasRole('Kasir')) {
-            $brandLabel = 'Kasir Servis';
-            $brandRoute = route('kasir.dashboard');
-        } elseif (auth()->user()->hasRole('Pelanggan')) {
-            $brandLabel = 'Sistem BLUD';
-            $brandRoute = route('user.dashboard');
+        if (auth()->check()) {
+            $user = auth()->user();
+            if ($user->hasRole('Adminfutsal')) {
+                $brandLabel = 'AdminFutsal';
+                $brandRoute = route('admin.futsal.dashboard');
+            } elseif ($user->hasRole('Adminac')) {
+                $brandLabel = 'Admin AC';
+                $brandRoute = route('admin.ac.dashboard');
+            } elseif ($user->hasRole('Adminservis')) {
+                $brandLabel = 'Admin Servis';
+                $brandRoute = route('admin.servis.dashboard');
+            } elseif ($user->hasRole('Adminkantin')) {
+                $brandLabel = 'Admin Kantin';
+                $brandRoute = route('admin.kantin.dashboard');
+            } elseif ($user->hasRole('Teknisi')) {
+                $brandLabel = 'Teknisi AC';
+                $brandRoute = route('teknisi.dashboard');
+            } elseif ($user->hasRole('Kasir')) {
+                $brandLabel = 'Kasir Servis';
+                $brandRoute = route('kasir.dashboard');
+            }
         }
 
         // Status Active untuk Menu Dropdown Pelanggan
@@ -57,49 +57,49 @@
     @endif
 
     {{-- DASHBOARD --}}
-    @if (auth()->user()->hasRole('Superadmin'))
-        <li class="nav-item {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+    @if (auth()->check() && auth()->user()->hasRole('Superadmin'))
+        <li class="nav-item {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
             <a class="nav-link" href="{{ route('dashboard') }}">
                 <i class="fas fa-fw fa-tachometer-alt"></i>
                 <span>Dashboard</span>
             </a>
         </li>
-    @elseif(auth()->user()->hasRole('Adminfutsal'))
-        <li class="nav-item {{ request()->routeIs('adminfutsal.dashboard') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('adminfutsal.dashboard') }}">
+    @elseif(auth()->check() && auth()->user()->hasRole('Adminfutsal'))
+        <li class="nav-item {{ request()->routeIs('admin.futsal.dashboard') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('admin.futsal.dashboard') }}">
                 <i class="fas fa-fw fa-tachometer-alt"></i>
                 <span>Dashboard</span>
             </a>
         </li>
         </li>
-    @elseif(auth()->user()->hasRole('Adminac'))
-        <li class="nav-item {{ request()->routeIs('adminac.dashboard') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('adminac.dashboard') }}">
+    @elseif(auth()->check() && auth()->user()->hasRole('Adminac'))
+        <li class="nav-item {{ request()->routeIs('admin.ac.dashboard') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('admin.ac.dashboard') }}">
                 <i class="fas fa-fw fa-tachometer-alt"></i>
                 <span>Dashboard</span>
             </a>
         </li>
-    @elseif(auth()->user()->hasRole('Adminkantin'))
-        <li class="nav-item {{ request()->routeIs('adminkantin.dashboard') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('adminkantin.dashboard') }}">
+    @elseif(auth()->check() && auth()->user()->hasRole('Adminkantin'))
+        <li class="nav-item {{ request()->routeIs('admin.kantin.dashboard') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('admin.kantin.dashboard') }}">
                 <i class="fas fa-fw fa-tachometer-alt"></i>
                 <span>Dashboard</span>
             </a>
         </li>
-    @elseif(auth()->user()->hasRole('Adminservis'))
-        <li class="nav-item {{ request()->routeIs('adminservis.dashboard') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('adminservis.dashboard') }}">
+    @elseif(auth()->check() && auth()->user()->hasRole('Adminservis'))
+        <li class="nav-item {{ request()->routeIs('admin.servis.dashboard') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('admin.servis.dashboard') }}">
                 <i class="fas fa-fw fa-tachometer-alt"></i>
                 <span>Dashboard</span>
             </a>
         </li>
-        <li class="nav-item {{ request()->routeIs('adminservis.profile') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('adminservis.profile') }}">
+        <li class="nav-item {{ request()->routeIs('admin.servis.profile') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('admin.servis.profile') }}">
                 <i class="fas fa-fw fa-user"></i>
                 <span>Profil Admin</span>
             </a>
         </li>
-    @elseif(auth()->user()->hasRole('Teknisi'))
+    @elseif(auth()->check() && auth()->user()->hasRole('Teknisi'))
         <li class="nav-item {{ request()->routeIs('teknisi.dashboard') ? 'active' : '' }}">
             <a class="nav-link" href="{{ route('teknisi.dashboard') }}">
                 <i class="fas fa-fw fa-tachometer-alt"></i>
@@ -113,48 +113,48 @@
     {{-- ================================= --}}
     {{-- SUPERADMIN ONLY --}}
     {{-- ================================= --}}
-    @if (auth()->user()->hasRole('Superadmin'))
+    @if (auth()->check() && auth()->user()->hasRole('Superadmin'))
         <div class="sidebar-heading">Menu Utama</div>
 
         {{-- Manajemen User --}}
-        <li class="nav-item {{ request()->routeIs('users.*') ? 'active' : '' }}">
-            <a class="nav-link {{ request()->routeIs('users.*') ? '' : 'collapsed' }}" href="#"
+        <li class="nav-item {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
+            <a class="nav-link {{ request()->routeIs('admin.users.*') ? '' : 'collapsed' }}" href="#"
                 data-toggle="collapse" data-target="#collapseUsers">
                 <i class="fas fa-fw fa-users"></i>
                 <span>Manajemen User</span>
             </a>
 
-            <div id="collapseUsers" class="collapse {{ request()->routeIs('users.*') ? 'show' : '' }}">
+            <div id="collapseUsers" class="collapse {{ request()->routeIs('admin.users.*') ? 'show' : '' }}">
                 <div class="bg-white py-2 collapse-inner rounded">
-                    <a class="collapse-item" href="{{ route('users.index') }}">Manajemen Admin</a>
-                    <a class="collapse-item" href="{{ route('users.pelanggan') }}">Manajemen Pelanggan</a>
+                    <a class="collapse-item" href="{{ route('admin.users.index') }}">Manajemen Admin</a>
+                    <a class="collapse-item" href="{{ route('admin.users.pelanggan') }}">Manajemen Pelanggan</a>
                 </div>
             </div>
         </li>
 
-        <li class="nav-item {{ request()->routeIs('users.*') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('transaksi.index') }}">
+        <li class="nav-item {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('admin.transaksi.index') }}">
                 <i class="fas fa-clipboard-list"></i>
                 <span>Monitoring Transaksi</span>
             </a>
         </li>
 
-        <li class="nav-item {{ request()->routeIs('users.*') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('dashboard.rekap-keuangan') }}">
+        <li class="nav-item {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('admin.dashboard.rekap-keuangan') }}">
                 <i class="fas fa-file-invoice-dollar"></i>
                 <span>Rekap Keuangan BLUD</span>
             </a>
         </li>
 
-        <li class="nav-item {{ request()->routeIs('users.*') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('dashboard.pembagian-pendapatan') }}">
+        <li class="nav-item {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('admin.dashboard.pembagian-pendapatan') }}">
                 <i class="fas fa-chart-pie"></i>
                 <span>Pembagian Pendapatan BLUD</span>
             </a>
         </li>
 
-        <li class="nav-item {{ request()->routeIs('users.*') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('dashboard.monitoring') }}">
+        <li class="nav-item {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('admin.dashboard.monitoring') }}">
                 <i class="fas fa-clipboard-list"></i>
                 <span>Log Activities</span>
             </a>
@@ -164,40 +164,40 @@
     {{-- ================================= --}}
     {{-- ADMIN FUTSAL --}}
     {{-- ================================= --}}
-    @if (auth()->user()->hasRole('Adminfutsal'))
+    @if (auth()->check() && auth()->user()->hasRole('Adminfutsal'))
         <div class="sidebar-heading">Menu Utama</div>
 
         {{-- Jadwal Lapangan --}}
         <li
-            class="nav-item {{ request()->routeIs('adminfutsal.jadwal-lapangan.*') || request()->routeIs('adminfutsal.pengaturan.*') ? 'active' : '' }}">
-            <a class="nav-link {{ request()->routeIs('adminfutsal.jadwal-lapangan.*') || request()->routeIs('adminfutsal.pengaturan.*') ? '' : 'collapsed' }}"
+            class="nav-item {{ request()->routeIs('admin.futsal.jadwal-lapangan.*') || request()->routeIs('admin.futsal.pengaturan.*') ? 'active' : '' }}">
+            <a class="nav-link {{ request()->routeIs('admin.futsal.jadwal-lapangan.*') || request()->routeIs('admin.futsal.pengaturan.*') ? '' : 'collapsed' }}"
                 href="#" data-toggle="collapse" data-target="#collapseJadwal">
                 <i class="fas fa-fw fa-calendar-alt"></i>
                 <span>Manajemen Lapangan</span>
             </a>
 
             <div id="collapseJadwal"
-                class="collapse {{ request()->routeIs('adminfutsal.jadwal-lapangan.*') || request()->routeIs('adminfutsal.pengaturan.*') ? 'show' : '' }}">
+                class="collapse {{ request()->routeIs('admin.futsal.jadwal-lapangan.*') || request()->routeIs('admin.futsal.pengaturan.*') ? 'show' : '' }}">
 
                 <div class="bg-white py-2 collapse-inner rounded">
-                    <a class="collapse-item" href="{{ route('adminfutsal.jadwal-lapangan.index') }}"> Jadwal
+                    <a class="collapse-item" href="{{ route('admin.futsal.jadwal-lapangan.index') }}"> Jadwal
                         Lapangan</a>
-                    <a class="collapse-item" href="{{ route('adminfutsal.pengaturan.index') }}">Jam Operasional</a>
+                    <a class="collapse-item" href="{{ route('admin.futsal.pengaturan.index') }}">Jam Operasional</a>
                 </div>
             </div>
         </li>
 
         {{-- Transaksi --}}
-        <li class="nav-item {{ request()->routeIs('adminfutsal.transaksi.*') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('adminfutsal.transaksi.index') }}">
+        <li class="nav-item {{ request()->routeIs('admin.futsal.transaksi.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('admin.futsal.transaksi.index') }}">
                 <i class="fas fa-fw fa-file-invoice-dollar"></i>
                 <span>Manajemen Transaksi</span>
             </a>
         </li>
 
         {{-- Booking --}}
-        <li class="nav-item {{ request()->routeIs('adminfutsal.booking.*') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('adminfutsal.booking.index') }}">
+        <li class="nav-item {{ request()->routeIs('admin.futsal.booking.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('admin.futsal.booking.index') }}">
                 <i class="fas fa-fw fa-calendar-check"></i>
                 <span>Manajemen Booking</span>
             </a>
@@ -205,8 +205,8 @@
 
         {{-- Membership --}}
         <li
-            class="nav-item {{ request()->routeIs('adminfutsal.paket-membership.*') || request()->routeIs('adminfutsal.monitoring-membership.*') ? 'active' : '' }}">
-            <a class="nav-link {{ request()->routeIs('adminfutsal.paket-membership.*') || request()->routeIs('adminfutsal.monitoring-membership.*') ? '' : 'collapsed' }}"
+            class="nav-item {{ request()->routeIs('admin.futsal.paket-membership.*') || request()->routeIs('admin.futsal.monitoring-membership.*') ? 'active' : '' }}">
+            <a class="nav-link {{ request()->routeIs('admin.futsal.paket-membership.*') || request()->routeIs('admin.futsal.monitoring-membership.*') ? '' : 'collapsed' }}"
                 href="#" data-toggle="collapse" data-target="#collapseMembership">
 
                 <i class="fas fa-fw fa-id-card"></i>
@@ -214,13 +214,13 @@
             </a>
 
             <div id="collapseMembership"
-                class="collapse {{ request()->routeIs('adminfutsal.paket-membership.*') || request()->routeIs('adminfutsal.monitoring-membership.*') ? 'show' : '' }}">
+                class="collapse {{ request()->routeIs('admin.futsal.paket-membership.*') || request()->routeIs('admin.futsal.monitoring-membership.*') ? 'show' : '' }}">
 
                 <div class="bg-white py-2 collapse-inner rounded">
-                    <a class="collapse-item" href="{{ route('adminfutsal.paket-membership.index') }}">
+                    <a class="collapse-item" href="{{ route('admin.futsal.paket-membership.index') }}">
                         Paket Membership
                     </a>
-                    <a class="collapse-item" href="{{ route('adminfutsal.monitoring-membership.index') }}">
+                    <a class="collapse-item" href="{{ route('admin.futsal.monitoring-membership.index') }}">
                         Monitoring Membership
                     </a>
                 </div>
@@ -228,24 +228,24 @@
         </li>
 
         {{-- Manajemen Pelanggan Reguler --}}
-        <li class="nav-item {{ request()->routeIs('adminfutsal.pelanggan.*') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('adminfutsal.pelanggan.index') }}">
+        <li class="nav-item {{ request()->routeIs('admin.futsal.pelanggan.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('admin.futsal.pelanggan.index') }}">
                 <i class="fas fa-fw fa-users"></i>
                 <span>Manajemen Pelanggan Reguler</span>
             </a>
         </li>
 
         {{-- Manajemen Keuangan --}}
-        <li class="nav-item {{ request()->routeIs('adminfutsal.keuangan.*') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('adminfutsal.keuangan.index') }}">
+        <li class="nav-item {{ request()->routeIs('admin.futsal.keuangan.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('admin.futsal.keuangan.index') }}">
                 <i class="fas fa-fw fa-wallet"></i>
                 <span>Manajemen Keuangan</span>
             </a>
         </li>
 
         {{-- Laporan Transaksi --}}
-        <li class="nav-item {{ request()->routeIs('adminfutsal.laporan.*') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('adminfutsal.laporan.index') }}">
+        <li class="nav-item {{ request()->routeIs('admin.futsal.laporan.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('admin.futsal.laporan.index') }}">
                 <i class="fas fa-fw fa-file-pdf"></i>
                 <span>Laporan Transaksi</span>
             </a>
@@ -255,52 +255,52 @@
     {{-- ================================= --}}
     {{-- ADMIN KANTIN --}}
     {{-- ================================= --}}
-    @if (auth()->user()->hasRole('Adminkantin'))
+    @if (auth()->check() && auth()->user()->hasRole('Adminkantin'))
         <div class="sidebar-heading">Menu Utama</div>
 
         {{-- Manajemen Unit --}}
-        <li class="nav-item {{ request()->routeIs('adminkantin.unit.*') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('adminkantin.unit.index') }}">
+        <li class="nav-item {{ request()->routeIs('admin.kantin.unit.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('admin.kantin.unit.index') }}">
                 <i class="fas fa-fw fa-store"></i>
                 <span>Manajemen Unit</span>
             </a>
         </li>
 
         {{-- Manajemen Penyewa --}}
-        <li class="nav-item {{ request()->routeIs('adminkantin.penyewa.*') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('adminkantin.penyewa.index') }}">
+        <li class="nav-item {{ request()->routeIs('admin.kantin.penyewa.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('admin.kantin.penyewa.index') }}">
                 <i class="fas fa-fw fa-user-tie"></i>
                 <span>Manajemen Penyewa</span>
             </a>
         </li>
 
         {{-- Manajemen Penyewaan --}}
-        <li class="nav-item {{ request()->routeIs('adminkantin.penyewaan.*') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('adminkantin.penyewaan.index') }}">
+        <li class="nav-item {{ request()->routeIs('admin.kantin.penyewaan.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('admin.kantin.penyewaan.index') }}">
                 <i class="fas fa-fw fa-user-tie"></i>
                 <span>Manajemen Penyewaan</span>
             </a>
         </li>
 
         {{-- Manajemen Pembyaran --}}
-        <li class="nav-item {{ request()->routeIs('adminkantin.pembayaran.*') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('adminkantin.pembayaran.index') }}">
+        <li class="nav-item {{ request()->routeIs('admin.kantin.pembayaran.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('admin.kantin.pembayaran.index') }}">
                 <i class="fas fa-fw fa-file-invoice-dollar"></i>
                 <span>Manajemen Pembayaran</span>
             </a>
         </li>
 
         {{-- Laporan Transaksi --}}
-        <li class="nav-item {{ request()->routeIs('adminkantin.laporan.*') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('adminkantin.laporan.index') }}">
+        <li class="nav-item {{ request()->routeIs('admin.kantin.laporan.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('admin.kantin.laporan.index') }}">
                 <i class="fas fa-fw fa-file-pdf"></i>
                 <span>Laporan Transaksi</span>
             </a>
         </li>
 
         {{-- Manajemen Keuangan --}}
-        <li class="nav-item {{ request()->routeIs('adminkantin.keuangan.*') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('adminkantin.keuangan.index') }}">
+        <li class="nav-item {{ request()->routeIs('admin.kantin.keuangan.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('admin.kantin.keuangan.index') }}">
                 <i class="fas fa-fw fa-wallet"></i>
                 <span>Manajemen Keuangan</span>
             </a>
@@ -310,52 +310,52 @@
     {{-- ================================= --}}
     {{-- ADMIN AC --}}
     {{-- ================================= --}}
-    @if (auth()->user()->hasRole('Adminac'))
+    @if (auth()->check() && auth()->user()->hasRole('Adminac'))
         <div class="sidebar-heading">Menu Utama</div>
 
         {{-- Manajemen Layanan  --}}
-        <li class="nav-item {{ request()->routeIs('adminac.layanan.*') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('adminac.layanan.index') }}">
+        <li class="nav-item {{ request()->routeIs('admin.ac.layanan.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('admin.ac.layanan.index') }}">
                 <i class="fas fa-fw fa-wrench"></i>
                 <span>Manajemen Layanan</span>
             </a>
         </li>
 
         {{-- Manajemen Produk --}}
-        <li class="nav-item {{ request()->routeIs('adminac.produk.*') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('adminac.produk.index') }}">
+        <li class="nav-item {{ request()->routeIs('admin.ac.produk.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('admin.ac.produk.index') }}">
                 <i class="fas fa-fw fa-box"></i>
                 <span>Manajemen Produk</span>
             </a>
         </li>
 
         {{-- Manajemen Teknisi --}}
-        <li class="nav-item {{ request()->routeIs('adminac.teknisi.*') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('adminac.teknisi.index') }}">
+        <li class="nav-item {{ request()->routeIs('admin.ac.teknisi.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('admin.ac.teknisi.index') }}">
                 <i class="fas fa-fw fa-user-cog"></i>
                 <span>Manajemen Teknisi</span>
             </a>
         </li>
 
         {{-- Manajemen Booking --}}
-        <li class="nav-item {{ request()->routeIs('adminac.booking.*') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('adminac.booking.index') }}">
+        <li class="nav-item {{ request()->routeIs('admin.ac.booking.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('admin.ac.booking.index') }}">
                 <i class="fas fa-fw fa-calendar-check"></i>
                 <span>Manajemen Booking</span>
             </a>
         </li>
 
         {{-- Manajemen Pelanggan --}}
-        <li class="nav-item {{ request()->routeIs('adminac.pelanggan.*') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('adminac.pelanggan.index') }}">
+        <li class="nav-item {{ request()->routeIs('admin.ac.pelanggan.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('admin.ac.pelanggan.index') }}">
                 <i class="fas fa-fw fa-users"></i>
                 <span>Manajemen Pelanggan</span>
             </a>
         </li>
 
         {{-- Manajemen Keuangan --}}
-        <li class="nav-item {{ request()->routeIs('adminac.keuangan.*') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('adminac.keuangan.index') }}">
+        <li class="nav-item {{ request()->routeIs('admin.ac.keuangan.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('admin.ac.keuangan.index') }}">
                 <i class="fas fa-fw fa-wallet"></i>
                 <span>Manajemen Keuangan</span>
             </a>
@@ -365,66 +365,66 @@
     {{-- ================================= --}}
     {{-- ADMIN SERVIS --}}
     {{-- ================================= --}}
-    @if (auth()->user()->hasRole('Adminservis'))
+    @if (auth()->check() && auth()->user()->hasRole('Adminservis'))
         <div class="sidebar-heading">Menu Utama</div>
 
          {{-- Manajemen produk --}}
-         <li class="nav-item {{ request()->routeIs('adminservis.produk.*') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('adminservis.produk.index') }}">
+         <li class="nav-item {{ request()->routeIs('admin.servis.produk.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('admin.servis.produk.index') }}">
                 <i class="fas fa-fw fa-tools"></i>
                 <span>Manajemen Produk</span>
             </a>
         </li>
 
         {{-- Manajemen Layanan --}}
-        <li class="nav-item {{ request()->routeIs('adminservis.layanan.*') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('adminservis.layanan.index') }}">
+        <li class="nav-item {{ request()->routeIs('admin.servis.layanan.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('admin.servis.layanan.index') }}">
                 <i class="fas fa-fw fa-tools"></i>
                 <span>Manajemen Layanan</span>
             </a>
         </li>
 
         {{-- Manajemen Pelanggan --}}
-        <li class="nav-item {{ request()->routeIs('adminservis.pelanggan.*') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('adminservis.pelanggan.index') }}">
+        <li class="nav-item {{ request()->routeIs('admin.servis.pelanggan.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('admin.servis.pelanggan.index') }}">
                 <i class="fas fa-fw fa-users"></i>
                 <span>Manajemen Pelanggan</span>
             </a>
         </li>
 
         {{-- Manajemen Teknisi --}}
-        <li class="nav-item {{ request()->routeIs('adminservis.teknisi.*') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('adminservis.teknisi.index') }}">
+        <li class="nav-item {{ request()->routeIs('admin.servis.teknisi.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('admin.servis.teknisi.index') }}">
                 <i class="fas fa-fw fa-user-cog"></i>
                 <span>Manajemen Teknisi</span>
             </a>
         </li>
 
         {{-- Manajemen Booking --}}
-        <li class="nav-item {{ request()->routeIs('adminservis.booking.*') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('adminservis.booking.index') }}">
+        <li class="nav-item {{ request()->routeIs('admin.servis.booking.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('admin.servis.booking.index') }}">
                 <i class="fas fa-fw fa-calendar-check"></i>
                 <span>Manajemen Booking</span>
             </a>
         </li>
 
         {{-- Monitoring Transaksi --}}
-        <li class="nav-item {{ request()->routeIs('adminservis.transaksi.*') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('adminservis.transaksi.index') }}">
+        <li class="nav-item {{ request()->routeIs('admin.servis.transaksi.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('admin.servis.transaksi.index') }}">
                 <i class="fas fa-fw fa-file-invoice-dollar"></i>
                 <span>Monitoring Transaksi</span>
             </a>
         </li>
         
         {{-- Manajemen Keuangan --}}
-        <li class="nav-item {{ request()->routeIs('adminservis.keuangan.*') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('adminservis.keuangan.index') }}">
+        <li class="nav-item {{ request()->routeIs('admin.servis.keuangan.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('admin.servis.keuangan.index') }}">
                 <i class="fas fa-fw fa-wallet"></i>
                 <span>Manajemen Keuangan</span>
                 
         {{-- Laporan Transaksi --}}
-        <li class="nav-item {{ request()->routeIs('adminservis.laporan.*') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('adminservis.laporan.index') }}">
+        <li class="nav-item {{ request()->routeIs('admin.servis.laporan.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('admin.servis.laporan.index') }}">
                 <i class="fas fa-fw fa-chart-bar"></i>
                 <span>Laporan Transaksi</span>
             </a>
@@ -434,7 +434,7 @@
     {{-- ================================= --}}
     {{-- TEKNISI AC --}}
     {{-- ================================= --}}
-    @if (auth()->user()->hasRole('Teknisi'))
+    @if (auth()->check() && auth()->user()->hasRole('Teknisi'))
         <div class="sidebar-heading">Menu Pekerjaan</div>
 
         {{-- Detail Servis --}}
@@ -447,16 +447,16 @@
         </li>
 
         {{-- Manajemen Transaksi --}}
-        <li class="nav-item {{ request()->routeIs('adminac.transaksi.*') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('adminac.transaksi.index') }}">
+        <li class="nav-item {{ request()->routeIs('admin.ac.transaksi.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('admin.ac.transaksi.index') }}">
                 <i class="fas fa-fw fa-file-invoice-dollar"></i>
                 <span>Manajemen Transaksi</span>
             </a>
         </li>
 
         {{-- Laporan Transaksi --}}
-        <li class="nav-item {{ request()->routeIs('adminac.laporan.*') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('adminac.laporan.index') }}">
+        <li class="nav-item {{ request()->routeIs('admin.ac.laporan.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('admin.ac.laporan.index') }}">
                 <i class="fas fa-fw fa-file-pdf"></i>
                 <span>Laporan Transaksi</span>
             </a>
@@ -466,7 +466,7 @@
     {{-- ================================= --}}
     {{-- KASIR SERVIS MOTOR MOBIL --}}
     {{-- ================================= --}}
-    @if (auth()->user()->hasRole('Kasir'))
+    @if (auth()->check() && auth()->user()->hasRole('Kasir'))
 
         {{-- Manajemen Booking --}}
         <div class="sidebar-heading">Menu Pekerjaan</div>
@@ -497,20 +497,14 @@
     {{-- ================================= --}}
     {{-- PELANGGAN --}}
     {{-- ================================= --}}
-    @if (auth()->user()->hasRole('Pelanggan'))
+    {{-- MENU LAYANAN PELANGGAN (Dapat diakses tanpa login) --}}
+    @if (!auth()->check() || (auth()->check() && auth()->user()->hasRole('Pelanggan')))
         <div class="sidebar-heading">Menu Akun</div>
 
-        {{-- Profile --}}
-        <li class="nav-item {{ request()->routeIs('user.profile.*') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('user.profile.index') }}">
-                <i class="fas fa-fw fa-user"></i>
-                <span>Profil Saya</span>
-            </a>
-        </li>
 
         {{-- Dashboard Utama --}}
-        <li class="nav-item {{ request()->routeIs('user.dashboard') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('user.dashboard') }}">
+        <li class="nav-item {{ request()->routeIs('user.gateway') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('user.gateway') }}">
                 <i class="fas fa-fw fa-home"></i>
                 <span>Dashboard Utama</span>
             </a>
@@ -528,12 +522,12 @@
             </a>
             <div id="collapseFutsal" class="collapse {{ $futsalActive ? 'show' : '' }}">
                 <div class="bg-white py-2 collapse-inner rounded">
-                    <a class="collapse-item {{ request()->routeIs('user.futsal.dashboard') ? 'active' : '' }}"
-                        href="{{ route('user.futsal.dashboard') }}">
+                    <a class="collapse-item {{ request()->routeIs('user.gateway') ? 'active' : '' }}"
+                        href="{{ route('user.gateway') }}">
                         <i class="fas fa-tachometer-alt mr-1"></i> Dashboard
                     </a>
                     <a class="collapse-item {{ request()->routeIs('user.futsal.history') ? 'active' : '' }}"
-                        href="{{ route('user.futsal.history') }}">
+                        href="#" {{-- TODO: ganti ke token-based route --}}>
                         <i class="fas fa-history mr-1"></i> Histori Booking
                     </a>
                 </div>
@@ -552,8 +546,8 @@
             </a>
             <div id="collapseKantin" class="collapse {{ $kantinActive ? 'show' : '' }}">
                 <div class="bg-white py-2 collapse-inner rounded">
-                    <a class="collapse-item {{ request()->routeIs('user.kantin.dashboard') ? 'active' : '' }}"
-                        href="{{ route('user.kantin.dashboard') }}">
+                    <a class="collapse-item {{ request()->routeIs('user.gateway') ? 'active' : '' }}"
+                        href="{{ route('user.gateway') }}">
                         <i class="fas fa-tachometer-alt mr-1"></i> Dashboard
                     </a>
                     <a class="collapse-item {{ request()->routeIs('user.kantin.tagihan') ? 'active' : '' }}"
@@ -561,7 +555,7 @@
                         <i class="fas fa-file-invoice mr-2"></i> Tagihan
                     </a>
                     <a class="collapse-item {{ request()->routeIs('user.kantin.riwayat') ? 'active' : '' }}"
-                        href="{{ route('user.kantin.riwayat') }}">
+                        href="#" {{-- TODO: ganti ke token-based route --}}>
                         <i class="fas fa-history mr-1"></i> Riwayat Pembayaran
                     </a>
                 </div>
@@ -580,10 +574,10 @@
             </a>
             <div id="collapseAC" class="collapse {{ $acActive ? 'show' : '' }}" aria-labelledby="headingAC">
                 <div class="bg-white py-2 collapse-inner rounded">
-                    <a class="collapse-item {{ request()->routeIs('user.ac.index') ? 'active' : '' }}" href="{{ route('user.ac.index') }}">
+                    <a class="collapse-item {{ request()->routeIs('user.ac.index') ? 'active' : '' }}" href="{{ route('user.gateway') }}">
                         <i class="fas fa-tachometer-alt mr-1"></i> Dashboard
                     </a>
-                    <a class="collapse-item {{ request()->routeIs('user.ac.history') ? 'active' : '' }}" href="{{ route('user.ac.history') }}">
+                    <a class="collapse-item {{ request()->routeIs('user.ac.history') ? 'active' : '' }}" href="#" {{-- TODO: ganti ke token-based route --}}>
                         <i class="fas fa-history mr-1"></i> Histori Booking
                     </a>
                 </div>
@@ -603,10 +597,10 @@
             </a>
             <div id="collapseServis" class="collapse {{ $servisActive ? 'show' : '' }}">
                 <div class="bg-white py-2 collapse-inner rounded">
-                    <a class="collapse-item {{ request()->routeIs('user.servis.index') ? 'active' : '' }}" href="{{ route('user.servis.index') }}">
+                    <a class="collapse-item {{ request()->routeIs('user.servis.katalog') ? 'active' : '' }}" href="{{ route('user.gateway') }}">
                         <i class="fas fa-tachometer-alt mr-1"></i> Dashboard Servis
                     </a>
-                    <a class="collapse-item {{ request()->routeIs('user.servis.history') ? 'active' : '' }}" href="{{ route('user.servis.history') }}">
+                    <a class="collapse-item {{ request()->routeIs('user.servis.history') ? 'active' : '' }}" href="#" {{-- TODO: ganti ke token-based route --}}>
                         <i class="fas fa-history mr-1"></i> Histori Servis
                     </a>
                 </div>

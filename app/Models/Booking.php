@@ -11,6 +11,7 @@ class Booking extends Model
     protected $fillable = [
         'user_id',
         'status',
+        'access_token',
     ];
 
     public function user()

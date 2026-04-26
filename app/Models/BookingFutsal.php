@@ -16,6 +16,7 @@ class BookingFutsal extends Model
         'end_datetime',
         'type',
         'jenis_pembayaran',
+        'access_token',
     ];
 
     protected $casts = [

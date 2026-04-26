@@ -30,7 +30,7 @@
             <h6 class="m-0 font-weight-bold text-primary">Daftar Booking AC</h6>
 
             {{-- Filter Form --}}
-            <form method="GET" action="{{ route('adminac.booking.index') }}" class="form-inline">
+            <form method="GET" action="{{ route('admin.ac.booking.index') }}" class="form-inline">
                 <select name="status" class="form-control form-control-sm mr-2">
                     <option value="">-- Semua Status --</option>
                     @foreach($statusList as $s)
@@ -43,7 +43,7 @@
                     <i class="fas fa-filter"></i> Filter
                 </button>
                 @if(request()->filled('status'))
-                    <a href="{{ route('adminac.booking.index') }}" class="btn btn-sm btn-light ml-1">Reset</a>
+                    <a href="{{ route('admin.ac.booking.index') }}" class="btn btn-sm btn-light ml-1">Reset</a>
                 @endif
             </form>
         </div>
@@ -158,7 +158,7 @@
                                             <span>&times;</span>
                                         </button>
                                     </div>
-                                    <form action="{{ route('adminac.booking.approve', $b->id) }}" method="POST">
+                                    <form action="{{ route('admin.ac.booking.approve', $b->id) }}" method="POST">
                                         @csrf
                                         <div class="modal-body text-left">
                                             <p><strong>Pelanggan:</strong> {{ $b->user->name ?? '-' }}</p>
@@ -214,7 +214,7 @@
                                     </div>
                                     <div class="modal-footer">
                                         <button class="btn btn-secondary" type="button" data-dismiss="modal">Batal</button>
-                                        <form action="{{ route('adminac.booking.selesai', $b->id) }}" method="POST">
+                                        <form action="{{ route('admin.ac.booking.selesai', $b->id) }}" method="POST">
                                             @csrf
                                             @method('PATCH')
                                             <button type="submit" class="btn btn-primary">Ya, Selesai</button>

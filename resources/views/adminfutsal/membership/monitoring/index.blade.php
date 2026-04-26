@@ -63,7 +63,7 @@
                 <h6 class="m-0 font-weight-bold text-primary">Daftar Membership</h6>
 
                 {{-- Filter --}}
-                <form method="GET" action="{{ route('adminfutsal.monitoring-membership.index') }}" class="form-inline">
+                <form method="GET" action="{{ route('admin.futsal.monitoring-membership.index') }}" class="form-inline">
                     <select name="status" class="form-control form-control-sm mr-2">
                         <option value="">-- Semua Status --</option>
                         <option value="aktif" {{ request('status') === 'aktif' ? 'selected' : '' }}>Aktif</option>
@@ -79,7 +79,7 @@
                     </select>
                     <button type="submit" class="btn btn-sm btn-secondary"><i class="fas fa-filter"></i> Filter</button>
                     @if (request()->filled('status') || request()->filled('paket_id'))
-                        <a href="{{ route('adminfutsal.monitoring-membership.index') }}" class="btn btn-sm btn-light ml-1">Reset</a>
+                        <a href="{{ route('admin.futsal.monitoring-membership.index') }}" class="btn btn-sm btn-light ml-1">Reset</a>
                     @endif
                 </form>
             </div>

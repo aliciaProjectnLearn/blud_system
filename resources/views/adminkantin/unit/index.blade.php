@@ -10,7 +10,7 @@
         <h1 class="h3 mb-0 text-gray-800">
             <i class="fas fa-store mr-2 text-primary"></i>Manajemen Unit Kantin
         </h1>
-        <a href="{{ route('adminkantin.unit.create') }}" class="btn btn-primary btn-sm shadow-sm">
+        <a href="{{ route('admin.kantin.unit.create') }}" class="btn btn-primary btn-sm shadow-sm">
             <i class="fas fa-plus fa-sm mr-1"></i> Tambah Unit
         </a>
     </div>
@@ -76,7 +76,7 @@
                 </div>
                 {{-- Filter Form --}}
                 <div class="col-md-8">
-                    <form method="GET" action="{{ route('adminkantin.unit.index') }}" class="form-inline justify-content-md-end">
+                    <form method="GET" action="{{ route('admin.kantin.unit.index') }}" class="form-inline justify-content-md-end">
                         {{-- Filter Kategori --}}
                         <div class="form-group mr-2 mb-0">
                             <label class="mr-1 text-xs font-weight-bold text-gray-600">Kategori</label>
@@ -102,7 +102,7 @@
 
                         {{-- Reset Filter --}}
                         @if (request()->hasAny(['kategori_id', 'status_unit']))
-                            <a href="{{ route('adminkantin.unit.index') }}" class="btn btn-sm btn-outline-secondary mb-0">
+                            <a href="{{ route('admin.kantin.unit.index') }}" class="btn btn-sm btn-outline-secondary mb-0">
                                 <i class="fas fa-times"></i> Reset
                             </a>
                         @endif
@@ -183,13 +183,13 @@
                                 {{-- Aksi --}}
                                 <td class="text-center">
                                     {{-- Tombol Detail --}}
-                                    <a href="{{ route('adminkantin.unit.show', $unit->id) }}"
+                                    <a href="{{ route('admin.kantin.unit.show', $unit->id) }}"
                                        class="btn btn-info btn-sm" title="Detail">
                                         <i class="fas fa-eye"></i>
                                     </a>
 
                                     {{-- Tombol Edit --}}
-                                    <a href="{{ route('adminkantin.unit.edit', $unit->id) }}"
+                                    <a href="{{ route('admin.kantin.unit.edit', $unit->id) }}"
                                        class="btn btn-warning btn-sm" title="Edit">
                                         <i class="fas fa-pencil-alt"></i>
                                     </a>
@@ -206,7 +206,7 @@
 
                                         {{-- Form hapus tersembunyi --}}
                                         <form id="form-hapus-{{ $unit->id }}"
-                                              action="{{ route('adminkantin.unit.destroy', $unit->id) }}"
+                                              action="{{ route('admin.kantin.unit.destroy', $unit->id) }}"
                                               method="POST" class="d-none">
                                             @csrf
                                             @method('DELETE')
@@ -224,7 +224,7 @@
                                 <td colspan="7" class="text-center py-4 text-muted">
                                     <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
                                     Belum ada data unit.
-                                    <a href="{{ route('adminkantin.unit.create') }}">Tambah sekarang</a>
+                                    <a href="{{ route('admin.kantin.unit.create') }}">Tambah sekarang</a>
                                 </td>
                             </tr>
                         @endforelse

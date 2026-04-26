@@ -8,7 +8,7 @@
         <i class="fas fa-file-invoice-dollar mr-2 text-primary"></i>Manajemen Transaksi
     </h1>
     <div>
-        <a href="{{ route('adminac.transaksi.history') }}" class="btn btn-outline-primary btn-sm shadow-sm">
+        <a href="{{ route('admin.ac.transaksi.history') }}" class="btn btn-outline-primary btn-sm shadow-sm">
             <i class="fas fa-history fa-sm mr-1"></i> Histori Pembayaran
         </a>
     </div>
@@ -18,7 +18,7 @@
     <div class="card-header py-3">
         <div class="row">
             <div class="col-md-8">
-                <form action="{{ route('adminac.transaksi.index') }}" method="GET" class="form-inline">
+                <form action="{{ route('admin.ac.transaksi.index') }}" method="GET" class="form-inline">
                     <div class="input-group input-group-sm mr-2">
                         <input type="text" name="search" class="form-control" placeholder="Cari invoice atau pelanggan..." value="{{ request('search') }}">
                         <div class="input-group-append">
@@ -36,7 +36,7 @@
                     </select>
 
                     @if(request()->hasAny(['search', 'status']))
-                        <a href="{{ route('adminac.transaksi.index') }}" class="btn btn-secondary btn-sm">Reset</a>
+                        <a href="{{ route('admin.ac.transaksi.index') }}" class="btn btn-secondary btn-sm">Reset</a>
                     @endif
                 </form>
             </div>
@@ -87,7 +87,7 @@
                                 {{ $transaksi->created_at->translatedFormat('d M Y') }}
                             </td>
                             <td class="pr-4 align-middle text-center">
-                                <a href="{{ route('adminac.transaksi.show', $transaksi->id) }}" class="btn btn-outline-info btn-sm shadow-sm" title="Lihat Invoice">
+                                <a href="{{ route('admin.ac.transaksi.show', $transaksi->id) }}" class="btn btn-outline-info btn-sm shadow-sm" title="Lihat Invoice">
                                     <i class="fas fa-file-invoice mr-1"></i> Invoice
                                 </a>
                             </td>

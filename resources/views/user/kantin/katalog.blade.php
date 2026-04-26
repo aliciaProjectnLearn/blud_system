@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.publik')
 
 @section('title', 'Katalog Sewa Kantin & Ruko')
 
@@ -373,7 +373,7 @@
                 <h1>Sewa Kantin & Ruko</h1>
                 <p class="lead">Pilih unit terbaik untuk usaha Anda. Fasilitas lengkap, lokasi strategis, dan pembayaran fleksibel 2 termin.</p>
                 <div class="mt-4">
-                    <a href="{{ route('user.kantin.dashboard') }}" class="btn btn-light font-weight-bold px-4 py-2 mr-2">
+                    <a href="{{ route('user.gateway') }}" class="btn btn-light font-weight-bold px-4 py-2 mr-2">
                         <i class="fas fa-chart-line mr-1"></i> Dashboard Saya
                     </a>
                 </div>
@@ -403,8 +403,8 @@
                 </div>
                 <div class="step-item">
                     <div class="step-circle"><i class="fas fa-credit-card"></i></div>
-                    <div class="step-label">Bayar Termin 1</div>
-                    <div class="step-desc">Pembayaran 50% untuk aktivasi</div>
+                    <div class="step-label">Pilih Jumlah Termin</div>
+                    <div class="step-desc">Terdapat pilihan 1 atau 2 Termin</div>
                 </div>
                 <div class="step-item">
                     <div class="step-circle"><i class="fas fa-check"></i></div>
@@ -414,7 +414,7 @@
                 <div class="step-item">
                     <div class="step-circle"><i class="fas fa-bell"></i></div>
                     <div class="step-label">Pengingat</div>
-                    <div class="step-desc">Notif WA H-7 jatuh tempo termin 2</div>
+                    <div class="step-desc">Notif WA H-30 jatuh tempo termin 2 (jika memilih 2 termin)</div>
                 </div>
             </div>
         </div>

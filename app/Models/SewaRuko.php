@@ -18,6 +18,7 @@ class SewaRuko extends Model
         'no_mou',
         'status',
         'notifikasi_terkirim',
+        'access_token',
     ];
 
     /**

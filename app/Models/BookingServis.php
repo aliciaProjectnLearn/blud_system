@@ -24,6 +24,7 @@ class BookingServis extends Model
         'status',
         'catatan_admin',
         'teknisi_id',
+        'access_token',
     ];
 
     protected $casts = [

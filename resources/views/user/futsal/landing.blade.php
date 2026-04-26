@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.publik')
 
 @section('title', 'Sistem Booking Futsal')
 
@@ -317,14 +317,6 @@
             <a href="{{ route('user.futsal.booking.form') }}"
                class="btn btn-light text-primary font-weight-bold shadow-sm">
                 <i class="fas fa-calendar-plus mr-2"></i> Booking Sekarang
-            </a>
-            <a href="{{ route('user.futsal.history') }}"
-               class="btn btn-outline-light font-weight-bold">
-                <i class="fas fa-history mr-2"></i> Lihat Histori
-            </a>
-            <a href="{{ route('user.futsal.dashboard') }}"
-               class="btn btn-outline-light font-weight-bold">
-                <i class="fas fa-tachometer-alt mr-2"></i> Dashboard Futsal
             </a>
         </div>
     </div>

@@ -247,7 +247,7 @@
                                     data-toggle="tooltip" title="Detail">
                                     <i class="fas fa-eye"></i>
                                 </button>
-                                <a href="{{ route('adminservis.transaksi.invoice', $item->kode_booking) }}" 
+                                <a href="{{ route('admin.servis.transaksi.invoice', $item->kode_booking) }}" 
                                     target="_blank" class="btn btn-secondary btn-sm" 
                                     data-toggle="tooltip" title="Cetak">
                                     <i class="fas fa-print"></i>
@@ -546,7 +546,7 @@
                 $('#det-pembayaran').text(item.status_bayar);
 
                 // Update Print Button URL
-                var invoiceUrl = "{{ route('adminservis.transaksi.invoice', ':kode') }}";
+                var invoiceUrl = "{{ route('admin.servis.transaksi.invoice', ':kode') }}";
                 $('#btnCetakInvoiceModal').attr('href', invoiceUrl.replace(':kode', item.kode));
 
                 // Build Rincian Table

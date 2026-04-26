@@ -164,7 +164,7 @@
                                 </td>
                                 <td class="text-primary font-weight-bold">Rp {{ number_format($p->jumlah_tagihan, 0, ',', '.') }}</td>
                                 <td class="text-center">
-                                    <form action="{{ route('adminkantin.kirim-wa', $p->id) }}" method="POST">
+                                    <form action="{{ route('admin.kantin.kirim-wa', $p->id) }}" method="POST">
                                         @csrf
                                         <button type="submit" class="btn btn-sm btn-success shadow-sm" onclick="return confirm('Kirim pengingat WhatsApp ke penyewa ini?')">
                                             <i class="fab fa-whatsapp mr-1"></i> Kirim Pengingat

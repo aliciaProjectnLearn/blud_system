@@ -4,7 +4,7 @@
 <div class="container-fluid">
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">Manajemen Layanan Servis</h1>
-        <a href="{{ route('adminservis.layanan.create') }}" class="btn btn-primary btn-sm shadow-sm">
+        <a href="{{ route('admin.servis.layanan.create') }}" class="btn btn-primary btn-sm shadow-sm">
             <i class="fas fa-plus fa-sm text-white-50"></i> Tambah Layanan
         </a>
     </div>
@@ -19,7 +19,7 @@
 
     <div class="card shadow mb-4">
         <div class="card-header py-3">
-            <form method="GET" action="{{ route('adminservis.layanan.index') }}" 
+            <form method="GET" action="{{ route('admin.servis.layanan.index') }}" 
                   class="d-flex gap-2 align-items-center flex-wrap">
                 <input type="text" name="search" class="form-control form-control-sm w-auto"
                     placeholder="Cari nama layanan..." value="{{ request('search') }}">
@@ -32,7 +32,7 @@
                 <button type="submit" class="btn btn-primary btn-sm">
                     <i class="fas fa-search"></i> Filter
                 </button>
-                <a href="{{ route('adminservis.layanan.index') }}" class="btn btn-secondary btn-sm">Reset</a>
+                <a href="{{ route('admin.servis.layanan.index') }}" class="btn btn-secondary btn-sm">Reset</a>
             </form>
         </div>
 
@@ -74,11 +74,11 @@
                                     @endif
                                 </td>
                                 <td>
-                                    <a href="{{ route('adminservis.layanan.edit', $item->id) }}"
+                                    <a href="{{ route('admin.servis.layanan.edit', $item->id) }}"
                                         class="btn btn-warning btn-sm">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <form action="{{ route('adminservis.layanan.destroy', $item->id) }}"
+                                    <form action="{{ route('admin.servis.layanan.destroy', $item->id) }}"
                                           method="POST" class="d-inline form-hapus">
                                         @csrf
                                         @method('DELETE')

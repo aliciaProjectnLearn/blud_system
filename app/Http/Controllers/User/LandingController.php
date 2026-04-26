@@ -15,13 +15,14 @@ class LandingController extends Controller
             $roleName = strtolower(Auth::user()->roles->first()->nama ?? '');
 
             return match($roleName) {
-                'superadmin'  => redirect()->route('dashboard'),
-                'adminfutsal' => redirect()->route('adminfutsal.dashboard'),
-                'adminkantin' => redirect()->route('adminkantin.dashboard'),
-                'adminac'     => redirect()->route('adminac.dashboard'),
-                'adminservis' => redirect()->route('adminservis.dashboard'),
+                'superadmin'  => redirect()->route('admin.dashboard'),
+                'adminfutsal' => redirect()->route('admin.futsal.dashboard'),
+                'adminkantin' => redirect()->route('admin.kantin.dashboard'),
+                'adminac'     => redirect()->route('admin.ac.dashboard'),
+                'adminservis' => redirect()->route('admin.servis.dashboard'),
                 'teknisi'     => redirect()->route('teknisi.dashboard'),
-                default       => redirect()->route('user.dashboard'),
+                'kasir'       => redirect()->route('kasir.dashboard'),
+                default       => redirect()->route('home'),
             };
         }
 

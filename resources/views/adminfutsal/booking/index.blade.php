@@ -38,7 +38,7 @@
             <h6 class="m-0 font-weight-bold text-primary">Daftar Booking Futsal</h6>
 
             <!-- Filter Form -->
-            <form method="GET" action="{{ route('adminfutsal.booking.index') }}" class="form-inline">
+            <form method="GET" action="{{ route('admin.futsal.booking.index') }}" class="form-inline">
                 <input type="text" name="search" class="form-control form-control-sm mr-2" placeholder="Cari pemesan/email..." value="{{ request('search') }}">
                 <input type="date" name="tanggal" class="form-control form-control-sm mr-2" value="{{ request('tanggal') }}">
                 <select name="status" class="form-control form-control-sm mr-2">
@@ -50,7 +50,7 @@
                 </select>
                 <button type="submit" class="btn btn-sm btn-secondary"><i class="fas fa-filter"></i> Filter</button>
                 @if(request()->filled('tanggal') || request()->filled('status') || request()->filled('search'))
-                    <a href="{{ route('adminfutsal.booking.index') }}" class="btn btn-sm btn-light ml-1">Reset</a>
+                    <a href="{{ route('admin.futsal.booking.index') }}" class="btn btn-sm btn-light ml-1">Reset</a>
                 @endif
             </form>
         </div>
@@ -175,7 +175,7 @@
                         @if($item->booking && $item->booking->status != 'dibatalkan' && $item->booking->status != 'selesai')
                         <div class="modal fade" id="editModal{{ $item->id }}" tabindex="-1" role="dialog" aria-hidden="true">
                             <div class="modal-dialog" role="document">
-                                <form action="{{ route('adminfutsal.booking.update', $item->id) }}" method="POST">
+                                <form action="{{ route('admin.futsal.booking.update', $item->id) }}" method="POST">
                                     @csrf
                                     @method('PATCH')
                                     <div class="modal-content text-left">
@@ -273,7 +273,7 @@
                                     </div>
                                     <div class="modal-footer">
                                         <button class="btn btn-secondary" type="button" data-dismiss="modal">Batal</button>
-                                        <form action="{{ route('adminfutsal.booking.selesai', $item->id) }}" method="POST">
+                                        <form action="{{ route('admin.futsal.booking.selesai', $item->id) }}" method="POST">
                                             @csrf
                                             @method('PATCH')
                                             <button type="submit" class="btn btn-success">Ya, Tandai Selesai</button>
@@ -305,7 +305,7 @@
                                     </div>
                                     <div class="modal-footer">
                                         <button class="btn btn-secondary" type="button" data-dismiss="modal">Tutup</button>
-                                        <form action="{{ route('adminfutsal.booking.cancel', $item->id) }}" method="POST">
+                                        <form action="{{ route('admin.futsal.booking.cancel', $item->id) }}" method="POST">
                                             @csrf
                                             @method('PATCH')
                                             <button type="submit" class="btn btn-danger">Batalkan Jadwal</button>
@@ -332,7 +332,7 @@
 <!-- Create Booking Modal -->
 <div class="modal fade" id="addBookingModal" tabindex="-1" role="dialog" aria-labelledby="addBookingModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
-        <form action="{{ route('adminfutsal.booking.store') }}" method="POST">
+        <form action="{{ route('admin.futsal.booking.store') }}" method="POST">
             @csrf
             <div class="modal-content">
                 <div class="modal-header bg-primary text-white">

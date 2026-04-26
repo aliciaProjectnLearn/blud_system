@@ -17,7 +17,7 @@
                     <h6 class="m-0 font-weight-bold text-primary">Pengaturan Jam Operasional</h6>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('adminfutsal.pengaturan.update', $pengaturan->id) }}" method="POST">
+                    <form action="{{ route('admin.futsal.pengaturan.update', $pengaturan->id) }}" method="POST">
                         @csrf
                         @method('PUT')
                         

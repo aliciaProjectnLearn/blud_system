@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.publik')
 @section('title', 'Beli Membership Futsal')
 
 @section('content')
@@ -9,7 +9,7 @@
         <h1 class="h3 mb-0 text-gray-800">
             <i class="fas fa-id-card text-primary mr-2"></i> Membership Futsal
         </h1>
-        <a href="{{ route('user.futsal.landing') }}" class="btn btn-sm btn-secondary shadow-sm">
+        <a href="{{ route('user.gateway') }}" class="btn btn-sm btn-secondary shadow-sm">
             <i class="fas fa-arrow-left fa-sm"></i> Kembali ke Dashboard Utama
         </a>
     </div>
@@ -65,7 +65,7 @@
                 <div class="card-body text-center py-5">
                     <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
                     <p class="text-muted">Belum ada paket membership yang tersedia saat ini.</p>
-                    <a href="{{ route('user.futsal.dashboard') }}" class="btn btn-secondary">
+                    <a href="{{ route('user.gateway') }}" class="btn btn-secondary">
                         <i class="fas fa-arrow-left mr-1"></i> Kembali
                     </a>
                 </div>
@@ -114,7 +114,7 @@
                     <button type="submit" class="btn btn-primary btn-lg shadow-sm px-5">
                         <i class="fas fa-shopping-cart mr-2"></i> Beli Membership
                     </button>
-                    <a href="{{ route('user.futsal.landing') }}" class="btn btn-outline-secondary btn-lg ml-2">
+                    <a href="{{ route('user.gateway') }}" class="btn btn-outline-secondary btn-lg ml-2">
                         Batal
                     </a>
                 </div>

@@ -10,7 +10,7 @@
         <h1 class="h3 mb-0 text-gray-800">
             <i class="fas fa-plus-circle mr-2 text-primary"></i>Tambah Unit Kantin
         </h1>
-        <a href="{{ route('adminkantin.unit.index') }}" class="btn btn-secondary btn-sm shadow-sm">
+        <a href="{{ route('admin.kantin.unit.index') }}" class="btn btn-secondary btn-sm shadow-sm">
             <i class="fas fa-arrow-left fa-sm mr-1"></i> Kembali
         </a>
     </div>
@@ -38,7 +38,7 @@
                         </div>
                     @endif
 
-                    <form action="{{ route('adminkantin.unit.store') }}"
+                    <form action="{{ route('admin.kantin.unit.store') }}"
                           method="POST"
                           enctype="multipart/form-data">
                         @csrf
@@ -184,7 +184,7 @@
                                 <button type="submit" class="btn btn-primary px-4">
                                     <i class="fas fa-save mr-1"></i> Simpan Unit
                                 </button>
-                                <a href="{{ route('adminkantin.unit.index') }}" class="btn btn-light ml-2">
+                                <a href="{{ route('admin.kantin.unit.index') }}" class="btn btn-light ml-2">
                                     <i class="fas fa-times mr-1"></i> Batal
                                 </a>
                             </div>

@@ -6,7 +6,7 @@
 <div class="container-fluid">
     <!-- Breadcrumb & Back -->
     <div class="mb-4">
-        <a href="{{ route('adminservis.transaksi.index') }}" class="btn btn-secondary btn-sm shadow-sm">
+        <a href="{{ route('admin.servis.transaksi.index') }}" class="btn btn-secondary btn-sm shadow-sm">
             <i class="fas fa-arrow-left fa-sm mr-1"></i> Kembali ke Daftar
         </a>
     </div>

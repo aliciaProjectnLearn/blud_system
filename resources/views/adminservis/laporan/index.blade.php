@@ -18,7 +18,7 @@
             <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-filter mr-1"></i> Filter Laporan</h6>
         </div>
         <div class="card-body">
-            <form method="GET" action="{{ route('adminservis.laporan.index') }}">
+            <form method="GET" action="{{ route('admin.servis.laporan.index') }}">
                 <div class="form-row align-items-end">
 
                     {{-- Filter Dari Tanggal --}}
@@ -51,7 +51,7 @@
                         <button type="submit" class="btn btn-primary mr-2">
                             <i class="fas fa-search fa-sm"></i> Tampilkan Laporan
                         </button>
-                        <a href="{{ route('adminservis.laporan.index') }}" class="btn btn-secondary">
+                        <a href="{{ route('admin.servis.laporan.index') }}" class="btn btn-secondary">
                             <i class="fas fa-undo fa-sm"></i> Reset
                         </a>
                     </div>
@@ -151,11 +151,11 @@
             {{-- Tombol Export (hanya tampil jika ada data) --}}
             @if($laporan->total() > 0)
             <div>
-                <a href="{{ route('adminservis.laporan.export.pdf', request()->all()) }}"
+                <a href="{{ route('admin.servis.laporan.export.pdf', request()->all()) }}"
                    target="_blank" class="btn btn-sm btn-danger mr-2 shadow-sm">
                     <i class="fas fa-file-pdf fa-sm text-white-50"></i> Export PDF
                 </a>
-                <a href="{{ route('adminservis.laporan.export.excel', request()->all()) }}"
+                <a href="{{ route('admin.servis.laporan.export.excel', request()->all()) }}"
                    target="_blank" class="btn btn-sm btn-success shadow-sm">
                     <i class="fas fa-file-excel fa-sm text-white-50"></i> Export Excel
                 </a>

@@ -4,7 +4,7 @@
 <div class="container-fluid">
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">Detail Penyewaan: {{ $data->ruko->kode_unit }}</h1>
-        <a href="{{ route('adminkantin.penyewaan.index') }}" class="btn btn-secondary btn-sm shadow-sm">
+        <a href="{{ route('admin.kantin.penyewaan.index') }}" class="btn btn-secondary btn-sm shadow-sm">
             <i class="fas fa-arrow-left fa-sm text-white-50"></i> Kembali
         </a>
     </div>
@@ -90,7 +90,7 @@
                         <i class="fas fa-upload fa-sm"></i> Upload Dokumen Baru
                     </button>
                     
-                    <a href="{{ route('adminkantin.penyewaan.generateMOU', $data->id) }}" class="btn btn-outline-primary btn-block">
+                    <a href="{{ route('admin.kantin.penyewaan.generateMOU', $data->id) }}" class="btn btn-outline-primary btn-block">
                         <i class="fas fa-file-contract fa-sm"></i> Generate MOU Otomatis
                     </a>
 
@@ -106,10 +106,10 @@
                                         <div class="font-weight-bold text-truncate" style="max-width: 150px;">{{ $doc->nama_dokumen }}</div>
                                     </div>
                                     <div class="btn-group">
-                                        <a href="{{ route('adminkantin.penyewaan.downloadDokumen', $doc->id) }}" class="btn btn-sm btn-link text-success" title="Download">
+                                        <a href="{{ route('admin.kantin.penyewaan.downloadDokumen', $doc->id) }}" class="btn btn-sm btn-link text-success" title="Download">
                                             <i class="fas fa-download"></i>
                                         </a>
-                                        <form action="{{ route('adminkantin.penyewaan.hapusDokumen', $doc->id) }}" method="POST" class="d-inline">
+                                        <form action="{{ route('admin.kantin.penyewaan.hapusDokumen', $doc->id) }}" method="POST" class="d-inline">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-sm btn-link text-danger" onclick="return confirm('Hapus dokumen ini?')">
@@ -133,7 +133,7 @@
 <div class="modal fade" id="uploadModal" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
-            <form action="{{ route('adminkantin.penyewaan.uploadDokumen', $data->id) }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('admin.kantin.penyewaan.uploadDokumen', $data->id) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <div class="modal-header">
                     <h5 class="modal-title">Upload Dokumen Penyewaan</h5>

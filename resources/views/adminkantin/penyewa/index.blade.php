@@ -103,11 +103,11 @@
 
 
                                 <td class="text-center">
-                                    <a href="{{ route('adminkantin.penyewa.show', $item->id) }}" class="btn btn-info btn-sm" title="Detail">
+                                    <a href="{{ route('admin.kantin.penyewa.show', $item->id) }}" class="btn btn-info btn-sm" title="Detail">
                                         <i class="fas fa-eye"></i> <span class="d-none d-md-inline"></span>
                                     </a>
 
-                                    <a href="{{ route('adminkantin.penyewa.edit', $item->id) }}" class="btn btn-warning btn-sm" title="Edit">
+                                    <a href="{{ route('admin.kantin.penyewa.edit', $item->id) }}" class="btn btn-warning btn-sm" title="Edit">
                                         <i class="fas fa-pencil-alt"></i> <span class="d-none d-md-inline"></span>
                                     </a>
 
@@ -127,7 +127,7 @@
                                             <i class="fas fa-trash"></i>
                                         </button>
 
-                                        <form id="form-hapus-{{ $item->id }}" action="{{ route('adminkantin.penyewa.destroy', $item->id) }}" method="POST" class="d-none">
+                                        <form id="form-hapus-{{ $item->id }}" action="{{ route('admin.kantin.penyewa.destroy', $item->id) }}" method="POST" class="d-none">
                                             @csrf
                                             @method('DELETE')
                                         </form>

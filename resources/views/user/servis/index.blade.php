@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.publik')
 
 @section('title', 'Dashboard Servis Motor & Mobil')
 
@@ -15,7 +15,7 @@
     <!-- Alert for active only -->
     <div class="alert alert-info border-left-info shadow-sm py-2 px-3 mb-4">
         <i class="fas fa-info-circle mr-2"></i> Menampilkan data booking yang <strong>sedang aktif</strong> (Menunggu & Diproses).
-        <a href="{{ route('user.servis.history') }}" class="font-weight-bold text-info ml-1">Lihat Histori Lengkap &raquo;</a>
+        <a href="#" class="font-weight-bold text-info ml-1"> {{-- TODO: ganti ke token-based route --}} Lihat Histori Lengkap &raquo;</a>
     </div>
 
     <!-- Filter Card -->
@@ -108,7 +108,7 @@
                                     <h5 class="text-gray-600">Tidak ada booking aktif</h5>
                                     <p class="text-muted">Semua booking Anda telah selesai atau dibatalkan.</p>
                                     <div class="mt-3">
-                                        <a href="{{ route('user.servis.history') }}" class="btn btn-outline-info mr-2">
+                                        <a href="#" class="btn btn-outline-info mr-2"> {{-- TODO: ganti ke token-based route --}}
                                             Lihat Histori
                                         </a>
                                         <a href="{{ route('user.gateway') }}#servis-section" class="btn btn-primary">
