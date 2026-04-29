@@ -43,7 +43,7 @@
                     <h6 class="m-0 font-weight-bold text-gray-800">
                         <i class="fas fa-receipt mr-1 text-primary"></i> Detail Booking
                     </h6>
-                    <span class="badge badge-{{ $booking->status == 'dikonfirmasi' || $booking->status == 'aktif' ? 'success' : ($booking->status == 'dibatalkan' ? 'danger' : 'warning') }} px-3 py-2">
+                    <span class="badge badge-{{ $booking->status == 'dikonfirmasi' || $booking->status == 'aktif' ? 'success' : (in_array($booking->status, ['dibatalkan', 'batal']) ? 'danger' : 'warning') }} px-3 py-2">
                         {{ strtoupper($booking->status ?? ($booking->booking->status ?? 'MENUNGGU')) }}
                     </span>
                 </div>
@@ -89,17 +89,25 @@
                         <a href="{{ route('user.token.riwayat', $token) }}" class="btn btn-outline-primary btn-sm mx-1">
                             <i class="fas fa-history mr-1"></i> Lihat Semua Riwayat Saya
                         </a>
-                        @if(!in_array(strtolower($booking->status ?? ($booking->booking->status ?? '')), ['selesai', 'dibatalkan', 'proses', 'aktif']))
-                            <a href="{{ route('user.token.batalkan', $token) }}" class="btn btn-outline-danger btn-sm mx-1">
+                        @php
+                            $currentStatus = strtolower($booking->status ?? ($booking->booking->status ?? ''));
+                        @endphp
+                        
+                        @if($currentStatus === 'menunggu')
+                            <a href="#" onclick="konfirmasiBatal(event)" class="btn btn-outline-danger btn-sm mx-1">
                                 <i class="fas fa-times mr-1"></i> Batalkan Booking
                             </a>
+                        @elseif(in_array($currentStatus, ['diproses', 'siap_bayar', 'selesai', 'proses', 'aktif']))
+                            <button class="btn btn-outline-secondary btn-sm mx-1" disabled>
+                                <i class="fas fa-lock mr-1"></i> Tidak dapat dibatalkan
+                            </button>
                         @endif
                     </div>
                 </div>
             </div>
             
             <div class="text-center mt-4">
-                <a href="{{ route('gateway') }}" class="text-muted small">
+                <a href="{{ route('home') }}" class="text-muted small">
                     <i class="fas fa-home mr-1"></i> Kembali ke Halaman Utama
                 </a>
             </div>
@@ -119,6 +127,24 @@ function copyTokenLink() {
         title: 'Link Berhasil Disalin',
         showConfirmButton: false,
         timer: 1500
+    });
+}
+
+function konfirmasiBatal(e) {
+    e.preventDefault();
+    Swal.fire({
+        title: 'Batalkan Booking?',
+        text: 'Apakah Anda yakin ingin membatalkan booking ini? Tindakan ini tidak dapat diurungkan.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#e74a3b',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Ya, Batalkan',
+        cancelButtonText: 'Tidak'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = "{{ route('user.token.batalkan', $token) }}";
+        }
     });
 }
 </script>

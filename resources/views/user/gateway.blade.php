@@ -9,6 +9,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
         * { font-family: 'Poppins', sans-serif; }
@@ -72,7 +73,7 @@
         <div class="max-w-7xl mx-auto px-4">
             <div class="text-center mb-16">
                 <h2 class="text-4xl font-bold mb-6" style="color:#4e73df;">Layanan Kami</h2>
-                <p class="text-lg text-gray-600 max-w-2xl mx-auto">Pilih layanan yang Anda butuhkan. Login terlebih dahulu untuk melakukan booking.</p>
+                <p class="text-lg text-gray-600 max-w-2xl mx-auto">Pilih layanan yang Anda butuhkan dan nikmati kemudahan booking tanpa perlu membuat akun.</p>
             </div>
             <div class="grid-layanan">
 
@@ -275,5 +276,18 @@
         </div>
     </footer>
 
+    @if(session('booking_success'))
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            Swal.fire({
+                icon: 'success',
+                title: 'Booking Berhasil!',
+                text: 'Link akses servis kamu sudah dikirim ke WhatsApp {{ session('no_hp') }}. Simpan link tersebut untuk memantau status servis kamu.',
+                confirmButtonText: 'Oke, Mengerti',
+                confirmButtonColor: '#4e73df'
+            });
+        });
+    </script>
+    @endif
 </body>
 </html>

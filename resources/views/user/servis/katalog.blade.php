@@ -97,6 +97,25 @@
             font-weight: 800;
             color: #1cc88a;
         }
+
+        @media (max-width: 576px) {
+            .hero-servis {
+                padding: 30px 20px;
+            }
+            .stats-bar {
+                flex-direction: column;
+                gap: 15px;
+            }
+            .stats-bar .stat-item {
+                border-right: none;
+                border-bottom: 1px solid #e3e6f0;
+                padding-bottom: 15px;
+            }
+            .stats-bar .stat-item:last-child {
+                border-bottom: none;
+                padding-bottom: 0;
+            }
+        }
     </style>
 @endpush
 
@@ -111,11 +130,6 @@
                 <h1>Katalog Layanan Servis</h1>
                 <p class="lead mb-4">Pilih layanan perawatan terbaik untuk kendaraan Anda. Teknisi ahli kami siap memberikan
                     performa maksimal.</p>
-                <div class="d-flex flex-wrap gap-2">
-                    <a href="#" class="btn btn-outline-light font-weight-bold px-4"> {{-- TODO: ganti ke token-based route --}}
-                        <i class="fas fa-history mr-2"></i> Riwayat Servis
-                    </a>
-                </div>
             </div>
         </div>
 

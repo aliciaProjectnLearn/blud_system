@@ -101,42 +101,36 @@
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label class="small font-weight-bold">Nama Lengkap</label>
-                                    <input type="text" name="nama" class="form-control" value="{{ Auth::user()->nama_lengkap ?? old('nama') }}" required placeholder="Nama Lengkap">
+                                    <input type="text" name="nama" class="form-control" value="{{ old('nama') }}" required placeholder="Nama Lengkap">
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="small font-weight-bold">Nomor WhatsApp</label>
-                                    <input type="text" name="no_hp" class="form-control" value="{{ Auth::user()->no_hp ?? old('no_hp') }}" required placeholder="0812...">
+                                    <input type="text" name="no_hp" class="form-control" value="{{ old('no_hp') }}" required placeholder="0812...">
                                 </div>
                             </div>
 
                             <div class="form-section-title">Informasi Kendaraan</div>
                             <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="small font-weight-bold">Merek</label>
-                                    <input type="text" name="merek_kendaraan" class="form-control" placeholder="Honda"
-                                        required>
+                                <div class="col-md-4 mb-3">
+                                    <label class="small font-weight-bold">Merek Kendaraan</label>
+                                    <input type="text" name="merek_kendaraan" class="form-control" placeholder="Honda" required>
                                 </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="small font-weight-bold">Kategori Kendaraan</label>
-                                    <select name="tipe_kendaraan" class="form-control" required>
-                                        <option value="">-- Pilih --</option>
-                                        <option value="motor">Motor</option>
-                                        <option value="mobil">Mobil</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-6 mb-3">
+                                <div class="col-md-4 mb-3">
                                     <label class="small font-weight-bold">Model/Nama Kendaraan</label>
-                                    <input type="text" name="model_kendaraan" class="form-control"
-                                        placeholder="Contoh: Vario 150" required>
+                                    <input type="text" name="model_kendaraan" class="form-control" placeholder="Contoh: Vario 150" required>
                                 </div>
-                                <div class="col-md-6 mb-3">
+                                <div class="col-md-4 mb-3">
                                     <label class="small font-weight-bold">Nomor Plat</label>
-                                    <input type="text" name="nomor_plat" class="form-control" placeholder="B 1234 ABC"
-                                        required>
+                                    <input type="text" name="nomor_plat" class="form-control" placeholder="B 1234 ABC" required>
                                 </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="small font-weight-bold">Tahun</label>
-                                    <input type="number" name="tahun_kendaraan" class="form-control" placeholder="2021">
+                                <div class="col-md-4 mb-3">
+                                    <label class="small font-weight-bold">Tahun Keluaran</label>
+                                    <select name="tahun_kendaraan" class="form-control" required>
+                                        <option value="">-- Pilih Tahun --</option>
+                                        @for($i = date('Y'); $i >= 1990; $i--)
+                                            <option value="{{ $i }}">{{ $i }}</option>
+                                        @endfor
+                                    </select>
                                 </div>
                             </div>
 
@@ -144,8 +138,7 @@
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label class="small font-weight-bold">Tanggal Booking</label>
-                                    <input type="date" id="tanggal_booking" name="tanggal_booking" class="form-control"
-                                        min="{{ date('Y-m-d') }}" required>
+                                    <input type="date" id="tanggal_booking" name="tanggal_booking" class="form-control" required>
                                 </div>
                                 <div class="col-md-12 mb-3">
                                     <label class="small font-weight-bold">Jam Kedatangan</label>
@@ -160,10 +153,10 @@
                                 </div>
                             </div>
 
-                            <div class="mt-4 pt-3 border-top d-flex justify-content-between">
+                            <div class="mt-4 pt-3 border-top d-flex flex-column-reverse flex-sm-row justify-content-between align-items-center">
                                 <a href="{{ route('user.servis.katalog') }}"
-                                    class="btn btn-link text-muted font-weight-bold">Batal</a>
-                                <button type="submit" class="btn btn-primary px-5 font-weight-bold shadow-sm"
+                                    class="btn btn-link text-muted font-weight-bold mt-2 mt-sm-0 w-100 w-sm-auto text-center">Batal</a>
+                                <button type="submit" class="btn btn-primary px-5 font-weight-bold shadow-sm w-100 w-sm-auto"
                                     style="border-radius:10px;">
                                     <i class="fas fa-check-circle mr-2"></i> Buat Janji Servis
                                 </button>
@@ -177,31 +170,87 @@
 
     @push('scripts')
         <script>
+            // Set min date: jika jam sekarang >= 16 (jam terakhir slot),
+            // maka min date adalah besok karena semua slot hari ini sudah lewat
+            (function() {
+                let now = new Date();
+                // Jam operasional terakhir adalah 16:00
+                // Jika sudah >= jam 16, paksa pilih besok
+                let minDate;
+                if (now.getHours() >= 16) {
+                    let besok = new Date(now);
+                    besok.setDate(besok.getDate() + 1);
+                    minDate = besok.toISOString().split('T')[0];
+                } else {
+                    minDate = now.toISOString().split('T')[0];
+                }
+                $('#tanggal_booking').attr('min', minDate);
+            })();
+
             $('#tanggal_booking').on('change', function() {
                 let tgl = $(this).val();
                 let container = $('#slot-container');
-                container.html('<div class="spinner-border spinner-border-sm text-primary"></div> Memuat slot...');
+                container.html(
+                    '<div class="text-center py-3">' +
+                    '<span class="spinner-border spinner-border-sm text-primary mr-2"></span>' +
+                    'Memuat jadwal tersedia...</div>'
+                );
+                $('#selected_jam').val('');
 
                 $.ajax({
                     url: "{{ route('user.servis.slots') }}",
-                    data: {
-                        tanggal: tgl
-                    },
+                    data: { tanggal: tgl },
                     success: function(res) {
                         container.empty();
-                        res.forEach(function(s) {
-                            let disabledClass = s.tersedia ? '' : 'disabled';
-                            let info = s.tersedia ?
-                                `<small class="d-block text-xs text-success">${3-s.terisi} slot</small>` :
-                                '<small class="d-block text-xs text-danger">Penuh</small>';
+                        let slots = res.slots;
 
-                            container.append(`
-                        <div class="slot-item ${disabledClass}" data-jam="${s.jam}">
-                            <div class="font-weight-bold">${s.jam}</div>
-                            ${info}
-                        </div>
-                    `);
+                        if (slots.length === 0) {
+                            container.html(
+                                '<div class="text-muted small">Tidak ada slot tersedia.</div>'
+                            );
+                            return;
+                        }
+
+                        // Jika hari ini dan tidak ada slot tersedia sama sekali
+                        if (res.is_hari_ini && !res.ada_yang_tersedia) {
+                            container.html(
+                                '<div class="alert alert-warning py-2 px-3 small">' +
+                                '<i class="fas fa-clock mr-1"></i>' +
+                                'Semua jadwal untuk hari ini sudah tidak tersedia. ' +
+                                'Silakan pilih tanggal besok atau setelahnya.' +
+                                '</div>'
+                            );
+                            return;
+                        }
+
+                        slots.forEach(function(s) {
+                            let disabledClass = s.tersedia ? '' : 'disabled';
+                            let info = '';
+
+                            if (s.sudah_lewat) {
+                                info = '<small class="d-block text-xs text-muted">Sudah lewat</small>';
+                            } else if (!s.tersedia) {
+                                info = '<small class="d-block text-xs text-danger">Penuh</small>';
+                            } else {
+                                info = '<small class="d-block text-xs text-success">' + 
+                                       (3 - s.terisi) + ' slot</small>';
+                            }
+
+                            container.append(
+                                '<div class="slot-item ' + disabledClass + '" data-jam="' + s.jam + '">' +
+                                '<div class="font-weight-bold">' + s.jam + '</div>' +
+                                info +
+                                '</div>'
+                            );
                         });
+                    },
+                    error: function() {
+                        container.html(
+                            '<div class="text-danger small">' +
+                            '<i class="fas fa-exclamation-circle mr-1"></i>' +
+                            'Gagal memuat jadwal. Silakan coba lagi.' +
+                            '</div>'
+                        );
                     }
                 });
             });

@@ -14,8 +14,9 @@
 
     <!-- Alert for active only -->
     <div class="alert alert-info border-left-info shadow-sm py-2 px-3 mb-4">
-        <i class="fas fa-info-circle mr-2"></i> Menampilkan data booking yang <strong>sedang aktif</strong> (Menunggu & Diproses).
-        <a href="#" class="font-weight-bold text-info ml-1"> {{-- TODO: ganti ke token-based route --}} Lihat Histori Lengkap &raquo;</a>
+        <i class="fas fa-info-circle mr-2"></i>
+        Untuk melihat detail atau histori servis, gunakan 
+        <strong>link akses</strong> yang dikirim ke WhatsApp Anda saat booking.
     </div>
 
     <!-- Filter Card -->
@@ -70,7 +71,7 @@
                                     <div class="small text-muted">{{ $booking->jam_booking }} WIB</div>
                                 </td>
                                 <td class="px-4 py-3 align-middle">
-                                    <div class="text-uppercase small font-weight-bold">{{ $booking->merek_kendaraan }} {{ $booking->tipe_kendaraan }}</div>
+                                    <div class="text-uppercase small font-weight-bold">{{ $booking->merek_kendaraan }}</div>
                                     <div class="badge badge-dark">{{ $booking->nomor_plat }}</div>
                                 </td>
                                 <td class="px-4 py-3 align-middle text-center">
@@ -94,9 +95,15 @@
                                     </div>
                                 </td>
                                 <td class="px-4 py-3 align-middle text-center">
-                                    <a href="{{ route('user.servis.show', $booking->id) }}" class="btn btn-info btn-sm shadow-sm">
-                                        <i class="fas fa-eye fa-sm"></i> Detail
-                                    </a>
+                                    @if($booking->access_token)
+                                        <a href="{{ route('user.token.show', $booking->access_token) }}" class="btn btn-info btn-sm shadow-sm">
+                                            <i class="fas fa-eye fa-sm"></i> Detail
+                                        </a>
+                                    @else
+                                        <a href="#" class="btn btn-info btn-sm shadow-sm disabled">
+                                            <i class="fas fa-eye fa-sm"></i> Detail
+                                        </a>
+                                    @endif
                                 </td>
                             </tr>
                         @empty
@@ -108,10 +115,7 @@
                                     <h5 class="text-gray-600">Tidak ada booking aktif</h5>
                                     <p class="text-muted">Semua booking Anda telah selesai atau dibatalkan.</p>
                                     <div class="mt-3">
-                                        <a href="#" class="btn btn-outline-info mr-2"> {{-- TODO: ganti ke token-based route --}}
-                                            Lihat Histori
-                                        </a>
-                                        <a href="{{ route('user.gateway') }}#servis-section" class="btn btn-primary">
+                                        <a href="{{ route('user.servis.katalog') }}" class="btn btn-primary">
                                             Buat Booking Baru
                                         </a>
                                     </div>

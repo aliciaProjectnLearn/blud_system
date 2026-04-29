@@ -25,6 +25,8 @@ class BookingServis extends Model
         'catatan_admin',
         'teknisi_id',
         'access_token',
+        'nama_pemesan',
+        'no_hp'
     ];
 
     protected $casts = [
@@ -77,6 +79,16 @@ class BookingServis extends Model
     public function pembayaranServis()
     {
         return $this->hasOne(PembayaranServis::class, 'booking_servis_id');
+    }
+
+    public function fotoServis()
+    {
+        return $this->hasMany(FotoServis::class, 'booking_servis_id');
+    }
+
+    public function penggajianTeknisi()
+    {
+        return $this->hasOne(PenggajianTeknisi::class, 'booking_servis_id');
     }
 
     /**
