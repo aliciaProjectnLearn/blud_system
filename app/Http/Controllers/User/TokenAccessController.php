@@ -98,7 +98,11 @@ class TokenAccessController extends Controller
 
         // Update status
         if (isset($booking->status)) {
-            $booking->status = 'dibatalkan';
+            if ($booking instanceof \App\Models\BookingServis) {
+                $booking->status = 'batal';
+            } else {
+                $booking->status = 'dibatalkan';
+            }
             $booking->save();
         }
         

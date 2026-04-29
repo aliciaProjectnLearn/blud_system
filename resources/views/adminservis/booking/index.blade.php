@@ -66,11 +66,11 @@
                     @forelse($bookings as $booking)
                         <tr>
                             <td>
-                                <div class="font-weight-bold text-gray-800">{{ $booking->user->nama_lengkap ?? $booking->user->name }}</div>
-                                <div class="small text-muted">{{ $booking->user->no_hp ?? '-' }}</div>
+                                <div class="font-weight-bold text-gray-800">{{ $booking->nama_pemesan }}</div>
+                                <div class="small text-muted">{{ $booking->no_hp }}</div>
                                 <div class="mt-1">
-                                    <span class="badge badge-secondary py-1 px-2">{{ strtoupper($booking->tipe_kendaraan) }}</span>
-                                    <code class="ml-1">{{ $booking->nomor_plat }}</code>
+                                    <span class="badge badge-secondary py-1 px-2">{{ $booking->layananServis->nama_layanan ?? '-' }}</span>
+                                    <code class="ml-1">{{ $booking->merek_kendaraan }} - {{ $booking->nomor_plat }}</code>
                                 </div>
                             </td>
                             <td>{{ $booking->tanggal_booking->translatedFormat('d M Y') }}</td>

@@ -40,7 +40,9 @@ class DashboardController extends Controller
             ->whereNotIn('status', ['selesai', 'batal']);
 
         if ($tipeKendaraan) {
-            $queryAktif->where('tipe_kendaraan', $tipeKendaraan);
+            $queryAktif->whereHas('layananServis', function($q) use ($tipeKendaraan) {
+                $q->where('tipe_kendaraan', $tipeKendaraan);
+            });
         }
         if ($status) {
             $queryAktif->where('status', $status);
@@ -57,7 +59,9 @@ class DashboardController extends Controller
             ->where('status', 'selesai');
 
         if ($tipeKendaraan) {
-            $queryHistori->where('tipe_kendaraan', $tipeKendaraan);
+            $queryHistori->whereHas('layananServis', function($q) use ($tipeKendaraan) {
+                $q->where('tipe_kendaraan', $tipeKendaraan);
+            });
         }
         if ($tanggal) {
             $queryHistori->whereDate('tanggal_booking', $tanggal);
@@ -72,7 +76,9 @@ class DashboardController extends Controller
             ->whereYear('updated_at', now()->year);
 
         if ($tipeKendaraan) {
-            $queryTotal->where('tipe_kendaraan', $tipeKendaraan);
+            $queryTotal->whereHas('layananServis', function($q) use ($tipeKendaraan) {
+                $q->where('tipe_kendaraan', $tipeKendaraan);
+            });
         }
 
         $totalSelesaiBulanIni = $queryTotal->count();

@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\KategoriKomponen;
 use App\Models\Produk;
+use App\Models\ProdukServis;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -111,6 +112,22 @@ class ProdukSeeder extends Seeder
             Produk::updateOrCreate(
                 ['nama_produk' => $produk['nama_produk']],
                 $produk
+            );
+        }
+
+        // Seed Produk Servis Kendaraan
+        $produkServis = [
+            ['nama_produk' => 'Oli Mesin Castrol 10W-40', 'tipe_kendaraan' => 'mobil', 'harga' => 350000, 'stok' => 20, 'satuan' => 'Pcs'],
+            ['nama_produk' => 'Oli Mesin Yamalube Sport', 'tipe_kendaraan' => 'motor', 'harga' => 65000, 'stok' => 50, 'satuan' => 'Pcs'],
+            ['nama_produk' => 'Kampas Rem Depan Honda Beat', 'tipe_kendaraan' => 'motor', 'harga' => 45000, 'stok' => 15, 'satuan' => 'Pcs'],
+            ['nama_produk' => 'Filter Udara Avanza/Xenia', 'tipe_kendaraan' => 'mobil', 'harga' => 125000, 'stok' => 10, 'satuan' => 'Pcs'],
+            ['nama_produk' => 'Busi NGK CPR9EA-9', 'tipe_kendaraan' => 'motor', 'harga' => 25000, 'stok' => 100, 'satuan' => 'Pcs']
+        ];
+
+        foreach ($produkServis as $ps) {
+            ProdukServis::updateOrCreate(
+                ['nama_produk' => $ps['nama_produk']],
+                $ps
             );
         }
     }

@@ -44,12 +44,12 @@
                                 <tr>
                                     <td class="text-muted small" width="40%">Nama</td>
                                     <td class="font-weight-bold">
-                                        {{ $booking->pelanggan->name ?? 'N/A' }}
+                                        {{ $booking->nama_pemesan ?? $booking->pelanggan->name ?? 'N/A' }}
                                     </td>
                                 </tr>
                                 <tr>
                                     <td class="text-muted small">Telepon</td>
-                                    <td>{{ $booking->pelanggan->phone ?? '-' }}</td>
+                                    <td>{{ $booking->no_hp ?? $booking->pelanggan->no_hp ?? '-' }}</td>
                                 </tr>
                                 <tr>
                                     <td class="text-muted small">Layanan</td>
@@ -62,7 +62,7 @@
                                 <tr>
                                     <td class="text-muted small" width="40%">Kendaraan</td>
                                     <td class="font-weight-bold text-uppercase">
-                                        {{ $booking->merek_kendaraan }} {{ $booking->tipe_kendaraan }}
+                                        {{ $booking->merek_kendaraan }}
                                     </td>
                                 </tr>
                                 <tr>
@@ -153,10 +153,15 @@
         {{-- Kolom Kanan: Form Pembayaran --}}
         <div class="col-lg-5">
             <div class="card shadow mb-4">
-                <div class="card-header py-3 bg-success text-white">
+                <div class="card-header py-3 bg-success text-white d-flex justify-content-between align-items-center">
                     <h6 class="m-0 font-weight-bold">
                         <i class="fas fa-cash-register mr-1"></i> Form Konfirmasi Pembayaran
                     </h6>
+                    @if($booking->pembayaranServis?->kode_pembayaran)
+                        <small class="opacity-75">
+                            {{ $booking->pembayaranServis->kode_pembayaran }}
+                        </small>
+                    @endif
                 </div>
                 <div class="card-body">
 
@@ -187,6 +192,22 @@
 
                             <div class="form-group">
                                 <label class="font-weight-bold small">
+                                    Total Biaya (Manual Override)
+                                </label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">Rp</span>
+                                    </div>
+                                    <input type="number" name="total_biaya"
+                                           class="form-control"
+                                           value="{{ old('total_biaya', $totalBiaya) }}"
+                                           min="0" required>
+                                </div>
+                                <small class="text-muted">Biaya default dihitung otomatis dari rincian servis. Anda bisa mengubahnya jika diperlukan.</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="font-weight-bold small">
                                     Metode Pembayaran <span class="text-danger">*</span>
                                 </label>
                                 <select name="tipe_pembayaran"
@@ -195,15 +216,15 @@
                                     <option value="">-- Pilih Metode --</option>
                                     <option value="tunai"
                                         {{ old('tipe_pembayaran') == 'tunai' ? 'selected' : '' }}>
-                                        💵 Tunai
+                                        Tunai
                                     </option>
                                     <option value="transfer"
                                         {{ old('tipe_pembayaran') == 'transfer' ? 'selected' : '' }}>
-                                        🏦 Transfer Bank
+                                        Transfer Bank
                                     </option>
                                     <option value="qris"
                                         {{ old('tipe_pembayaran') == 'qris' ? 'selected' : '' }}>
-                                        📱 QRIS
+                                        QRIS
                                     </option>
                                 </select>
                                 @error('tipe_pembayaran')
@@ -224,8 +245,7 @@
                             {{-- Tombol Konfirmasi dengan double-submit protection --}}
                             <button type="submit"
                                     class="btn btn-success btn-block btn-lg"
-                                    id="btnKonfirmasi"
-                                    onclick="return konfirmasiPembayaran()">
+                                    id="btnKonfirmasi">
                                 <i class="fas fa-check-circle mr-1"></i>
                                 Konfirmasi Pembayaran
                             </button>
@@ -240,17 +260,7 @@
                 </div>
             </div>
 
-            {{-- Info Kode Pembayaran jika sudah ada --}}
-            @if($booking->pembayaranServis)
-                <div class="card border-left-info shadow mb-4">
-                    <div class="card-body py-2">
-                        <div class="small text-muted">Kode Pembayaran</div>
-                        <div class="font-weight-bold">
-                            {{ $booking->pembayaranServis->kode_pembayaran }}
-                        </div>
-                    </div>
-                </div>
-            @endif
+
         </div>
     </div>
 </div>
@@ -258,31 +268,46 @@
 
 @push('scripts')
 <script>
-    let sudahDiklik = false;
+$(document).ready(function() {
+    $('#formPembayaran').on('submit', function(e) {
+        e.preventDefault();
 
-    function konfirmasiPembayaran() {
-        if (sudahDiklik) {
-            alert('Pembayaran sedang diproses, harap tunggu.');
-            return false;
+        const tipe = $('select[name="tipe_pembayaran"]').val();
+        if (!tipe) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Pilih Metode Pembayaran',
+                text: 'Harap pilih metode pembayaran terlebih dahulu.',
+                confirmButtonColor: '#4e73df'
+            });
+            return;
         }
 
-        const tipe = document.querySelector('select[name="tipe_pembayaran"]').value;
-        if (!tipe) return false;
+        const totalFormatted = 'Rp {{ number_format($totalBiaya, 0, ",", ".") }}';
+        const tipeLabel = {
+            'tunai': 'Tunai',
+            'transfer': 'Transfer Bank',
+            'qris': 'QRIS'
+        }[tipe] || tipe;
 
-        const konfirmasi = confirm(
-            'Konfirmasi pembayaran dengan metode: ' + tipe.toUpperCase() + '?\n\n' +
-            'Total: Rp {{ number_format($totalBiaya, 0, ",", ".") }}\n\n' +
-            'Tindakan ini tidak dapat dibatalkan.'
-        );
-
-        if (konfirmasi) {
-            sudahDiklik = true;
-            document.getElementById('btnKonfirmasi').disabled = true;
-            document.getElementById('btnKonfirmasi').innerHTML =
-                '<i class="fas fa-spinner fa-spin mr-1"></i> Memproses...';
-            return true;
-        }
-        return false;
-    }
+        Swal.fire({
+            title: 'Konfirmasi Pembayaran',
+            html: `Metode: <strong>${tipeLabel}</strong><br>Total: <strong>${totalFormatted}</strong><br><br><small class="text-muted">Tindakan ini tidak dapat dibatalkan.</small>`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#1cc88a',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Ya, Konfirmasi!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $('#btnKonfirmasi')
+                    .prop('disabled', true)
+                    .html('<i class="fas fa-spinner fa-spin mr-1"></i> Memproses...');
+                $('#formPembayaran')[0].submit();
+            }
+        });
+    });
+});
 </script>
 @endpush
