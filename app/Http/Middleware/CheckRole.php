@@ -13,10 +13,10 @@ class CheckRole
         $user = $request->user();
 
         if (!$user) {
+            \Log::info('CheckRole: no user, redirect login');
             return redirect()->route('login');
         }
 
-        // Support multiple roles dipisah pipe: role:Superadmin|Adminfutsal|Adminkantin
         $allowedRoles = explode('|', $role);
 
         $hasRole = DB::table('roles_users')
@@ -24,6 +24,14 @@ class CheckRole
             ->where('roles_users.user_id', $user->id)
             ->whereIn('roles.nama', $allowedRoles)
             ->exists();
+
+        \Log::info('CheckRole debug', [
+            'user_id'      => $user->id,
+            'email'        => $user->email,
+            'allowedRoles' => $allowedRoles,
+            'hasRole'      => $hasRole,
+            'url'          => $request->url(),
+        ]);
 
         if (!$hasRole) {
             abort(403, 'Akses ditolak.');

@@ -64,6 +64,8 @@ class AuthController extends Controller
                 $dashboardRoute = route('teknisi.servis.dashboard');
             } elseif ($roleName === 'kasir') {
                 $dashboardRoute = route('kasir.dashboard');
+            } elseif ($roleName === 'kasirfutsal') {
+                $dashboardRoute = route('kasirfutsal.dashboard');
             } elseif ($roleName === 'pelanggan') {
                 // Pelanggan tidak seharusnya login via internal page
                 Auth::logout();

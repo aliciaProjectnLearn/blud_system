@@ -51,6 +51,7 @@ class AuthenticatedSessionController extends Controller
             'adminac'      => route('adminac.dashboard'),
             'adminservis'  => route('adminservis.dashboard'),
             'kasirservis'  => route('kasir.dashboard'),
+            'kasirfutsal'  => route('kasirfutsal.dashboard'),
             'teknisiac'    => route('teknisi.dashboard'),
             'teknisiservis' => route('teknisi.dashboard'),
             default        => route('gateway'),

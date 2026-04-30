@@ -34,7 +34,7 @@
                             <td>:</td>
                             <td>
                                 @if($transaksi->jenis_transaksi == 'membership')
-                                    <span class="badge badge-info shadow-sm"><i class="fas fa-id-card"></i> Membership</span>
+                                    <span class="badge badge-info shadow-sm"><i class="fas fa-id-card"></i> Paket</span>
                                 @elseif($transaksi->jenis_transaksi == 'event')
                                     <span class="badge badge-warning shadow-sm text-dark"><i class="fas fa-calendar-alt"></i> Event</span>
                                 @elseif($transaksi->jenis_transaksi == 'guest')
@@ -47,23 +47,38 @@
                         <tr>
                             <td><strong>Nama Pelanggan</strong></td>
                             <td>:</td>
-                            <td>{{ $transaksi->booking->user->name ?? 'Guest/Unknown' }}</td>
+                            <td>
+                                @if($transaksi->jenis_transaksi === 'membership')
+                                    @php $membership = \App\Models\Membership::where('transaksi_id', $transaksi->id)->first(); @endphp
+                                    {{ $membership->user->name ?? 'Guest/Unknown' }}
+                                @else
+                                    {{ $transaksi->booking->bookingFutsal->nama_pemesan ?? $transaksi->booking->user->name ?? 'Guest/Unknown' }}
+                                @endif
+                            </td>
                         </tr>
                         <tr>
                             <td><strong>Nama Lapangan</strong></td>
                             <td>:</td>
-                            <td>{{ $transaksi->booking->bookingFutsal->lapangan->nama ?? '-' }}</td>
+                            <td>
+                                @if($transaksi->jenis_transaksi === 'membership')
+                                    -
+                                @else
+                                    {{ $transaksi->booking->bookingFutsal->lapangan->nama ?? '-' }}
+                                @endif
+                            </td>
                         </tr>
                         
-                        {{-- TAMBAHAN BARU: Informasi Jadwal --}}
+                        {{-- Informasi Jadwal --}}
                         <tr>
                             <td><strong>Jadwal Main</strong></td>
                             <td>:</td>
                             <td>
-                                @if($transaksi->booking && $transaksi->booking->bookingFutsal)
+                                @if($transaksi->jenis_transaksi === 'membership')
+                                    -
+                                @elseif($transaksi->booking && $transaksi->booking->bookingFutsal)
                                     @php $bf = $transaksi->booking->bookingFutsal; @endphp
                                     
-                                    @if($bf->type === 'event')
+                                    @if($transaksi->jenis_transaksi === 'event')
                                         <span class="text-warning font-weight-bold">
                                             {{ \Carbon\Carbon::parse($bf->start_datetime)->format('d M Y') }} s/d {{ \Carbon\Carbon::parse($bf->end_datetime)->format('d M Y') }}
                                         </span>
@@ -111,6 +126,8 @@
                                     <span class="badge px-3 py-2" style="background:#6366f1;color:#fff;"><i class="fas fa-qrcode mr-1"></i> QRIS</span>
                                 @elseif($tipe === 'Tunai')
                                     <span class="badge badge-success px-3 py-2"><i class="fas fa-money-bill-wave mr-1"></i> Tunai (Bayar di Kasir)</span>
+                                @elseif($tipe === 'Membership' || $tipe === 'Paket/Membership')
+                                    <span class="badge badge-info px-3 py-2"><i class="fas fa-id-card mr-1"></i> Paket (Potong Kuota)</span>
                                 @elseif($tipe)
                                     <span class="badge badge-secondary px-3 py-2">{{ $tipe }}</span>
                                 @else
@@ -145,7 +162,7 @@
                             @else
                                 <div class="alert alert-info">
                                     <i class="fas fa-info-circle"></i> 
-                                    Harga membership akan otomatis diambil dari paket yang dipilih pelanggan.
+                                    Harga paket akan otomatis diambil dari paket yang dipilih pelanggan.
                                 </div>
                             @endif
 

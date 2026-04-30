@@ -15,24 +15,22 @@
         </a>
     </div>
 
-    {{-- Membership Info Banner --}}
-    @if($membership)
-    <div class="alert alert-success border-left-success shadow-sm mb-4" role="alert">
+    {{-- Paket Info Banner --}}
+    <div x-show="hasMembership && membershipData" class="alert alert-success border-left-success shadow-sm mb-4" role="alert" x-cloak>
         <div class="d-flex align-items-center">
             <i class="fas fa-id-card fa-2x text-success mr-3"></i>
             <div>
-                <strong>Membership Aktif</strong> — {{ $membership->paket->nama_paket ?? 'Paket Membership' }}<br>
-                <small>Sisa kuota: <strong>{{ $membership->sisa_kuota }}</strong> jam dari
-                    <strong>{{ $membership->total_kuota }}</strong> jam total</small>
+                <strong>Paket Aktif</strong> — <span x-text="membershipData?.paket?.nama_paket"></span><br>
+                <small>Sisa kuota: <strong x-text="membershipKuota"></strong> jam dari
+                    <strong x-text="membershipData?.total_kuota"></strong> jam total</small>
             </div>
         </div>
     </div>
-    @else
-    <div class="alert alert-info border-left-info shadow-sm mb-4" role="alert">
+    
+    <div x-show="form.no_hp && !hasMembership && !checkingMembership" class="alert alert-info border-left-info shadow-sm mb-4" role="alert" x-cloak>
         <i class="fas fa-info-circle mr-2"></i>
-        Anda belum memiliki membership aktif. Pembayaran tersedia via <strong>QRIS</strong> atau <strong>Tunai (Bayar di Kasir)</strong>.
+        Anda tidak memiliki paket booking aktif. Pembayaran tersedia via <strong>QRIS</strong> atau <strong>Tunai (Bayar di Kasir)</strong>.
     </div>
-    @endif
 
     <div class="row">
 
@@ -66,7 +64,7 @@
                                     <label class="font-weight-bold text-gray-700">
                                         <i class="fas fa-user text-primary mr-1"></i> Nama Lengkap
                                     </label>
-                                    <input type="text" name="nama" class="form-control" value="{{ Auth::user()->nama_lengkap ?? old('nama') }}" required placeholder="Contoh: Budi Santoso">
+                                    <input type="text" name="nama_pemesan" class="form-control" x-model="form.nama_pemesan" required placeholder="Nama lengkap Anda">
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -74,7 +72,8 @@
                                     <label class="font-weight-bold text-gray-700">
                                         <i class="fas fa-phone text-primary mr-1"></i> Nomor WhatsApp
                                     </label>
-                                    <input type="text" name="no_hp" class="form-control" value="{{ Auth::user()->no_hp ?? old('no_hp') }}" required placeholder="Contoh: 08123456789">
+                                    <input type="tel" name="no_hp" class="form-control" x-model="form.no_hp" required placeholder="08xxxxxxxxxx">
+                                    <small x-show="form.no_hp && !isNoHpValid" class="text-danger">Nomor HP harus diawali 08 dan minimal 10 digit.</small>
                                 </div>
                             </div>
                         </div>
@@ -90,7 +89,7 @@
                                     <div class="d-flex align-items-center">
                                         <i class="fas fa-clock fa-lg text-primary mr-3"></i>
                                         <div>
-                                            <div class="font-weight-bold">Tunai/QRIS/Membership</div>
+                                            <div class="font-weight-bold">Reguler</div>
                                             <small class="text-muted">Booking per jam (maks 3 jam)</small>
                                         </div>
                                     </div>
@@ -176,6 +175,14 @@
                             @enderror
                         </div>
 
+                        {{-- Info Jam Operasional --}}
+                        <div x-show="jam_buka && jam_tutup" class="alert alert-info py-2 mt-2" x-cloak>
+                            <i class="fas fa-info-circle mr-1"></i> Jam Operasional: <strong x-text="jam_buka.substring(0,5)"></strong> - <strong x-text="jam_tutup.substring(0,5)"></strong>
+                        </div>
+                        <div x-show="!jam_buka && form.tanggal && !slotLoading" class="alert alert-danger py-2 mt-2" x-cloak>
+                            <i class="fas fa-exclamation-triangle mr-1"></i> Lapangan tutup pada hari ini.
+                        </div>
+
                         {{-- Pilih Jam Mulai --}}
                         <div class="form-group" x-show="form.type === 'regular'" :required="form.type === 'regular' && (slots.length > 0 || slotLoading)" x-cloak>
                             <label class="font-weight-bold text-gray-700">
@@ -192,7 +199,7 @@
                             <div x-show="!slotLoading && slots.length > 0" class="slot-grid">
                                 <template x-for="slot in slots" :key="slot.id">
                                     <label class="slot-card"
-                                           :class="{ 'slot-card--selected': form.jam_mulai_id == slot.id, 'slot-card--booked': slot.is_booked }">
+                                           :class="{ 'slot-card--selected': form.jam_mulai_id == slot.id, 'slot-card--booked': slot.booked }">
                                         <input type="radio"
                                                name="jam_mulai_id"
                                                :value="slot.id"
@@ -203,7 +210,15 @@
                                             <i class="fas fa-clock"></i>
                                             <span x-text="slot.jam_mulai_display || formatTime(slot.jam_mulai)"></span>
                                         </div>
-                                        <small class="text-muted" x-text="'s/d ' + (slot.jam_selesai_display || formatTime(slot.jam_selesai))"></small>
+                                        <template x-if="slot.is_school_hour">
+                                            <small class="text-danger font-weight-bold mt-1">Jam Sekolah</small>
+                                        </template>
+                                        <template x-if="!slot.is_school_hour && slot.booked">
+                                            <small class="text-muted mt-1">Terisi</small>
+                                        </template>
+                                        <template x-if="!slot.booked">
+                                            <small class="text-muted" x-text="'s/d ' + (slot.jam_selesai_display || formatTime(slot.jam_selesai))"></small>
+                                        </template>
                                     </label>
                                 </template>
                             </div>
@@ -293,11 +308,11 @@
                                     </div>
                                 </label>
 
-                                {{-- Membership --}}
-                                @if($membership)
+                                {{-- Paket --}}
                                 <label class="payment-card"
+                                       x-show="hasMembership && form.type === 'regular'"
                                        :class="{ 'payment-card--selected': form.metode_pembayaran === 'membership', 'payment-card--disabled': !isMembershipEnough }"
-                                       :title="!isMembershipEnough ? 'Kuota membership tidak mencukupi' : ''">
+                                       :title="!isMembershipEnough ? 'Kuota paket tidak mencukupi' : ''">
                                     <input type="radio" value="membership"
                                            x-model="form.metode_pembayaran"
                                            :disabled="!isMembershipEnough"
@@ -305,8 +320,8 @@
                                     <div class="d-flex align-items-center">
                                         <i class="fas fa-id-card fa-lg text-info mr-3"></i>
                                         <div>
-                                            <div class="font-weight-bold">Membership</div>
-                                            <small class="text-muted">Gunakan kuota membership aktif</small>
+                                            <div class="font-weight-bold">Paket Booking</div>
+                                            <small class="text-muted">Gunakan kuota paket aktif</small>
                                             <br>
                                             <small x-show="!isMembershipEnough" class="text-danger">
                                                 <i class="fas fa-exclamation-circle"></i> Kuota tidak cukup
@@ -314,17 +329,16 @@
                                         </div>
                                     </div>
                                 </label>
-                                @else
-                                <div class="payment-card payment-card--disabled">
+                                
+                                <div class="payment-card payment-card--disabled" x-show="!hasMembership && form.type === 'regular'">
                                     <div class="d-flex align-items-center">
                                         <i class="fas fa-id-card fa-lg text-muted mr-3"></i>
                                         <div>
-                                            <div class="font-weight-bold text-muted">Membership</div>
-                                            <small class="text-muted">Tidak tersedia (belum memiliki membership aktif)</small>
+                                            <div class="font-weight-bold text-muted">Paket Booking</div>
+                                            <small class="text-muted">Tidak tersedia (belum memiliki paket aktif)</small>
                                         </div>
                                     </div>
                                 </div>
-                                @endif
                             </div>
                             @error('jenis_pembayaran')
                             <div class="text-danger small mt-1"><i class="fas fa-exclamation-circle"></i> {{ $message }}</div>
@@ -344,7 +358,7 @@
                                              onclick="window.open(this.src, '_blank')">
                                         <p class="small text-muted mt-2 mb-0" x-show="form.metode_pembayaran === 'membership' && isFirstMembership">
                                             <i class="fas fa-exclamation-triangle mr-1"></i>
-                                            <strong>Pendaftaran Membership:</strong> Silahkan bayar biaya paket sebesar <strong x-text="summary.totalHargaTampil"></strong> via QRIS di atas.
+                                            <strong>Pendaftaran Paket:</strong> Silahkan bayar biaya paket sebesar <strong x-text="summary.totalHargaTampil"></strong> via QRIS di atas.
                                         </p>
                                         <p class="small text-muted mt-2 mb-0" x-show="form.metode_pembayaran === 'transfer'">
                                             <i class="fas fa-info-circle mr-1"></i>
@@ -371,7 +385,8 @@
                         <input type="hidden" name="jam_mulai_id" x-bind:value="form.jam_mulai_id">
                         <input type="hidden" name="durasi_main" x-bind:value="form.durasi_main">
                         <input type="hidden" name="jenis_pembayaran" x-bind:value="form.type === 'event' ? 'reguler' : (['transfer', 'tunai'].includes(form.metode_pembayaran) ? 'reguler' : 'membership')">
-                        <input type="hidden" name="tipe_pembayaran_id" x-bind:value="form.metode_pembayaran === 'transfer' ? 3 : 2">
+                        <input type="hidden" name="metode_pembayaran" x-bind:value="form.metode_pembayaran">
+                        <input type="hidden" name="tipe_pembayaran_id" x-bind:value="form.metode_pembayaran === 'transfer' ? 3 : (form.metode_pembayaran === 'membership' ? 4 : 2)">
                         <input type="hidden" name="type" x-bind:value="form.type">
                         <input type="hidden" name="start_datetime" x-bind:value="form.start_datetime">
                         <input type="hidden" name="end_datetime" x-bind:value="form.end_datetime">
@@ -448,7 +463,7 @@
                     <div class="mt-3 p-2 rounded" style="background:#f8f9fc;">
                         <small class="text-muted">
                             <i class="fas fa-info-circle mr-1"></i>
-                            <span x-show="form.metode_pembayaran === 'membership' && !isFirstMembership">Booking menggunakan kuota membership. Berhasil otomatis.</span>
+                            <span x-show="form.metode_pembayaran === 'membership' && !isFirstMembership">Booking menggunakan kuota paket. Berhasil otomatis.</span>
                             <span x-show="form.metode_pembayaran !== 'membership' || isFirstMembership">Booking akan berstatus <strong>Menunggu</strong> hingga dikonfirmasi oleh admin.</span>
                         </small>
                     </div>
@@ -463,11 +478,21 @@
                     </h6>
                 </div>
                 <div class="card-body">
+                    <div x-show="form.type === 'event'" class="mb-3 p-2 rounded border-left border-info" style="background:#f0f8ff;">
+                        <h6 class="font-weight-bold text-info small"><i class="fas fa-info-circle"></i> Info Booking Event:</h6>
+                        <ul class="pl-3 mb-0 text-muted extra-small" style="font-size: 0.8rem;">
+                            <li class="mb-1">Sewa berlaku <strong>Full Day</strong> (00:00 - 23:59) setiap harinya.</li>
+                            <li class="mb-1">Biaya dihitung per hari (inklusif tanggal mulai & selesai).</li>
+                            <li>Pastikan rentang tanggal tidak bentrok dengan booking lain.</li>
+                        </ul>
+                    </div>
+
                     <ol class="pl-3 mb-0 small text-gray-700">
                         <li class="mb-2">Pilih lapangan yang ingin Anda gunakan</li>
-                        <li class="mb-2">Pilih tanggal main</li>
-                        <li class="mb-2">Pilih slot jam yang tersedia</li>
-                        <li class="mb-2">Tentukan durasi bermain (1–3 jam)</li>
+                        <li class="mb-2" x-show="form.type === 'regular'">Pilih tanggal main</li>
+                        <li class="mb-2" x-show="form.type === 'event'">Tentukan tanggal mulai & selesai event</li>
+                        <li class="mb-2">Pilih slot jam yang tersedia <span x-show="form.type === 'event'">(Otomatis Full Day)</span></li>
+                        <li class="mb-2" x-show="form.type === 'regular'">Tentukan durasi bermain (1–3 jam)</li>
                         <li class="mb-2">Pilih metode pembayaran</li>
                         <li>Klik <strong>Konfirmasi & Buat Booking</strong></li>
                     </ol>
@@ -640,12 +665,16 @@ function bookingForm() {
         hargaEvent: {{ \App\Models\Pengaturan::first()->harga_event_futsal ?? 800000 }},
         hargaPaket: {{ $membership->paket->harga ?? 0 }},
 
-        isFirstMembership: {{ $isFirstBooking ? 'true' : 'false' }},
-        membershipKuota: {{ $membership ? $membership->sisa_kuota : 0 }},
-        hasMembership: {{ $membership ? 'true' : 'false' }},
+        isFirstMembership: false,
+        membershipKuota: 0,
+        hasMembership: false,
+        membershipData: null,
+        checkingMembership: false,
         eventPesan: '',
 
         form: {
+            nama_pemesan: '{{ old('nama_pemesan', '') }}',
+            no_hp: '{{ old('no_hp', '') }}',
             type: '{{ old('type', 'regular') }}',
             lapangan_id: '{{ old('lapangan_id', '') }}',
             tanggal: '{{ old('tanggal', '') }}',
@@ -656,6 +685,9 @@ function bookingForm() {
             end_datetime: '{{ old('end_datetime', '') }}',
             has_bukti: false,
         },
+
+        jam_buka: null,
+        jam_tutup: null,
 
         today: '',
         slots: [],
@@ -720,7 +752,13 @@ function bookingForm() {
             return this.membershipKuota >= parseInt(this.form.durasi_main);
         },
 
+        get isNoHpValid() {
+            return this.form.no_hp && this.form.no_hp.startsWith('08') && this.form.no_hp.length >= 10;
+        },
+
         get isFormValid() {
+            if (!this.form.nama_pemesan || !this.isNoHpValid) return false;
+
             if (this.form.type === 'event') {
                 return this.form.lapangan_id && 
                        this.form.start_datetime && 
@@ -747,6 +785,58 @@ function bookingForm() {
             // Jika ada old input, muat ulang slot
             if (this.form.lapangan_id && this.form.tanggal) {
                 this.fetchSlots();
+            }
+
+            // Watch no_hp
+            this.$watch('form.no_hp', (val) => {
+                if (val && val.startsWith('08') && val.length >= 10) {
+                    this.checkMembership(val);
+                } else {
+                    this.resetMembership();
+                }
+            });
+
+            // Watch type
+            this.$watch('form.type', (val) => {
+                if (val === 'event' && this.form.metode_pembayaran === 'membership') {
+                    this.form.metode_pembayaran = 'transfer';
+                }
+            });
+            
+            // Initial check if old no_hp exists
+            if (this.form.no_hp) {
+                this.checkMembership(this.form.no_hp);
+            }
+        },
+
+        checkMembership(no_hp) {
+            this.checkingMembership = true;
+            axios.get(`/user/futsal/api/check-membership?no_hp=${no_hp}`)
+                .then(res => {
+                    if (res.data.success && res.data.membership) {
+                        this.hasMembership = true;
+                        this.membershipKuota = res.data.membership.sisa_kuota;
+                        this.membershipData = res.data.membership;
+                        // If they have enough kuota, auto-select if they want? Or let them choose.
+                    } else {
+                        this.resetMembership();
+                    }
+                })
+                .catch(err => {
+                    console.error('Failed checking membership', err);
+                    this.resetMembership();
+                })
+                .finally(() => {
+                    this.checkingMembership = false;
+                });
+        },
+
+        resetMembership() {
+            this.hasMembership = false;
+            this.membershipKuota = 0;
+            this.membershipData = null;
+            if (this.form.metode_pembayaran === 'membership') {
+                this.form.metode_pembayaran = 'transfer';
             }
         },
 
@@ -786,6 +876,8 @@ function bookingForm() {
         async fetchSlots() {
             this.slotLoading = true;
             this.slots = [];
+            this.jam_buka = null;
+            this.jam_tutup = null;
             this.eventPesan = '';
             try {
                 const response = await axios.get('{{ route('user.futsal.booking.check') }}', {
@@ -797,7 +889,19 @@ function bookingForm() {
                 if (response.data.event) {
                     this.eventPesan = response.data.pesan;
                 } else if (response.data.success) {
-                    this.slots = response.data.slots;
+                    let currentSlots = response.data.slots;
+                    if (this.form.tanggal === this.today) {
+                        const now = new Date();
+                        const currentHour = now.getHours();
+                        const currentMin = now.getMinutes();
+                        currentSlots = currentSlots.filter(s => {
+                            let [h, m] = s.jam_mulai.split(':').map(Number);
+                            return h > currentHour || (h === currentHour && m > currentMin);
+                        });
+                    }
+                    this.slots = currentSlots;
+                    this.jam_buka = response.data.jam_buka;
+                    this.jam_tutup = response.data.jam_tutup;
 
                     // Restore old selected slot jika ada
                     const oldId = '{{ old('jam_mulai_id', '') }}';
@@ -837,8 +941,11 @@ function bookingForm() {
             if (!this.form.start_datetime || !this.form.end_datetime) return 0;
             const start = new Date(this.form.start_datetime);
             const end = new Date(this.form.end_datetime);
-            const diff = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
-            return Math.max(1, diff);
+            start.setHours(0,0,0,0);
+            end.setHours(0,0,0,0);
+            const diffTime = Math.abs(end - start);
+            const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+            return diffDays + 1;
         },
 
         formatRupiah(angka) {

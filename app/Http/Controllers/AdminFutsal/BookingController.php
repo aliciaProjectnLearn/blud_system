@@ -157,7 +157,6 @@ class BookingController extends Controller
 
             BookingFutsal::create([
                 'booking_id' => $booking->id,
-                'user_id' => $request->user_id,
                 'lapangan_id' => $lapangan->id,
                 'type' => $request->type,
                 'start_datetime' => $startDateTime->format('Y-m-d H:i:s'),
@@ -219,10 +218,11 @@ class BookingController extends Controller
             }
 
             $booking->update(['status' => 'dibatalkan']);
+            $bookingFutsal->update(['status' => 'dibatalkan']);
 
             if ($bookingFutsal->jenis_pembayaran === 'membership') {
                 $durasiBack = $bookingFutsal->type === 'event' ? $bookingFutsal->durasi_hari : $bookingFutsal->durasi_jam;
-                $membership = Membership::where('user_id', $bookingFutsal->user_id)
+                $membership = Membership::where('user_id', $booking->user_id)
                     ->orderBy('created_at', 'desc')->lockForUpdate()->first();
 
                 if ($membership) {
@@ -302,7 +302,7 @@ class BookingController extends Controller
             $durasiLama = $bookingFutsal->type === 'event' ? $bookingFutsal->durasi_hari : $bookingFutsal->durasi_jam;
 
             if ($bookingFutsal->jenis_pembayaran === 'membership') {
-                $membership = Membership::where('user_id', $bookingFutsal->user_id)->orderBy('created_at', 'desc')->lockForUpdate()->first();
+                $membership = Membership::where('user_id', $bookingFutsal->booking->user_id)->orderBy('created_at', 'desc')->lockForUpdate()->first();
                 if ($membership) {
                     if ($durasiBaru > $durasiLama) {
                         $diff = $durasiBaru - $durasiLama;
@@ -379,6 +379,7 @@ class BookingController extends Controller
             }
 
             $booking->update(['status' => 'selesai']);
+            $bookingFutsal->update(['status' => 'selesai']);
 
             if ($bookingFutsal->jenis_pembayaran === 'reguler') {
                 $pembayaran = PembayaranFutsal::where('booking_id', $booking->id)->first();

@@ -35,6 +35,36 @@ class PengaturanController extends Controller
             'harga_event_futsal' => $request->harga_event_futsal
         ]);
 
-        return redirect()->route('adminfutsal.pengaturan.index')->with('success', 'Pengaturan berhasil diperbarui.');
+        return redirect()->route('admin.futsal.pengaturan.index')->with('success', 'Pengaturan berhasil diperbarui.');
+    }
+
+    public function indexJamOperasional()
+    {
+        $lapangans = \App\Models\Lapangan::with('jamOperasional')->get();
+        return view('adminfutsal.pengaturan.jam_operasional', compact('lapangans'));
+    }
+
+    public function storeJamOperasional(Request $request)
+    {
+        $request->validate([
+            'lapangan_id' => 'required|exists:lapangan,id',
+            'jam' => 'required|array',
+        ]);
+
+        foreach ($request->jam as $hari => $data) {
+            \App\Models\JamOperasionalLapangan::updateOrCreate(
+                [
+                    'lapangan_id' => $request->lapangan_id,
+                    'hari' => $hari,
+                ],
+                [
+                    'jam_buka' => $data['jam_buka'] ?? '07:00:00',
+                    'jam_tutup' => $data['jam_tutup'] ?? '22:00:00',
+                    'is_aktif' => isset($data['is_aktif']) ? true : false,
+                ]
+            );
+        }
+
+        return back()->with('success', 'Jam operasional berhasil disimpan.');
     }
 }

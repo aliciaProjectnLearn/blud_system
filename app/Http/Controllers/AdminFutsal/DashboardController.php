@@ -33,15 +33,21 @@ class DashboardController extends Controller
         // ── Transaksi Terbaru ───────────────────────────────
         $transaksiTerbaru = DB::table('pembayaran_futsal')
             ->join('booking', 'pembayaran_futsal.booking_id', '=', 'booking.id')
-            ->join('users', 'booking.user_id', '=', 'users.id')
+            ->leftJoin('booking_futsal', 'booking.id', '=', 'booking_futsal.booking_id')
             ->select(
-                'users.name as nama_user',
+                'booking_futsal.nama_pemesan as nama_user',
                 'pembayaran_futsal.jumlah_bayar',
                 'pembayaran_futsal.status',
                 'pembayaran_futsal.tgl_bayar'
             )
             ->orderBy('pembayaran_futsal.tgl_bayar', 'desc')
             ->limit(5)
+            ->get();
+
+        // ── Booking Futsal Hari Ini ────────────────────────
+        $bookingHariIni = \App\Models\BookingFutsal::with(['booking', 'lapangan'])
+            ->whereDate('start_datetime', $today)
+            ->orderBy('start_datetime', 'asc')
             ->get();
 
         // ── Jadwal Lapangan Hari Ini ────────────────────────
@@ -78,6 +84,7 @@ class DashboardController extends Controller
             'statusDibatalkan',
             'transaksiTerbaru',
             'jadwalHariIni',
+            'bookingHariIni',
             'labelBulan',
             'dataPendapatan'
         ));
