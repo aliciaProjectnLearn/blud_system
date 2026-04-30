@@ -6,7 +6,7 @@
 
     <div class="card shadow">
         <div class="card-body">
-            <form action="{{ route('users.store') }}" method="POST" autocomplete="off">
+            <form action="{{ route('admin.users.store') }}" method="POST" autocomplete="off">
                 @csrf
 
                 <div class="form-group">
@@ -71,7 +71,7 @@
                         <option value="">-- Pilih Role --</option>
                         @foreach($roles as $role)
                             <option value="{{ $role->id }}" {{ old('role') == $role->id ? 'selected' : '' }}>
-                                {{ $role->nama }}
+                                {{ $role->label }}
                             </option>
                         @endforeach
                     </select>

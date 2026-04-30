@@ -62,7 +62,7 @@
     {{-- DASHBOARD --}}
     @if (auth()->check() && auth()->user()->hasRole('Superadmin'))
         <li class="nav-item {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('dashboard') }}">
+            <a class="nav-link" href="{{ route('admin.dashboard') }}">
                 <i class="fas fa-fw fa-tachometer-alt"></i>
                 <span>Dashboard</span>
             </a>

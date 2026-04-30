@@ -12,7 +12,7 @@
         <div class="card shadow mb-4">
             <div class="card-header py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <h6 class="m-0 font-weight-bold text-primary">Daftar Admin Sistem</h6>
-                <a href="{{ route('users.create') }}" class="btn btn-primary btn-sm">
+                <a href="{{ route('admin.users.create') }}" class="btn btn-primary btn-sm">
                     <i class="fas fa-plus fa-sm mr-1"></i> Tambah Admin
                 </a>
             </div>
@@ -53,20 +53,20 @@
                                     <td class="d-none d-lg-table-cell">{{ $user->email }}</td>
                                     <td>
                                         @foreach ($user->roles as $role)
-                                            <span class="badge badge-primary">{{ $role->nama }}</span>
+                                            <span class="badge badge-primary">{{ $role->label }}</span>
                                         @endforeach
                                     </td>
                                     <td>
                                         <div class="d-flex flex-wrap gap-1">
-                                            <a href="{{ route('users.show', $user->id) }}" class="btn btn-info btn-sm mb-1">
+                                            <a href="{{ route('admin.users.show', $user->id) }}" class="btn btn-info btn-sm mb-1">
                                                 <i class="fas fa-eye"></i>
                                             </a>
-                                            <a href="{{ route('users.edit', $user->id) }}"
+                                            <a href="{{ route('admin.users.edit', $user->id) }}"
                                                 class="btn btn-warning btn-sm mb-1">
                                                 <i class="fas fa-edit"></i>
                                             </a>
                                             <form id="delete-form-{{ $user->id }}"
-                                                action="{{ route('users.destroy', $user->id) }}" method="POST"
+                                                action="{{ route('admin.users.destroy', $user->id) }}" method="POST"
                                                 style="display:inline">
                                                 @csrf
                                                 @method('DELETE')

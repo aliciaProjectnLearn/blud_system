@@ -48,11 +48,11 @@
                                     <td class="d-none d-lg-table-cell">{{ $user->email }}</td>
                                     <td>
                                         <div class="d-flex flex-wrap gap-1">
-                                            <a href="{{ route('users.show', $user->id) }}" class="btn btn-info btn-sm mb-1">
+                                            <a href="{{ route('admin.users.show', $user->id) }}" class="btn btn-info btn-sm mb-1">
                                                 <i class="fas fa-eye"></i>
                                             </a>
                                             <form id="delete-form-{{ $user->id }}"
-                                                action="{{ route('users.destroy', $user->id) }}" method="POST"
+                                                action="{{ route('admin.users.destroy', $user->id) }}" method="POST"
                                                 style="display:inline">
                                                 @csrf
                                                 @method('DELETE')
