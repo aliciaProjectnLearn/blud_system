@@ -1,0 +1,46 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class SewaRuko extends Model
+{
+    protected $table = 'sewa_ruko';
+
+    protected $fillable = [
+        'booking_id',
+        'penyewa_id',
+        'ruko_id',
+        'tgl_mulai',
+        'tgl_selesai',
+        'harga_sewa_tahunan',
+        'no_mou',
+        'status',
+        'notifikasi_terkirim',
+        'access_token',
+    ];
+
+    /**
+     * Relasi ke model Penyewa.
+     */
+    public function penyewa()
+    {
+        return $this->belongsTo(Penyewa::class, 'penyewa_id');
+    }
+
+    public function ruko()
+    {
+        return $this->belongsTo(Ruko::class);
+    }
+
+    public function pembayaran()
+    {
+        return $this->hasMany(PembayaranRuko::class, 'sewa_ruko_id');
+    }
+
+    public function dokumen()
+{
+    return $this->hasMany(DokumenPenyewaan::class, 'sewa_id');
+}
+}

@@ -1,0 +1,25 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('detail_komponen_servis', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('pembayaran_ac_id')->constrained('pembayaran_ac')->onDelete('cascade');
+            $table->foreignId('komponen_id')->constrained('komponen')->onDelete('restrict');
+            $table->integer('jumlah');
+            $table->integer('subtotal');
+            $table->timestamps();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('detail_komponen_servis');
+    }
+};

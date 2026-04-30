@@ -1,0 +1,115 @@
+/* Modern UI/UX Theme Overrides for SB Admin 2 (Shapes & Shadows only, original colors) */
+
+/* Cards */
+.card {
+    border-radius: 16px !important;
+    border: none !important;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.04) !important;
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 8px 30px rgba(0,0,0,0.07) !important;
+}
+
+.card-header {
+    border-bottom: 1px solid rgba(0,0,0,0.05) !important;
+    border-top-left-radius: 16px !important;
+    border-top-right-radius: 16px !important;
+    padding: 1.25rem 1.5rem !important;
+}
+
+/* Buttons */
+.btn {
+    border-radius: 12px !important;
+    font-weight: 600 !important;
+    padding: 0.5rem 1.25rem !important;
+    transition: all 0.2s ease !important;
+    text-transform: none !important;
+}
+
+.btn-sm, .btn-group-sm > .btn {
+    border-radius: 8px !important;
+    padding: 0.35rem 0.75rem !important;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+/* Form Controls */
+.form-control, .custom-select {
+    border-radius: 12px !important;
+    padding: 0.6rem 1rem !important;
+    height: auto !important;
+    transition: all 0.2s ease;
+}
+
+.form-control:focus, .custom-select:focus {
+    box-shadow: 0 0 0 4px rgba(78, 115, 223, 0.15) !important;
+}
+
+/* Tables */
+.table-responsive {
+    border-radius: 12px;
+}
+.table {
+    margin-bottom: 0 !important;
+}
+.table th {
+    border-top: none !important;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 1rem !important;
+}
+.table td {
+    padding: 1rem !important;
+    vertical-align: middle !important;
+}
+
+/* Modals */
+.modal-content {
+    border-radius: 20px !important;
+    border: none !important;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1) !important;
+    overflow: hidden;
+}
+
+.modal-header {
+    padding: 1.5rem 1.5rem 1rem !important;
+}
+
+.modal-footer {
+    padding: 1rem 1.5rem 1.5rem !important;
+}
+
+/* Badges */
+.badge {
+    border-radius: 8px !important;
+    padding: 0.4em 0.8em !important;
+    font-weight: 600 !important;
+}
+
+/* Sidebar Links */
+.sidebar .nav-item .nav-link {
+    border-radius: 10px;
+    transition: all 0.2s ease;
+}
+
+/* Topbar */
+.navbar.topbar {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02) !important;
+}
+
+/* Alerts */
+.alert {
+    border-radius: 12px !important;
+    border: none !important;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+}
