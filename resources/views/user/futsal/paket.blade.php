@@ -1,5 +1,5 @@
 @extends('layouts.publik')
-@section('title', 'Beli Membership Futsal')
+@section('title', 'Beli Paket Booking Futsal')
 
 @section('content')
 <div class="container-fluid">
@@ -7,58 +7,16 @@
     {{-- Page Header --}}
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">
-            <i class="fas fa-id-card text-primary mr-2"></i> Membership Futsal
+            <i class="fas fa-id-card text-primary mr-2"></i> Paket Booking Futsal
         </h1>
         <a href="{{ route('user.gateway') }}" class="btn btn-sm btn-secondary shadow-sm">
             <i class="fas fa-arrow-left fa-sm"></i> Kembali ke Dashboard Utama
         </a>
     </div>
 
-    {{-- Jika sudah punya membership aktif --}}
-    @if($membershipAktif)
-        <div class="card shadow mb-4 border-left-success">
-            <div class="card-body">
-                <div class="d-flex align-items-center mb-3">
-                    <div class="rounded-circle bg-success d-flex align-items-center justify-content-center mr-3"
-                        style="width:52px;height:52px;">
-                        <i class="fas fa-check-circle fa-lg text-white"></i>
-                    </div>
-                    <div>
-                        <h5 class="font-weight-bold text-success mb-0">Membership Aktif</h5>
-                        <small class="text-muted">Anda sudah memiliki paket membership yang sedang berjalan</small>
-                    </div>
-                </div>
-                <table class="table table-borderless mb-0">
-                    <tr>
-                        <td width="35%" class="text-muted py-1">Paket</td>
-                        <td class="py-1">: <strong>{{ $membershipAktif->paket->nama_paket }}</strong></td>
-                    </tr>
-                    <tr>
-                        <td class="text-muted py-1">Total Kuota</td>
-                        <td class="py-1">: {{ $membershipAktif->total_kuota }} Jam</td>
-                    </tr>
-                    <tr>
-                        <td class="text-muted py-1">Sisa Kuota</td>
-                        <td class="py-1">: <strong class="text-primary">{{ $membershipAktif->sisa_kuota }} Jam</strong></td>
-                    </tr>
-                    <tr>
-                        <td class="text-muted py-1">Status</td>
-                        <td class="py-1">: <span class="badge badge-success px-3 py-1">Aktif</span></td>
-                    </tr>
-                </table>
-                <hr>
-                <a href="{{ route('user.futsal.booking.form') }}" class="btn btn-primary shadow-sm">
-                    <i class="fas fa-futbol mr-1"></i> Booking Lapangan Sekarang
-                </a>
-            </div>
-        </div>
-
-    {{-- Jika belum punya membership --}}
-    @else
-        <p class="text-muted mb-4">
-            <i class="fas fa-info-circle mr-1"></i>
-            Pilih paket membership yang sesuai dengan kebutuhan Anda. Kuota dapat digunakan untuk booking lapangan futsal.
-        </p>
+    <p>
+        Pilih paket yang sesuai dengan kebutuhan Anda. Kuota dapat digunakan untuk booking lapangan futsal. Pembayaran paket menggunakan QRIS.
+    </p>
 
         @if($paketMemberships->isEmpty())
             <div class="card shadow">
@@ -71,7 +29,7 @@
                 </div>
             </div>
         @else
-            <form action="{{ route('user.futsal.membership.store') }}" method="POST" id="formMembership">
+            <form action="{{ route('user.futsal.paket.store') }}" method="POST" id="formPaket">
                 @csrf
                 <div class="row">
                     @foreach($paketMemberships as $paket)
@@ -86,7 +44,7 @@
                                     <h5 class="font-weight-bold">{{ $paket->nama_paket }}</h5>
                                     <div class="my-3">
                                         <span class="display-4 font-weight-bold text-primary">{{ $paket->jumlah_kuota }}</span>
-                                        <span class="text-muted d-block">Jam Kuota Main</span>
+                                        <span class="text-muted d-block">Jam Kuota</span>
                                     </div>
                                     <hr>
                                     <h4 class="text-success font-weight-bold mb-3">
@@ -110,9 +68,39 @@
                     @endforeach
                 </div>
 
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-user-edit mr-1"></i> Data Pemesan & Pembayaran</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="font-weight-bold text-gray-700">Nama Lengkap</label>
+                                    <input type="text" name="nama_pemesan" class="form-control" required placeholder="Nama lengkap Anda">
+                                </div>
+                                <div class="form-group">
+                                    <label class="font-weight-bold text-gray-700">Nomor WhatsApp</label>
+                                    <input type="text" name="no_hp" class="form-control" required placeholder="08xxxxxxxxxx (Minimal 10 digit)">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="bg-gray-100 p-3 rounded border text-center">
+                                    <label class="font-weight-bold text-gray-700 mb-2">
+                                        <i class="fas fa-qrcode text-primary mr-1"></i> Pembayaran QRIS
+                                    </label>
+                                    <br>
+                                    <img src="{{ asset('assets/img/qris_blud.png') }}" alt="QRIS" class="img-fluid border shadow-sm mb-2" style="max-height:200px;">
+                                    <p class="small text-muted mb-0">Silahkan scan QR di atas untuk membayar sesuai harga paket. Transaksi Anda akan diproses oleh admin setelah pembayaran terverifikasi.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="mt-2 d-flex align-items-center gap-2">
                     <button type="submit" class="btn btn-primary btn-lg shadow-sm px-5">
-                        <i class="fas fa-shopping-cart mr-2"></i> Beli Membership
+                        <i class="fas fa-shopping-cart mr-2"></i> Konfirmasi & Beli
                     </button>
                     <a href="{{ route('user.gateway') }}" class="btn btn-outline-secondary btn-lg ml-2">
                         Batal
@@ -120,7 +108,6 @@
                 </div>
             </form>
         @endif
-    @endif
 
 </div>
 @endsection

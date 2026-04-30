@@ -332,7 +332,7 @@
     </div>
     <div class="stat-item">
         <div class="stat-num">{{ $paketMemberships->count() }}</div>
-        <div class="stat-lbl">Paket Membership</div>
+        <div class="stat-lbl">Pilihan Paket</div>
     </div>
     <div class="stat-item">
         <div class="stat-num">3</div>
@@ -345,51 +345,62 @@
 </div>
 
 {{-- ══════════════════════════════════════════════ --}}
-{{-- INFO MEMBERSHIP USER                           --}}
+{{-- INFO PAKET USER                              --}}
 {{-- ══════════════════════════════════════════════ --}}
-@if($membershipAktif)
-<div class="membership-active-banner">
-    <div class="quota-ring">
-        <span class="num">{{ $membershipAktif->sisa_kuota }}</span>
-        <span class="lbl">Kuota</span>
-    </div>
-    <div style="flex:1">
-        <div class="font-weight-bold" style="font-size:1rem;">
-            <i class="fas fa-check-circle mr-1" style="opacity:0.85;"></i>
-            Membership Aktif — {{ $membershipAktif->paket->nama_paket ?? 'Paket Membership' }}
+<div x-data="membershipChecker()" x-init="init()">
+    {{-- Paket Banner (Dynamic via Alpine) --}}
+    <template x-if="hasMembership && membershipData">
+        <div class="membership-active-banner animate-in">
+            <div class="quota-ring">
+                <span class="num" x-text="membershipKuota"></span>
+                <span class="lbl">Kuota</span>
+            </div>
+            <div style="flex:1">
+                <div class="font-weight-bold" style="font-size:1rem;">
+                    <i class="fas fa-check-circle mr-1" style="opacity:0.85;"></i>
+                    Paket Aktif — <span x-text="membershipData?.paket?.nama_paket"></span>
+                </div>
+                <div style="opacity:0.88; font-size:0.88rem;" class="mt-1">
+                    Sisa kuota: <strong x-text="membershipKuota"></strong> jam
+                    dari <strong x-text="membershipData?.total_kuota"></strong> jam total.
+                    Gunakan kuota Anda saat booking untuk kemudahan pembayaran.
+                </div>
+            </div>
+            <div class="d-flex flex-column gap-2" style="gap:5px;">
+                <a href="{{ route('user.futsal.booking.form') }}"
+                   class="btn btn-light text-success font-weight-bold btn-sm flex-shrink-0" style="white-space:nowrap;">
+                    <i class="fas fa-bolt mr-1"></i> Booking Sekarang
+                </a>
+                <button @click="logout()" class="btn btn-link text-white btn-sm p-0" style="font-size:0.7rem; opacity:0.8;">Bukan saya? Keluar</button>
+            </div>
         </div>
-        <div style="opacity:0.88; font-size:0.88rem;" class="mt-1">
-            Sisa kuota: <strong>{{ $membershipAktif->sisa_kuota }}</strong> jam
-            dari <strong>{{ $membershipAktif->total_kuota }}</strong> jam total.
-            Gunakan kuota Anda saat booking untuk kemudahan pembayaran.
+    </template>
+
+    <template x-if="!hasMembership">
+        <div class="membership-no-banner">
+            <div style="flex-shrink:0; margin-top:2px;">
+                <i class="fas fa-star fa-2x" style="color:#f6c23e;"></i>
+            </div>
+            <div style="flex:1">
+                <div class="font-weight-bold text-gray-800 mb-1">Sudah Punya Paket Booking?</div>
+                <p class="mb-1 text-muted" style="font-size:0.88rem;">
+                    Masukkan nomor WhatsApp Anda untuk melihat sisa kuota atau beli paket baru di bawah.
+                </p>
+                <div class="d-flex gap-2 mt-2" style="max-width: 400px; gap:8px;">
+                    <input type="tel" x-model="no_hp" class="form-control form-control-sm" placeholder="08xxxxxxxxxx">
+                    <button @click="checkMembership()" class="btn btn-primary btn-sm" :disabled="loading">
+                        <span x-show="!loading">Cek</span>
+                        <span x-show="loading" class="spinner-border spinner-border-sm"></span>
+                    </button>
+                </div>
+                <small x-show="errorMsg" class="text-danger mt-1 d-block" x-text="errorMsg"></small>
+            </div>
+            <div class="flex-shrink-0 text-center d-none d-md-block ml-3">
+                <small class="text-muted d-block mb-1">Lihat paket di bawah ↓</small>
+            </div>
         </div>
-    </div>
-    <a href="{{ route('user.futsal.booking.form') }}"
-       class="btn btn-light text-success font-weight-bold btn-sm flex-shrink-0" style="white-space:nowrap;">
-        <i class="fas fa-bolt mr-1"></i> Booking Pakai Membership
-    </a>
+    </template>
 </div>
-@else
-<div class="membership-no-banner">
-    <div style="flex-shrink:0; margin-top:2px;">
-        <i class="fas fa-star fa-2x" style="color:#f6c23e;"></i>
-    </div>
-    <div style="flex:1">
-        <div class="font-weight-bold text-gray-800 mb-1">Belum Punya Membership?</div>
-        <p class="mb-1 text-muted" style="font-size:0.88rem;">
-            Dapatkan keuntungan bermain futsal dengan program membership kami:
-        </p>
-        <ul class="adv-list list-unstyled mb-0">
-            <li><i class="fas fa-check text-success mr-1"></i> Bayar sekali, booking berkali-kali sesuai kuota</li>
-            <li><i class="fas fa-check text-success mr-1"></i> Tidak perlu bayar tiap sesi booking</li>
-            <li><i class="fas fa-check text-success mr-1"></i> Pilihan paket sesuai kebutuhan</li>
-        </ul>
-    </div>
-    <div class="flex-shrink-0 text-center d-none d-md-block ml-3">
-        <small class="text-muted d-block mb-1">Lihat paket di bawah ↓</small>
-    </div>
-</div>
-@endif
 
 {{-- ══════════════════════════════════════════════ --}}
 {{-- DAFTAR LAPANGAN                                --}}
@@ -442,6 +453,12 @@
                     @endif
                 </div>
 
+                @if($lap->lokasi)
+                <div class="mb-2 text-muted small">
+                    <i class="fas fa-map-marker-alt text-danger mr-1"></i> {{ $lap->lokasi }}
+                </div>
+                @endif
+
                 @if($lap->deskripsi)
                 <p class="card-text flex-grow-1">{{ $lap->deskripsi }}</p>
                 @else
@@ -464,10 +481,10 @@
 {{-- ══════════════════════════════════════════════ --}}
 {{-- PAKET MEMBERSHIP                               --}}
 {{-- ══════════════════════════════════════════════ --}}
-<div class="mb-2">
+<div class="mb-2" id="paket-membership-section">
     <div class="section-title">
         <i class="fas fa-id-card text-primary"></i>
-        Paket Membership
+        Pilihan Paket Booking
     </div>
     <p class="section-subtitle mb-0">Bergabung dan nikmati kemudahan booking dengan kuota fleksibel</p>
 </div>
@@ -518,10 +535,10 @@
                         Selesaikan membership aktif Anda terlebih dahulu
                     </div>
                 @else
-                    <a href="{{ route('user.futsal.membership.form') }}"
+                    <a href="{{ route('user.futsal.paket.form') }}"
                     class="btn btn-primary btn-sm btn-block font-weight-bold"
                     style="border-radius:8px;">
-                        <i class="fas fa-shopping-cart mr-1"></i> Beli Membership
+                        <i class="fas fa-shopping-cart mr-1"></i> Beli Paket
                     </a>
                 @endif
             @endif
@@ -570,4 +587,64 @@
     </div>
 </div>
 
+@push('scripts')
+<script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+function membershipChecker() {
+    return {
+        no_hp: '',
+        loading: false,
+        hasMembership: false,
+        membershipKuota: 0,
+        membershipData: null,
+        errorMsg: '',
+
+        init() {
+            // Field remains empty on load as requested
+        },
+
+        checkMembership() {
+            if (!this.no_hp || this.no_hp.length < 10) {
+                this.errorMsg = 'Masukkan nomor HP yang valid.';
+                return;
+            }
+
+            this.loading = true;
+            this.errorMsg = '';
+            
+            axios.get(`/user/futsal/api/check-membership?no_hp=${this.no_hp}`)
+                .then(res => {
+                    if (res.data.success && res.data.membership) {
+                        this.hasMembership = true;
+                        this.membershipKuota = res.data.membership.sisa_kuota;
+                        this.membershipData = res.data.membership;
+                    } else {
+                        this.hasMembership = false;
+                        if (this.no_hp !== '') {
+                             this.errorMsg = 'Nomor ini belum memiliki paket aktif. Silakan pilih paket di bawah untuk mendaftar.';
+                             // Scroll to packages
+                             document.getElementById('paket-membership-section')?.scrollIntoView({ behavior: 'smooth' });
+                        }
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    this.errorMsg = 'Terjadi kesalahan saat mengecek membership.';
+                })
+                .finally(() => {
+                    this.loading = false;
+                });
+        },
+
+        logout() {
+            localStorage.removeItem('futsal_no_hp');
+            this.no_hp = '';
+            this.hasMembership = false;
+            this.membershipData = null;
+        }
+    }
+}
+</script>
+@endpush
 @endsection

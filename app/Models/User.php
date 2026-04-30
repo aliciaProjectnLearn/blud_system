@@ -55,9 +55,14 @@ class User extends Authenticatable
     {
         return $this->roles->contains('nama', $role);
     }
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class, 'user_id');
+    }
+
     public function bookingFutsal()
     {
-        return $this->hasMany(BookingFutsal::class, 'user_id');
+        return $this->hasManyThrough(BookingFutsal::class, Booking::class, 'user_id', 'booking_id');
     }
     public function isPelangganReguler(): bool
     {

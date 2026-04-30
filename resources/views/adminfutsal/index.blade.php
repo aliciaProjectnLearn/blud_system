@@ -187,32 +187,54 @@
         <div class="card shadow mb-4">
             <div class="card-header py-3">
                 <h6 class="m-0 font-weight-bold text-primary">
-                    Ringkasan Jadwal Lapangan Hari Ini — {{ \Carbon\Carbon::today()->translatedFormat('l, d F Y') }}
+                    Ringkasan Booking Hari Ini — {{ \Carbon\Carbon::today()->translatedFormat('l, d F Y') }}
                 </h6>
             </div>
             <div class="card-body">
-                @if($jadwalHariIni->isEmpty())
-                    <p class="text-center text-muted">Belum ada slot jadwal tergenerate untuk hari ini.</p>
+                @if($bookingHariIni->isEmpty())
+                    <p class="text-center text-muted">Belum ada booking untuk hari ini.</p>
                 @else
                 <div class="table-responsive">
                     <table class="table table-bordered table-striped">
                         <thead>
                             <tr>
-                                <th width="30%">Jam</th>
-                                <th width="40%">Nama Lapangan</th>
-                                <th width="30%" class="text-center">Status</th>
+                                <th width="20%">Jam</th>
+                                <th width="25%">Nama Lapangan</th>
+                                <th width="25%">Pemesan</th>
+                                <th width="15%" class="text-center">Status</th>
+                                <th width="15%" class="text-center">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($jadwalHariIni as $j)
+                            @foreach($bookingHariIni as $b)
                             <tr>
-                                <td class="align-middle font-weight-bold">{{ substr($j->jam_mulai, 0, 5) }} - {{ substr($j->jam_selesai, 0, 5) }}</td>
-                                <td class="align-middle">{{ $j->lapangan->nama ?? 'Unknown' }}</td>
+                                <td class="align-middle font-weight-bold">
+                                    {{ \Carbon\Carbon::parse($b->start_datetime)->format('H:i') }} - {{ \Carbon\Carbon::parse($b->end_datetime)->format('H:i') }}
+                                </td>
+                                <td class="align-middle">{{ $b->lapangan->nama ?? 'Unknown' }}</td>
+                                <td class="align-middle">
+                                    {{ $b->nama_pemesan }}<br>
+                                    <small class="text-muted">{{ $b->no_hp }}</small>
+                                </td>
                                 <td class="align-middle text-center">
-                                    @if($j->status === 'tersedia')
-                                        <span class="badge badge-success px-2 py-1"><i class="fas fa-check-circle mr-1"></i> Tersedia</span>
+                                    @if($b->status === 'dikonfirmasi')
+                                        <span class="badge badge-success px-2 py-1">Dikonfirmasi</span>
+                                    @elseif($b->status === 'selesai')
+                                        <span class="badge badge-info px-2 py-1">Selesai</span>
+                                    @elseif($b->status === 'dibatalkan')
+                                        <span class="badge badge-danger px-2 py-1">Dibatalkan</span>
                                     @else
-                                        <span class="badge badge-danger px-2 py-1"><i class="fas fa-times-circle mr-1"></i> Terisi</span>
+                                        <span class="badge badge-warning px-2 py-1">{{ ucfirst($b->status) }}</span>
+                                    @endif
+                                </td>
+                                <td class="align-middle text-center">
+                                    @if($b->no_hp)
+                                        <a href="https://api.whatsapp.com/send?phone={{ preg_replace('/^08/', '628', $b->no_hp) }}&text=Halo%20{{ urlencode($b->nama_pemesan) }},%20ini%20dari%20Admin%20Futsal%20BLUD.%20Terkait%20booking%20Anda%20di%20{{ urlencode($b->lapangan->nama ?? 'lapangan') }}%20jam%20{{ \Carbon\Carbon::parse($b->start_datetime)->format('H:i') }}..." 
+                                           target="_blank" class="btn btn-sm btn-success shadow-sm" title="Hubungi via WhatsApp">
+                                            <i class="fab fa-whatsapp"></i> Chat
+                                        </a>
+                                    @else
+                                        -
                                     @endif
                                 </td>
                             </tr>

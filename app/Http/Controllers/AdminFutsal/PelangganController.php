@@ -4,6 +4,7 @@ namespace App\Http\Controllers\AdminFutsal;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Booking;
 use App\Models\BookingFutsal;
 use Illuminate\Http\Request;
 
@@ -46,12 +47,16 @@ class PelangganController extends Controller
     // Tambahkan method ini di bawahnya
     private function updateStatusPelanggan(): void
     {
-        $userIds = BookingFutsal::where('jenis_pembayaran', 'reguler')
+        $userIds = Booking::whereHas('bookingFutsal', function ($q) {
+                $q->where('jenis_pembayaran', 'reguler');
+            })
             ->pluck('user_id')
             ->unique();
 
         foreach ($userIds as $userId) {
-            $lastBooking = BookingFutsal::where('user_id', $userId)
+            $lastBooking = BookingFutsal::whereHas('booking', function ($q) use ($userId) {
+                    $q->where('user_id', $userId);
+                })
                 ->where('jenis_pembayaran', 'reguler')
                 ->latest('start_datetime')
                 ->first();

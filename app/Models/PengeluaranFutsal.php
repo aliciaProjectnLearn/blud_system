@@ -16,5 +16,6 @@ class PengeluaranFutsal extends Model
         'tgl_pengeluaran',
         'nominal',
         'deskripsi',
+        'kategori',
     ];
 }

@@ -5,12 +5,14 @@ namespace App\Http\Controllers\AdminFutsal;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\PembayaranFutsal;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class TransaksiController extends Controller
 {
     public function index(Request $request)
     {
-        $query = PembayaranFutsal::with(['booking.user', 'tipePembayaran'])->orderBy('created_at', 'desc');
+        $query = PembayaranFutsal::with(['booking.user', 'booking.bookingFutsal', 'membership.user', 'tipePembayaran'])->orderBy('created_at', 'desc');
 
         if ($request->filled('jenis_transaksi')) {
             $query->where('jenis_transaksi', $request->jenis_transaksi);
@@ -39,11 +41,10 @@ class TransaksiController extends Controller
             
             // Jika membership, ambil harga otomatis dari paket
             if ($transaksi->jenis_transaksi === 'membership') {
-                $membership = \App\Models\Membership::where('user_id', $transaksi->booking->user_id)
+                $membership = \App\Models\Membership::where('transaksi_id', $transaksi->id)
                     ->with('paket')
-                    ->latest()
                     ->first();
-                $jumlahBayar = $membership->paket->harga ?? 0;
+                $jumlahBayar = $membership->paket->harga ?? $transaksi->jumlah_bayar;
             } else {
                 // Reguler/booking → gunakan harga yang sudah terhitung di DB jika ada, atau ambil dari request
                 if ($request->filled('jumlah_bayar')) {
@@ -61,16 +62,73 @@ class TransaksiController extends Controller
             $transaksi->jumlah_bayar = $jumlahBayar;
             $transaksi->save();
 
-            if ($transaksi->booking && $transaksi->booking->status == 'menunggu') {
+            if ($transaksi->jenis_transaksi === 'membership') {
+                $membership = \App\Models\Membership::where('transaksi_id', $transaksi->id)->first();
+                if ($membership) {
+                    $membership->status = 'aktif';
+                    $membership->save();
+                }
+            } else if ($transaksi->booking && $transaksi->booking->status == 'menunggu') {
                 $transaksi->booking->status = 'dikonfirmasi';
                 $transaksi->booking->save();
+
+                if ($transaksi->booking->bookingFutsal) {
+                    $transaksi->booking->bookingFutsal->status = 'dikonfirmasi';
+                    $transaksi->booking->bookingFutsal->save();
+
+                    $bookingFutsal = $transaksi->booking->bookingFutsal;
+                    $noHp = $bookingFutsal->no_hp ?? null;
+
+                    if ($noHp) {
+                        $apiToken = env('FONNTE_TOKEN');
+                        $namaPemesan = $bookingFutsal->nama_pemesan ?? 'Pelanggan';
+                        $lapangan = $bookingFutsal->lapangan->nama ?? '-';
+                        $tglMain = \Carbon\Carbon::parse($bookingFutsal->start_datetime)
+                                    ->translatedFormat('l, d F Y');
+                        $jamMulai = \Carbon\Carbon::parse($bookingFutsal->start_datetime)->format('H:i');
+                        $jamSelesai = \Carbon\Carbon::parse($bookingFutsal->end_datetime)->format('H:i');
+                        $tokenLink = url('/user/access/' . $bookingFutsal->access_token);
+
+                        $isEvent = ($transaksi->jenis_transaksi === 'event');
+                        
+                        $pesan  = "Halo *{$namaPemesan}* 👋\n\n";
+                        $pesan .= "Booking lapangan futsal Anda telah *dikonfirmasi* ✅\n\n";
+                        $pesan .= "📋 *Detail Booking:*\n";
+                        $pesan .= "🏟️ Lapangan : *{$lapangan}*\n";
+
+                        if ($isEvent) {
+                            $tglSelesai = \Carbon\Carbon::parse($bookingFutsal->end_datetime)->translatedFormat('l, d F Y');
+                            $pesan .= "📅 Tanggal  : *{$tglMain}* s/d *{$tglSelesai}*\n";
+                            $pesan .= "⏰ Waktu    : *Full Day (Event)*\n\n";
+                        } else {
+                            $pesan .= "📅 Tanggal  : *{$tglMain}*\n";
+                            $pesan .= "⏰ Waktu    : *{$jamMulai} - {$jamSelesai}*\n\n";
+                        }
+
+                        $pesan .= "🔗 Lihat detail booking Anda di:\n{$tokenLink}\n\n";
+                        $pesan .= "Simpan link di atas untuk memantau status booking, riwayat, atau pembatalan.\n";
+                        $pesan .= "Terima kasih 🙏\n— Admin Futsal BLUD SMK";
+                        try {
+                            \Illuminate\Support\Facades\Http::withHeaders([
+                                'Authorization' => $apiToken,
+                            ])->post('https://api.fonnte.com/send', [
+                                'target'      => $noHp,
+                                'message'     => $pesan,
+                                'countryCode' => '62',
+                            ]);
+                        } catch (\Exception $e) {
+                            // Gagal kirim WA tidak mengganggu proses konfirmasi
+                            \Log::warning('Gagal kirim WA konfirmasi futsal: ' . $e->getMessage());
+                        }
+                    }
+                }
             }
 
-            return redirect()->route('adminfutsal.transaksi.show', $id)
+            return redirect()->route('admin.futsal.transaksi.show', $id)
                 ->with('success', 'Pembayaran berhasil dikonfirmasi.');
         }
 
-        return redirect()->route('adminfutsal.transaksi.show', $id)
+        return redirect()->route('admin.futsal.transaksi.show', $id)
             ->with('error', 'Status pembayaran tidak dapat diubah.');
     }
 
@@ -84,14 +142,22 @@ class TransaksiController extends Controller
                 $transaksi->status = 'dibatalkan';
                 $transaksi->save();
 
-                // 2. Update status booking utama
-                if ($transaksi->booking) {
+                if ($transaksi->jenis_transaksi === 'membership') {
+                    $membership = \App\Models\Membership::where('transaksi_id', $transaksi->id)->first();
+                    if ($membership) {
+                        $membership->status = 'nonaktif';
+                        $membership->save();
+                    }
+                } else if ($transaksi->booking) {
+                    // 2. Update status booking utama
                     $transaksi->booking->status = 'dibatalkan';
                     $transaksi->booking->save();
 
                     // 3. Lepaskan jadwal lapangan jika jenisnya booking/reguler
                     $bf = $transaksi->booking->bookingFutsal;
                     if ($bf) {
+                        $bf->status = 'dibatalkan';
+                        $bf->save();
                         \App\Models\JadwalLapangan::where('lapangan_id', $bf->lapangan_id)
                             ->whereDate('tanggal', \Carbon\Carbon::parse($bf->start_datetime)->toDateString())
                             ->where('jam_mulai', '>=', \Carbon\Carbon::parse($bf->start_datetime)->toTimeString())
@@ -101,11 +167,11 @@ class TransaksiController extends Controller
                 }
             });
 
-            return redirect()->route('adminfutsal.transaksi.show', $id)
-                ->with('success', 'Pembayaran ditolak dan booking dibatalkan.');
+            return redirect()->route('admin.futsal.transaksi.show', $id)
+                ->with('success', 'Pembayaran ditolak.');
         }
 
-        return redirect()->route('adminfutsal.transaksi.show', $id)
+        return redirect()->route('admin.futsal.transaksi.show', $id)
             ->with('error', 'Status pembayaran tidak dapat diubah.');
     }
 }

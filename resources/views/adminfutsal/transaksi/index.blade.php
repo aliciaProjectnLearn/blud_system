@@ -19,7 +19,7 @@
                 <select name="jenis_transaksi" class="form-control form-control-sm mr-2">
                     <option value="">-- Semua Jenis --</option>
                     <option value="booking" {{ request('jenis_transaksi') == 'booking' ? 'selected' : '' }}>Booking</option>
-                    <option value="membership" {{ request('jenis_transaksi') == 'membership' ? 'selected' : '' }}>Membership</option>
+                    <option value="membership" {{ request('jenis_transaksi') == 'membership' ? 'selected' : '' }}>Paket</option>
                     <option value="event" {{ request('jenis_transaksi') == 'event' ? 'selected' : '' }}>Event</option>
                     <option value="guest" {{ request('jenis_transaksi') == 'guest' ? 'selected' : '' }}>Guest</option>
                 </select>
@@ -59,10 +59,16 @@
                             <td>{{ $index + 1 }}</td>
                             <td><strong>{{ $trx->kode_pembayaran }}</strong></td>
                             <td>{{ \Carbon\Carbon::parse($trx->tgl_bayar ?? $trx->created_at)->format('d M Y H:i') }}</td>
-                            <td>{{ $trx->booking->user->name ?? 'User Tidak Diketahui' }}</td>
+                            <td>
+                                @if($trx->jenis_transaksi === 'membership')
+                                    {{ $trx->membership->user->name ?? 'User Tidak Diketahui' }}
+                                @else
+                                    {{ $trx->booking->bookingFutsal->nama_pemesan ?? $trx->booking->user->name ?? 'User Tidak Diketahui' }}
+                                @endif
+                            </td>
                             <td>
                                 @if($trx->jenis_transaksi == 'membership')
-                                    <span class="badge badge-info shadow-sm"><i class="fas fa-id-card"></i> Membership</span>
+                                    <span class="badge badge-info shadow-sm"><i class="fas fa-id-card"></i> Paket</span>
                                 @elseif($trx->jenis_transaksi == 'event')
                                     <span class="badge badge-warning shadow-sm"><i class="fas fa-calendar-check"></i> Event</span>
                                 @elseif($trx->jenis_transaksi == 'guest')
@@ -77,6 +83,8 @@
                                     <span class="badge" style="background:#6366f1;color:#fff;"><i class="fas fa-qrcode mr-1"></i>QRIS</span>
                                 @elseif($tipe === 'Tunai')
                                     <span class="badge badge-success"><i class="fas fa-money-bill-wave mr-1"></i>Tunai</span>
+                                @elseif($tipe === 'Membership' || $tipe === 'Paket/Membership')
+                                    <span class="badge badge-info"><i class="fas fa-id-card mr-1"></i>Paket</span>
                                 @elseif($tipe)
                                     <span class="badge badge-secondary">{{ $tipe }}</span>
                                 @else

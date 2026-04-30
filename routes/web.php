@@ -34,23 +34,24 @@ use App\Http\Controllers\User\UserServisController;
 
 Route::get('/', [LandingController::class, 'index'])->name('home');
 
-Route::prefix('user')->group(function () {
-    Route::name('user.')->group(function() {
-        Route::get('/', [LandingController::class, 'index'])->name('gateway');
-        
-        Route::get('/access/{token}', [App\Http\Controllers\User\TokenAccessController::class, 'show'])->name('token.show');
-        Route::get('/access/{token}/history', [App\Http\Controllers\User\TokenAccessController::class, 'riwayat'])->name('token.riwayat');
-        Route::get('/access/{token}/cancel', [App\Http\Controllers\User\TokenAccessController::class, 'batalkan'])->name('token.batalkan');
-        Route::post('/access/{token}/cancel', [App\Http\Controllers\User\TokenAccessController::class, 'prosesBatalkan'])->name('token.batalkan.proses');
+Route::prefix('user')->name('user.')->group(function () {
+    Route::get('/', [LandingController::class, 'index'])->name('gateway');
+    
+    // Token-Based Access (Detail, Riwayat, Pembatalan)
+    Route::get('/access/{token}', [App\Http\Controllers\User\TokenAccessController::class, 'show'])->name('token.show');
+    Route::get('/access/{token}/history', [App\Http\Controllers\User\TokenAccessController::class, 'riwayat'])->name('token.riwayat');
+    Route::get('/access/{token}/cancel', [App\Http\Controllers\User\TokenAccessController::class, 'batalkan'])->name('token.batalkan');
+    Route::post('/access/{token}/cancel', [App\Http\Controllers\User\TokenAccessController::class, 'prosesBatalkan'])->name('token.batalkan.proses');
 
-        Route::prefix('futsal')->name('futsal.')->group(function () {
-            Route::get('/landing', [App\Http\Controllers\User\FutsalBookingController::class, 'landing'])->name('landing');
-            Route::get('/booking', [App\Http\Controllers\User\FutsalBookingController::class, 'index'])->name('booking.form');
-            Route::post('/booking', [App\Http\Controllers\User\FutsalBookingController::class, 'store'])->name('booking.store');
-            Route::get('/membership', [App\Http\Controllers\User\FutsalBookingController::class, 'membershipForm'])->name('membership.form');
-            Route::post('/membership', [App\Http\Controllers\User\FutsalBookingController::class, 'membershipStore'])->name('membership.store');
-            Route::get('/check-availability', [App\Http\Controllers\User\FutsalBookingController::class, 'checkAvailability'])->name('booking.check');
-        });
+    // Futsal
+    Route::prefix('futsal')->name('futsal.')->group(function () {
+        Route::get('/landing', [App\Http\Controllers\User\FutsalBookingController::class, 'landing'])->name('landing');
+        Route::get('/booking', [App\Http\Controllers\User\FutsalBookingController::class, 'index'])->name('booking.form');
+        Route::post('/booking', [App\Http\Controllers\User\FutsalBookingController::class, 'store'])->name('booking.store');
+        Route::get('/beli-paket', [App\Http\Controllers\User\FutsalBookingController::class, 'paketForm'])->name('paket.form');
+        Route::post('/beli-paket', [App\Http\Controllers\User\FutsalBookingController::class, 'paketStore'])->name('paket.store');
+        Route::get('/check-availability', [App\Http\Controllers\User\FutsalBookingController::class, 'checkAvailability'])->name('booking.check');
+        Route::get('/api/check-membership', [App\Http\Controllers\User\FutsalBookingController::class, 'checkMembership'])->name('api.check.membership');
     });
 
     Route::prefix('kantin')->name('user.kantin.')->group(function () {
@@ -114,7 +115,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Superadmin|Adm
     Route::middleware(['role:Adminfutsal'])->prefix('futsal')->name('futsal.')->group(function () {
         Route::get('/dashboard', [AdminFutsalDashboardController::class, 'index'])->name('dashboard');
         Route::resource('paket-membership', PaketMembershipController::class)->only(['index', 'store', 'update', 'destroy']);
-        Route::get('monitoring-membership', [MembershipController::class, 'index'])->name('monitoring-membership.index');
+        Route::get('monitoring-paket', [MembershipController::class, 'index'])->name('monitoring-paket.index');
         Route::post('monitoring-membership', [MembershipController::class, 'store'])->name('monitoring-membership.store');
         Route::get('pelanggan', [PelangganController::class, 'index'])->name('pelanggan.index');
         Route::post('pelanggan', [PelangganController::class, 'store'])->name('pelanggan.store');
@@ -137,6 +138,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Superadmin|Adm
         Route::get('laporan/export-pdf', [LaporanController::class, 'exportPdf'])->name('laporan.export.pdf');
         Route::get('laporan/export-excel', [LaporanController::class, 'exportExcel'])->name('laporan.export.excel');
         Route::get('pengaturan', [\App\Http\Controllers\AdminFutsal\PengaturanController::class, 'index'])->name('pengaturan.index');
+        Route::get('pengaturan/jam-operasional', [\App\Http\Controllers\AdminFutsal\PengaturanController::class, 'indexJamOperasional'])->name('pengaturan.jam_operasional.index');
+        Route::post('pengaturan/jam-operasional', [\App\Http\Controllers\AdminFutsal\PengaturanController::class, 'storeJamOperasional'])->name('pengaturan.jam_operasional.store');
         Route::put('pengaturan/{id}', [\App\Http\Controllers\AdminFutsal\PengaturanController::class, 'update'])->name('pengaturan.update');
         Route::get('keuangan', [KeuanganController::class, 'index'])->name('keuangan.index');
         Route::post('keuangan/tambah-pengeluaran', [KeuanganController::class, 'storePengeluaran'])->name('keuangan.store');
@@ -264,4 +267,22 @@ Route::prefix('kasir')->name('kasir.')->middleware(['auth', 'role:Kasir'])
     Route::get('/laporan', [\App\Http\Controllers\KasirServis\LaporanController::class, 'index'])->name('laporan.index');
     Route::get('/laporan/export-pdf', [\App\Http\Controllers\KasirServis\LaporanController::class, 'exportPdf'])->name('laporan.export.pdf');
     Route::get('/laporan/export-excel', [\App\Http\Controllers\KasirServis\LaporanController::class, 'exportExcel'])->name('laporan.export.excel');
+});
+
+// 4. KASIR FUTSAL
+use App\Http\Controllers\KasirFutsal;
+
+Route::middleware(['auth', 'checkRole:kasirfutsal'])->prefix('kasir-futsal')->name('kasirfutsal.')->group(function () {
+    Route::get('/', [KasirFutsal\DashboardController::class, 'index'])->name('dashboard');
+
+    Route::get('/booking', [KasirFutsal\BookingKasirFutsalController::class, 'index'])->name('booking.index');
+    Route::get('/booking/{id}', [KasirFutsal\BookingKasirFutsalController::class, 'show'])->name('booking.show');
+    Route::post('/booking/{id}/konfirmasi', [KasirFutsal\BookingKasirFutsalController::class, 'konfirmasi'])->name('booking.konfirmasi');
+
+    Route::get('/pembayaran', [KasirFutsal\PembayaranKasirFutsalController::class, 'index'])->name('pembayaran.index');
+    Route::get('/pembayaran/{id}', [KasirFutsal\PembayaranKasirFutsalController::class, 'show'])->name('pembayaran.show');
+    Route::post('/pembayaran/{id}/proses', [KasirFutsal\PembayaranKasirFutsalController::class, 'prosesPembayaran'])->name('pembayaran.proses');
+
+    Route::get('/laporan', [KasirFutsal\LaporanKasirFutsalController::class, 'index'])->name('laporan.index');
+    Route::get('/laporan/pdf', [KasirFutsal\LaporanKasirFutsalController::class, 'exportPdf'])->name('laporan.pdf');
 });

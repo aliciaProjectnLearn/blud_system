@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
         $this->call(KategoriKomponenSeeder::class);
         $this->call(ProdukSeeder::class);
         $this->call(LapanganTableSeeder::class);
+        $this->call(JamOperasionalSeeder::class);
         $this->call(JadwalLapanganSeeder::class);
         $this->call(PengaturanTableSeeder::class);
 
@@ -58,5 +59,8 @@ class DatabaseSeeder extends Seeder
 
         // Modul Teknisi Servis
         $this->call(TeknisiServisSeeder::class);
+
+        // Kasir Futsal
+        $this->call(KasirFutsalUserSeeder::class);
     }
 }

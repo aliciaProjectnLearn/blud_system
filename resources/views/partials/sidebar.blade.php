@@ -33,6 +33,9 @@
             } elseif ($user->hasRole('Kasir')) {
                 $brandLabel = 'Kasir Servis';
                 $brandRoute = route('kasir.dashboard');
+            } elseif ($user->hasRole('kasirfutsal')) {
+                $brandLabel = 'Kasir Futsal';
+                $brandRoute = route('kasirfutsal.dashboard');
             }
         }
 
@@ -190,9 +193,9 @@
                 class="collapse {{ request()->routeIs('admin.futsal.jadwal-lapangan.*') || request()->routeIs('admin.futsal.pengaturan.*') ? 'show' : '' }}">
 
                 <div class="bg-white py-2 collapse-inner rounded">
-                    <a class="collapse-item" href="{{ route('admin.futsal.jadwal-lapangan.index') }}"> Jadwal
-                        Lapangan</a>
-                    <a class="collapse-item" href="{{ route('admin.futsal.pengaturan.index') }}">Jam Operasional</a>
+                    <a class="collapse-item" href="{{ route('admin.futsal.jadwal-lapangan.index') }}">Jadwal Lapangan</a>
+                    <a class="collapse-item" href="{{ route('admin.futsal.pengaturan.index') }}">Pengaturan Dasar</a>
+                    <a class="collapse-item" href="{{ route('admin.futsal.pengaturan.jam_operasional.index') }}">Jam Operasional</a>
                 </div>
             </div>
         </li>
@@ -220,7 +223,7 @@
                 href="#" data-toggle="collapse" data-target="#collapseMembership">
 
                 <i class="fas fa-fw fa-id-card"></i>
-                <span>Manajemen Membership</span>
+                <span>Manajemen Paket</span>
             </a>
 
             <div id="collapseMembership"
@@ -228,10 +231,10 @@
 
                 <div class="bg-white py-2 collapse-inner rounded">
                     <a class="collapse-item" href="{{ route('admin.futsal.paket-membership.index') }}">
-                        Paket Membership
+                        Pilihan Paket
                     </a>
-                    <a class="collapse-item" href="{{ route('admin.futsal.monitoring-membership.index') }}">
-                        Monitoring Membership
+                    <a class="collapse-item" href="{{ route('admin.futsal.monitoring-paket.index') }}">
+                        Monitoring Paket
                     </a>
                 </div>
             </div>
@@ -526,6 +529,38 @@
             <a class="nav-link" href="{{ route('kasir.laporan.index') }}">
                 <i class="fas fa-fw fa-file-pdf"></i>
                 <span>Laporan Transaksi</span>
+            </a>
+        </li>
+    @elseif (auth()->check() && auth()->user()->hasRole('kasirfutsal'))
+
+        {{-- Menu Kasir Futsal --}}
+        <div class="sidebar-heading">Menu Kasir Futsal</div>
+
+        <li class="nav-item {{ request()->routeIs('kasirfutsal.dashboard') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('kasirfutsal.dashboard') }}">
+                <i class="fas fa-fw fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            </a>
+        </li>
+
+        <li class="nav-item {{ request()->routeIs('kasirfutsal.booking.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('kasirfutsal.booking.index') }}">
+                <i class="fas fa-fw fa-calendar-check"></i>
+                <span>Booking</span>
+            </a>
+        </li>
+
+        <li class="nav-item {{ request()->routeIs('kasirfutsal.pembayaran.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('kasirfutsal.pembayaran.index') }}">
+                <i class="fas fa-fw fa-money-bill-wave"></i>
+                <span>Pembayaran</span>
+            </a>
+        </li>
+
+        <li class="nav-item {{ request()->routeIs('kasirfutsal.laporan.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('kasirfutsal.laporan.index') }}">
+                <i class="fas fa-fw fa-file-alt"></i>
+                <span>Laporan Harian</span>
             </a>
         </li>
     @endif

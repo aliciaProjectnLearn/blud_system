@@ -107,8 +107,7 @@
                             Dashboard
                         </a>
                     @elseif(Auth::user()->hasRole('Kasir'))
-                        <a class="dropdown-item {{ request()->routeIs('admin.profile.edit') ? 'active' : '' }}"
-                            href="{{ route('admin.profile.edit') }}">
+                        <a class="dropdown-item" href="#">
                             <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
                             Profile
                         </a>
