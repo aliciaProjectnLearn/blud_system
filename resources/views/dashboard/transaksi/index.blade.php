@@ -104,7 +104,7 @@
                                 </td>
 
                                 <td>
-                                    <a href="{{ route('transaksi.show', $t->id) }}?sistem={{ $t->sistem }}"
+                                    <a href="{{ route('admin.transaksi.show', $t->id) }}?sistem={{ $t->sistem }}"
                                        class="btn btn-info btn-sm">
                                         <i class="fas fa-eye"></i>
                                     </a>

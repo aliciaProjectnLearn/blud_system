@@ -6,7 +6,7 @@
 
     <div class="card shadow">
         <div class="card-body">
-            <form action="{{ route('users.update', $user->id) }}" method="POST" autocomplete="off">
+            <form action="{{ route('admin.users.update', $user->id) }}" method="POST" autocomplete="off">
                 @csrf
                 @method('PUT')
 
@@ -73,7 +73,7 @@
                         @foreach($roles as $role)
                             <option value="{{ $role->id }}"
                                 {{ old('role', $user->roles->first()?->id) == $role->id ? 'selected' : '' }}>
-                                {{ $role->nama }}
+                                {{ $role->label }}
                             </option>
                         @endforeach
                     </select>

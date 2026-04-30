@@ -13,7 +13,7 @@ class CheckRole
         $user = $request->user();
 
         if (!$user) {
-            return redirect()->route('login');
+            return redirect()->route('staff.login');
         }
 
         // Support multiple roles dipisah pipe: role:Superadmin|Adminfutsal|Adminkantin

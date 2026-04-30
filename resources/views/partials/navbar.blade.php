@@ -58,7 +58,7 @@
                             Profile
                         </a>
                         <a class="dropdown-item {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}"
-                            href="{{ route('dashboard') }}">
+                            href="{{ route('admin.dashboard') }}">
                             <i class="fas fa-tachometer-alt fa-sm fa-fw mr-2 text-gray-400"></i>
                             Dashboard
                         </a>
@@ -152,7 +152,7 @@
                         Logout
                     </a>
                 @else
-                    <a class="dropdown-item" href="{{ route('login') }}">
+                    <a class="dropdown-item" href="{{ route('staff.login') }}">
                         <i class="fas fa-sign-in-alt fa-sm fa-fw mr-2 text-gray-400"></i>
                         Login Admin/Staff
                     </a>
