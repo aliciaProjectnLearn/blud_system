@@ -1,605 +1,486 @@
 @extends('layouts.publik')
 
-@section('title', 'Form Sewa Kantin Baru')
+@section('title', 'Form Pengajuan Sewa')
+
+@push('styles')
+<style>
+    .booking-container { padding-top: 1.5rem; padding-bottom: 4rem; background: #f8f9fc; min-height: 100vh; }
+    .card { border: none; border-radius: 12px; box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1); margin-bottom: 1.5rem; }
+    .card-header { background: #fff; border-bottom: 1px solid #e3e6f0; padding: 1rem 1.25rem; border-radius: 12px 12px 0 0 !important; }
+    .card-header h6 { color: #4e73df; font-weight: 700; margin: 0; }
+    
+    .section-title { color: #4e73df; font-weight: 700; display: flex; align-items: center; gap: 10px; margin-bottom: 1.25rem; font-size: 1.1rem; }
+    
+    /* Sticky Sidebar Fix */
+    @media (min-width: 992px) {
+        .sticky-sidebar { position: sticky; top: 20px; z-index: 10; }
+    }
+    
+    /* Fix Dropdown Kepotong */
+    select.form-control { 
+        white-space: normal; 
+        height: auto !important; 
+        min-height: 45px; 
+        width: 100% !important;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 0.75rem center;
+        background-size: 16px 12px;
+        appearance: none;
+        -webkit-appearance: none;
+    }
+    .form-group { margin-bottom: 1.25rem; }
+    label { font-weight: 600; color: #4e73df; font-size: 0.85rem; margin-bottom: 0.5rem; }
+    .form-control { border-radius: 8px; border: 1px solid #d1d3e2; padding: 0.6rem 1rem; }
+    
+    /* Estimasi Styles */
+    .calc-box { background: #f8f9fc; border: 1px dashed #4e73df; border-radius: 10px; padding: 15px; }
+    .price-tag { font-size: 1.5rem; font-weight: 800; color: #1cc88a; }
+    
+    .checklist-info { list-style: none; padding-left: 0; margin-bottom: 0; }
+    .checklist-info li { font-size: 0.85rem; color: #5a5c69; margin-bottom: 8px; display: flex; align-items: flex-start; gap: 8px; }
+    .checklist-info li i { color: #1cc88a; margin-top: 3px; }
+
+    .termin-option { cursor: pointer; transition: all 0.2s; border: 2px solid #eaecf4; border-radius: 10px; padding: 12px; position: relative; }
+    .termin-option:hover { border-color: #4e73df; }
+    input[name="tipe_pembayaran"]:checked + .termin-option { border-color: #4e73df; background: #f0f3ff; }
+    
+    /* Info Termin Animation */
+    .info-termin { display: none; animation: fadeInTermin 0.3s ease-in; }
+    .info-termin.active { display: block; }
+    @keyframes fadeInTermin {
+        from { opacity: 0; transform: translateY(-10px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    
+    @media (max-width: 991.98px) {
+        .order-mobile-1 { order: 2; }
+        .order-mobile-2 { order: 1; }
+    }
+</style>
+@endpush
 
 @section('content')
-<div class="container-fluid pb-5">
-
-    {{-- Page Heading --}}
-    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">Form Sewa Kantin Baru</h1>
-        <a href="{{ route('user.gateway') }}" class="btn btn-sm btn-secondary shadow-sm">
-            <i class="fas fa-arrow-left fa-sm"></i> Kembali ke Dashboard
-        </a>
-    </div>
-
-    {{-- Flash Messages --}}
-    @if(session('error'))
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="fas fa-exclamation-circle mr-1"></i> {{ session('error') }}
-            <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
-        </div>
-    @endif
-
-    @if($errors->any())
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="fas fa-exclamation-triangle mr-1"></i>
-            <ul class="mb-0 mt-1">
-                @foreach($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-            <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
-        </div>
-    @endif
-
-    {{-- Info penyewa otomatis --}}
-    @if(!$penyewa)
-        <div class="alert alert-info border-left-info shadow-sm py-2 px-3 mb-4">
-            <i class="fas fa-info-circle mr-1"></i>
-            Data penyewa Anda akan dibuat secara otomatis dari informasi akun saat pengajuan dikirim.
-        </div>
-    @endif
-
-    <form id="form-booking" action="{{ route('user.kantin.booking.store') }}" method="POST">
-        @csrf
-
+<div class="booking-container">
+    <div class="container">
         <div class="row">
-
-            {{-- ════════════════════════════════════════════════
-                 KOLOM KIRI — Pilih Unit + Info Unit
-            ════════════════════════════════════════════════ --}}
-            <div class="col-lg-5 mb-4">
-                {{-- Langkah 0: Identitas --}}
-                <div class="card shadow mb-4">
-                    <div class="card-header py-3">
-                        <h6 class="m-0 font-weight-bold text-primary">
-                            <i class="fas fa-user mr-1"></i> Identitas Penyewa
-                        </h6>
-                    </div>
-                    <div class="card-body">
-                        <div class="form-group">
-                            <label class="small font-weight-bold">Nama Lengkap</label>
-                            <input type="text" name="nama" class="form-control" value="{{ Auth::user()->nama_lengkap ?? old('nama') }}" required placeholder="Nama Lengkap">
-                        </div>
-                        <div class="form-group">
-                            <label class="small font-weight-bold">Nomor WhatsApp</label>
-                            <input type="text" name="no_hp" class="form-control" value="{{ Auth::user()->no_hp ?? old('no_hp') }}" required placeholder="0812...">
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Bagian A: Pilih Unit --}}
-                <div class="card shadow mb-4">
-                    <div class="card-header py-3">
-                        <h6 class="m-0 font-weight-bold text-primary">
-                            <i class="fas fa-store mr-1"></i> Langkah 1 — Pilih Unit Kantin
-                        </h6>
-                    </div>
-                    <div class="card-body">
-                        <div class="mb-4">
-                        @if($units->isEmpty())
-                            <div class="text-center py-4">
-                                <i class="fas fa-store-slash fa-3x text-gray-200 mb-3"></i>
-                                <p class="text-muted">Tidak ada unit kantin yang tersedia saat ini.</p>
-                                <a href="{{ route('user.gateway') }}" class="btn btn-sm btn-secondary">
-                                    Kembali ke Dashboard
-                                </a>
+            {{-- KOLOM KIRI: FORM DATA (col-lg-7) --}}
+            <div class="col-lg-7 order-mobile-1">
+                <form action="{{ route('user.kantin.booking.store') }}" method="POST" id="bookingForm">
+                    @csrf
+                    
+                    {{-- 1. Data Pribadi --}}
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="section-title"><i class="fas fa-user-circle"></i> 1. Data Pribadi</h5>
+                            <div class="row">
+                                <div class="col-md-6 form-group">
+                                    <label>Nama Lengkap*</label>
+                                    <input type="text" name="nama" class="form-control" required placeholder="Sesuai KTP" value="{{ $penyewa->nama_lengkap ?? old('nama') }}">
+                                </div>
+                                <div class="col-md-6 form-group">
+                                    <label>NIK (16 Digit)*</label>
+                                    <input type="text" name="nik" id="nik" class="form-control" required placeholder="16 Digit NIK" maxlength="16" value="{{ $penyewa->nik ?? old('nik') }}">
+                                    <div id="nik-error" class="text-danger small mt-1" style="display:none;">Harus tepat 16 digit angka.</div>
+                                </div>
+                                <div class="col-md-6 form-group">
+                                    <label>Nomor WhatsApp*</label>
+                                    <input type="text" name="no_hp" id="no_hp" class="form-control" required placeholder="08xxxxxxxx" maxlength="13" value="{{ $penyewa->no_hp ?? old('no_hp') }}">
+                                    <div id="hp-error" class="text-danger small mt-1" style="display:none;">Gunakan 10-13 digit angka.</div>
+                                </div>
+                                <div class="col-md-6 form-group">
+                                    <label>Email (Opsional)</label>
+                                    <input type="email" name="email" class="form-control" placeholder="user@email.com" value="{{ old('email') }}">
+                                </div>
                             </div>
-                        @else
-                            <div class="form-group mb-0">
-                                <label for="select-unit" class="font-weight-bold text-sm">Unit Tersedia</label>
-                                <select id="select-unit" name="ruko_id" class="form-control @error('ruko_id') is-invalid @enderror">
-                                    <option value="">-- Pilih Unit --</option>
-                                    @foreach($units as $unit)
-                                        <option value="{{ $unit->id }}"
-                                            {{ old('ruko_id') == $unit->id ? 'selected' : '' }}>
-                                            {{ $unit->kode_unit }}{{ $unit->no_unit ? ' - ' . $unit->no_unit : '' }}
-                                            &nbsp;|&nbsp; Rp {{ number_format($unit->harga, 0, ',', '.') }}/thn
+                        </div>
+                    </div>
+
+                    {{-- 2. Data Usaha --}}
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="section-title"><i class="fas fa-store"></i> 2. Data Usaha</h5>
+                            <div class="row">
+                                <div class="col-md-7 form-group">
+                                    <label>Nama Usaha/Toko*</label>
+                                    <input type="text" name="nama_usaha" class="form-control" required placeholder="Contoh: Kedai Kopi Makmur" value="{{ old('nama_usaha') }}">
+                                </div>
+                                <div class="col-md-5 form-group">
+                                    <label>Jenis Usaha*</label>
+                                    <select name="jenis_usaha" class="form-control w-100" required>
+                                        <option value="">-- Pilih Jenis --</option>
+                                        <option value="Makanan & Minuman">Makanan & Minuman</option>
+                                        <option value="Pakaian">Pakaian</option>
+                                        <option value="ATK">ATK</option>
+                                        <option value="Elektronik">Elektronik</option>
+                                        <option value="Lainnya">Lainnya</option>
+                                    </select>
+                                </div>
+                                <div class="col-12 form-group">
+                                    <label>Alamat Lengkap Usaha/Tinggal*</label>
+                                    <textarea name="alamat" class="form-control" rows="2" required placeholder="Jl. Raya No. XX, Desa, Kec...">{{ old('alamat') }}</textarea>
+                                </div>
+                                <div class="col-12 form-group mb-0">
+                                    <label>Deskripsi Usaha (Opsional)</label>
+                                    <textarea name="deskripsi_usaha" class="form-control" rows="2" placeholder="Jelaskan produk/jasa Anda...">{{ old('deskripsi_usaha') }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- 3. Detail Sewa --}}
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="section-title"><i class="fas fa-calendar-alt"></i> 3. Detail Sewa</h5>
+                            <div class="form-group">
+                                <label>Pilih Unit Ruko/Kantin*</label>
+                                <select name="ruko_id" id="ruko_id" class="form-control w-100" required>
+                                    <option value="">-- Pilih Unit Tersedia --</option>
+                                    @foreach($units as $u)
+                                        <option value="{{ $u->id }}" {{ ($ruko && $ruko->id == $u->id) ? 'selected' : '' }} data-harga="{{ $u->harga }}">
+                                            {{ $u->kode_unit }} — Rp {{ number_format($u->harga, 0, ',', '.') }}/tahun
                                         </option>
                                     @endforeach
                                 </select>
-                                @error('ruko_id')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                                <small class="text-muted">Pilih unit untuk melihat detail dan melanjutkan pengisian.</small>
                             </div>
-                        @endif
-                    </div>
-                </div>
-
-                {{-- Bagian B: Info Singkat Unit (muncul via AJAX) --}}
-                <div id="card-unit-info" class="card shadow border-left-primary" style="display:none;">
-                    <div class="card-header py-3 d-flex align-items-center justify-content-between">
-                        <h6 class="m-0 font-weight-bold text-primary">
-                            <i class="fas fa-info-circle mr-1"></i> Informasi Unit
-                        </h6>
-                        <span id="unit-status-badge" class="badge badge-success">Tersedia</span>
-                    </div>
-                    <div class="card-body">
-
-                        {{-- Thumbnail foto --}}
-                        <div id="unit-photo-wrapper" class="mb-3 text-center" style="display:none;">
-                            <img id="unit-photo" src="" alt="Foto Unit"
-                                 class="img-fluid rounded shadow-sm"
-                                 style="width:100%; height:180px; object-fit:cover;">
-                        </div>
-                        <div id="unit-no-photo" class="text-center mb-3" style="display:none;">
-                            <div class="bg-light rounded d-flex align-items-center justify-content-center"
-                                 style="height:120px;">
-                                <i class="fas fa-image fa-3x text-gray-300"></i>
-                            </div>
-                            <small class="text-muted">Belum ada foto unit</small>
-                        </div>
-
-                        <table class="table table-sm table-borderless mb-0">
-                            <tr>
-                                <td class="font-weight-bold text-xs text-gray-600 text-uppercase" style="width:40%">Kode Unit</td>
-                                <td id="info-kode-unit" class="font-weight-bold">—</td>
-                            </tr>
-                            <tr>
-                                <td class="font-weight-bold text-xs text-gray-600 text-uppercase">Kategori</td>
-                                <td id="info-kategori">—</td>
-                            </tr>
-                            <tr>
-                                <td class="font-weight-bold text-xs text-gray-600 text-uppercase">Harga / Tahun</td>
-                                <td id="info-harga" class="text-success font-weight-bold">—</td>
-                            </tr>
-                            <tr>
-                                <td class="font-weight-bold text-xs text-gray-600 text-uppercase">Status</td>
-                                <td id="info-status">—</td>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
-
-                {{-- Skeleton loader untuk info unit --}}
-                <div id="card-unit-skeleton" class="card shadow" style="display:none;">
-                    <div class="card-body">
-                        <div class="skeleton" style="height:120px; border-radius:6px; margin-bottom:12px;
-                             background: linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);
-                             background-size:200% 100%; animation: shimmer 1.2s infinite;"></div>
-                        @for($i = 0; $i < 4; $i++)
-                            <div class="skeleton" style="height:16px; margin-bottom:8px; border-radius:4px;
-                                 background: linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);
-                                 background-size:200% 100%; animation: shimmer 1.2s infinite;
-                                 width:{{ [80, 60, 70, 50][$i] }}%;"></div>
-                        @endfor
-                    </div>
-                </div>
-
-            </div>{{-- /KOLOM KIRI --}}
-
-            {{-- ════════════════════════════════════════════════
-                 KOLOM KANAN — Detail Sewa + Pembayaran + Submit
-            ════════════════════════════════════════════════ --}}
-            <div class="col-lg-7 mb-4" id="panel-detail-sewa" style="display:none;">
-
-                {{-- Bagian C: Detail Sewa --}}
-                <div class="card shadow mb-4">
-                    <div class="card-header py-3">
-                        <h6 class="m-0 font-weight-bold text-primary">
-                            <i class="fas fa-calendar-alt mr-1"></i> Langkah 2 — Detail Sewa
-                        </h6>
-                    </div>
-                    <div class="card-body">
-
-                        <div class="form-group row">
-                            <label class="col-sm-4 col-form-label font-weight-bold">Tanggal Mulai <span class="text-danger">*</span></label>
-                            <div class="col-sm-8">
-                                <input type="date" id="tgl-mulai" name="tgl_mulai"
-                                       class="form-control @error('tgl_mulai') is-invalid @enderror"
-                                       value="{{ old('tgl_mulai', date('Y-m-d')) }}"
-                                       min="{{ date('Y-m-d') }}" required>
-                                @error('tgl_mulai')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <div class="form-group row mb-4">
-                            <label class="col-sm-4 col-form-label font-weight-bold">Durasi Sewa</label>
-                            <div class="col-sm-8 text-right text-sm-left">
-                                <span class="badge badge-light p-2 border">
-                                    <i class="fas fa-clock mr-1"></i> 1 Tahun (Minimum)
-                                </span>
-                            </div>
-                        </div>
-
-                        <div class="form-group row">
-                            <label class="col-sm-4 col-form-label font-weight-bold">Tanggal Selesai</label>
-                            <div class="col-sm-8">
-                                <input type="text" id="tgl-selesai-display" class="form-control bg-light" readonly placeholder="Otomatis dihitung...">
-                            </div>
-                        </div>
-
-                        {{-- Ringkasan Pembayaran --}}
-                        <div class="card border-left-info shadow-sm mt-4 mb-0" id="ringkasan-pembayaran" style="display:none;">
-                            <div class="card-body p-3">
-                                <div class="font-weight-bold mb-3 text-info">
-                                    <i class="fas fa-calculator mr-1"></i> Estimasi Cicilan 2 Termin
+                            <div class="row">
+                                <div class="col-md-6 form-group">
+                                    <label>Tanggal Mulai Sewa*</label>
+                                    <input type="date" name="tanggal_mulai_sewa" id="tgl_mulai" class="form-control" required min="{{ date('Y-m-d', strtotime('+1 day')) }}" value="{{ old('tanggal_mulai_sewa') }}">
                                 </div>
+                                <div class="col-md-6 form-group">
+                                    <label>Tanggal Selesai Sewa*</label>
+                                    <input type="date" name="tanggal_selesai_sewa" id="tgl_selesai" class="form-control" required value="{{ old('tanggal_selesai_sewa') }}">
+                                </div>
+                                <div class="col-12 form-group mb-0">
+                                    <label>Catatan Tambahan (Opsional)</label>
+                                    <textarea name="catatan" class="form-control" rows="2" placeholder="Catatan untuk admin...">{{ old('catatan') }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- 4. Skema Pembayaran --}}
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="section-title"><i class="fas fa-credit-card"></i> 4. Skema & Metode Pembayaran</h5>
+                            
+                            <label class="mb-2">Pilih Skema Termin*</label>
+                            <div class="row mb-4">
+                                <div class="col-md-6 mb-2">
+                                    <input type="radio" name="tipe_pembayaran" value="1_termin" id="termin1" class="d-none" checked>
+                                    <label for="termin1" class="termin-option w-100 mb-0">
+                                        <div class="font-weight-bold text-dark">1 Termin</div>
+                                        <div class="small text-muted">Lunas di awal (100%)</div>
+                                    </label>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <input type="radio" name="tipe_pembayaran" value="2_termin" id="termin2" class="d-none">
+                                    <label for="termin2" class="termin-option w-100 mb-0">
+                                        <div class="font-weight-bold text-dark">2 Termin</div>
+                                        <div class="small text-muted">Cicilan 2x (50% per termin)</div>
+                                    </label>
+                                </div>
+
+                                {{-- Info Box Termin 1 --}}
+                                <div class="col-12 mt-2 info-termin" id="info-termin1">
+                                    <div class="bg-light p-3 rounded border-left-success">
+                                        <div class="font-weight-bold text-success small mb-2"><i class="fas fa-check-circle mr-1"></i> Pembayaran Lunas di Awal</div>
+                                        <div class="small text-muted mb-1">Total yang harus dibayar:</div>
+                                        <div class="h5 font-weight-bold text-dark mb-2" id="nominal-lunas">Rp 0</div>
+                                        <hr class="my-2">
+                                        <div class="small text-muted italic"><i class="fas fa-info-circle mr-1"></i> Pembayaran dilakukan sekaligus penuh sebelum masa sewa dimulai.</div>
+                                    </div>
+                                </div>
+
+                                {{-- Info Box Termin 2 --}}
+                                <div class="col-12 mt-2 info-termin" id="info-termin2">
+                                    <div class="bg-light p-3 rounded border-left-primary">
+                                        <div class="font-weight-bold text-primary small mb-2"><i class="fas fa-calendar-check mr-1"></i> Pembayaran Dibagi 2 Tahap</div>
+                                        <div class="row">
+                                            <div class="col-sm-6 mb-2 mb-sm-0">
+                                                <div class="small text-muted mb-1">Termin 1 (50%) — Awal:</div>
+                                                <div class="font-weight-bold text-dark" id="nominal-termin1">Rp 0</div>
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <div class="small text-muted mb-1">Termin 2 (50%) — Bulan 6:</div>
+                                                <div class="font-weight-bold text-dark" id="nominal-termin2">Rp 0</div>
+                                            </div>
+                                        </div>
+                                        <hr class="my-2">
+                                        <div class="small text-muted italic"><i class="fas fa-info-circle mr-1"></i> Termin 2 jatuh tempo 6 bulan setelah tanggal mulai sewa.</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="alert-tunai" class="alert alert-info border-0 shadow-sm mb-0" style="display:none; font-size: 0.85rem;">
+                                <i class="fas fa-info-circle mr-1 text-primary"></i>
+                                Pembayaran tunai dilakukan langsung ke Bendahara BLUD SMK. Admin akan menghubungi Anda setelah disetujui.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg btn-block shadow py-3 font-weight-bold" style="border-radius: 10px;">
+                            <i class="fas fa-paper-plane mr-2"></i> AJUKAN PENYEWAAN SEKARANG
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            {{-- KOLOM KANAN: INFO UNIT (col-lg-5 sticky) --}}
+            <div class="col-lg-5 order-mobile-2">
+                <div class="sticky-sidebar">
+                    {{-- Card 1: Informasi Unit --}}
+                    <div class="card overflow-hidden">
+                        <div id="unit-photo-container">
+                            @if($ruko)
+                                <img src="{{ $ruko->dokumentasiUnit->first() ? asset('storage/' . str_replace('\\','/',$ruko->dokumentasiUnit->first()->file)) : asset('assets/img/no-image.png') }}" 
+                                     class="card-img-top" alt="Foto Unit" style="height: 200px; object-fit: cover;">
+                            @else
+                                <div class="bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                    <i class="fas fa-store fa-3x text-gray-200"></i>
+                                </div>
+                            @endif
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="font-weight-bold text-dark mb-0" id="info-kode">{{ $ruko->kode_unit ?? '-' }}</h5>
+                                <span class="badge badge-primary px-2 py-1" id="info-cat">{{ $ruko->kategori->nama ?? 'Unit' }}</span>
+                            </div>
+                            <div class="price-tag mb-3" id="info-harga-display">
+                                Rp {{ number_format($ruko->harga ?? 0, 0, ',', '.') }}<small class="text-muted text-xs">/tahun</small>
+                            </div>
+                            
+                            @if($ruko)
+                                <div class="unit-specs border-top pt-3">
+                                    <div class="mb-2">
+                                        <label class="detail-label mb-1">Ukuran Unit</label>
+                                        <div class="small text-dark font-weight-bold"><i class="fas fa-expand-arrows-alt mr-1 text-primary"></i> {{ $ruko->ukuran_ruko ?? '-' }}</div>
+                                    </div>
+                                    <div>
+                                        <label class="detail-label mb-1">Deskripsi Unit</label>
+                                        <div class="small text-muted" style="line-height: 1.4;">
+                                            {{ $ruko->deskripsi ?? 'Tidak ada deskripsi detail.' }}
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+
+                    {{-- Card 2: Estimasi Pembayaran --}}
+                    <div class="card">
+                        <div class="card-header bg-white">
+                            <h6><i class="fas fa-receipt mr-2"></i>Estimasi Pembayaran</h6>
+                        </div>
+                        <div class="card-body p-3">
+                            <div id="placeholder-calc" class="text-center py-4 {{ $ruko ? 'd-none' : '' }}">
+                                <p class="text-muted small mb-0">Silakan pilih unit dan tanggal sewa untuk melihat estimasi.</p>
+                            </div>
+                            
+                            <div id="actual-calc" class="{{ $ruko ? '' : 'd-none' }}">
                                 <div class="d-flex justify-content-between mb-2">
-                                    <div>
-                                        <span class="badge badge-warning mr-1">Termin 1</span>
-                                        <span class="text-xs text-gray-600">Terbayar saat awal sewa</span>
-                                        <div id="tanggal-termin1" class="text-muted small mt-1 font-weight-bold"></div>
+                                    <span class="small text-muted">Durasi Sewa</span>
+                                    <span class="small font-weight-bold" id="res-durasi">0 Bulan</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-3 pb-2 border-bottom">
+                                    <span class="small text-muted font-weight-bold">Total Biaya Sewa</span>
+                                    <span class="small font-weight-bold text-dark" id="res-total">Rp 0</span>
+                                </div>
+
+                                {{-- Info Termin --}}
+                                <div id="res-breakdown">
+                                    {{-- Jika 1 termin --}}
+                                    <div id="res-termin-1-full" class="bg-success text-white p-2 rounded small mb-0">
+                                        <div class="d-flex justify-content-between font-weight-bold">
+                                            <span>Lunas (100%)</span>
+                                            <span id="res-full-price">Rp 0</span>
+                                        </div>
                                     </div>
-                                    <h6 id="rp-termin1" class="font-weight-bold text-warning mb-0 align-self-center">—</h6>
-                                </div>
-                                <div class="border-top mt-2 pt-2 d-flex justify-content-between">
-                                    <div>
-                                        <span class="badge badge-secondary mr-1">Termin 2</span>
-                                        <span class="text-xs text-gray-600">Pelunasan di bulan ke-6</span>
-                                        <div id="tanggal-termin2" class="text-muted small mt-1 font-weight-bold"></div>
+                                    
+                                    {{-- Jika 2 termin --}}
+                                    <div id="res-termin-2-split" style="display:none;">
+                                        <div class="d-flex justify-content-between mb-1 small">
+                                            <span>Termin 1 (50%)</span>
+                                            <span class="font-weight-bold text-primary" id="res-t1">Rp 0</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between small">
+                                            <span>Termin 2 (50%)</span>
+                                            <span class="font-weight-bold text-primary" id="res-t2">Rp 0</span>
+                                        </div>
                                     </div>
-                                    <h6 id="rp-termin2" class="font-weight-bold text-secondary mb-0 align-self-center">—</h6>
-                                </div>
-                                <div class="mt-3 text-right border-top pt-2">
-                                    <span class="text-xs text-gray-500">Total Biaya Sewa (1 Tahun)</span>
-                                    <h5 id="rp-total" class="font-weight-bold text-gray-800 mb-0">—</h5>
                                 </div>
                             </div>
                         </div>
-
                     </div>
-                </div>
 
-                {{-- Bagian D: Metode Pembayaran --}}
-                <div class="card shadow mb-4">
-                    <div class="card-header py-3">
-                        <h6 class="m-0 font-weight-bold text-primary">
-                            <i class="fas fa-credit-card mr-1"></i> Langkah 3 — Metode Pembayaran
-                        </h6>
+                    {{-- Card 3: Informasi Penting --}}
+                    <div class="card">
+                        <div class="card-body p-3">
+                            <h6 class="font-weight-bold text-dark small mb-3">Informasi Penting</h6>
+                            <ul class="checklist-info">
+                                <li><i class="fas fa-check-circle"></i> <span>Pengajuan akan diproses dalam 1x24 jam kerja.</span></li>
+                                <li><i class="fas fa-check-circle"></i> <span>Link akses dikirim via WhatsApp setelah booking.</span></li>
+                                <li><i class="fas fa-check-circle"></i> <span>Pembatalan hanya bisa dilakukan saat status masih pending.</span></li>
+                                <li><i class="fas fa-check-circle"></i> <span>Dokumen MOU akan tersedia setelah disetujui admin.</span></li>
+                            </ul>
+                        </div>
                     </div>
-                    <div class="card-body">
 
-                        <div class="form-group">
-                            <label class="font-weight-bold d-block mb-2">Pilih Metode <span class="text-danger">*</span></label>
-                            <div class="custom-control custom-radio custom-control-inline">
-                                <input type="radio" id="metode-tunai" name="metode_pembayaran" value="tunai"
-                                       class="custom-control-input @error('metode_pembayaran') is-invalid @enderror"
-                                       {{ old('metode_pembayaran', 'tunai') === 'tunai' ? 'checked' : '' }}>
-                                <label class="custom-control-label" for="metode-tunai">
-                                    <i class="fas fa-money-bill-wave mr-1 text-success"></i> Tunai
-                                </label>
+                    {{-- Card 4: Butuh Bantuan --}}
+                    <div class="card bg-primary text-white">
+                        <div class="card-body p-3">
+                            <h6 class="font-weight-bold mb-1 small">Butuh Bantuan?</h6>
+                            <p class="small mb-3 opacity-75">Hubungi kami jika ada pertanyaan seputar penyewaan.</p>
+                            <a href="https://wa.me/6281234567890" target="_blank" class="btn btn-light btn-sm btn-block font-weight-bold text-primary mb-2">
+                                <i class="fab fa-whatsapp mr-1"></i> WhatsApp Admin
+                            </a>
+                            <div class="text-center x-small mt-2" style="font-size: 0.75rem;">
+                                <i class="fas fa-clock mr-1"></i> Senin–Jumat, 08.00–16.00
                             </div>
-                            <div class="custom-control custom-radio custom-control-inline">
-                                <input type="radio" id="metode-qris" name="metode_pembayaran" value="qris"
-                                       class="custom-control-input @error('metode_pembayaran') is-invalid @enderror"
-                                       {{ old('metode_pembayaran') === 'qris' ? 'checked' : '' }}>
-                                <label class="custom-control-label" for="metode-qris">
-                                    <i class="fas fa-qrcode mr-1 text-primary"></i> QRIS
-                                </label>
-                            </div>
-                            @error('metode_pembayaran')
-                                <div class="text-danger small mt-1">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        {{-- Info Tunai --}}
-                        <div id="info-tunai" class="alert alert-success border-left-success shadow-sm py-2 px-3">
-                            <i class="fas fa-info-circle mr-1"></i>
-                            <strong>Pembayaran Tunai:</strong> Silakan temui Admin Kantin untuk proses pembayaran.
-                            Tunjukkan nomor pengajuan Anda setelah form ini berhasil dikirim.
-                        </div>
-
-                        {{-- Info QRIS --}}
-                        <div id="info-qris" class="text-center" style="display:none;">
-                            <p class="text-sm text-muted mb-2">Scan QR Code berikut untuk pembayaran Termin 1:</p>
-                            <img src="{{ asset('img/qr-kantin.png') }}"
-                                 alt="QR Code Kantin"
-                                 class="img-fluid rounded shadow-sm border"
-                                 style="max-width:220px;"
-                                 onerror="this.style.display='none'; document.getElementById('qr-fallback').style.display='block';">
-                            <div id="qr-fallback" class="alert alert-warning small mt-2" style="display:none;">
-                                <i class="fas fa-exclamation-triangle mr-1"></i>
-                                Gambar QR Code belum tersedia. Hubungi admin untuk mendapatkan kode QR.
-                            </div>
-                            <div class="alert alert-info small mt-2 text-left">
-                                <strong>Nominal Termin 1:</strong>
-                                <span id="qris-nominal" class="font-weight-bold text-primary">—</span><br>
-                                Setelah transfer, Admin akan melakukan verifikasi dalam 1×24 jam.
-                            </div>
-                        </div>
-
-                        {{-- Nominal yang harus dibayar --}}
-                        <div id="box-nominal-termin1" class="mt-3 p-3 bg-warning rounded text-center" style="display:none;">
-                            <div class="text-xs text-gray-700 font-weight-bold text-uppercase">Nominal Termin 1 yang Harus Dibayar</div>
-                            <div id="nominal-termin1-besar" class="h4 font-weight-bold text-gray-800 mt-1 mb-0">—</div>
-                        </div>
-
-                    </div>
-                </div>
-
-                {{-- Bagian E: Persyaratan Dokumen (NEW) --}}
-                <div class="card shadow mb-4 mt-4">
-                    <div class="card-header py-3">
-                        <h6 class="m-0 font-weight-bold text-primary">
-                            <i class="fas fa-file-upload mr-1"></i> Langkah 4 — Persyaratan Dokumen
-                        </h6>
-                    </div>
-                    <div class="card-body">
-                        <div class="form-group mb-3">
-                            <label class="font-weight-bold">Upload KTP <span class="text-danger">*</span></label>
-                            <div class="custom-file">
-                                <input type="file" name="dokumen_ktp" class="custom-file-input" id="dokumen_ktp" required accept=".pdf,.jpg,.jpeg,.png">
-                                <label class="custom-file-label" for="dokumen_ktp">Pilih file...</label>
-                            </div>
-                            <small class="form-text text-muted mt-2">
-                                <i class="fas fa-info-circle mr-1"></i> 
-                                Gunakan format PDF, JPG, atau PNG (Maks 2MB). Dokumen ini diperlukan untuk verifikasi identitas dan pembuatan draf MOU.
-                            </small>
-                            @error('dokumen_ktp')
-                                <div class="text-danger small mt-1 font-weight-bold">{{ $message }}</div>
-                            @enderror
                         </div>
                     </div>
                 </div>
-
-                {{-- Bagian F: Tombol Submit --}}
-                <div class="card shadow">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <div>
-                                <p class="mb-1 font-weight-bold text-gray-700">
-                                    <i class="fas fa-check-circle text-success mr-1"></i> Siap Mengajukan?
-                                </p>
-                                <small class="text-muted">
-                                    Pastikan data yang Anda isi sudah benar sebelum mengirim pengajuan.
-                                </small>
-                            </div>
-                            <button type="button" id="btn-submit-booking" class="btn btn-primary px-4 py-2 shadow-sm">
-                                <i class="fas fa-paper-plane mr-1"></i> Ajukan Sewa
-                            </button>
-                        </div>
-                        <div class="mt-2 text-right">
-                             <small class="text-muted">
-                                <i class="fas fa-shield-alt mr-1 text-info"></i>
-                                Pengajuan akan diproses oleh Admin dalam maksimal 2×24 jam.
-                            </small>
-                        </div>
-                    </div>
-                </div>
-
-            </div>{{-- /KOLOM KANAN --}}
-
-        </div>{{-- /row --}}
-    </form>
-
-</div>
-
-{{-- Modal Konfirmasi --}}
-<div class="modal fade" id="modalKonfirmasiSewa" tabindex="-1" role="dialog" aria-labelledby="modalKonfirmasiSewaLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="modalKonfirmasiSewaLabel">
-                    <i class="fas fa-question-circle mr-2"></i>Konfirmasi Pengajuan
-                </h5>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body text-center py-4">
-                <i class="fas fa-store fa-3x text-primary mb-3"></i>
-                <p class="font-weight-bold mb-1">Apakah Anda yakin ingin mengajukan sewa ini?</p>
-                <p class="text-muted small">Pastikan data yang Anda isi sudah benar.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                    <i class="fas fa-times mr-1"></i> Batal
-                </button>
-                <button type="button" class="btn btn-primary" id="btnKonfirmasiYa">
-                    <i class="fas fa-check mr-1"></i> Ya, Ajukan
-                </button>
             </div>
         </div>
     </div>
 </div>
-
-<style>
-    @keyframes shimmer {
-        0%   { background-position: 200% 0; }
-        100% { background-position: -200% 0; }
-    }
-    #panel-detail-sewa { animation: fadeInUp 0.35s ease; }
-    #card-unit-info    { animation: fadeInUp 0.3s ease; }
-    @keyframes fadeInUp {
-        from { opacity:0; transform: translateY(12px); }
-        to   { opacity:1; transform: translateY(0); }
-    }
-</style>
 @endsection
 
 @push('scripts')
 <script>
-$(function () {
+$(document).ready(function() {
+    let currentHarga = {{ $ruko->harga ?? 0 }};
 
-    // ── Konstanta route AJAX ──────────────────────────────────────
-    const BASE_DETAIL_URL = '{{ url("user/kantin/unit") }}';
-    // Contoh: /user/kantin/unit/{id}/detail
+    function updateEstimasi() {
+        const id = $('#ruko_id').val();
+        const tglMulai = $('#tgl_mulai').val();
+        const tglSelesai = $('#tgl_selesai').val();
+        const tipe = $('input[name="tipe_pembayaran"]:checked').val();
 
-    let selectedHarga = 0;
-
-    // ── Format Rupiah ─────────────────────────────────────────────
-    function formatRupiah(angka) {
-        return 'Rp ' + parseInt(angka).toLocaleString('id-ID');
-    }
-
-    // ── Format tanggal tampil ─────────────────────────────────────
-    function formatTanggal(dateStr) {
-        if (!dateStr) return '-';
-        const d = new Date(dateStr);
-        const bulan = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
-        return d.getDate() + ' ' + bulan[d.getMonth()] + ' ' + d.getFullYear();
-    }
-
-    // ── Hitung ringkasan pembayaran ───────────────────────────────
-    function hitungRingkasan() {
-        if (selectedHarga <= 0) return;
-        const tglMulaiVal = $('#tgl-mulai').val();
-        if (!tglMulaiVal) return;
-
-        const tglMulai = new Date(tglMulaiVal);
-
-        // tgl_selesai = +1 tahun
-        const tglSelesai = new Date(tglMulai);
-        tglSelesai.setFullYear(tglSelesai.getFullYear() + 1);
-
-        // termin 2 = +6 bulan dari mulai
-        const tglTermin2 = new Date(tglMulai);
-        tglTermin2.setMonth(tglTermin2.getMonth() + 6);
-
-        const termin1 = Math.floor(selectedHarga / 2);
-        const termin2 = selectedHarga - termin1;
-
-        // Update tampilan
-        $('#tgl-selesai-display').val(formatTanggal(tglSelesai.toISOString().split('T')[0]));
-
-        $('#rp-total').text(formatRupiah(selectedHarga));
-        $('#rp-termin1').text(formatRupiah(termin1));
-        $('#rp-termin2').text(formatRupiah(termin2));
-        $('#tanggal-termin1').text('Jatuh Tempo: ' + formatTanggal(tglMulaiVal));
-        $('#tanggal-termin2').text('Jatuh Tempo: ' + formatTanggal(tglTermin2.toISOString().split('T')[0]));
-
-        $('#qris-nominal').text(formatRupiah(termin1));
-        $('#nominal-termin1-besar').text(formatRupiah(termin1));
-
-        $('#ringkasan-pembayaran').fadeIn(200);
-        $('#box-nominal-termin1').fadeIn(200);
-    }
-
-    // ── Event: Pilih Unit (AJAX) ─────────────────────────────────
-    $('#select-unit').on('change', function () {
-        const id = $(this).val();
-
-        if (!id) {
-            $('#card-unit-info').hide();
-            $('#card-unit-skeleton').hide();
-            $('#panel-detail-sewa').hide();
-            selectedHarga = 0;
+        if(!id) {
+            $('#placeholder-calc').removeClass('d-none');
+            $('#actual-calc').addClass('d-none');
+            $('.info-termin').removeClass('active');
             return;
         }
 
-        // Tampilkan skeleton
-        $('#card-unit-info').hide();
-        $('#card-unit-skeleton').fadeIn(150);
+        $('#placeholder-calc').addClass('d-none');
+        $('#actual-calc').removeClass('d-none');
 
-        $.ajax({
-            url: BASE_DETAIL_URL + '/' + id + '/detail',
-            method: 'GET',
-            headers: { 'X-Requested-With': 'XMLHttpRequest' },
-            success: function (data) {
-                $('#card-unit-skeleton').hide();
+        // Toggle Info Termin Box
+        $('.info-termin').removeClass('active');
+        if (tipe === '1_termin') $('#info-termin1').addClass('active');
+        else $('#info-termin2').addClass('active');
 
-                // Isi info unit
-                $('#info-kode-unit').text(data.kode_unit + (data.no_unit ? ' — ' + data.no_unit : ''));
-                $('#info-kategori').text(data.kategori.nama);
-                $('#info-harga').text(formatRupiah(data.harga) + ' / tahun');
-                $('#info-status').html('<span class="badge badge-success">Tersedia</span>');
+        // Default durasi 12 bulan jika tanggal belum lengkap
+        let months = 12;
 
-                // Foto
-                const gambar = data.dokumentasi.filter(d => d.tipe === 'gambar');
-                if (gambar.length > 0) {
-                    $('#unit-photo').attr('src', gambar[0].url);
-                    $('#unit-photo-wrapper').show();
-                    $('#unit-no-photo').hide();
-                } else {
-                    $('#unit-photo-wrapper').hide();
-                    $('#unit-no-photo').show();
-                }
+        if(tglMulai && tglSelesai) {
+            const start = new Date(tglMulai);
+            const end = new Date(tglSelesai);
+            
+            months = (end.getFullYear() - start.getFullYear()) * 12;
+            months -= start.getMonth();
+            months += end.getMonth();
+            months = months <= 0 ? 0 : months;
+        }
+            
+        $('#res-durasi').text(months + ' Bulan');
 
-                $('#card-unit-info').fadeIn(250);
+        // Hitung total (pro-rata 12 bulan)
+        const total = (currentHarga / 12) * months;
+        const formattedTotal = 'Rp ' + new Intl.NumberFormat('id-ID').format(Math.round(total));
+        $('#res-total').text(formattedTotal);
 
-                // Simpan harga
-                selectedHarga = parseInt(data.harga);
+        // Update Info Lunas (1 Termin)
+        $('#nominal-lunas').text(formattedTotal);
 
-                // Tampilkan panel detail sewa
-                $('#panel-detail-sewa').fadeIn(300);
-                hitungRingkasan();
-            },
-            error: function (xhr) {
-                $('#card-unit-skeleton').hide();
-                selectedHarga = 0;
-                $('#panel-detail-sewa').hide();
+        // Perhitungan Termin
+        const half = Math.round(total / 2);
+        const formattedHalf = 'Rp ' + new Intl.NumberFormat('id-ID').format(half);
 
-                const msg = (xhr.responseJSON && xhr.responseJSON.error)
-                    ? xhr.responseJSON.error
-                    : 'Gagal memuat detail unit. Silakan coba lagi.';
-
-                toastr ? toastr.error(msg) : alert(msg);
-            }
-        });
-    });
-
-    // ── Event: Tanggal Mulai berubah ─────────────────────────────
-    $('#tgl-mulai').on('change', function () {
-        hitungRingkasan();
-    });
-
-    // ── Event: Metode Pembayaran ──────────────────────────────────
-    $('input[name="metode_pembayaran"]').on('change', function () {
-        if ($(this).val() === 'tunai') {
-            $('#info-tunai').fadeIn(200);
-            $('#info-qris').hide();
+        if(tipe === '2_termin') {
+            $('#res-termin-1-full').hide();
+            $('#res-termin-2-split').show();
+            $('#res-t1').text(formattedHalf);
+            $('#res-t2').text(formattedHalf);
         } else {
-            $('#info-qris').fadeIn(200);
-            $('#info-tunai').hide();
+            $('#res-termin-1-full').show();
+            $('#res-termin-2-split').hide();
+            $('#res-full-price').text(formattedTotal);
+        }
+
+        // Selalu update nominal di boks info termin
+        $('#nominal-termin1').text(formattedHalf);
+        $('#nominal-termin2').text(formattedHalf);
+    }
+
+    // Event: Dropdown Unit Berubah (Reload page to get unit details if not already set)
+    $('#ruko_id').on('change', function() {
+        const id = $(this).val();
+        if(id) {
+            // Gunakan url() Blade untuk base-nya, lalu sambungkan ID di JS
+            const baseUrl = "{{ url('user/kantin/booking') }}";
+            window.location.href = baseUrl + '/' + id;
+        } else {
+            // Jika dikosongkan, kembali ke katalog
+            window.location.href = "{{ route('user.kantin.katalog') }}";
         }
     });
 
-    // ── Trigger state awal (jika ada old input) ───────────────────
-    @if(old('ruko_id'))
-        $('#select-unit').val('{{ old("ruko_id") }}').trigger('change');
-    @endif
-
-    @if(old('metode_pembayaran') === 'qris')
-        $('#metode-qris').prop('checked', true).trigger('change');
-    @endif
-
-    // Trigger awal metode default --
-    $('input[name="metode_pembayaran"]:checked').trigger('change');
-
-    // To show file name on custom-file-input
-    $(document).on('change', '.custom-file-input', function() {
-        let fileName = $(this).val().split('\\').pop();
-        $(this).next('.custom-file-label').addClass("selected").html(fileName);
+    // Event: Tanggal Mulai berubah -> Auto-fill Tanggal Selesai (+1 Tahun)
+    $('#tgl_mulai').on('change', function() {
+        const mulaiVal = $(this).val();
+        if (mulaiVal) {
+            const mulai = new Date(mulaiVal);
+            const selesai = new Date(mulai);
+            selesai.setFullYear(selesai.getFullYear() + 1);
+            
+            // Format ke yyyy-mm-dd
+            const formatted = selesai.toISOString().split('T')[0];
+            $('#tgl_selesai').val(formatted);
+            $('#tgl_selesai').attr('min', mulaiVal);
+            
+            updateEstimasi();
+        }
     });
 
-    // ── Logic Konfirmasi Modal ──────────────────────────────────
-    $('#btn-submit-booking').on('click', function (e) {
-        e.preventDefault();
-
-        // Validasi unit
-        if (!$('#select-unit').val()) {
-            toastr ? toastr.warning('Silakan pilih unit terlebih dahulu.') : alert('Silakan pilih unit terlebih dahulu.');
-            $('#select-unit').focus();
-            return;
-        }
-
-        // Validasi tanggal
-        if (!$('#tgl-mulai').val()) {
-            toastr ? toastr.warning('Silakan isi tanggal mulai sewa.') : alert('Silakan isi tanggal mulai sewa.');
-            $('#tgl-mulai').focus();
-            return;
-        }
-
-        // Validasi dokumen (wajib)
-        if (!$('#dokumen_ktp').val()) {
-            toastr ? toastr.warning('Silakan upload dokumen KTP terlebih dahulu.') : alert('Silakan upload dokumen KTP terlebih dahulu.');
-            return;
-        }
-
-        // Jika semua valid, tampilkan modal konfirmasi
-        $('#modalKonfirmasiSewa').modal('show');
+    // Event: Tanggal Selesai & Tipe Pembayaran berubah
+    $('#tgl_selesai, input[name="tipe_pembayaran"]').on('change', function() {
+        updateEstimasi();
     });
 
-    // Ketika tombol "Ya, Ajukan" di dalam modal diklik
-    $('#btnKonfirmasiYa').on('click', function() {
-        // Matikan event preventDefault dan submit form
-        $('#form-booking').submit();
+    // Event: Metode Pembayaran
+    $('input[name="metode_pembayaran"]').on('change', function() {
+        if($(this).val() === 'tunai') {
+            $('#alert-tunai').slideDown();
+        } else {
+            $('#alert-tunai').slideUp();
+        }
     });
+
+    // Validasi NIK & HP (Only digits)
+    $('#nik, #no_hp').on('input', function() {
+        this.value = this.value.replace(/[^0-9]/g, '');
+        if(this.id === 'nik') {
+            if(this.value.length === 16) $('#nik-error').hide();
+            else $('#nik-error').show();
+        }
+        if(this.id === 'no_hp') {
+            if(this.value.length >= 10 && this.value.length <= 13) $('#hp-error').hide();
+            else $('#hp-error').show();
+        }
+    });
+
+    // Tgl Selesai minimal tgl mulai + 1 month (asumsi)
+    $('#tgl_mulai').on('change', function() {
+        $('#tgl_selesai').attr('min', this.value);
+    });
+
+    // Initial load
+    updateEstimasi();
 });
 </script>
 @endpush

@@ -38,10 +38,9 @@
                         <div class="col-6 col-md-auto">
                             <select name="status" class="form-control form-control-sm">
                                 <option value="">-- Semua Status --</option>
-                                <option value="menunggu" {{ request('status') === 'menunggu' ? 'selected' : '' }}>Menunggu</option>
-                                <option value="verifikasi" {{ request('status') === 'verifikasi' ? 'selected' : '' }}>Verifikasi</option>
-                                <option value="lunas" {{ request('status') === 'lunas' ? 'selected' : '' }}>Lunas</option>
-                                <option value="dibatalkan" {{ request('status') === 'dibatalkan' ? 'selected' : '' }}>Dibatalkan</option>
+                                <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
+                                <option value="menunggu_verifikasi" {{ request('status') == 'menunggu_verifikasi' ? 'selected' : '' }}>Menunggu Verifikasi</option>
+                                <option value="dibayar" {{ request('status') == 'dibayar' ? 'selected' : '' }}>Lunas</option>
                             </select>
                         </div>
                         <div class="col-12 col-md-auto d-flex gap-1">
@@ -78,13 +77,13 @@
                         <tr class="{{ $terlambat ? 'table-danger' : '' }}">
                             <td class="d-none d-sm-table-cell">{{ $pembayarans->firstItem() + $i }}</td>
                             <td>
-                                <strong>{{ $p->sewaRuko->penyewa->nama_usaha ?? '-' }}</strong>
+                                <strong>{{ $p->sewaRuko->nama_penyewa ?? '-' }}</strong>
                                 @if($terlambat)
                                     <span class="badge badge-danger ml-1">Menunggak</span>
                                 @endif
                             </td>
                             <td>{{ $p->sewaRuko->ruko->kode_unit ?? '-' }}</td>
-                            <td>Termin {{ $p->termin }}</td>
+                            <td>Termin {{ $p->termin_ke }}</td>
                             <td class="d-none d-md-table-cell">
                                 {{ $p->tgl_jatuh_tempo
                                     ? \Carbon\Carbon::parse($p->tgl_jatuh_tempo)->format('d M Y')
@@ -92,19 +91,19 @@
                             </td>
                             <td>Rp {{ number_format($p->jumlah_tagihan, 0, ',', '.') }}</td>
                             <td class="d-none d-lg-table-cell">
-                                {{ $p->tgl_bayar
-                                    ? \Carbon\Carbon::parse($p->tgl_bayar)->format('d M Y')
+                                {{ $p->tanggal_bayar
+                                    ? \Carbon\Carbon::parse($p->tanggal_bayar)->format('d M Y')
                                     : '-' }}
                             </td>
                             <td>
-                                @if($p->status === 'lunas')
+                                @if($p->status_pembayaran === 'dibayar')
                                     <span class="badge badge-success">Lunas</span>
-                                @elseif($p->status === 'verifikasi')
+                                @elseif($p->status_pembayaran === 'menunggu_verifikasi')
                                     <span class="badge badge-info">Verifikasi</span>
-                                @elseif($p->status === 'menunggu')
+                                @elseif($p->status_pembayaran === 'pending')
                                     <span class="badge badge-warning">Menunggu</span>
                                 @else
-                                    <span class="badge badge-danger">Dibatalkan</span>
+                                    <span class="badge badge-danger">Ditolak</span>
                                 @endif
                             </td>
                             <td>

@@ -33,12 +33,12 @@
 
     <table>
         <tr>
-            <td class="label-col">Nama Usaha</td>
-            <td>: {{ $pembayaran->sewaRuko->penyewa->nama_usaha ?? '-' }}</td>
+            <td width="150" class="label">Diterima Dari</td>
+            <td>: {{ $pembayaran->sewaRuko->nama_penyewa ?? '-' }}</td>
         </tr>
         <tr>
-            <td class="label-col">Nama Pemilik</td>
-            <td>: {{ $pembayaran->sewaRuko->penyewa->user->name ?? '-' }}</td>
+            <td class="label">Nama Pemilik</td>
+            <td>: {{ $pembayaran->sewaRuko->nama_penyewa ?? '-' }}</td>
         </tr>
         <tr>
             <td class="label-col">Kode Unit</td>
@@ -49,11 +49,11 @@
             <td>: {{ $pembayaran->sewaRuko->ruko->kategori->nama ?? '-' }}</td>
         </tr>
         <tr>
-            <td class="label-col">Periode Sewa</td>
-            <td>:
-                {{ \Carbon\Carbon::parse($pembayaran->sewaRuko->tgl_mulai)->format('d M Y') }}
-                s/d
-                {{ \Carbon\Carbon::parse($pembayaran->sewaRuko->tgl_selesai)->format('d M Y') }}
+            <td class="label">Periode Sewa</td>
+            <td>: 
+                {{ \Carbon\Carbon::parse($pembayaran->sewaRuko->tanggal_mulai_sewa)->format('d M Y') }} 
+                s/d 
+                {{ \Carbon\Carbon::parse($pembayaran->sewaRuko->tanggal_selesai_sewa)->format('d M Y') }}
             </td>
         </tr>
         <tr>
@@ -75,8 +75,8 @@
         <tbody>
             <tr>
                 <td>Pembayaran Sewa Unit</td>
-                <td>Termin {{ $pembayaran->termin }}</td>
-                <td>{{ \Carbon\Carbon::parse($pembayaran->tgl_bayar)->format('d M Y') }}</td>
+                <td>Termin {{ $pembayaran->termin_ke }}</td>
+                <td>{{ $pembayaran->tanggal_bayar ? \Carbon\Carbon::parse($pembayaran->tanggal_bayar)->format('d M Y') : '-' }}</td>
                 <td>{{ $pembayaran->tipe->nama ?? '-' }}</td>
                 <td class="total">Rp {{ number_format($pembayaran->jumlah_tagihan, 0, ',', '.') }}</td>
             </tr>

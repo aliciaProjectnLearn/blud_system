@@ -85,7 +85,7 @@ class ServisKendaraanSeeder extends Seeder
                         'email' => $t['username'] . '@bengkel.com',
                         'password' => Hash::make('password'),
                         'nama_lengkap' => $t['name'],
-                        'no_hp' => '087700012345',
+                        'no_hp' => '0877000' . rand(10000, 99999),
                         'spesialisasi' => $t['spesialisasi'],
                         'created_at' => $now,
                         'updated_at' => $now

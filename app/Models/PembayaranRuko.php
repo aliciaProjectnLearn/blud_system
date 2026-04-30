@@ -9,9 +9,21 @@ class PembayaranRuko extends Model
     protected $table = 'pembayaran_ruko';
 
     protected $fillable = [
-        'sewa_ruko_id', 'booking_id', 'tipe_pembayaran_id', 'termin',
-        'tgl_jatuh_tempo', 'jumlah_tagihan', 'tgl_bayar',
-        'status', 'path_bukti', 'no_kwitansi', 'path_kwitansi',
+        'sewa_ruko_id', 
+        'termin_ke', 
+        'jumlah_bayar', 
+        'tipe_pembayaran', 
+        'status_pembayaran', 
+        'bukti_pembayaran', 
+        'tanggal_bayar', 
+        'catatan_admin',
+        'booking_id', // legacy
+        'tipe_pembayaran_id', // legacy
+        'termin', // legacy
+        'tgl_jatuh_tempo', 
+        'jumlah_tagihan', 
+        'status', // legacy
+        'no_kwitansi',
     ];
 
     public function sewaRuko()
@@ -19,35 +31,40 @@ class PembayaranRuko extends Model
         return $this->belongsTo(SewaRuko::class, 'sewa_ruko_id');
     }
 
-    public function booking()
+    public function history()
     {
-        return $this->belongsTo(Booking::class, 'booking_id');
+        return $this->hasMany(HistoryPembayaranRuko::class, 'pembayaran_ruko_id');
+    }
+
+    public function isTerlambat(): bool
+    {
+        return $this->status_pembayaran === 'pending'
+            && $this->tgl_jatuh_tempo
+            && now()->gt($this->tgl_jatuh_tempo);
+    }
+
+    public static function generateNoKwitansi()
+    {
+        $year = date('Y');
+        $month = date('m');
+        $prefix = "KWT/RU/$year/$month/";
+        
+        $last = self::where('no_kwitansi', 'like', $prefix . '%')
+                    ->orderBy('id', 'desc')
+                    ->first();
+                    
+        if (!$last) {
+            $seq = 1;
+        } else {
+            $parts = explode('/', $last->no_kwitansi);
+            $seq = (int) end($parts) + 1;
+        }
+        
+        return $prefix . str_pad($seq, 4, '0', STR_PAD_LEFT);
     }
 
     public function tipe()
     {
         return $this->belongsTo(TipePembayaran::class, 'tipe_pembayaran_id');
-    }
-
-    // Cek apakah sudah jatuh tempo
-    public function isTerlambat(): bool
-    {
-        return $this->status === 'menunggu'
-            && $this->tgl_jatuh_tempo
-            && now()->gt($this->tgl_jatuh_tempo);
-    }
-
-    // Generate no kwitansi otomatis
-    public static function generateNoKwitansi(): string
-    {
-        $tahun  = now()->format('Y');
-        $bulan  = now()->format('m');
-        $latest = self::whereNotNull('no_kwitansi')
-            ->whereYear('tgl_bayar', $tahun)
-            ->whereMonth('tgl_bayar', $bulan)
-            ->count();
-
-        $urut = str_pad($latest + 1, 4, '0', STR_PAD_LEFT);
-        return "KWT/{$tahun}/{$bulan}/{$urut}";
     }
 }

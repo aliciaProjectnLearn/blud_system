@@ -49,12 +49,24 @@
                             <tr>
                                 <td class="font-weight-bold text-gray-600">Harga Sewa</td>
                                 <td>
-                                    @if ($unit->kategori && $unit->kategori->harga)
-                                        <strong>Rp {{ number_format($unit->kategori->harga, 0, ',', '.') }}</strong>
-                                        <small class="text-muted">/bulan</small>
+                                    @if ($unit && $unit->harga)
+                                        <strong>Rp {{ number_format($unit->harga, 0, ',', '.') }}</strong>
+                                        <small class="text-muted">/tahun</small>
                                     @else
                                         <span class="text-muted">-</span>
                                     @endif
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-weight-bold text-gray-600">Ukuran Ruko</td>
+                                <td>{{ $unit->ukuran_ruko ?? '-' }}</td>
+                            </tr>
+                            <tr>
+                                <td class="font-weight-bold text-gray-600">Deskripsi</td>
+                                <td>
+                                    <div class="text-muted small">
+                                        {!! nl2br(e($unit->deskripsi ?? 'Tidak ada deskripsi.')) !!}
+                                    </div>
                                 </td>
                             </tr>
                             <tr>
@@ -111,12 +123,12 @@
                                 <tbody>
                                     @foreach ($unit->sewaRuko->take(5) as $sewa)
                                         <tr>
-                                            <td>{{ $sewa->penyewa->name ?? '-' }}</td>
-                                            <td>{{ $sewa->tgl_mulai ? \Carbon\Carbon::parse($sewa->tgl_mulai)->format('d M Y') : '-' }}</td>
-                                            <td>{{ $sewa->tgl_selesai ? \Carbon\Carbon::parse($sewa->tgl_selesai)->format('d M Y') : '-' }}</td>
+                                            <td>{{ $sewa->nama_penyewa ?? '-' }}</td>
+                                            <td>{{ $sewa->tanggal_mulai_sewa ? \Carbon\Carbon::parse($sewa->tanggal_mulai_sewa)->format('d M Y') : '-' }}</td>
+                                            <td>{{ $sewa->tanggal_selesai_sewa ? \Carbon\Carbon::parse($sewa->tanggal_selesai_sewa)->format('d M Y') : '-' }}</td>
                                             <td class="text-center">
                                                 @php
-                                                    $s = $sewa->status ?? '';
+                                                    $s = $sewa->status_sewa ?? '';
                                                     $badgeMap = [
                                                         'disetujui'  => 'success',
                                                         'menunggu'   => 'warning',

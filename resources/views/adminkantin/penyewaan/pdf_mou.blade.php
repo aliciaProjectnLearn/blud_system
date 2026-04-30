@@ -28,10 +28,9 @@
         <div class="section-title">I. DATA PIHAK KEDUA (PENYEWA)</div>
         <div class="content">
             <table style="width: 100%;">
-                <tr><td style="width: 30%;">Nama Lengkap</td><td>: {{ $sewa->penyewa->user->nama_lengkap ?? '-' }}</td></tr>
-                <tr><td style="width: 30%;">NIK</td><td>: {{ $sewa->penyewa->user->nik ?? '-' }}</td></tr>
-                <tr><td style="width: 30%;">Nama Usaha</td><td>: {{ $sewa->penyewa->nama_usaha }}</td></tr>
-                <tr><td style="width: 30%;">Alamat</td><td>: {{ $sewa->penyewa->alamat }}</td></tr>
+                <tr><td style="width: 30%;">Nama Lengkap / Usaha</td><td>: {{ $sewa->nama_penyewa }}</td></tr>
+                <tr><td style="width: 30%;">NIK</td><td>: {{ $sewa->nik_penyewa ?? '-' }}</td></tr>
+                <tr><td style="width: 30%;">Alamat</td><td>: -</td></tr>
             </table>
         </div>
     </div>
@@ -42,7 +41,7 @@
             <table style="width: 100%;">
                 <tr><td style="width: 30%;">Kode Unit Ruko</td><td>: <b>{{ $sewa->ruko->kode_unit }}</b></td></tr>
                 <tr><td style="width: 30%;">Jenis Unit</td><td>: {{ $sewa->ruko->kategori->nama ?? '-' }}</td></tr>
-                <tr><td style="width: 30%;">Periode Sewa</td><td>: {{ \Carbon\Carbon::parse($sewa->tgl_mulai)->format('d/m/Y') }} s/d {{ \Carbon\Carbon::parse($sewa->tgl_selesai)->format('d/m/Y') }}</td></tr>
+                <tr><td style="width: 30%;">Periode Sewa</td><td>: {{ \Carbon\Carbon::parse($sewa->tanggal_mulai_sewa)->format('d/m/Y') }} s/d {{ \Carbon\Carbon::parse($sewa->tanggal_selesai_sewa)->format('d/m/Y') }}</td></tr>
                 <tr><td style="width: 30%;">Nominal Pembayaran</td><td>: <b>Rp {{ number_format($sewa->harga_sewa_tahunan, 0, ',', '.') }}</b> (per tahun)</td></tr>
             </table>
         </div>
@@ -72,7 +71,7 @@
             <td>
                 Pihak Kedua (Penyewa)<br>
                 <div class="signature-space"></div>
-                ( <b>{{ $sewa->penyewa->user->nama_lengkap ?? $sewa->penyewa->nama_usaha }}</b> )
+                ( <b>{{ $sewa->nama_penyewa }}</b> )
             </td>
         </tr>
     </table>

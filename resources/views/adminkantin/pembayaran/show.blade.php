@@ -33,19 +33,19 @@
                     <table class="table table-borderless table-sm">
                         <tr>
                             <td width="40%">Nama Usaha</td>
-                            <td>: <strong>{{ $pembayaran->sewaRuko->penyewa->nama_usaha ?? '-' }}</strong></td>
+                            <td>: <strong>{{ $pembayaran->sewaRuko->nama_penyewa ?? '-' }}</strong></td>
                         </tr>
                         <tr>
-                            <td>Nama Pemilik</td>
-                            <td>: {{ $pembayaran->sewaRuko->penyewa->user->name ?? '-' }}</td>
+                            <td class="text-muted">Nama Lengkap</td>
+                            <td>: {{ $pembayaran->sewaRuko->nama_penyewa ?? '-' }}</td>
                         </tr>
                         <tr>
-                            <td>NIK</td>
-                            <td>: {{ $pembayaran->sewaRuko->penyewa->user->nik ?? '-' }}</td>
+                            <td class="text-muted">NIK</td>
+                            <td>: {{ $pembayaran->sewaRuko->nik_penyewa ?? '-' }}</td>
                         </tr>
                         <tr>
-                            <td>Alamat</td>
-                            <td>: {{ $pembayaran->sewaRuko->penyewa->alamat ?? '-' }}</td>
+                            <td class="text-muted">Alamat</td>
+                            <td>: -</td>
                         </tr>
                     </table>
                 </div>
@@ -71,9 +71,9 @@
                         <tr>
                             <td>Periode Sewa</td>
                             <td>:
-                                {{ \Carbon\Carbon::parse($pembayaran->sewaRuko->tgl_mulai)->format('d M Y') }}
-                                s/d
-                                {{ \Carbon\Carbon::parse($pembayaran->sewaRuko->tgl_selesai)->format('d M Y') }}
+                                {{ \Carbon\Carbon::parse($pembayaran->sewaRuko->tanggal_mulai_sewa)->format('d M Y') }} s/d 
+                                <br>
+                                {{ \Carbon\Carbon::parse($pembayaran->sewaRuko->tanggal_selesai_sewa)->format('d M Y') }}
                             </td>
                         </tr>
                         <tr>
@@ -90,8 +90,8 @@
     {{-- Detail Pembayaran --}}
     <div class="card shadow mb-4">
         <div class="card-header py-3 d-flex justify-content-between align-items-center">
-            <h6 class="m-0 font-weight-bold text-primary">Detail Pembayaran — Termin {{ $pembayaran->termin }}</h6>
-            @if($pembayaran->status === 'lunas')
+            <h6 class="m-0 font-weight-bold text-primary">Detail Pembayaran — Termin {{ $pembayaran->termin_ke }}</h6>
+            @if($pembayaran->status_pembayaran === 'dibayar')
                 <a href="{{ route('admin.kantin.pembayaran.kwitansi', $pembayaran) }}"
                     class="btn btn-success btn-sm">
                     <i class="fas fa-download mr-1"></i> Download Kwitansi
@@ -124,30 +124,30 @@
                         <tr>
                             <td>Tgl Bayar</td>
                             <td>:
-                                {{ $pembayaran->tgl_bayar
-                                    ? \Carbon\Carbon::parse($pembayaran->tgl_bayar)->format('d M Y')
+                                {{ $pembayaran->tanggal_bayar
+                                    ? \Carbon\Carbon::parse($pembayaran->tanggal_bayar)->format('d M Y')
                                     : '-' }}
                             </td>
                         </tr>
                         <tr>
                             <td>Status</td>
                             <td>:
-                                @if($pembayaran->status === 'lunas')
+                                @if($pembayaran->status_pembayaran === 'dibayar')
                                     <span class="badge badge-success">Lunas</span>
-                                @elseif($pembayaran->status === 'verifikasi')
+                                @elseif($pembayaran->status_pembayaran === 'menunggu_verifikasi')
                                     <span class="badge badge-info">Menunggu Verifikasi</span>
-                                @elseif($pembayaran->status === 'menunggu')
+                                @elseif($pembayaran->status_pembayaran === 'pending')
                                     <span class="badge badge-warning">Menunggu</span>
                                 @else
-                                    <span class="badge badge-danger">Dibatalkan</span>
+                                    <span class="badge badge-danger">Ditolak</span>
                                 @endif
                             </td>
                         </tr>
-                        @if($pembayaran->path_bukti)
+                        @if($pembayaran->bukti_pembayaran)
                         <tr>
                             <td>Bukti Bayar</td>
                             <td>: 
-                                <a href="{{ asset('storage/' . $pembayaran->path_bukti) }}" target="_blank" class="btn btn-xs btn-outline-primary py-0 px-2">
+                                <a href="{{ asset('storage/' . $pembayaran->bukti_pembayaran) }}" target="_blank" class="btn btn-xs btn-outline-primary py-0 px-2">
                                     <i class="fas fa-eye mr-1"></i> Lihat Bukti
                                 </a>
                             </td>
@@ -158,14 +158,14 @@
             </div>
 
            {{-- Form / Status Pembayaran --}}
-            @if($pembayaran->status === 'lunas')
+            @if($pembayaran->status_pembayaran === 'dibayar')
             <hr>
             <div class="alert alert-success">
                 <i class="fas fa-check-circle mr-1"></i>
                 Pembayaran ini sudah <strong>Lunas</strong>. No. Kwitansi: <strong>{{ $pembayaran->no_kwitansi }}</strong>
             </div>
 
-            @elseif($pembayaran->status === 'verifikasi')
+            @elseif($pembayaran->status_pembayaran === 'menunggu_verifikasi')
             <hr>
             <div class="alert alert-info mb-3">
                 <i class="fas fa-clock mr-1"></i>
@@ -215,7 +215,7 @@
                 </div>
             </form>
 
-            @elseif($pembayaran->status === 'menunggu')
+            @elseif($pembayaran->status_pembayaran === 'pending')
             <hr>
             <div class="alert alert-warning">
                 <i class="fas fa-hourglass-half mr-1"></i>

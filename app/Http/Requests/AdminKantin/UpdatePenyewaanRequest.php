@@ -22,10 +22,10 @@ class UpdatePenyewaanRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'tgl_mulai' => 'required|date',
-            'tgl_selesai' => 'required|date|after_or_equal:tgl_mulai',
-            'total_biaya_tahunan' => 'nullable|numeric|min:0',
-            'status' => 'required|in:aktif,selesai,dibatalkan',
+            'tanggal_mulai_sewa' => 'required|date',
+            'tanggal_selesai_sewa' => 'required|date|after_or_equal:tanggal_mulai_sewa',
+            'harga_sewa_tahunan' => 'nullable|numeric|min:0',
+            'status_sewa' => 'required|in:pending,disetujui,ditolak,aktif,selesai,dibatalkan',
         ];
     }
 
@@ -35,10 +35,10 @@ class UpdatePenyewaanRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'tgl_mulai.required' => 'Tanggal mulai wajib diisi.',
-            'tgl_selesai.required' => 'Tanggal selesai wajib diisi.',
-            'tgl_selesai.after_or_equal' => 'Tanggal selesai harus setelah atau sama dengan tanggal mulai.',
-            'status.in' => 'Status tidak valid.',
+            'tanggal_mulai_sewa.required' => 'Tanggal mulai wajib diisi.',
+            'tanggal_selesai_sewa.required' => 'Tanggal selesai wajib diisi.',
+            'tanggal_selesai_sewa.after_or_equal' => 'Tanggal selesai harus setelah atau sama dengan tanggal mulai.',
+            'status_sewa.in' => 'Status tidak valid.',
         ];
     }
 }
