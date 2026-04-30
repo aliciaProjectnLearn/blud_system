@@ -131,16 +131,16 @@ class TransaksiController extends Controller
         } elseif ($sistem === 'Servis Kendaraan') {
             $detail = DB::table('pembayaran_servis')
                 ->join('booking_servis', 'booking_servis.id', '=', 'pembayaran_servis.booking_servis_id')
-                ->join('users', 'users.id', '=', 'booking_servis.user_id')
+                ->leftJoin('users', 'users.id', '=', 'booking_servis.user_id')
                 ->join('layanan_servis', 'layanan_servis.id', '=', 'booking_servis.layanan_servis_id')
                 ->where('pembayaran_servis.id', $id)
                 ->select(
                     'pembayaran_servis.*',
-                    'users.name as nama_pelanggan',
+                    DB::raw("COALESCE(booking_servis.nama_pemesan, users.name) as nama_pelanggan"),
                     'users.email',
-                    'users.no_hp',
+                    DB::raw("COALESCE(booking_servis.no_hp, users.no_hp) as no_hp"),
                     'layanan_servis.nama_layanan as nama_item',
-                    'booking_servis.tipe_kendaraan',
+                    'layanan_servis.tipe_kendaraan',
                     'booking_servis.merek_kendaraan',
                     'booking_servis.nomor_plat',
                     'booking_servis.tanggal_booking',

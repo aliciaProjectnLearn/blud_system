@@ -190,7 +190,33 @@
                     </div>
                     <div class="modal-body">
                         <div class="form-group">
-                            <label for="tanggal">Tanggal Pengeluaran</label>
+                            <label for="kategori">Kategori Pengeluaran <span class="text-danger">*</span></label>
+                            <select name="kategori" id="kategori" class="form-control" required>
+                                <option value="">-- Pilih Kategori --</option>
+                                <option value="sparepart_produk">Sparepart / Produk</option>
+                                <option value="gaji_teknisi">Gaji Teknisi</option>
+                                <option value="gaji_kasir">Gaji Kasir</option>
+                            </select>
+                        </div>
+
+                        <!-- Dropdown Penerima (Teknisi / Kasir) -->
+                        <div class="form-group d-none" id="divPenerima">
+                            <label for="penerima_id">Pilih Penerima <span class="text-danger">*</span></label>
+                            <select name="penerima_id" id="penerima_id" class="form-control">
+                                <option value="">-- Pilih Penerima --</option>
+                            </select>
+                        </div>
+
+                        <!-- Dropdown Pekerjaan (Booking) Khusus Teknisi -->
+                        <div class="form-group d-none" id="divBooking">
+                            <label for="booking_id">Pilih Pekerjaan (Belum Dibayar) <span class="text-danger">*</span></label>
+                            <select name="booking_id" id="booking_id" class="form-control">
+                                <option value="">-- Pilih Pekerjaan --</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="tanggal">Tanggal Pengeluaran <span class="text-danger">*</span></label>
                             <input type="date" class="form-control" name="tanggal" id="tanggal" required value="{{ date('Y-m-d') }}">
                         </div>
                         <div class="form-group">
@@ -198,7 +224,7 @@
                             <input type="text" class="form-control" name="keterangan" id="deskripsi" required placeholder="Contoh: Beli bensin teknisi...">
                         </div>
                         <div class="form-group">
-                            <label for="nominal">Nominal (Rp)</label>
+                            <label for="nominal">Nominal (Rp) <span class="text-danger">*</span></label>
                             <input type="number" class="form-control" name="jumlah" id="nominal" required min="0" placeholder="Contoh: 50000">
                         </div>
                     </div>
@@ -224,6 +250,59 @@
                 },
                 "order": [[ 0, "desc" ]], // Order by date descending by default
                 "pageLength": 10
+            });
+
+            // Data Users dari Controller
+            const teknisiList = @json($teknisiList);
+            const kasirList = @json($kasirList);
+
+            $('#kategori').change(function() {
+                let kat = $(this).val();
+                let penerimaSelect = $('#penerima_id');
+                
+                $('#divPenerima, #divBooking').addClass('d-none');
+                penerimaSelect.empty().append('<option value="">-- Pilih Penerima --</option>');
+                penerimaSelect.removeAttr('required');
+                $('#booking_id').removeAttr('required').empty().append('<option value="">-- Pilih Pekerjaan --</option>');
+
+                if (kat === 'gaji_teknisi') {
+                    $('#divPenerima').removeClass('d-none');
+                    penerimaSelect.attr('required', true);
+                    teknisiList.forEach(t => {
+                        penerimaSelect.append(`<option value="${t.id}">${t.name}</option>`);
+                    });
+                } else if (kat === 'gaji_kasir') {
+                    $('#divPenerima').removeClass('d-none');
+                    penerimaSelect.attr('required', true);
+                    kasirList.forEach(k => {
+                        penerimaSelect.append(`<option value="${k.id}">${k.name}</option>`);
+                    });
+                }
+            });
+
+            $('#penerima_id').change(function() {
+                let kat = $('#kategori').val();
+                let id = $(this).val();
+                
+                if (kat === 'gaji_teknisi' && id) {
+                    $('#divBooking').removeClass('d-none');
+                    $('#booking_id').attr('required', true);
+                    $('#booking_id').empty().append('<option value="">Memuat pekerjaan...</option>');
+
+                    // Fetch unpaid bookings via API
+                    $.get(`/admin/servis/keuangan/unpaid-pekerjaan/${id}`, function(data) {
+                        $('#booking_id').empty().append('<option value="">-- Pilih Pekerjaan --</option>');
+                        data.forEach(b => {
+                            $('#booking_id').append(`<option value="${b.id}">${b.kode_booking} - ${b.nama_pemesan}</option>`);
+                        });
+                        if(data.length === 0) {
+                            $('#booking_id').empty().append('<option value="">Tidak ada pekerjaan yang belum dibayar</option>');
+                        }
+                    });
+                } else {
+                    $('#divBooking').addClass('d-none');
+                    $('#booking_id').removeAttr('required');
+                }
             });
         });
     </script>

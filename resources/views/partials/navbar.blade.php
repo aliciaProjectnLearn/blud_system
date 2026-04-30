@@ -117,6 +117,28 @@
                             <i class="fas fa-tachometer-alt fa-sm fa-fw mr-2 text-gray-400"></i>
                             Dashboard
                         </a>
+                    @elseif(Auth::user()->hasRole('Teknisi'))
+                        <a class="dropdown-item {{ request()->routeIs('profile.edit') ? 'active' : '' }}"
+                            href="{{ route('profile.edit') }}">
+                            <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
+                            Profile
+                        </a>
+                        <a class="dropdown-item {{ request()->routeIs('teknisi.dashboard') ? 'active' : '' }}"
+                            href="{{ route('teknisi.dashboard') }}">
+                            <i class="fas fa-tachometer-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                            Dashboard
+                        </a>
+                    @elseif(Auth::user()->hasRole('Teknisi Motor') || Auth::user()->hasRole('Teknisi Mobil'))
+                        <a class="dropdown-item {{ request()->routeIs('profile.edit') ? 'active' : '' }}"
+                            href="{{ route('profile.edit') }}">
+                            <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
+                            Profile
+                        </a>
+                        <a class="dropdown-item {{ request()->routeIs('teknisi.servis.dashboard') ? 'active' : '' }}"
+                            href="{{ route('teknisi.servis.dashboard') }}">
+                            <i class="fas fa-tachometer-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                            Dashboard
+                        </a>
                     @else
                         <a class="dropdown-item" href="{{ route('user.gateway') }}">
                             <i class="fas fa-tachometer-alt fa-sm fa-fw mr-2 text-gray-400"></i>

@@ -28,7 +28,10 @@
     </div>
 
     <div class="row">
+        @php $hasAnyBooking = false; @endphp
         @foreach(['futsal' => 'Futsal', 'ac' => 'Servis AC', 'servis' => 'Servis Kendaraan', 'kantin' => 'Sewa Kantin'] as $key => $title)
+        @if(isset($bookings[$key]) && count($bookings[$key]) > 0)
+        @php $hasAnyBooking = true; @endphp
         <div class="col-12 mb-4">
             <div class="card shadow">
                 <div class="card-header py-3 bg-white">
@@ -48,7 +51,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @forelse($bookings[$key] as $index => $b)
+                                @foreach($bookings[$key] as $index => $b)
                                 <tr>
                                     <td>{{ $index + 1 }}</td>
                                     <td>#{{ $b->id }}</td>
@@ -67,7 +70,7 @@
                                         @endif
                                     </td>
                                     <td>
-                                        <span class="badge badge-{{ ($b->status ?? ($b->booking->status ?? '')) == 'selesai' || ($b->status ?? ($b->booking->status ?? '')) == 'aktif' ? 'success' : (($b->status ?? ($b->booking->status ?? '')) == 'dibatalkan' ? 'danger' : 'warning') }}">
+                                        <span class="badge badge-{{ ($b->status ?? ($b->booking->status ?? '')) == 'selesai' || ($b->status ?? ($b->booking->status ?? '')) == 'aktif' ? 'success' : (($b->status ?? ($b->booking->status ?? '')) == 'dibatalkan' || ($b->status ?? ($b->booking->status ?? '')) == 'batal' ? 'danger' : 'warning') }}">
                                             {{ strtoupper($b->status ?? ($b->booking->status ?? 'MENUNGGU')) }}
                                         </span>
                                     </td>
@@ -81,18 +84,24 @@
                                         @endif
                                     </td>
                                 </tr>
-                                @empty
-                                <tr>
-                                    <td colspan="6" class="text-center text-muted py-3">Tidak ada riwayat.</td>
-                                </tr>
-                                @endforelse
+                                @endforeach
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
         </div>
+        @endif
         @endforeach
+
+        @if(!$hasAnyBooking)
+        <div class="col-12">
+            <div class="alert alert-info text-center py-4">
+                <i class="fas fa-info-circle fa-2x mb-3 d-block text-info"></i>
+                <h6 class="font-weight-bold">Belum ada riwayat layanan apapun.</h6>
+            </div>
+        </div>
+        @endif
     </div>
 </div>
 @endsection

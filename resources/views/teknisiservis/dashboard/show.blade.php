@@ -10,7 +10,7 @@
             <code>{{ $pekerjaan->kode_booking }}</code>
         </small>
     </h1>
-    <a href="{{ route('teknisiservis.dashboard') }}" class="btn btn-secondary btn-sm shadow-sm">
+    <a href="{{ route('teknisi.servis.dashboard') }}" class="btn btn-secondary btn-sm shadow-sm">
         <i class="fas fa-arrow-left fa-sm mr-1"></i> Kembali ke Dashboard
     </a>
 </div>
@@ -46,7 +46,7 @@
                         </tr>
                         <tr>
                             <th class="text-muted">Nama Pelanggan</th>
-                            <td>{{ $pekerjaan->user->nama_lengkap ?? $pekerjaan->user->name ?? '-' }}</td>
+                            <td>{{ $pekerjaan->nama_pemesan ?? $pekerjaan->user->name ?? '-' }}</td>
                         </tr>
                         <tr>
                             <th class="text-muted">Layanan</th>
@@ -55,8 +55,12 @@
                         <tr>
                             <th class="text-muted">Tipe Kendaraan</th>
                             <td>
-                                <i class="fas fa-{{ $pekerjaan->tipe_kendaraan === 'motor' ? 'motorcycle' : 'car' }} mr-1"></i>
-                                {{ ucfirst($pekerjaan->tipe_kendaraan) }}
+                                @if(isset($pekerjaan->layananServis->tipe_kendaraan))
+                                <i class="fas fa-{{ strtolower($pekerjaan->layananServis->tipe_kendaraan) === 'motor' ? 'motorcycle' : 'car' }} mr-1"></i>
+                                {{ ucfirst($pekerjaan->layananServis->tipe_kendaraan) }}
+                                @else
+                                -
+                                @endif
                             </td>
                         </tr>
                         <tr>
@@ -125,28 +129,42 @@
                             <thead class="thead-light">
                                 <tr>
                                     <th>No</th>
-                                    <th>Item / Produk</th>
+                                    <th>Item / Layanan</th>
                                     <th class="text-center">Qty</th>
-                                    <th>Catatan</th>
+                                    <th class="text-right">Harga Satuan</th>
+                                    <th class="text-right">Subtotal</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach($pekerjaan->rincianServis as $rincian)
                                 <tr>
                                     <td>{{ $loop->iteration }}</td>
-                                    <td>{{ $rincian->item ?? $rincian->nama_produk ?? '-' }}</td>
-                                    <td class="text-center">{{ $rincian->quantity ?? $rincian->qty ?? '-' }}</td>
-                                    <td>{{ $rincian->catatan ?? '-' }}</td>
+                                    <td>{{ $rincian->nama_item ?? '-' }}</td>
+                                    <td class="text-center">{{ $rincian->jumlah ?? '-' }}</td>
+                                    <td class="text-right">
+                                        Rp {{ number_format($rincian->harga_satuan ?? 0, 0, ',', '.') }}
+                                    </td>
+                                    <td class="text-right font-weight-bold">
+                                        Rp {{ number_format($rincian->subtotal ?? 0, 0, ',', '.') }}
+                                    </td>
                                 </tr>
                                 @endforeach
                             </tbody>
+                            <tfoot class="bg-light font-weight-bold">
+                                <tr>
+                                    <td colspan="4" class="text-right">Total:</td>
+                                    <td class="text-right text-primary">
+                                        Rp {{ number_format($pekerjaan->rincianServis->sum('subtotal'), 0, ',', '.') }}
+                                    </td>
+                                </tr>
+                            </tfoot>
                         </table>
                     </div>
                 @else
                     <div class="text-center text-muted py-5">
                         <i class="fas fa-clipboard fa-3x mb-3 d-block text-gray-300"></i>
                         <p class="mb-0">Belum ada rincian servis.</p>
-                        <small>Rincian akan ditambahkan oleh kasir setelah pekerjaan selesai.</small>
+                        <small>Rincian akan diinput oleh kasir.</small>
                     </div>
                 @endif
             </div>
@@ -157,7 +175,7 @@
 {{-- ── Tombol Kembali (bawah) ──────────────────────────────────── --}}
 <div class="row">
     <div class="col-12">
-        <a href="{{ route('teknisiservis.dashboard') }}" class="btn btn-secondary">
+        <a href="{{ route('teknisi.servis.dashboard') }}" class="btn btn-secondary">
             <i class="fas fa-arrow-left mr-1"></i> Kembali ke Dashboard
         </a>
         {{-- TIDAK ada tombol update/aksi apapun — read-only --}}

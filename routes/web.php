@@ -79,6 +79,7 @@ Route::prefix('user')->group(function () {
         Route::get('/booking', [App\Http\Controllers\User\UserServisController::class, 'booking'])->name('booking');
         Route::post('/store', [App\Http\Controllers\User\UserServisController::class, 'store'])->name('store');
         Route::get('/slots', [App\Http\Controllers\User\UserServisController::class, 'getSlot'])->name('slots');
+        Route::get('/sukses/{token}', [App\Http\Controllers\User\UserServisController::class, 'sukses'])->name('sukses');
     });
 });
 
@@ -204,22 +205,24 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Superadmin|Adm
         Route::resource('layanan', \App\Http\Controllers\AdminServis\LayananController::class);
         Route::get('/booking', [\App\Http\Controllers\AdminServis\BookingController::class, 'index'])->name('booking.index');
         Route::get('/booking/{id}', [\App\Http\Controllers\AdminServis\BookingController::class, 'show'])->name('booking.show');
-        Route::put('/booking/{id}', [\App\Http\Controllers\AdminServis\BookingController::class, 'update'])->name('booking.update');
-        Route::post('/booking/{id}/assign', [\App\Http\Controllers\AdminServis\BookingController::class, 'assignTeknisi'])->name('booking.assign');
         Route::get('laporan', [\App\Http\Controllers\AdminServis\LaporanController::class, 'index'])->name('laporan.index');
         Route::get('laporan/export-pdf', [\App\Http\Controllers\AdminServis\LaporanController::class, 'exportPdf'])->name('laporan.export.pdf');
         Route::get('laporan/export-excel', [\App\Http\Controllers\AdminServis\LaporanController::class, 'exportExcel'])->name('laporan.export.excel');
         Route::resource('produk', \App\Http\Controllers\AdminServis\ProdukController::class)->except(['create', 'show', 'edit']);
         Route::get('/keuangan', [\App\Http\Controllers\AdminServis\KeuanganController::class, 'index'])->name('keuangan.index');
         Route::post('/keuangan/pengeluaran', [\App\Http\Controllers\AdminServis\KeuanganController::class, 'store'])->name('keuangan.store');
+        Route::get('/keuangan/unpaid-pekerjaan/{teknisi_id}', [\App\Http\Controllers\AdminServis\KeuanganController::class, 'getUnpaidPekerjaan'])->name('keuangan.unpaid');
         Route::resource('teknisi', \App\Http\Controllers\AdminServis\TeknisiController::class);
         Route::patch('/teknisi/{id}/toggle-status', [\App\Http\Controllers\AdminServis\TeknisiController::class, 'toggleStatus'])->name('teknisi.toggle-status');
     });
+});
 
-    // Profile Common
+// Profile Common (Semua Role yang Login)
+Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::put('/password', [\App\Http\Controllers\Auth\PasswordController::class, 'update'])->name('password.update');
 });
 
 // 2. TEKNISI (AC & Servis)
@@ -248,9 +251,17 @@ Route::prefix('kasir')->name('kasir.')->middleware(['auth', 'role:Kasir'])
     Route::get('/dashboard', [KasirDashboardController::class, 'index'])->name('dashboard');
     Route::get('/booking', [BookingKasirController::class, 'index'])->name('booking.index');
     Route::get('/booking/{id}', [BookingKasirController::class, 'show'])->name('booking.show');
+    Route::put('/booking/{id}', [BookingKasirController::class, 'update'])->name('booking.update');
+    Route::post('/booking/{id}/assign', [BookingKasirController::class, 'assignTeknisi'])->name('booking.assign');
+    Route::get('/booking/{id}/print-wo', [BookingKasirController::class, 'printWo'])->name('booking.print-wo');
     Route::post('/booking/{id}/rincian', [BookingKasirController::class, 'simpanRincian'])->name('booking.simpan-rincian');
     Route::post('/booking/{id}/lanjut-pembayaran', [BookingKasirController::class, 'lanjutPembayaran'])->name('booking.lanjut-pembayaran');
     Route::get('/pembayaran', [BookingKasirController::class, 'indexPembayaran'])->name('pembayaran.index');
     Route::get('/pembayaran/{id}', [BookingKasirController::class, 'showPembayaran'])->name('pembayaran.show');
     Route::post('/pembayaran/{id}/konfirmasi', [BookingKasirController::class, 'konfirmasiPembayaran'])->name('pembayaran.konfirmasi');
+
+    // Laporan
+    Route::get('/laporan', [\App\Http\Controllers\KasirServis\LaporanController::class, 'index'])->name('laporan.index');
+    Route::get('/laporan/export-pdf', [\App\Http\Controllers\KasirServis\LaporanController::class, 'exportPdf'])->name('laporan.export.pdf');
+    Route::get('/laporan/export-excel', [\App\Http\Controllers\KasirServis\LaporanController::class, 'exportExcel'])->name('laporan.export.excel');
 });
