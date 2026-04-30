@@ -137,27 +137,27 @@
                         @forelse ($laporan as $index => $item)
                             <tr>
                                 <td class="text-center align-middle">{{ ($laporan->currentPage() - 1) * $laporan->perPage() + $index + 1 }}</td>
-                                <td class="align-middle">{{ $item->sewaRuko?->penyewa?->nama_usaha ?? '-' }}</td>
+                                <td class="align-middle">{{ $item->sewaRuko?->nama_penyewa ?? '-' }}</td>
                                 <td class="align-middle">{{ $item->sewaRuko?->ruko?->kode_unit ?? '-' }}</td>
                                 <td class="align-middle">
-                                    {{ $item->sewaRuko ? \Carbon\Carbon::parse($item->sewaRuko->tgl_mulai)->format('d-m-Y') . ' s/d ' . \Carbon\Carbon::parse($item->sewaRuko->tgl_selesai)->format('d-m-Y') : '-' }}
+                                    {{ $item->sewaRuko ? \Carbon\Carbon::parse($item->sewaRuko->tanggal_mulai_sewa)->format('d-m-Y') . ' s/d ' . \Carbon\Carbon::parse($item->sewaRuko->tanggal_selesai_sewa)->format('d-m-Y') : '-' }}
                                 </td>
-                                <td class="align-middle">{{ $item->tgl_bayar ? \Carbon\Carbon::parse($item->tgl_bayar)->format('d-m-Y H:i') : '-' }}</td>
+                                <td class="align-middle">{{ $item->tgl_bayar ? \Carbon\Carbon::parse($item->tanggal_bayar)->format('d-m-Y H:i') : '-' }}</td>
                                 <td class="align-middle text-right font-weight-bold">
                                     Rp {{ number_format($item->jumlah_tagihan, 0, ',', '.') }}
                                 </td>
                                 <td class="align-middle text-center">
-                                    @if(strtolower($item->status) == 'lunas')
+                                    @if(strtolower($item->status_pembayaran) == 'dibayar')
                                         <span class="badge badge-success px-2 py-1">Lunas</span>
-                                    @elseif(strtolower($item->status) == 'verifikasi')
+                                    @elseif(strtolower($item->status_pembayaran) == 'verifikasi')
                                         <span class="badge badge-info px-2 py-1">Menunggu Verifikasi</span>
-                                    @elseif(strtolower($item->status) == 'menunggu')
+                                    @elseif(strtolower($item->status_pembayaran) == 'pending')
                                         <span class="badge badge-warning px-2 py-1">Menunggu Pembayaran</span>
-                                    @elseif(strtolower($item->status) == 'dibatalkan')
+                                    @elseif(strtolower($item->status_pembayaran) == 'dibatalkan')
                                         <span class="badge badge-danger px-2 py-1">Dibatalkan</span>
                                     @else
                                         {{-- Fallback jika status null atau tidak dikenal --}}
-                                        <span class="badge badge-secondary px-2 py-1">{{ ucfirst($item->status ?? 'Unknown') }}</span>
+                                        <span class="badge badge-secondary px-2 py-1">{{ ucfirst($item->status_pembayaran ?? 'Unknown') }}</span>
                                     @endif
                                 </td>
                             </tr>

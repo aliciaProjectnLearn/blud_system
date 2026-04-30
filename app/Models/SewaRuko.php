@@ -9,29 +9,30 @@ class SewaRuko extends Model
     protected $table = 'sewa_ruko';
 
     protected $fillable = [
-        'booking_id',
-        'penyewa_id',
+        'user_id',
         'ruko_id',
-        'tgl_mulai',
-        'tgl_selesai',
-        'harga_sewa_tahunan',
-        'no_mou',
-        'status',
-        'notifikasi_terkirim',
         'access_token',
+        'nama_penyewa',
+        'no_hp_snapshot',
+        'nik_penyewa',
+        'status_sewa',
+        'tanggal_mulai_sewa',
+        'tanggal_selesai_sewa',
+        'tipe_pembayaran',
+        'harga_sewa_tahunan',
+        'catatan',
+        'booking_id', // legacy
+        'penyewa_id',
     ];
-
-    /**
-     * Relasi ke model Penyewa.
-     */
-    public function penyewa()
-    {
-        return $this->belongsTo(Penyewa::class, 'penyewa_id');
-    }
 
     public function ruko()
     {
         return $this->belongsTo(Ruko::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 
     public function pembayaran()
@@ -40,7 +41,15 @@ class SewaRuko extends Model
     }
 
     public function dokumen()
-{
-    return $this->hasMany(DokumenPenyewaan::class, 'sewa_id');
-}
+    {
+        return $this->hasMany(\App\Models\DokumenSewa::class, 'sewa_ruko_id');
+    }
+
+    /**
+     * Helper to find by token.
+     */
+    public static function findByToken($token)
+    {
+        return static::where('access_token', $token)->firstOrFail();
+    }
 }

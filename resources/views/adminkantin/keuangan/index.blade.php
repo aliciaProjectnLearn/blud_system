@@ -101,6 +101,41 @@
         </div>
     </div>
 
+    {{-- Ringkasan Pemasukan Bulanan --}}
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-success"><i class="fas fa-chart-line mr-1"></i> Ringkasan Pemasukan per Bulan</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" width="100%">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>Bulan / Tahun</th>
+                            <th class="text-right">Total Pemasukan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($pemasukanGrouped as $pg)
+                        <tr>
+                            <td class="font-weight-bold">
+                                {{ Carbon\Carbon::create()->month($pg->bulan)->translatedFormat('F') }} {{ $pg->tahun }}
+                            </td>
+                            <td class="text-right text-success font-weight-bold">
+                                Rp {{ number_format($pg->total, 0, ',', '.') }}
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="2" class="text-center">Belum ada data pemasukan.</td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
     {{-- Tabel Transaksi --}}
     <div class="card shadow mb-4">
         <div class="card-header py-3">
@@ -129,7 +164,9 @@
                                 @endif
                             </td>
                             <td>{{ $item['deskripsi'] }}</td>
-                            <td class="text-right">Rp {{ number_format($item['nominal'], 0, ',', '.') }}</td>
+                            <td class="text-right font-weight-bold {{ $item['tipe'] == 'pemasukan' ? 'text-success' : 'text-danger' }}">
+                                {{ $item['tipe'] == 'pemasukan' ? '+' : '-' }} Rp {{ number_format($item['nominal'], 0, ',', '.') }}
+                            </td>
                         </tr>
                         @empty
                         <tr>
@@ -160,6 +197,15 @@
                     <div class="form-group">
                         <label for="tanggal">Tanggal</label>
                         <input type="date" class="form-control" id="tanggal" name="tanggal" value="{{ date('Y-m-d') }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Kategori Pengeluaran <span class="text-danger">*</span></label>
+                        <select name="kategori_pengeluaran" class="form-control" required>
+                            <option value="">-- Pilih Kategori --</option>
+                            <option value="pemeliharaan">🔧 Pemeliharaan</option>
+                            <option value="operasional">⚙️ Operasional</option>
+                            <option value="lainnya">📦 Lainnya</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label for="nominal">Nominal (Rp)</label>

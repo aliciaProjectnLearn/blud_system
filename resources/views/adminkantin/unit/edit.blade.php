@@ -109,6 +109,46 @@
                             </div>
                         </div>
 
+                        {{-- ── Ukuran Ruko ── --}}
+                        <div class="form-group row">
+                            <label for="ukuran_ruko" class="col-sm-3 col-form-label font-weight-bold">
+                                Ukuran Ruko
+                            </label>
+                            <div class="col-sm-9">
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="fas fa-expand-arrows-alt"></i></span>
+                                    </div>
+                                    <input type="text"
+                                           name="ukuran_ruko"
+                                           id="ukuran_ruko"
+                                           class="form-control @error('ukuran_ruko') is-invalid @enderror"
+                                           value="{{ old('ukuran_ruko', $unit->ukuran_ruko) }}"
+                                           placeholder="cth: 3x4 meter, 12 m2">
+                                </div>
+                                @error('ukuran_ruko')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+
+                        {{-- ── Deskripsi ── --}}
+                        <div class="form-group row">
+                            <label for="deskripsi" class="col-sm-3 col-form-label font-weight-bold">
+                                Deskripsi Unit
+                            </label>
+                            <div class="col-sm-9">
+                                <textarea name="deskripsi"
+                                          id="deskripsi"
+                                          class="form-control @error('deskripsi') is-invalid @enderror"
+                                          rows="3"
+                                          placeholder="Tambahkan keterangan detail mengenai unit ruko ini...">{{ old('deskripsi', $unit->deskripsi) }}</textarea>
+                                @error('deskripsi')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+
                         {{-- ── Status Unit ── --}}
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label font-weight-bold">
@@ -163,7 +203,7 @@
                                                     {{-- Preview thumbnail jika gambar --}}
                                                     @php
                                                         $ext = strtolower(pathinfo($dok->file, PATHINFO_EXTENSION));
-                                                        $isImage = in_array($ext, ['jpg','jpeg','png']);
+                                                        $isImage = in_array($ext, ['jpg','jpeg','png','gif','webp','svg']);
                                                     @endphp
                                                     @if ($isImage)
                                                         <img src="{{ asset('storage/' . $dok->file) }}"
@@ -218,7 +258,7 @@
                                 @error('dokumen.*')
                                     <div class="text-danger small mt-1">{{ $message }}</div>
                                 @enderror
-                                <ul id="previewFileList" class="list-unstyled mt-2 mb-0"></ul>
+                                <ul id="previewFileList" class="row list-unstyled mt-2 mb-0"></ul>
                             </div>
                         </div>
 
@@ -260,11 +300,36 @@
         label.textContent = files.length + ' file dipilih';
 
         Array.from(files).forEach(function (file) {
-            const li = document.createElement('li');
-            li.className = 'small text-muted';
-            li.innerHTML = '<i class="fas fa-paperclip mr-1"></i>' + file.name
-                         + ' <span class="text-secondary">(' + (file.size / 1024).toFixed(1) + ' KB)</span>';
-            preview.appendChild(li);
+            const col = document.createElement('div');
+            col.className = 'col-md-3 col-sm-4 mb-2';
+            
+            let previewContent = '';
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                const imgId = 'img-preview-' + Math.random().toString(36).substr(2, 9);
+                previewContent = `<div class="card h-100 shadow-sm border-info">
+                                    <img id="${imgId}" src="#" class="card-img-top" style="height: 100px; object-fit: cover;">
+                                    <div class="card-footer p-1 text-center bg-info text-white overflow-hidden" style="font-size: 10px;">
+                                        ${file.name.substring(0, 15)}...
+                                    </div>
+                                  </div>`;
+                col.innerHTML = previewContent;
+                reader.onload = function(e) {
+                    document.getElementById(imgId).setAttribute('src', e.target.result);
+                }
+                reader.readAsDataURL(file);
+            } else {
+                previewContent = `<div class="card h-100 shadow-sm border-danger">
+                                    <div class="card-body p-2 text-center d-flex align-items-center justify-content-center" style="height: 100px;">
+                                        <i class="fas fa-file-pdf text-danger fa-3x"></i>
+                                    </div>
+                                    <div class="card-footer p-1 text-center bg-danger text-white overflow-hidden" style="font-size: 10px;">
+                                        ${file.name.substring(0, 15)}...
+                                    </div>
+                                  </div>`;
+                col.innerHTML = previewContent;
+            }
+            preview.appendChild(col);
         });
     });
 </script>

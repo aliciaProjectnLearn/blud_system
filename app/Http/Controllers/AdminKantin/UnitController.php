@@ -45,19 +45,23 @@ class UnitController extends Controller
         $uploadedPaths = [];
         $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
 
+        // Pastikan direktori ada
+        if (!Storage::disk('public')->exists('dokumentasi_unit')) {
+            Storage::disk('public')->makeDirectory('dokumentasi_unit');
+        }
+
         foreach ($files as $file) {
             if ($file->isValid()) {
-                // [OPTIMALISASI] Error checking pada proses upload
-                $path = $file->store('dokumentasi_unit', 'public');
+                // Simpan file ke disk 'public'
+                $path = Storage::disk('public')->putFile('dokumentasi_unit', $file);
                 
                 if (!$path) {
-                    throw new Exception("Gagal mengunggah file {$file->getClientOriginalName()}. Pastikan storage dapat ditulis.");
+                    throw new Exception("Gagal mengunggah file {$file->getClientOriginalName()}.");
                 }
                 
                 $uploadedPaths[] = $path;
                 
                 $ext = strtolower($file->getClientOriginalExtension());
-                // [OPTIMALISASI] Tipe dokumen disederhanakan: gambar vs dokumen biasa
                 $tipe = in_array($ext, $imageExtensions) ? 'gambar' : 'dokumen';
                 $namaAsli = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
 
@@ -67,6 +71,15 @@ class UnitController extends Controller
                     'tipe'          => $tipe,
                     'judul_dokumen' => $namaAsli,
                 ]);
+
+                // Update foto_ruko utama jika belum ada
+                $ruko = Ruko::find($rukoId);
+                if ($tipe === 'gambar' && (!$ruko->foto_ruko || !Storage::disk('public')->exists($ruko->foto_ruko))) {
+                    $ruko->update(['foto_ruko' => $path]);
+                }
+            } else {
+                $errorMsg = $file->getErrorMessage();
+                throw new Exception("File {$file->getClientOriginalName()} tidak valid: {$errorMsg}. Cek batas upload server (max_filesize).");
             }
         }
 
@@ -89,7 +102,7 @@ class UnitController extends Controller
         }
 
         $units      = $query->orderByRaw("CAST(SUBSTRING(kode_unit, 4) AS UNSIGNED) ASC")->paginate(10)->withQueryString();
-        $kategoris  = \App\Models\Kategori::where('tipe', 'kantin')->orderBy('nama')->get();
+        $kategoris = \App\Models\Kategori::where('tipe', 'kantin')->orderBy('nama')->get();
 
         return view('adminkantin.unit.index', compact('units', 'kategoris'));
     }
@@ -114,8 +127,14 @@ class UnitController extends Controller
             'kode_unit'    => 'required|string|max:10|unique:ruko,kode_unit',
             'kategori_id'  => 'required|exists:kategori,id',
             'harga'        => 'required|numeric|min:0',
+            'ukuran_ruko'  => 'nullable|string|max:100',
+            'deskripsi'    => 'nullable|string',
             'dokumen'      => 'nullable|array|max:10',
             'dokumen.*'    => 'file|mimes:jpg,jpeg,png,pdf|max:5120',
+        ], [
+            'dokumen.*.max'   => 'File yang Anda unggah melebihi batas ukuran maksimal (5MB).',
+            'dokumen.*.mimes' => 'Format file harus berupa JPG, PNG, atau PDF.',
+            'harga.required'  => 'Harga sewa wajib diisi.',
         ]);
 
         $uploadedPaths = [];
@@ -127,6 +146,8 @@ class UnitController extends Controller
                 'kode_unit'   => $validated['kode_unit'],
                 'kategori_id' => $validated['kategori_id'],
                 'harga'       => $validated['harga'],
+                'ukuran_ruko' => $validated['ukuran_ruko'],
+                'deskripsi'   => $validated['deskripsi'],
                 'status_unit' => 'kosong',
             ]);
 
@@ -138,7 +159,7 @@ class UnitController extends Controller
             DB::commit();
 
             return redirect()
-                ->route('adminkantin.unit.index')
+                ->route('admin.kantin.unit.index')
                 ->with('success', "Unit {$ruko->kode_unit} berhasil ditambahkan.");
 
         } catch (Exception $e) {
@@ -185,11 +206,17 @@ class UnitController extends Controller
         $validated = $request->validate([
             'kategori_id'       => 'required|exists:kategori,id',
             'harga'             => 'required|numeric|min:0',
+            'ukuran_ruko'       => 'nullable|string|max:100',
+            'deskripsi'         => 'nullable|string',
             'status_unit'       => 'required|in:terisi,kosong',
             'dokumen'           => 'nullable|array|max:10',
             'dokumen.*'         => 'file|mimes:jpg,jpeg,png,pdf|max:5120',
             'hapus_dokumen'     => 'nullable|array',
             'hapus_dokumen.*'   => 'integer|exists:dokumentasi_unit,id',
+        ], [
+            'dokumen.*.max'   => 'File yang Anda unggah melebihi batas ukuran maksimal (5MB).',
+            'dokumen.*.mimes' => 'Format file harus berupa JPG, PNG, atau PDF.',
+            'harga.required'  => 'Harga sewa wajib diisi.',
         ]);
 
         $uploadedPaths = [];
@@ -199,6 +226,8 @@ class UnitController extends Controller
             $unit->update([
                 'kategori_id' => $validated['kategori_id'],
                 'harga'       => $validated['harga'],
+                'ukuran_ruko' => $validated['ukuran_ruko'],
+                'deskripsi'   => $validated['deskripsi'],
                 'status_unit' => $validated['status_unit'],
             ]);
 
@@ -225,7 +254,7 @@ class UnitController extends Controller
             DB::commit();
 
             return redirect()
-                ->route('adminkantin.unit.index')
+                ->route('admin.kantin.unit.index')
                 ->with('success', "Unit {$unit->kode_unit} berhasil diperbarui.");
 
         } catch (Exception $e) {
@@ -272,7 +301,7 @@ class UnitController extends Controller
             DB::commit();
 
             return redirect()
-                ->route('adminkantin.unit.index')
+                ->route('admin.kantin.unit.index')
                 ->with('success', "Unit {$kode} berhasil dihapus.");
 
         } catch (Exception $e) {

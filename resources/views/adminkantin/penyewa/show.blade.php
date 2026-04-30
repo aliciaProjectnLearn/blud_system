@@ -90,27 +90,34 @@
                                             <span class="font-weight-bold text-primary">{{ $sewa->ruko->kode_unit ?? '-' }}</span>
                                         </td>
                                         <td>
-                                            @if($sewa->tgl_mulai && $sewa->tgl_selesai)
-                                                {{ \Carbon\Carbon::parse($sewa->tgl_mulai)->format('d M Y') }} - 
-                                                {{ \Carbon\Carbon::parse($sewa->tgl_selesai)->format('d M Y') }}
+                                            @php
+                                                $tMulai = $sewa->tanggal_mulai_sewa ?? $sewa->tgl_mulai ?? null;
+                                                $tSelesai = $sewa->tanggal_selesai_sewa ?? $sewa->tgl_selesai ?? null;
+                                            @endphp
+                                            @if($tMulai && $tSelesai)
+                                                {{ \Carbon\Carbon::parse($tMulai)->format('d M Y') }} - 
+                                                {{ \Carbon\Carbon::parse($tSelesai)->format('d M Y') }}
                                             @else
                                                 <span class="text-muted">-</span>
                                             @endif
                                         </td>
                                         <td class="text-right">
-                                            Rp {{ number_format($sewa->total_biaya_tahunan, 0, ',', '.') }}
+                                            Rp {{ number_format($sewa->harga_sewa_tahunan ?? $sewa->total_biaya_tahunan ?? 0, 0, ',', '.') }}
                                         </td>
                                         <td class="text-center">
                                             @php
                                                 $statusText = 'Selesai';
                                                 $badgeClass = 'secondary';
                                                 
-                                                if($sewa->status === 'disetujui') {
+                                                if($sewa->status_sewa === 'aktif' || $sewa->status_sewa === 'disetujui') {
                                                     $statusText = 'Aktif';
                                                     $badgeClass = 'success';
-                                                } elseif(in_array($sewa->status, ['menunggu', 'pending'])) {
+                                                } elseif(in_array($sewa->status_sewa, ['pending', 'menunggu'])) {
                                                     $statusText = 'Menunggu';
                                                     $badgeClass = 'warning';
+                                                } elseif($sewa->status_sewa === 'dibatalkan') {
+                                                    $statusText = 'Dibatalkan';
+                                                    $badgeClass = 'danger';
                                                 }
                                             @endphp
                                             <span class="badge badge-{{ $badgeClass }} px-3 py-1">{{ $statusText }}</span>
