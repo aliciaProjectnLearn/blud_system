@@ -69,6 +69,7 @@ Route::prefix('user')->name('user.')->group(function () {
         Route::get('/', [App\Http\Controllers\User\AcBookingController::class, 'index'])->name('index');
         Route::post('/', [App\Http\Controllers\User\AcBookingController::class, 'store'])->name('store');
         Route::get('/layanan', [App\Http\Controllers\User\AcBookingController::class, 'layanan'])->name('layanan');
+        Route::get('/booking/{token}', [App\Http\Controllers\User\AcBookingController::class, 'showByToken'])->name('booking.detail');
     });
 
     // Servis
@@ -186,6 +187,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Superadmin|Adm
         Route::get('laporan/export-excel', [\App\Http\Controllers\AdminAc\LaporanController::class, 'exportExcel'])->name('laporan.export.excel');
         Route::get('keuangan', [\App\Http\Controllers\AdminAc\KeuanganAcController::class, 'index'])->name('keuangan.index');
         Route::post('keuangan', [\App\Http\Controllers\AdminAc\KeuanganAcController::class, 'storePengeluaran'])->name('keuangan.store');
+        Route::post('keuangan/bayar-gaji/{booking_id}', [\App\Http\Controllers\AdminAc\KeuanganAcController::class, 'bayarGaji'])->name('keuangan.bayarGaji');
     });
 
     // Admin Servis

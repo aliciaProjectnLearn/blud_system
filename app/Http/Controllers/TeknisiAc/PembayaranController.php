@@ -46,10 +46,7 @@ class PembayaranController extends Controller
         $totalSparepart = 0;
         foreach($pekerjaan->detailServis as $detail) {
             if ($detail->item !== 'Tindakan Servis (Tanpa Sparepart)') {
-                $produk = \App\Models\Produk::where('nama_produk', $detail->item)->first();
-                if ($produk) {
-                    $totalSparepart += ($produk->harga * $detail->quantity);
-                }
+                $totalSparepart += $detail->subtotal;
             }
         }
         
@@ -111,10 +108,36 @@ class PembayaranController extends Controller
 
             DB::commit();
 
-            return redirect()->route('teknisi.dashboard')->with('success', 'Pembayaran berhasil dikonfirmasi.');
+            // Send WA Notification
+            if (!empty($pekerjaan->no_hp)) {
+                $this->kirimWaFonnteSelesai($pekerjaan);
+            }
+
+            return redirect()->route('teknisi.dashboard')->with('success', 'Pembayaran berhasil dikonfirmasi dan notifikasi WA telah dikirim.');
         } catch (\Exception $e) {
             DB::rollback();
             return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
+    }
+
+    private function kirimWaFonnteSelesai($pekerjaan)
+    {
+        try {
+            $pesan = "Halo {$pekerjaan->nama_pelanggan},\n\nTerima kasih telah melakukan Service AC bersama BLUD SMKN 1 Cirebon.\nPembayaran Anda untuk layanan *{$pekerjaan->layanan->nama}* telah kami terima (Lunas).\n\nSemoga layanan kami memuaskan. Jika ada kendala, jangan ragu untuk menghubungi kami kembali.\n\nCek kembali rincian layanan Anda di:\n" . route('user.ac.booking.detail', $pekerjaan->access_token) . "\n\nTerima Kasih!\n*BLUD SMKN 1 Cirebon*";
+            
+            $apiToken = env('FONNTE_TOKEN', 'YOUR_API_TOKEN_HERE'); 
+
+            if ($apiToken !== 'YOUR_API_TOKEN_HERE') {
+                \Illuminate\Support\Facades\Http::withHeaders([
+                    'Authorization' => $apiToken,
+                ])->post('https://api.fonnte.com/send', [
+                    'target' => $pekerjaan->no_hp,
+                    'message' => $pesan,
+                    'countryCode' => '62',
+                ]);
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Fonnte Error: ' . $e->getMessage());
         }
     }
 }

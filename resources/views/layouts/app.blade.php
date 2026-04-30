@@ -22,6 +22,9 @@
 
     {{-- SB Admin 2 CSS --}}
     <link href="{{ asset('assets/css/sb-admin-2.min.css') }}" rel="stylesheet">
+    
+    {{-- Modern Theme Overrides --}}
+    <link href="{{ asset('assets/css/modern-theme.css') }}" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif !important;

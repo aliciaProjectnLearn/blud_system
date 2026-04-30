@@ -34,11 +34,11 @@
                     <table class="table table-borderless table-sm">
                         <tr>
                             <td width="40%">Nama Pelanggan</td>
-                            <td>: <strong>{{ $pekerjaan->user->nama_lengkap ?? $pekerjaan->user->name }}</strong></td>
+                            <td>: <strong>{{ $pekerjaan->nama_pelanggan ?? optional($pekerjaan->user)->nama_lengkap ?? optional($pekerjaan->user)->name ?? 'Guest' }}</strong></td>
                         </tr>
                         <tr>
                             <td>Telepon/HP</td>
-                            <td>: {{ $pekerjaan->user->no_hp ?? '-' }}</td>
+                            <td>: {{ $pekerjaan->no_hp ?? optional($pekerjaan->user)->no_hp ?? '-' }}</td>
                         </tr>
                         <tr>
                             <td>Alamat Lengkap</td>
@@ -105,13 +105,9 @@
                                 </tr>
                                 @foreach($pekerjaan->detailServis as $detail)
                                     @if($detail->item !== 'Tindakan Servis (Tanpa Sparepart)')
-                                        @php
-                                            $produk = \App\Models\Produk::where('nama_produk', $detail->item)->first();
-                                            $hargaSparepart = $produk ? $produk->harga * $detail->quantity : 0;
-                                        @endphp
                                         <tr>
-                                            <td>Sparepart: {{ $detail->item }} (x{{ $detail->quantity }})</td>
-                                            <td class="text-right">Rp {{ number_format($hargaSparepart, 0, ',', '.') }}</td>
+                                            <td>Tambahan: {{ $detail->item }} (x{{ $detail->quantity }})</td>
+                                            <td class="text-right">Rp {{ number_format($detail->subtotal, 0, ',', '.') }}</td>
                                         </tr>
                                     @endif
                                 @endforeach

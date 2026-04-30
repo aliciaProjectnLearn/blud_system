@@ -122,6 +122,7 @@
                         <tr>
                             <th>Tanggal</th>
                             <th>Tipe</th>
+                            <th>Kategori</th>
                             <th>Deskripsi / Keterangan</th>
                             <th>Nominal</th>
                         </tr>
@@ -137,6 +138,13 @@
                                         <span class="badge badge-danger px-2 py-1">Pengeluaran</span>
                                     @endif
                                 </td>
+                                <td>
+                                    @if($item->tipe === 'pengeluaran')
+                                        <span class="badge badge-secondary">{{ ucfirst($item->kategori) }}</span>
+                                    @else
+                                        -
+                                    @endif
+                                </td>
                                 <td>{{ $item->deskripsi }}</td>
                                 <td class="font-weight-bold {{ $item->tipe === 'pemasukan' ? 'text-success' : 'text-danger' }}">
                                     @if($item->tipe === 'pemasukan') + @else - @endif 
@@ -147,6 +155,65 @@
                             <tr>
                                 <td colspan="4" class="text-center text-muted">Belum ada data transaksi.</td>
                             </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {{-- Manajemen Gaji Teknisi --}}
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 bg-danger d-flex flex-row align-items-center justify-content-between">
+            <h6 class="m-0 font-weight-bold text-white"><i class="fas fa-users-cog"></i> Pembayaran Gaji Teknisi (Belum Dibayar)</h6>
+            <form action="{{ route('admin.ac.keuangan.index') }}" method="GET" class="form-inline">
+                <select name="teknisi_id" class="form-control form-control-sm mr-2" onchange="this.form.submit()">
+                    <option value="">-- Semua Teknisi --</option>
+                    @foreach($teknisis as $teknisi)
+                        <option value="{{ $teknisi->id }}" {{ request('teknisi_id') == $teknisi->id ? 'selected' : '' }}>{{ $teknisi->name }}</option>
+                    @endforeach
+                </select>
+                <noscript><button type="submit" class="btn btn-sm btn-light">Filter</button></noscript>
+            </form>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <th>Tgl Pekerjaan</th>
+                            <th>Teknisi</th>
+                            <th>Layanan / Pekerjaan</th>
+                            <th>Status Pekerjaan</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($pekerjaanBelumDibayar as $pekerjaan)
+                        <tr>
+                            <td>{{ \Carbon\Carbon::parse($pekerjaan->updated_at)->format('d/m/Y H:i') }}</td>
+                            <td class="font-weight-bold">{{ $pekerjaan->teknisi->name ?? 'Unknown' }}</td>
+                            <td>{{ $pekerjaan->layanan->nama ?? '-' }}</td>
+                            <td><span class="badge badge-success">Selesai</span></td>
+                            <td>
+                                <form action="{{ route('admin.ac.keuangan.bayarGaji', $pekerjaan->id) }}" method="POST" class="form-inline">
+                                    @csrf
+                                    <div class="input-group input-group-sm">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">Rp</span>
+                                        </div>
+                                        <input type="number" name="nominal_gaji" class="form-control" placeholder="Nominal Gaji" required min="1000">
+                                        <div class="input-group-append">
+                                            <button type="submit" class="btn btn-primary" onclick="return confirm('Bayar gaji teknisi ini dan catat pengeluaran?')">Bayar</button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">Tidak ada tagihan gaji teknisi yang tertunda.</td>
+                        </tr>
                         @endforelse
                     </tbody>
                 </table>
@@ -172,8 +239,16 @@
                             <input type="date" class="form-control" name="tanggal" id="tanggal" required value="{{ date('Y-m-d') }}">
                         </div>
                         <div class="form-group">
+                            <label for="kategori">Kategori</label>
+                            <select class="form-control" name="kategori" id="kategori" required>
+                                <option value="sparepart">Pembelian Sparepart</option>
+                                <option value="gaji">Gaji / Upah</option>
+                                <option value="lainnya">Lainnya</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
                             <label for="deskripsi">Deskripsi / Keterangan</label>
-                            <input type="text" class="form-control" name="deskripsi" id="deskripsi" required placeholder="Contoh: Beli bensin teknisi...">
+                            <input type="text" class="form-control" name="deskripsi" id="deskripsi" required placeholder="Contoh: Beli freon...">
                         </div>
                         <div class="form-group">
                             <label for="nominal">Nominal (Rp)</label>

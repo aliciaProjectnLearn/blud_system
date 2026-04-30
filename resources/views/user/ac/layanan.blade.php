@@ -50,7 +50,6 @@
                 <p class="lead">Booking teknisi berpengalaman untuk cuci AC, tambah freon, atau perbaikan komponen dengan harga transparan.</p>
                 <div class="d-flex gap-2">
                     <a href="#layanan-list" class="btn btn-light text-primary font-weight-bold shadow-sm">Lihat Layanan</a>
-                    <a href="{{ route('user.ac.index') }}" class="btn btn-outline-light font-weight-bold">Dashboard Saya</a>
                 </div>
                 <i class="fas fa-snowflake hero-icon"></i>
             </div>
@@ -115,11 +114,25 @@
                 <h5 class="modal-title">Konfirmasi Booking</h5>
                 <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>
             </div>
-            <form id="bookingForm">
+            <form action="{{ route('user.ac.store') }}" method="POST">
                 @csrf
                 <input type="hidden" name="layanan_id" id="layanan_id">
                 <div class="modal-body">
                     <div id="bookingErrors" class="alert alert-danger d-none"></div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="small font-weight-bold">Nama Lengkap</label>
+                                <input type="text" name="nama" class="form-control" required placeholder="Contoh: Budi">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="small font-weight-bold">Nomor WhatsApp</label>
+                                <input type="text" name="no_hp" class="form-control" required placeholder="Contoh: 0812...">
+                            </div>
+                        </div>
+                    </div>
                     <div class="form-group">
                         <label class="small font-weight-bold">Layanan Dipilih</label>
                         <input type="text" id="layananName" class="form-control bg-light" readonly>
@@ -170,33 +183,12 @@
             $('#bookingErrors').addClass('d-none');
             $('#bookingModal').modal('show');
         });
-
-        $('#bookingForm').on('submit', function(e){
-            e.preventDefault();
-            const btn = $(this).find('button[type="submit"]');
-            btn.prop('disabled', true).text('Mengirim...');
-
-            $.post('{{ route("user.ac.store") }}', $(this).serialize())
-                .done(function(res){
-                    $('#bookingModal').modal('hide');
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Berhasil!',
-                        text: 'Booking Anda telah diterima. Silakan tunggu konfirmasi dari teknisi kami.',
-                        confirmButtonText: 'OK',
-                        confirmButtonColor: '#4e73df'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            location.reload();
-                        }
-                    });
-                })
-                .fail(function(xhr){
-                    btn.prop('disabled', false).text('Buat Pesanan');
-                    let msg = xhr.responseJSON?.message || 'Gagal membuat pesanan.';
-                    $('#bookingErrors').removeClass('d-none').text(msg);
-                });
-        });
+        
+        // Menampilkan pesan error dari backend jika ada
+        @if($errors->any())
+            $('#bookingModal').modal('show');
+            $('#bookingErrors').removeClass('d-none').html('<ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>');
+        @endif
     });
 </script>
 @endpush

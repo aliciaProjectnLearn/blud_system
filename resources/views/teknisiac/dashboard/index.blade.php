@@ -55,7 +55,7 @@
                             @forelse($pekerjaanAktif as $pekerjaan)
                             <tr>
                                 <td>{{ $loop->iteration }}</td>
-                                <td>{{ $pekerjaan->user->nama_lengkap ?? $pekerjaan->user->name }}</td>
+                                <td>{{ $pekerjaan->nama_pelanggan ?? ($pekerjaan->user->nama_lengkap ?? ($pekerjaan->user->name ?? 'Guest')) }}</td>
                                 <td>{{ $pekerjaan->layanan->nama ?? '-' }}</td>
                                 <td>{{ \Carbon\Carbon::parse($pekerjaan->tgl_kunjungan)->format('d M Y H:i') }}</td>
                                 <td>{{ $pekerjaan->alamat }}</td>
@@ -89,7 +89,7 @@
                     <div class="card shadow-sm mb-3 border-left-primary">
                         <div class="card-body p-3">
                             <div class="d-flex justify-content-between align-items-start mb-2">
-                                <span class="font-weight-bold text-dark">{{ $pekerjaan->user->nama_lengkap ?? $pekerjaan->user->name }}</span>
+                                <span class="font-weight-bold text-dark">{{ $pekerjaan->nama_pelanggan ?? ($pekerjaan->user->nama_lengkap ?? ($pekerjaan->user->name ?? 'Guest')) }}</span>
                                 @if($pekerjaan->status == 'menunggu')
                                     <span class="badge badge-info">Menunggu</span>
                                 @elseif($pekerjaan->status == 'proses')
@@ -140,7 +140,7 @@
                             @forelse($historiPekerjaan as $histori)
                             <tr>
                                 <td>{{ $loop->iteration }}</td>
-                                <td>{{ $histori->user->nama_lengkap ?? $histori->user->name }}</td>
+                                <td>{{ $histori->nama_pelanggan ?? ($histori->user->nama_lengkap ?? ($histori->user->name ?? 'Guest')) }}</td>
                                 <td>{{ $histori->layanan->nama ?? '-' }}</td>
                                 <td>{{ $histori->updated_at->format('d M Y H:i') }}</td>
                                 <td>
@@ -174,7 +174,7 @@
                     <div class="card shadow-sm mb-3 border-left-success">
                         <div class="card-body p-3">
                             <div class="d-flex justify-content-between align-items-start mb-2">
-                                <span class="font-weight-bold text-dark">{{ $histori->user->nama_lengkap ?? $histori->user->name }}</span>
+                                <span class="font-weight-bold text-dark">{{ $histori->nama_pelanggan ?? ($histori->user->nama_lengkap ?? ($histori->user->name ?? 'Guest')) }}</span>
                                 <span class="badge badge-success">Selesai</span>
                             </div>
                             <div class="mb-3">

@@ -13,12 +13,15 @@ class BookingAc extends Model
         'user_id',
         'teknisi_id',
         'layanan_id',
+        'nama_pelanggan',
+        'no_hp',
         'tgl_kunjungan',
         'alamat',
         'merek_ac',
         'detail_keluhan',
         'status',
         'access_token',
+        'foto_hasil',
     ];
 
     public function booking()

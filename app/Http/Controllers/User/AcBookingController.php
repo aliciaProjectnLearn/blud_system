@@ -76,35 +76,16 @@ class AcBookingController extends Controller
             'detail_keluhan'  => 'nullable|string',
         ]);
 
-        $user = User::where('no_hp', $validated['no_hp'])->first();
-        if (!$user) {
-            $user = User::create([
-                'name' => explode(' ', $validated['nama'])[0],
-                'nama_lengkap' => $validated['nama'],
-                'no_hp' => $validated['no_hp'],
-                'role' => 'pelanggan',
-                'password' => bcrypt(Str::random(16)),
-            ]);
-            
-            $role = Role::where('nama', 'pelanggan')->first();
-            if ($role) {
-                $user->roles()->attach($role->id);
-            }
-        }
-
-        $accessToken = bin2hex(random_bytes(32));
+        // Generate token 40 karakter
+        $accessToken = Str::random(40);
 
         DB::beginTransaction();
         try {
-            $booking = Booking::create([
-                'user_id' => $user->id,
-                'status'  => 'menunggu',
-                'access_token' => $accessToken,
-            ]);
-
-            BookingAc::create([
-                'booking_id'      => $booking->id,
-                'user_id'         => $user->id,
+            // Karena ini murni accountless, kita simpan datanya di tabel booking_ac tanpa butuh user_id
+            $bookingAc = BookingAc::create([
+                'user_id'         => null, // Bebas login
+                'nama_pelanggan'  => $validated['nama'],
+                'no_hp'           => $validated['no_hp'],
                 'layanan_id'      => $validated['layanan_id'],
                 'tgl_kunjungan'   => $validated['tgl_kunjungan'],
                 'alamat'          => $validated['alamat'],
@@ -115,11 +96,50 @@ class AcBookingController extends Controller
             ]);
 
             DB::commit();
-            return redirect()->route('user.token.show', $accessToken)->with('success', 'Booking AC berhasil dibuat!');
+            
+            // Kirim notifikasi WhatsApp dengan Fonnte
+            $this->kirimWaFonnte($validated['no_hp'], $accessToken);
+
+            return redirect()->route('user.ac.layanan')->with('success', 'Booking AC berhasil dibuat! Link akses untuk memantau status pesanan telah dikirim via WhatsApp.');
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->withInput()->with('error', 'Gagal: ' . $e->getMessage());
         }
+    }
+
+    private function kirimWaFonnte($noHp, $token)
+    {
+        try {
+            $pesan = "Booking berhasil! \n\nCek detail layanan kamu di sini:\n" . route('user.ac.booking.detail', $token);
+            
+            $apiToken = env('FONNTE_TOKEN', 'YOUR_API_TOKEN_HERE'); 
+
+            if ($apiToken !== 'YOUR_API_TOKEN_HERE') {
+                \Illuminate\Support\Facades\Http::withHeaders([
+                    'Authorization' => $apiToken,
+                ])->post('https://api.fonnte.com/send', [
+                    'target' => $noHp,
+                    'message' => $pesan,
+                    'countryCode' => '62',
+                ]);
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Fonnte Error: ' . $e->getMessage());
+        }
+    }
+
+    public function showByToken($token)
+    {
+        $booking = BookingAc::with(['layanan', 'detailServis', 'pembayaran'])->where('access_token', $token)->firstOrFail();
+        
+        // Ambil riwayat berdasarkan nomor HP
+        $riwayat = BookingAc::with(['layanan'])
+            ->where('no_hp', $booking->no_hp)
+            ->where('id', '!=', $booking->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+            
+        return view('user.ac.detail', compact('booking', 'riwayat'));
     }
 
     public function layanan()
