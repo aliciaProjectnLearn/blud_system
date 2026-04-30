@@ -8,8 +8,9 @@ use Carbon\Carbon;
 use App\Models\SewaRuko;
 use App\Models\Ruko;
 use App\Models\Penyewa;
-use App\Models\DokumenPenyewaan;
+use App\Models\DokumenSewa;
 use App\Models\PembayaranRuko;
+use App\Models\User;
 use App\Http\Requests\AdminKantin\UpdatePenyewaanRequest;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
@@ -26,17 +27,17 @@ class PenyewaanController extends Controller
         foreach ($allData as $item) {
             // HANYA tutup masa penyewaan jika sedang aktif dan masa berlakunya kedaluwarsa.
             // JANGAN pernah meng-overwrite manual status admin (terutama 'selesai') menjadi 'aktif' kembali.
-            if ($item->status === 'aktif' && $today->gt(Carbon::parse($item->tgl_selesai))) {
-                $item->update(['status' => 'selesai']);
+            if ($item->status_sewa === 'aktif' && $today->gt(Carbon::parse($item->tanggal_selesai_sewa))) {
+                $item->update(['status_sewa' => 'selesai']);
             }
 
             // UPDATE STATUS RUKO
-            if ($item->status === 'aktif') {
+            if ($item->status_sewa === 'aktif') {
                 $item->ruko->update(['status_unit' => 'terisi']);
             } else {
                 // Cek apakah ada penyewaan aktif lain untuk ruko ini
                 $masihDisewa = SewaRuko::where('ruko_id', $item->ruko_id)
-                    ->where('status', 'aktif')
+                    ->where('status_sewa', 'aktif')
                     ->where('id', '!=', $item->id)
                     ->exists();
 
@@ -47,32 +48,30 @@ class PenyewaanController extends Controller
         }
 
         // 2. Query data dengan filter
-        $query = SewaRuko::with(['penyewa.user', 'ruko']);
+        $query = SewaRuko::with(['user', 'ruko', 'ruko.kategori', 'pembayaran']);
 
         if ($request->status) {
-            $query->where('status', $request->status);
+            $query->where('status_sewa', $request->status);
         }
 
         if ($request->ruko_id) {
             $query->where('ruko_id', $request->ruko_id);
         }
 
-        if ($request->penyewa_id) {
-            $query->where('penyewa_id', $request->penyewa_id);
+        if ($request->user_id) {
+            $query->where('user_id', $request->user_id);
         }
 
         $data = $query->latest()->get();
         $rukos = Ruko::all();
-        $penyewas = Penyewa::all();
-
+        $penyewas = User::whereHas('sewaRuko')->get(); // Ambil user yang punya riwayat sewa sebagai pengganti daftar penyewa
+ 
         return view('adminkantin.penyewaan.index', compact('data', 'rukos', 'penyewas'));
     }
 
     public function show($id)
     {
-        $data = SewaRuko::with(['penyewa.user', 'ruko', 'dokumen'])
-            ->findOrFail($id);
-
+        $data = SewaRuko::with(['user', 'ruko', 'dokumen', 'pembayaran'])->findOrFail($id);
         return view('adminkantin.penyewaan.show', compact('data'));
     }
 
@@ -82,12 +81,12 @@ class PenyewaanController extends Controller
 
         DB::beginTransaction();
         try {
-            $statusLama = $sewa->status;
+            $statusLama = $sewa->status_sewa;
 
             $sewa->update($request->validated());
 
             // Generate pembayaran saat status berubah jadi disetujui
-            if ($statusLama !== 'disetujui' && $sewa->status === 'disetujui') {
+            if ($statusLama !== 'disetujui' && $sewa->status_sewa === 'disetujui') {
                 $this->generatePembayaranTermin($sewa);
             }
 
@@ -105,7 +104,7 @@ class PenyewaanController extends Controller
     {
         $sewa = SewaRuko::findOrFail($id);
 
-        if ($sewa->status === 'aktif') {
+        if ($sewa->status_sewa === 'aktif') {
             return redirect()->back()->with('error', 'Penyewaan yang berstatus aktif tidak dapat dihapus.');
         }
 
@@ -123,15 +122,15 @@ class PenyewaanController extends Controller
         $allData = SewaRuko::with('ruko')->get();
 
         foreach ($allData as $item) {
-            if ($item->status === 'aktif' && $today->gt(Carbon::parse($item->tgl_selesai))) {
-                $item->update(['status' => 'selesai']);
+            if ($item->status_sewa === 'aktif' && $today->gt(Carbon::parse($item->tanggal_selesai_sewa))) {
+                $item->update(['status_sewa' => 'selesai']);
             }
 
-            if ($item->status === 'aktif') {
+            if ($item->status_sewa === 'aktif') {
                 $item->ruko->update(['status_unit' => 'terisi']);
             } else {
                 $masihDisewa = SewaRuko::where('ruko_id', $item->ruko_id)
-                    ->where('status', 'aktif')
+                    ->where('status_sewa', 'aktif')
                     ->where('id', '!=', $item->id)
                     ->exists();
 
@@ -142,95 +141,143 @@ class PenyewaanController extends Controller
         }
     }
     private function generatePembayaranTermin(SewaRuko $sewa): void
-{
-    // Cegah duplikat — jangan generate ulang jika sudah ada
-    $sudahAda = \App\Models\PembayaranRuko::where('booking_id', $sewa->booking_id)->exists();
-    if ($sudahAda) return;
+    {
+        // Cegah duplikat — jangan generate ulang jika sudah ada
+        $sudahAda = \App\Models\PembayaranRuko::where('sewa_ruko_id', $sewa->id)->exists();
+        if ($sudahAda) return;
 
-    $tglMulai = Carbon::parse($sewa->tgl_mulai);
+        $tglMulai = Carbon::parse($sewa->tanggal_mulai_sewa);
+        $hargaTotal = $sewa->harga_sewa_tahunan;
 
-    // Termin 1: 1 hari setelah tgl_mulai
-    $jatuhTempoTermin1 = $tglMulai->copy()->addDay();
+        // Termin 1: 1 hari setelah tanggal_mulai_sewa
+        $jatuhTempoTermin1 = $tglMulai->copy()->addDay();
 
-    // Termin 2: 6 bulan setelah jatuh tempo termin 1
-    $jatuhTempoTermin2 = $jatuhTempoTermin1->copy()->addMonths(6);
+        if ($sewa->tipe_pembayaran === '1_termin') {
+            // Bayar Lunas 100%
+            \App\Models\PembayaranRuko::create([
+                'sewa_ruko_id'       => $sewa->id,
+                'booking_id'         => $sewa->booking_id, // legacy
+                'tipe_pembayaran_id' => 1, // default Transfer Bank
+                'termin'             => '1', // legacy
+                'termin_ke'          => 1,
+                'tgl_jatuh_tempo'    => $jatuhTempoTermin1,
+                'jumlah_tagihan'     => $hargaTotal,
+                'jumlah_bayar'       => 0,
+                'status'             => 'menunggu', // legacy
+                'status_pembayaran'  => 'pending',
+                'created_at'         => now(),
+                'updated_at'         => now(),
+            ]);
+        } else {
+            // Bayar 2 Termin (50/50)
+            $jumlahPerTermin = intdiv($hargaTotal, 2);
+            $jatuhTempoTermin2 = $jatuhTempoTermin1->copy()->addMonths(6);
 
-    $jumlahPerTermin = intdiv($sewa->total_biaya_tahunan, 2);
-
-    \App\Models\PembayaranRuko::insert([
-        [
-            'booking_id'         => $sewa->booking_id,
-            'tipe_pembayaran_id' => 1, // default Transfer Bank, bisa diubah admin
-            'termin'             => 1,
-            'tgl_jatuh_tempo'    => $jatuhTempoTermin1,
-            'jumlah_tagihan'     => $jumlahPerTermin,
-            'status'             => 'menunggu',
-            'created_at'         => now(),
-            'updated_at'         => now(),
-        ],
-        [
-            'booking_id'         => $sewa->booking_id,
-            'tipe_pembayaran_id' => 1,
-            'termin'             => 2,
-            'tgl_jatuh_tempo'    => $jatuhTempoTermin2,
-            'jumlah_tagihan'     => $sewa->total_biaya_tahunan - $jumlahPerTermin,
-            'status'             => 'menunggu',
-            'created_at'         => now(),
-            'updated_at'         => now(),
-        ],
-    ]);
-}
+            \App\Models\PembayaranRuko::insert([
+                [
+                    'sewa_ruko_id'       => $sewa->id,
+                    'booking_id'         => $sewa->booking_id, // legacy
+                    'tipe_pembayaran_id' => 1,
+                    'termin'             => '1', // legacy
+                    'termin_ke'          => 1,
+                    'tgl_jatuh_tempo'    => $jatuhTempoTermin1,
+                    'jumlah_tagihan'     => $jumlahPerTermin,
+                    'jumlah_bayar'       => 0,
+                    'status'             => 'menunggu', // legacy
+                    'status_pembayaran'  => 'pending',
+                    'created_at'         => now(),
+                    'updated_at'         => now(),
+                ],
+                [
+                    'sewa_ruko_id'       => $sewa->id,
+                    'booking_id'         => $sewa->booking_id, // legacy
+                    'tipe_pembayaran_id' => 1,
+                    'termin'             => '2', // legacy
+                    'termin_ke'          => 2,
+                    'tgl_jatuh_tempo'    => $jatuhTempoTermin2,
+                    'jumlah_tagihan'     => $hargaTotal - $jumlahPerTermin,
+                    'jumlah_bayar'       => 0,
+                    'status'             => 'menunggu', // legacy
+                    'status_pembayaran'  => 'pending',
+                    'created_at'         => now(),
+                    'updated_at'         => now(),
+                ],
+            ]);
+        }
+    }
 
     // --- DOCUMENT METHODS ---
+
+    public function generateMOU($id)
+    {
+        $sewa = SewaRuko::with(['user', 'ruko', 'ruko.kategori'])->findOrFail($id);
+
+        // Generate PDF
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView(
+            'adminkantin.penyewaan.mou-template', 
+            compact('sewa')
+        )->setPaper('a4', 'portrait');
+
+        // Simpan ke storage
+        $filename = 'MOU-' . $sewa->ruko->kode_unit . '-' . 
+                    substr($sewa->access_token, 0, 8) . '-' . 
+                    now()->format('Ymd') . '.pdf';
+        $path = 'dokumen-sewa/' . $filename;
+        
+        \Illuminate\Support\Facades\Storage::disk('public')->put(
+            $path, 
+            $pdf->output()
+        );
+
+        // Simpan ke tabel dokumen (buat jika belum ada)
+        \App\Models\DokumenSewa::updateOrCreate(
+            [
+                'sewa_ruko_id' => $sewa->id,
+                'tipe_dokumen' => 'mou_sistem',
+            ],
+            [
+                'nama_dokumen' => 'MOU - ' . $sewa->ruko->kode_unit,
+                'path_file'    => $path,
+                'diunggah_oleh' => 'sistem',
+                'keterangan'   => 'MOU digenerate otomatis oleh sistem',
+            ]
+        );
+
+        // Download PDF ke browser
+        return $pdf->download($filename);
+    }
 
     public function uploadDokumen(Request $request, $id)
     {
         $request->validate([
+            'file_dokumen' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
             'nama_dokumen' => 'required|string|max:255',
-            'file' => 'required|file|mimes:pdf,doc,docx,jpg,png|max:5120',
+            'tipe_dokumen' => 'required|in:mou_hardfile,dokumen_lain',
         ]);
 
         $sewa = SewaRuko::findOrFail($id);
 
-        if ($request->hasFile('file')) {
-            $file = $request->file('file');
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $path = $file->storeAs('dokumen_penyewaan', $filename, 'public');
+        $file = $request->file('file_dokumen');
+        $filename = 'HARDFILE-' . $sewa->ruko->kode_unit . '-' .
+                    substr($sewa->access_token, 0, 8) . '-' .
+                    now()->format('Ymd') . '.' . $file->getClientOriginalExtension();
+        $path = $file->storeAs('dokumen-sewa', $filename, 'public');
 
-            // Generate No MOU otomatis: MOU/TAHUN/BULAN/HARI/RANDOM
-            $no_mou = 'MOU/' . date('Y/m/d') . '/' . strtoupper(bin2hex(random_bytes(3)));
+        \App\Models\DokumenSewa::create([
+            'sewa_ruko_id' => $sewa->id,
+            'tipe_dokumen' => $request->tipe_dokumen,
+            'nama_dokumen' => $request->nama_dokumen,
+            'path_file'    => $path,
+            'diunggah_oleh' => 'admin',
+            'keterangan'   => $request->keterangan,
+        ]);
 
-            DokumenPenyewaan::create([
-                'sewa_id' => $sewa->id,
-                'no_mou' => $no_mou,
-                'nama_dokumen' => $request->nama_dokumen,
-                'path_file' => $path,
-            ]);
-
-            return redirect()->back()->with('success', 'Dokumen berhasil diunggah dengan No. MOU: ' . $no_mou);
-        }
-
-        return redirect()->back()->with('error', 'Gagal mengunggah dokumen.');
-    }
-
-    public function downloadDokumen($id)
-    {
-        $doc = DokumenPenyewaan::findOrFail($id);
-
-        if (!Storage::disk('public')->exists($doc->path_file)) {
-            return redirect()->back()->with('error', 'File tidak ditemukan di storage.');
-        }
-
-        $extension = pathinfo($doc->path_file, PATHINFO_EXTENSION);
-        $baseName = $doc->no_mou ?? $doc->nama_dokumen;
-        $cleanName = str_replace(['/', '\\'], '_', $baseName) . '.' . $extension;
-
-        return Storage::disk('public')->download($doc->path_file, $cleanName);
+        return back()->with('success', 'Dokumen berhasil diupload!');
     }
 
     public function hapusDokumen($id)
     {
-        $doc = DokumenPenyewaan::findOrFail($id);
+        $doc = \App\Models\DokumenSewa::findOrFail($id);
 
         if (Storage::disk('public')->exists($doc->path_file)) {
             Storage::disk('public')->delete($doc->path_file);
@@ -239,57 +286,6 @@ class PenyewaanController extends Controller
         $doc->delete();
 
         return redirect()->back()->with('success', 'Dokumen berhasil dihapus.');
-    }
-
-    public function generateMOU($id)
-    {
-        return DB::transaction(function () use ($id) {
-            $sewa = SewaRuko::with(['penyewa.user', 'ruko.kategori'])->findOrFail($id);
-
-            // 1. Generate No MOU (Format: MOU/Kantin/[ID]/[YEAR])
-            $no_mou = "MOU/Kantin/{$sewa->id}/" . date('Y');
-
-            // 2. Load View PDF
-            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('adminkantin.penyewaan.pdf_mou', [
-                'sewa'   => $sewa,
-                'no_mou' => $no_mou
-            ]);
-
-            // 3. Nama File & Path (Simpan ke folder 'mou')
-            $nama_file = 'MOU_' . str_replace('/', '_', $no_mou) . '_' . time() . '.pdf';
-            $path = 'mou/' . $nama_file;
-
-            // 4. Constraint: Hindari duplikasi / Update record & hapus file lama
-            $existingDoc = DokumenPenyewaan::where('no_mou', $no_mou)->first();
-
-            if ($existingDoc) {
-                // Hapus file lama jika ada
-                if (Storage::disk('public')->exists($existingDoc->path_file)) {
-                    Storage::disk('public')->delete($existingDoc->path_file);
-                }
-
-                // Update record yang ada
-                $existingDoc->update([
-                    'no_mou'       => $no_mou,
-                    'nama_dokumen' => 'Dokumen MOU Perjanjian Sewa - ' . $sewa->penyewa->nama_usaha,
-                    'path_file'    => $path,
-                ]);
-            } else {
-                // Buat record baru
-                DokumenPenyewaan::create([
-                    'sewa_id'      => $sewa->id,
-                    'no_mou'       => $no_mou,
-                    'nama_dokumen' => 'Dokumen MOU Perjanjian Sewa - ' . $sewa->penyewa->nama_usaha,
-                    'path_file'    => $path,
-                ]);
-            }
-
-            // 5. Simpan (Upload) ke Storage
-            Storage::disk('public')->put($path, $pdf->output());
-
-            // 6. Return response download otomatis
-            return $pdf->download($nama_file);
-        });
     }
 
 }

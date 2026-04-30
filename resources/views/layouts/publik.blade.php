@@ -79,9 +79,11 @@
                         </a>
                         
 
+                        @if(!isset($hideNavbarBack) || !$hideNavbarBack)
                         <a href="{{ route('user.gateway') }}" class="btn btn-sm btn-light btn-kembali text-primary shadow-sm px-3">
                             <i class="fas fa-arrow-left mr-2"></i> Kembali
                         </a>
+                        @endif
                     </div>
                 </nav>
 

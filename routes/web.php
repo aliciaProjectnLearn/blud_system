@@ -32,9 +32,6 @@ use App\Http\Controllers\User\DashboardUserController;
 use App\Http\Controllers\KasirServis\BookingKasirController;
 use App\Http\Controllers\User\UserServisController;
 
-// ==========================================
-// JALUR PUBLIK — Tanpa Auth (Pelanggan)
-// ==========================================
 Route::get('/', [LandingController::class, 'index'])->name('home');
 
 Route::prefix('user')->name('user.')->group(function () {
@@ -57,27 +54,33 @@ Route::prefix('user')->name('user.')->group(function () {
         Route::get('/api/check-membership', [App\Http\Controllers\User\FutsalBookingController::class, 'checkMembership'])->name('api.check.membership');
     });
 
-    // Kantin
-    Route::prefix('kantin')->name('kantin.')->group(function () {
-        Route::get('/katalog', [App\Http\Controllers\User\KantinBookingController::class, 'katalog'])->name('katalog');
-        Route::get('/booking', [App\Http\Controllers\User\KantinBookingController::class, 'showBookingForm'])->name('booking.form');
-        Route::get('/unit/{id}/detail', [App\Http\Controllers\User\KantinBookingController::class, 'getUnitDetail'])->name('unit.detail');
-        Route::post('/booking', [App\Http\Controllers\User\KantinBookingController::class, 'storeBooking'])->name('booking.store');
+    Route::prefix('kantin')->name('user.kantin.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\User\KantinController::class, 'index'])->name('index');
+        Route::get('/katalog', [\App\Http\Controllers\User\KantinController::class, 'katalog'])->name('katalog');
+        Route::get('/booking/{ruko_id}', [\App\Http\Controllers\User\KantinController::class, 'formBooking'])->name('booking');
+        Route::post('/booking', [\App\Http\Controllers\User\KantinController::class, 'simpanBooking'])->name('booking.store');
+        Route::get('/unit/{id}/detail', [\App\Http\Controllers\User\KantinController::class, 'unitDetail'])->name('unit.detail');
+
+        Route::get('/sewa/{token}', [\App\Http\Controllers\User\SewaTokenController::class, 'detail'])->name('sewa.detail');
+        Route::get('/sewa/{token}/riwayat', [\App\Http\Controllers\User\SewaTokenController::class, 'riwayat'])->name('sewa.riwayat');
+        Route::get('/sewa/{token}/pembayaran', [\App\Http\Controllers\User\SewaTokenController::class, 'pembayaran'])->name('sewa.pembayaran');
+        Route::post('/sewa/{token}/upload-bukti', [\App\Http\Controllers\User\SewaTokenController::class, 'uploadBukti'])->name('sewa.upload');
+        Route::get('/sewa/{token}/dokumen', [\App\Http\Controllers\User\SewaTokenController::class, 'dokumen'])->name('sewa.dokumen');
+        Route::post('/sewa/{token}/batalkan', [\App\Http\Controllers\User\SewaTokenController::class, 'batalkan'])->name('sewa.batalkan');
     });
 
-    // AC
     Route::prefix('ac')->name('ac.')->group(function () {
         Route::get('/', [App\Http\Controllers\User\AcBookingController::class, 'index'])->name('index');
         Route::post('/', [App\Http\Controllers\User\AcBookingController::class, 'store'])->name('store');
         Route::get('/layanan', [App\Http\Controllers\User\AcBookingController::class, 'layanan'])->name('layanan');
     });
 
-    // Servis
     Route::prefix('servis')->name('servis.')->group(function () {
         Route::get('/katalog', [App\Http\Controllers\User\UserServisController::class, 'katalog'])->name('katalog');
         Route::get('/booking', [App\Http\Controllers\User\UserServisController::class, 'booking'])->name('booking');
         Route::post('/store', [App\Http\Controllers\User\UserServisController::class, 'store'])->name('store');
         Route::get('/slots', [App\Http\Controllers\User\UserServisController::class, 'getSlot'])->name('slots');
+        Route::get('/sukses/{token}', [App\Http\Controllers\User\UserServisController::class, 'sukses'])->name('sukses');
     });
 });
 
@@ -150,10 +153,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Superadmin|Adm
         Route::patch('dokumentasi/{dokumen}/detail', [AdminKantinUnitController::class, 'updateDokumenDetail'])->name('unit.dokumen.updateDetail');
         Route::resource('penyewa', \App\Http\Controllers\AdminKantin\PenyewaController::class)->except(['create', 'store']);
         Route::resource('penyewaan', \App\Http\Controllers\AdminKantin\PenyewaanController::class);
-        Route::post('penyewaan/{id}/upload-dokumen', [\App\Http\Controllers\AdminKantin\PenyewaanController::class, 'uploadDokumen'])->name('penyewaan.uploadDokumen');
-        Route::get('dokumen-penyewaan/{id}/download', [\App\Http\Controllers\AdminKantin\PenyewaanController::class, 'downloadDokumen'])->name('penyewaan.downloadDokumen');
-        Route::delete('dokumen-penyewaan/{id}', [\App\Http\Controllers\AdminKantin\PenyewaanController::class, 'hapusDokumen'])->name('penyewaan.hapusDokumen');
-        Route::get('penyewaan/{id}/generate-mou', [\App\Http\Controllers\AdminKantin\PenyewaanController::class, 'generateMOU'])->name('penyewaan.generateMOU');
+        Route::get('penyewaan/{id}/generate-mou', [\App\Http\Controllers\AdminKantin\PenyewaanController::class, 'generateMOU'])->name('penyewaan.generate-mou');
+        Route::post('penyewaan/{id}/upload-dokumen', [\App\Http\Controllers\AdminKantin\PenyewaanController::class, 'uploadDokumen'])->name('penyewaan.upload-dokumen');
+        Route::delete('dokumen/{id}', [\App\Http\Controllers\AdminKantin\PenyewaanController::class, 'hapusDokumen'])->name('dokumen.hapus');
         Route::get('pembayaran', [PembayaranController::class, 'index'])->name('pembayaran.index');
         Route::get('pembayaran/{pembayaran}', [PembayaranController::class, 'show'])->name('pembayaran.show');
         Route::put('pembayaran/{pembayaran}', [PembayaranController::class, 'update'])->name('pembayaran.update');
@@ -206,22 +208,24 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Superadmin|Adm
         Route::resource('layanan', \App\Http\Controllers\AdminServis\LayananController::class);
         Route::get('/booking', [\App\Http\Controllers\AdminServis\BookingController::class, 'index'])->name('booking.index');
         Route::get('/booking/{id}', [\App\Http\Controllers\AdminServis\BookingController::class, 'show'])->name('booking.show');
-        Route::put('/booking/{id}', [\App\Http\Controllers\AdminServis\BookingController::class, 'update'])->name('booking.update');
-        Route::post('/booking/{id}/assign', [\App\Http\Controllers\AdminServis\BookingController::class, 'assignTeknisi'])->name('booking.assign');
         Route::get('laporan', [\App\Http\Controllers\AdminServis\LaporanController::class, 'index'])->name('laporan.index');
         Route::get('laporan/export-pdf', [\App\Http\Controllers\AdminServis\LaporanController::class, 'exportPdf'])->name('laporan.export.pdf');
         Route::get('laporan/export-excel', [\App\Http\Controllers\AdminServis\LaporanController::class, 'exportExcel'])->name('laporan.export.excel');
         Route::resource('produk', \App\Http\Controllers\AdminServis\ProdukController::class)->except(['create', 'show', 'edit']);
         Route::get('/keuangan', [\App\Http\Controllers\AdminServis\KeuanganController::class, 'index'])->name('keuangan.index');
         Route::post('/keuangan/pengeluaran', [\App\Http\Controllers\AdminServis\KeuanganController::class, 'store'])->name('keuangan.store');
+        Route::get('/keuangan/unpaid-pekerjaan/{teknisi_id}', [\App\Http\Controllers\AdminServis\KeuanganController::class, 'getUnpaidPekerjaan'])->name('keuangan.unpaid');
         Route::resource('teknisi', \App\Http\Controllers\AdminServis\TeknisiController::class);
         Route::patch('/teknisi/{id}/toggle-status', [\App\Http\Controllers\AdminServis\TeknisiController::class, 'toggleStatus'])->name('teknisi.toggle-status');
     });
+});
 
-    // Profile Common
+// Profile Common (Semua Role yang Login)
+Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::put('/password', [\App\Http\Controllers\Auth\PasswordController::class, 'update'])->name('password.update');
 });
 
 // 2. TEKNISI (AC & Servis)
@@ -250,11 +254,19 @@ Route::prefix('kasir')->name('kasir.')->middleware(['auth', 'role:Kasir'])
     Route::get('/dashboard', [KasirDashboardController::class, 'index'])->name('dashboard');
     Route::get('/booking', [BookingKasirController::class, 'index'])->name('booking.index');
     Route::get('/booking/{id}', [BookingKasirController::class, 'show'])->name('booking.show');
+    Route::put('/booking/{id}', [BookingKasirController::class, 'update'])->name('booking.update');
+    Route::post('/booking/{id}/assign', [BookingKasirController::class, 'assignTeknisi'])->name('booking.assign');
+    Route::get('/booking/{id}/print-wo', [BookingKasirController::class, 'printWo'])->name('booking.print-wo');
     Route::post('/booking/{id}/rincian', [BookingKasirController::class, 'simpanRincian'])->name('booking.simpan-rincian');
     Route::post('/booking/{id}/lanjut-pembayaran', [BookingKasirController::class, 'lanjutPembayaran'])->name('booking.lanjut-pembayaran');
     Route::get('/pembayaran', [BookingKasirController::class, 'indexPembayaran'])->name('pembayaran.index');
     Route::get('/pembayaran/{id}', [BookingKasirController::class, 'showPembayaran'])->name('pembayaran.show');
     Route::post('/pembayaran/{id}/konfirmasi', [BookingKasirController::class, 'konfirmasiPembayaran'])->name('pembayaran.konfirmasi');
+
+    // Laporan
+    Route::get('/laporan', [\App\Http\Controllers\KasirServis\LaporanController::class, 'index'])->name('laporan.index');
+    Route::get('/laporan/export-pdf', [\App\Http\Controllers\KasirServis\LaporanController::class, 'exportPdf'])->name('laporan.export.pdf');
+    Route::get('/laporan/export-excel', [\App\Http\Controllers\KasirServis\LaporanController::class, 'exportExcel'])->name('laporan.export.excel');
 });
 
 // 4. KASIR FUTSAL

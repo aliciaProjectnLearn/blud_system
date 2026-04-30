@@ -94,7 +94,7 @@
                                 </td>
                                 <td class="px-4 py-3 align-middle">
                                     <div class="text-uppercase small font-weight-bold">
-                                        {{ $booking->merek_kendaraan }} {{ $booking->tipe_kendaraan }}
+                                        {{ $booking->merek_kendaraan }}
                                     </div>
                                     <span class="badge badge-dark">{{ $booking->nomor_plat }}</span>
                                 </td>

@@ -114,6 +114,46 @@
                             </div>
                         </div>
 
+                        {{-- ── Ukuran Ruko ── --}}
+                        <div class="form-group row">
+                            <label for="ukuran_ruko" class="col-sm-3 col-form-label font-weight-bold">
+                                Ukuran Ruko
+                            </label>
+                            <div class="col-sm-9">
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="fas fa-expand-arrows-alt"></i></span>
+                                    </div>
+                                    <input type="text"
+                                           name="ukuran_ruko"
+                                           id="ukuran_ruko"
+                                           class="form-control @error('ukuran_ruko') is-invalid @enderror"
+                                           value="{{ old('ukuran_ruko') }}"
+                                           placeholder="cth: 3x4 meter, 12 m2">
+                                </div>
+                                @error('ukuran_ruko')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+
+                        {{-- ── Deskripsi ── --}}
+                        <div class="form-group row">
+                            <label for="deskripsi" class="col-sm-3 col-form-label font-weight-bold">
+                                Deskripsi Unit
+                            </label>
+                            <div class="col-sm-9">
+                                <textarea name="deskripsi"
+                                          id="deskripsi"
+                                          class="form-control @error('deskripsi') is-invalid @enderror"
+                                          rows="3"
+                                          placeholder="Tambahkan keterangan detail mengenai unit ruko ini...">{{ old('deskripsi') }}</textarea>
+                                @error('deskripsi')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+
                         {{-- ── Status Unit ── --}}
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label font-weight-bold">

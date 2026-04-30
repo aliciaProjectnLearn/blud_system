@@ -65,8 +65,8 @@
                     <tbody>
                         @forelse ($penyewas as $i => $item)
                             @php
-                                // Ambil sewa terbaru berdasarkan tgl_mulai
-                                $latestSewa = $item->sewaRuko->sortByDesc('tgl_mulai')->first();
+                                // Ambil sewa terbaru berdasarkan tanggal_mulai_sewa
+                                $latestSewa = $item->sewaRuko->sortByDesc('tanggal_mulai_sewa')->first();
                             @endphp
                             <tr>
                                 <td class="text-center">{{ $penyewas->firstItem() + $i }}</td>
@@ -92,9 +92,13 @@
                                 </td>
 
                                 <td class="d-none d-lg-table-cell">
-                                    @if($latestSewa && $latestSewa->tgl_mulai && $latestSewa->tgl_selesai)
-                                        <small>{{ \Carbon\Carbon::parse($latestSewa->tgl_mulai)->format('d M Y') }} - <br>
-                                        {{ \Carbon\Carbon::parse($latestSewa->tgl_selesai)->format('d M Y') }}</small>
+                                    @php
+                                        $tglMulai = $latestSewa->tanggal_mulai_sewa ?? $latestSewa->tgl_mulai ?? null;
+                                        $tglSelesai = $latestSewa->tanggal_selesai_sewa ?? $latestSewa->tgl_selesai ?? null;
+                                    @endphp
+                                    @if($latestSewa && $tglMulai && $tglSelesai)
+                                        <small>{{ \Carbon\Carbon::parse($tglMulai)->format('d M Y') }} - <br>
+                                        {{ \Carbon\Carbon::parse($tglSelesai)->format('d M Y') }}</small>
                                     @else
                                         <span class="text-muted small">-</span>
                                     @endif

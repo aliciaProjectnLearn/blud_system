@@ -25,8 +25,8 @@
                 <div class="row">
                     <div class="col-sm-6 border-right">
                         <label class="small font-weight-bold text-gray-600 mb-1">DATA PELANGGAN</label>
-                        <h5 class="font-weight-bold mb-0 text-primary">{{ $booking->user->nama_lengkap ?? $booking->user->name }}</h5>
-                        <p class="small text-muted mb-3">{{ $booking->user->email ?? 'Tidak ada email' }} | {{ $booking->user->no_hp ?? '-' }}</p>
+                        <h5 class="font-weight-bold mb-0 text-primary">{{ $booking->nama_pemesan }}</h5>
+                        <p class="small text-muted mb-3">{{ $booking->no_hp }}</p>
                         
                         <label class="small font-weight-bold text-gray-600 mb-1">PROFIL USER</label>
                         <div class="d-flex align-items-center mb-4">
@@ -41,7 +41,7 @@
                         <table class="table table-borderless table-sm mb-0">
                             <tr>
                                 <td width="40%" class="pl-0">Jenis</td>
-                                <td class="font-weight-bold text-gray-800">: {{ strtoupper($booking->tipe_kendaraan) }}</td>
+                                <td class="font-weight-bold text-gray-800">: {{ strtoupper($booking->layananServis->tipe_kendaraan ?? '-') }}</td>
                             </tr>
                             <tr>
                                 <td class="pl-0">Merek</td>
@@ -159,103 +159,52 @@
 
     <!-- Action Column -->
     <div class="col-lg-4">
-        <!-- Update Status Card -->
+        <!-- Status Card (Read Only) -->
         <div class="card shadow mb-4 border-bottom-{{ $badge }}">
             <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-tasks mr-2"></i> Update Status</h6>
+                <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-tasks mr-2"></i> Status Pengerjaan</h6>
             </div>
             <div class="card-body">
-                <form action="{{ route('admin.servis.booking.update', $booking->id) }}" method="POST" x-data="{ originalStatus: '{{ $booking->status }}', currentStatus: '{{ $booking->status }}' }">
-                    @csrf
-                    @method('PUT')
-                    
-                    <div class="form-group">
-                        <label for="status" class="small font-weight-bold">Status Booking</label>
-                        <select name="status" id="status" class="form-control @error('status') is-invalid @enderror" x-model="currentStatus" {{ $status == 'batal' ? 'disabled' : '' }}>
-                            <option value="menunggu" {{ $status == 'menunggu' ? 'selected' : '' }}>Menunggu</option>
-                            <option value="diproses" {{ $status == 'diproses' ? 'selected' : '' }}>Diproses</option>
-                            <option value="selesai" {{ $status == 'selesai' ? 'selected' : '' }}>Selesai</option>
-                            <option value="batal" {{ $status == 'batal' ? 'selected' : '' }}>Batal (Cancel)</option>
-                        </select>
-                        @error('status')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    @if($status != 'batal')
-                    <button type="submit" class="btn btn-primary btn-block shadow-sm" x-show="currentStatus !== originalStatus" 
-                        onclick="return confirm('Apakah Anda yakin ingin mengubah status booking ini?')">
-                        Simpan Perubahan
-                    </button>
-                    @else
-                    <div class="alert alert-danger mb-0 py-2 small">
-                        <i class="fas fa-ban mr-1"></i> Booking telah dibatalkan.
-                    </div>
-                    @endif
-                </form>
+                <div class="text-center">
+                    <span class="badge badge-{{ $badge }} px-3 py-2 text-uppercase mb-3" style="font-size: 1rem;">
+                        {{ $booking->status }}
+                    </span>
+                </div>
             </div>
         </div>
 
-        <!-- Assign Technician Card -->
+        <!-- Assign Technician Card (Read Only) -->
         <div class="card shadow mb-4 border-left-info">
             <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-info"><i class="fas fa-user-cog mr-2"></i> Penugasan Teknisi</h6>
+                <h6 class="m-0 font-weight-bold text-info"><i class="fas fa-user-cog mr-2"></i> Teknisi Bertugas</h6>
             </div>
             <div class="card-body">
                 @if($booking->teknisi)
-                    <div class="p-3 bg-light rounded border mb-4 text-center">
+                    <div class="p-3 bg-light rounded border text-center">
                         <div class="bg-info rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width: 50px; height: 50px;">
                             <i class="fas fa-user-check text-white fa-lg"></i>
                         </div>
                         <h6 class="font-weight-bold mb-1">{{ $booking->teknisi->name }}</h6>
-                        <p class="text-xs text-muted mb-0">Teknisi ditugaskan</p>
+                        <p class="text-xs text-muted mb-0">Role: {{ $booking->teknisi->roles->first()->nama ?? 'Teknisi' }}</p>
+                    </div>
+                @else
+                    <div class="alert alert-warning mb-0 text-center small py-3">
+                        <i class="fas fa-exclamation-triangle fa-2x mb-2 text-warning d-block"></i>
+                        Belum ada teknisi yang ditugaskan oleh Kasir.
                     </div>
                 @endif
-
-                <form action="{{ route('admin.servis.booking.assign', $booking->id) }}" method="POST">
-                    @csrf
-                    <div class="form-group">
-                        <label for="teknisi_id" class="small font-weight-bold">{{ $booking->teknisi ? 'Ubah Teknisi' : 'Pilih Teknisi' }}</label>
-                        <select name="teknisi_id" id="teknisi_id" class="form-control @error('teknisi_id') is-invalid @enderror" {{ $status == 'batal' ? 'disabled' : '' }}>
-                            <option value="" disabled {{ !$booking->teknisi ? 'selected' : '' }}>-- Pilih Teknisi --</option>
-                            @foreach($listTeknisi as $teknisi)
-                                <option value="{{ $teknisi->id }}" {{ $booking->teknisi_id == $teknisi->id ? 'selected' : '' }}>
-                                    {{ $teknisi->name }} ({{ $teknisi->roles->first()->nama ?? 'Teknisi' }})
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('teknisi_id')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-
-                    @if($status != 'batal')
-                    <button type="submit" class="btn btn-info btn-block shadow-sm">
-                        <i class="fas fa-save mr-1"></i> {{ $booking->teknisi ? 'Perbarui Penugasan' : 'Tugaskan Teknisi' }}
-                    </button>
-                    @endif
-                </form>
             </div>
         </div>
 
         <!-- Extra Note (Catatan Admin) -->
         <div class="card shadow mb-4">
             <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-sticky-note mr-2"></i> Catatan Admin</h6>
+                <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-sticky-note mr-2"></i> Catatan Admin (Read Only)</h6>
             </div>
             <div class="card-body">
-                <form action="{{ route('admin.servis.booking.update', $booking->id) }}" method="POST">
-                    @csrf
-                    @method('PUT')
-                    <input type="hidden" name="status" value="{{ $booking->status }}"> {{-- Keep current status --}}
-                    
-                    <div class="form-group">
-                        <textarea name="catatan_admin" class="form-control" rows="4" placeholder="Tambahkan catatan internal..." {{ $status == 'batal' ? 'disabled' : '' }}>{{ $booking->catatan_admin }}</textarea>
-                    </div>
-                    @if($status != 'batal')
-                    <button type="submit" class="btn btn-secondary btn-block btn-sm">Simpan Catatan</button>
-                    @endif
-                </form>
+                <div class="p-3 bg-light rounded small italic">
+                    {{ $booking->catatan_admin ?: 'Tidak ada catatan admin.' }}
+                </div>
             </div>
         </div>
     </div>

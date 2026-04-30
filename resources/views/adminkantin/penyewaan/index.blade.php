@@ -81,84 +81,56 @@
                         @forelse($data as $index => $item)
                         <tr>
                             <td class="d-none d-sm-table-cell">{{ $index + 1 }}</td>
-                            <td>{{ $item->penyewa->user->nama_lengkap ?? $item->penyewa->nama_usaha }}</td>
+                            <td>{{ $item->nama_penyewa }}</td>
                             <td>{{ $item->ruko->kode_unit }}</td>
                             <td class="d-none d-md-table-cell">{{ $item->ruko->kategori->nama ?? '-' }}</td>
-                            <td>{{ \Carbon\Carbon::parse($item->tgl_mulai)->format('d/m/Y') }}</td>
-                            <td class="d-none d-md-table-cell">{{ \Carbon\Carbon::parse($item->tgl_selesai)->format('d/m/Y') }}</td>
+                            <td>{{ \Carbon\Carbon::parse($item->tanggal_mulai_sewa)->format('d/m/Y') }}</td>
+                            <td class="d-none d-md-table-cell">{{ \Carbon\Carbon::parse($item->tanggal_selesai_sewa)->format('d/m/Y') }}</td>
                             <td>
-                                @if($item->status == 'aktif')
-                                    <span class="badge badge-success">Aktif</span>
-                                @elseif($item->status == 'selesai')
-                                    <span class="badge badge-secondary">Selesai</span>
-                                @else
-                                    <span class="badge badge-danger">Dibatalkan</span>
-                                @endif
+                                @php
+                                    $badgeClass = [
+                                        'pending'    => 'badge-warning',
+                                        'disetujui'  => 'badge-info',
+                                        'aktif'      => 'badge-success',
+                                        'selesai'    => 'badge-secondary',
+                                        'dibatalkan' => 'badge-danger',
+                                    ][$item->status_sewa] ?? 'badge-dark';
+                                    
+                                    $statusLabel = [
+                                        'pending'    => 'Menunggu Verifikasi',
+                                        'disetujui'  => 'Disetujui',
+                                        'aktif'      => 'Aktif',
+                                        'selesai'    => 'Selesai',
+                                        'dibatalkan' => 'Dibatalkan',
+                                    ][$item->status_sewa] ?? ucfirst($item->status_sewa);
+                                @endphp
+                                <span class="badge {{ $badgeClass }}">{{ $statusLabel }}</span>
                             </td>
                             <td>
-                                <a href="{{ route('admin.kantin.penyewaan.show', $item->id) }}" class="btn btn-info btn-sm">
-                                    <i class="fas fa-eye"></i> <span class="d-none d-md-inline">Detail</span>
-                                </a>
-                                
-                                <button type="button" class="btn btn-warning btn-sm" data-toggle="modal" data-target="#editModal{{ $item->id }}">
-                                    <i class="fas fa-edit"></i> <span class="d-none d-md-inline">Edit</span>
-                                </button>
-
-                                @if($item->status != 'aktif')
-                                <form action="{{ route('admin.kantin.penyewaan.destroy', $item->id) }}" method="POST" style="display:inline;" class="delete-form">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirmDelete(event)">
-                                        <i class="fas fa-trash"></i> <span class="d-none d-md-inline">Hapus</span>
+                                <div class="d-flex gap-1">
+                                    <a href="{{ route('admin.kantin.penyewaan.show', $item->id) }}" class="btn btn-info btn-sm px-2" 
+                                       title="Detail" data-toggle="tooltip">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    
+                                    <button type="button" class="btn btn-warning btn-sm px-2"
+                                            title="Edit" data-toggle="tooltip"
+                                            onclick="editPenyewaan({{ $item->id }}, '{{ $item->tanggal_mulai_sewa ? \Carbon\Carbon::parse($item->tanggal_mulai_sewa)->format('Y-m-d') : '' }}', '{{ $item->tanggal_selesai_sewa ? \Carbon\Carbon::parse($item->tanggal_selesai_sewa)->format('Y-m-d') : '' }}', '{{ $item->status_sewa }}', {{ (int)($item->harga_sewa_tahunan ?? $item->ruko->harga ?? 0) }})">
+                                        <i class="fas fa-edit"></i>
                                     </button>
-                                </form>
-                                @endif
+
+                                    @if($item->status_sewa == 'dibatalkan')
+                                    <button class="btn btn-danger btn-sm px-2"
+                                            title="Hapus" data-toggle="tooltip"
+                                            onclick="hapusPenyewaan({{ $item->id }})">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                    @endif
+                                </div>
                             </td>
                         </tr>
 
-                        <!-- Edit Modal -->
-                        <div class="modal fade" id="editModal{{ $item->id }}" tabindex="-1" role="dialog" aria-hidden="true">
-                            <div class="modal-dialog" role="document">
-                                <div class="modal-content">
-                                    <form action="{{ route('admin.kantin.penyewaan.update', $item->id) }}" method="POST">
-                                        @csrf
-                                        @method('PUT')
-                                        <div class="modal-header">
-                                            <h5 class="modal-title">Edit Penyewaan: {{ $item->ruko->kode_unit }}</h5>
-                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                <span aria-hidden="true">&times;</span>
-                                            </button>
-                                        </div>
-                                        <div class="modal-body">
-                                            <div class="form-group">
-                                                <label>Tanggal Mulai</label>
-                                                <input type="date" name="tgl_mulai" class="form-control" value="{{ $item->tgl_mulai }}" required>
-                                            </div>
-                                            <div class="form-group">
-                                                <label>Tanggal Selesai</label>
-                                                <input type="date" name="tgl_selesai" class="form-control" value="{{ $item->tgl_selesai }}" required>
-                                            </div>
-                                            <div class="form-group">
-                                                <label>Total Biaya Tahunan</label>
-                                                <input type="number" name="total_biaya_tahunan" class="form-control" value="{{ $item->total_biaya_tahunan }}">
-                                            </div>
-                                            <div class="form-group">
-                                                <label>Status</label>
-                                                <select name="status" class="form-control" required>
-                                                    <option value="aktif" {{ $item->status == 'aktif' ? 'selected' : '' }}>Aktif</option>
-                                                    <option value="selesai" {{ $item->status == 'selesai' ? 'selected' : '' }}>Selesai</option>
-                                                    <option value="dibatalkan" {{ $item->status == 'dibatalkan' ? 'selected' : '' }}>Dibatalkan</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                                            <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
+                        <!-- Modal Edit Dipindah ke Luar Loop -->
                         @empty
                         <tr>
                             <td colspan="8" class="text-center">Tidak ada data penyewaan</td>
@@ -170,15 +142,73 @@
         </div>
     </div>
 </div>
+
+<!-- Edit Modal Global -->
+<div class="modal fade" id="modalEdit" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form id="editForm" method="POST">
+                @csrf
+                @method('PUT')
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Penyewaan</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="edit_id" name="id">
+                    <div class="form-group">
+                        <label>Tanggal Mulai</label>
+                        <input type="date" id="edit_tanggal_mulai" name="tanggal_mulai_sewa" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Tanggal Selesai</label>
+                        <input type="date" id="edit_tanggal_selesai" name="tanggal_selesai_sewa" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Harga Sewa Tahunan</label>
+                        <input type="text" id="edit_total_biaya_display" class="form-control" readonly style="background:#f8f9fc">
+                        <input type="hidden" id="edit_total_biaya" name="harga_sewa_tahunan">
+                        <small class="text-muted">Otomatis dari harga unit yang disewa</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select id="edit_status" name="status_sewa" class="form-control" required>
+                            <option value="disetujui">Disetujui</option>
+                            <option value="ditolak">Ditolak</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 @endsection
 
-@section('scripts')
+@push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    function confirmDelete(event) {
-        event.preventDefault();
-        const form = event.target.closest('form');
-        
+    $(function() { 
+        $('[data-toggle="tooltip"]').tooltip(); 
+    });
+
+    function editPenyewaan(id, tglMulai, tglSelesai, status, harga) {
+        document.getElementById('editForm').action = "{{ url('admin/kantin/penyewaan') }}/" + id;
+        document.getElementById('edit_id').value = id;
+        document.getElementById('edit_tanggal_mulai').value = tglMulai;
+        document.getElementById('edit_tanggal_selesai').value = tglSelesai;
+        document.getElementById('edit_status').value = status;
+        document.getElementById('edit_total_biaya').value = harga;
+        document.getElementById('edit_total_biaya_display').value = 'Rp ' + new Intl.NumberFormat('id-ID').format(harga);
+        $('#modalEdit').modal('show');
+    }
+
+    function hapusPenyewaan(id) {
         Swal.fire({
             title: 'Apakah Anda yakin?',
             text: "Data penyewaan akan dihapus permanen!",
@@ -190,9 +220,14 @@
             cancelButtonText: 'Batal'
         }).then((result) => {
             if (result.isConfirmed) {
+                let form = document.createElement('form');
+                form.method = 'POST';
+                form.action = "{{ url('admin/kantin/penyewaan') }}/" + id;
+                form.innerHTML = '@csrf @method("DELETE")';
+                document.body.appendChild(form);
                 form.submit();
             }
         });
     }
 </script>
-@endsection
+@endpush

@@ -60,7 +60,7 @@
             <div class="card-body p-3 p-md-4">
 
                 {{-- Form Filter --}}
-                <form method="GET" action="{{ route('teknisiservis.dashboard') }}" class="form-inline mb-3">
+                <form method="GET" action="{{ route('teknisi.servis.dashboard') }}" class="form-inline mb-3">
                     <select name="status" class="form-control form-control-sm mr-2 mb-2">
                         <option value="">Semua Status</option>
                         <option value="menunggu"     {{ request('status') == 'menunggu'     ? 'selected' : '' }}>Menunggu</option>
@@ -72,7 +72,7 @@
                     <button type="submit" class="btn btn-primary btn-sm mr-1 mb-2">
                         <i class="fas fa-filter mr-1"></i> Filter
                     </button>
-                    <a href="{{ route('teknisiservis.dashboard') }}" class="btn btn-secondary btn-sm mb-2">
+                    <a href="{{ route('teknisi.servis.dashboard') }}" class="btn btn-secondary btn-sm mb-2">
                         <i class="fas fa-undo mr-1"></i> Reset
                     </a>
                 </form>
@@ -98,7 +98,7 @@
                             <tr>
                                 <td>{{ $pekerjaanAktif->firstItem() + $loop->index }}</td>
                                 <td><code>{{ $pekerjaan->kode_booking }}</code></td>
-                                <td>{{ $pekerjaan->user->nama_lengkap ?? $pekerjaan->user->name ?? '-' }}</td>
+                                <td>{{ $pekerjaan->nama_pemesan ?? $pekerjaan->user->name ?? '-' }}</td>
                                 <td>{{ $pekerjaan->layananServis->nama_layanan ?? '-' }}</td>
                                 <td>
                                     {{ $pekerjaan->merek_kendaraan }}
@@ -129,7 +129,7 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <a href="{{ route('teknisiservis.dashboard.show', $pekerjaan->id) }}"
+                                    <a href="{{ route('teknisi.servis.dashboard.show', $pekerjaan->id) }}"
                                        class="btn btn-info btn-sm">
                                         <i class="fas fa-eye"></i> Detail
                                     </a>
@@ -154,7 +154,7 @@
                         <div class="card-body p-3">
                             <div class="d-flex justify-content-between align-items-start mb-2">
                                 <span class="font-weight-bold text-dark">
-                                    {{ $pekerjaan->user->nama_lengkap ?? $pekerjaan->user->name ?? '-' }}
+                                    {{ $pekerjaan->nama_pemesan ?? $pekerjaan->user->name ?? '-' }}
                                 </span>
                                 @php
                                     $badgeMap = [
@@ -190,7 +190,7 @@
                                     {{ \Illuminate\Support\Str::limit($pekerjaan->keluhan, 60) }}
                                 </p>
                             </div>
-                            <a href="{{ route('teknisiservis.dashboard.show', $pekerjaan->id) }}"
+                            <a href="{{ route('teknisi.servis.dashboard.show', $pekerjaan->id) }}"
                                class="btn btn-info btn-sm btn-block">
                                 <i class="fas fa-eye"></i> Detail
                             </a>
@@ -223,7 +223,7 @@
             <div class="card-body p-3 p-md-4">
 
                 {{-- Form Filter Histori (tanggal saja) --}}
-                <form method="GET" action="{{ route('teknisiservis.dashboard') }}" class="form-inline mb-3">
+                <form method="GET" action="{{ route('teknisi.servis.dashboard') }}" class="form-inline mb-3">
                     <input type="hidden" name="status" value="{{ request('status') }}">
                     <input type="date" name="tanggal" class="form-control form-control-sm mr-2 mb-2"
                            value="{{ request('tanggal') }}"
@@ -231,7 +231,7 @@
                     <button type="submit" class="btn btn-success btn-sm mr-1 mb-2">
                         <i class="fas fa-filter mr-1"></i> Filter
                     </button>
-                    <a href="{{ route('teknisiservis.dashboard') }}" class="btn btn-secondary btn-sm mb-2">
+                    <a href="{{ route('teknisi.servis.dashboard') }}" class="btn btn-secondary btn-sm mb-2">
                         <i class="fas fa-undo mr-1"></i> Reset
                     </a>
                 </form>
@@ -256,7 +256,7 @@
                             <tr>
                                 <td>{{ $historiPekerjaan->firstItem() + $loop->index }}</td>
                                 <td><code>{{ $histori->kode_booking }}</code></td>
-                                <td>{{ $histori->user->nama_lengkap ?? $histori->user->name ?? '-' }}</td>
+                                <td>{{ $histori->nama_pemesan ?? $histori->user->name ?? '-' }}</td>
                                 <td>{{ $histori->layananServis->nama_layanan ?? '-' }}</td>
                                 <td>
                                     {{ $histori->merek_kendaraan }}
@@ -267,7 +267,7 @@
                                     <span class="badge badge-success">Selesai</span>
                                 </td>
                                 <td>
-                                    <a href="{{ route('teknisiservis.dashboard.show', $histori->id) }}"
+                                    <a href="{{ route('teknisi.servis.dashboard.show', $histori->id) }}"
                                        class="btn btn-info btn-sm">
                                         <i class="fas fa-eye"></i> Detail
                                     </a>
@@ -292,7 +292,7 @@
                         <div class="card-body p-3">
                             <div class="d-flex justify-content-between align-items-start mb-2">
                                 <span class="font-weight-bold text-dark">
-                                    {{ $histori->user->nama_lengkap ?? $histori->user->name ?? '-' }}
+                                    {{ $histori->nama_pemesan ?? $histori->user->name ?? '-' }}
                                 </span>
                                 <span class="badge badge-success">Selesai</span>
                             </div>
@@ -314,7 +314,7 @@
                                     {{ $histori->updated_at->format('d M Y H:i') }}
                                 </p>
                             </div>
-                            <a href="{{ route('teknisiservis.dashboard.show', $histori->id) }}"
+                            <a href="{{ route('teknisi.servis.dashboard.show', $histori->id) }}"
                                class="btn btn-info btn-sm btn-block">
                                 <i class="fas fa-eye"></i> Detail
                             </a>

@@ -67,7 +67,7 @@
                             <a href="{{ route('admin.users.index') }}" class="btn btn-secondary btn-sm">
                                 <i class="fas fa-arrow-left mr-1"></i> Kembali
                             </a>
-                            <a href="{{ route('users.edit', $user->id) }}" class="btn btn-warning btn-sm">
+                            <a href="{{ route('admin.users.edit', $user->id) }}" class="btn btn-warning btn-sm">
                                 <i class="fas fa-edit mr-1"></i> Edit User
                             </a>
                         </div>

@@ -14,28 +14,37 @@ class KeuanganController extends Controller
     {
         $tanggalMulai = $request->tanggal_mulai;
         $tanggalSelesai = $request->tanggal_selesai;
-        $tipe = $request->tipe;
+        $tipeFilter = $request->tipe;
 
-        // Query Pemasukan (Pembayaran Ruko yang sudah lunas)
-        $queryPemasukan = PembayaranRuko::where('status', 'lunas');
+        // 1. Pemasukan (Grouped by Month for Summary)
+        $pemasukanGrouped = PembayaranRuko::where('status_pembayaran', 'dibayar')
+            ->selectRaw('MONTH(tanggal_bayar) as bulan, YEAR(tanggal_bayar) as tahun, SUM(jumlah_tagihan) as total')
+            ->groupBy('tahun', 'bulan')
+            ->orderBy('tahun', 'desc')
+            ->orderBy('bulan', 'desc')
+            ->get();
+
+        // 2. Query Detail Transaksi untuk Tabel
+        // Pemasukan Detail
+        $queryPemasukan = PembayaranRuko::where('status_pembayaran', 'dibayar');
         if ($tanggalMulai) {
-            $queryPemasukan->whereDate('tgl_bayar', '>=', $tanggalMulai);
+            $queryPemasukan->whereDate('tanggal_bayar', '>=', $tanggalMulai);
         }
         if ($tanggalSelesai) {
-            $queryPemasukan->whereDate('tgl_bayar', '<=', $tanggalSelesai);
+            $queryPemasukan->whereDate('tanggal_bayar', '<=', $tanggalSelesai);
         }
 
         $pemasukan = $queryPemasukan->get()->map(function ($item) {
             return [
                 'id' => $item->id,
-                'tanggal' => $item->tgl_bayar,
+                'tanggal' => $item->tanggal_bayar,
                 'tipe' => 'pemasukan',
-                'deskripsi' => 'Pembayaran Sewa ' . ($item->sewaRuko->ruko->kode_unit ?? '') . ' - Termin ' . $item->termin,
+                'deskripsi' => 'Pembayaran Sewa ' . ($item->sewaRuko->ruko->kode_unit ?? '') . ' - Termin ' . $item->termin_ke,
                 'nominal' => $item->jumlah_tagihan,
             ];
         });
 
-        // Query Pengeluaran
+        // Pengeluaran Detail
         $queryPengeluaran = PengeluaranKantin::query();
         if ($tanggalMulai) {
             $queryPengeluaran->whereDate('tanggal', '>=', $tanggalMulai);
@@ -49,29 +58,26 @@ class KeuanganController extends Controller
                 'id' => $item->id,
                 'tanggal' => $item->tanggal,
                 'tipe' => 'pengeluaran',
-                'deskripsi' => $item->deskripsi,
+                'deskripsi' => '[' . ucfirst($item->kategori_pengeluaran) . '] ' . $item->deskripsi,
                 'nominal' => $item->nominal,
             ];
         });
 
-        // Gabungkan
+        // Gabungkan dan Filter
         $transaksi = $pemasukan->concat($pengeluaran);
-
-        // Filter Tipe
-        if ($tipe) {
-            $transaksi = $transaksi->where('tipe', $tipe);
+        if ($tipeFilter) {
+            $transaksi = $transaksi->where('tipe', $tipeFilter);
         }
-
-        // Urutkan Tanggal Descending
         $transaksi = $transaksi->sortByDesc('tanggal')->values();
 
-        // Hitung Totals
-        $totalPemasukan = $pemasukan->sum('nominal');
-        $totalPengeluaran = $pengeluaran->sum('nominal');
+        // 3. Hitung Totals Keseluruhan (Bukan hanya filter)
+        $totalPemasukan = PembayaranRuko::where('status_pembayaran', 'dibayar')->sum('jumlah_tagihan');
+        $totalPengeluaran = PengeluaranKantin::sum('nominal');
         $saldoAkhir = $totalPemasukan - $totalPengeluaran;
 
         return view('adminkantin.keuangan.index', compact(
             'transaksi',
+            'pemasukanGrouped',
             'totalPemasukan',
             'totalPengeluaran',
             'saldoAkhir'
@@ -84,6 +90,7 @@ class KeuanganController extends Controller
             'nominal' => 'required|numeric|min:0',
             'deskripsi' => 'required|string|max:255',
             'tanggal' => 'required|date',
+            'kategori_pengeluaran' => 'required|in:pemeliharaan,operasional,lainnya',
         ]);
 
         PengeluaranKantin::create($request->all());

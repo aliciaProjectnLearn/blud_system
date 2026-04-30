@@ -86,6 +86,11 @@ class User extends Authenticatable
         return $this->hasOne(Penyewa::class, 'user_id');
     }
 
+    public function sewaRuko()
+    {
+        return $this->hasMany(\App\Models\SewaRuko::class, 'user_id');
+    }
+
     public function bookingServis()
     {
         return $this->hasMany(BookingServis::class, 'user_id');

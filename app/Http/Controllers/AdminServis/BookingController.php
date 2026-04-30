@@ -15,7 +15,7 @@ class BookingController extends Controller
      */
     public function index(Request $request)
     {
-        $query = BookingServis::with(['pelanggan', 'teknisi']);
+        $query = BookingServis::with(['pelanggan', 'teknisi', 'layananServis']);
 
         // Filter Tanggal
         if ($request->filled('tanggal')) {
@@ -54,64 +54,9 @@ class BookingController extends Controller
      */
     public function show($id)
     {
-        $booking = BookingServis::with(['pelanggan', 'teknisi', 'rincianServis'])->findOrFail($id);
-        
-        // Ambil daftar teknisi untuk dropdown assignment
-        $listTeknisi = User::whereHas('roles', function ($q) {
-            $q->where('nama', 'Teknisi')
-              ->orWhere('nama', 'like', 'Teknisi%');
-        })->get();
+        $booking = BookingServis::with(['pelanggan', 'rincianServis', 'layananServis', 'teknisi'])
+            ->findOrFail($id);
 
-        return view('adminservis.booking.show', compact('booking', 'listTeknisi'));
-    }
-
-    /**
-     * Update status booking.
-     */
-    public function update(Request $request, $id)
-    {
-        $request->validate([
-            'status' => 'required|in:menunggu,diproses,selesai,batal',
-        ]);
-
-        $booking = BookingServis::findOrFail($id);
-
-        if ($booking->status === 'batal') {
-            return back()->with('error', 'Booking yang sudah batal tidak bisa diubah statusnya.');
-        }
-
-        $booking->update([
-            'status' => $request->status,
-        ]);
-
-        return back()->with('success', 'Status booking berhasil diperbarui.');
-    }
-
-    /**
-     * Assign teknisi ke booking.
-     */
-    public function assignTeknisi(Request $request, $id)
-    {
-        $request->validate([
-            'teknisi_id' => 'required|exists:users,id',
-        ]);
-
-        $booking = BookingServis::findOrFail($id);
-
-        if ($booking->status === 'batal') {
-            return back()->with('error', 'Tidak bisa assign teknisi ke booking yang sudah batal.');
-        }
-
-        // Validasi role teknisi
-        $teknisi = User::findOrFail($request->teknisi_id);
-        if (!$teknisi->hasRole('Teknisi') && !$teknisi->hasRole('Teknisi Motor') && !$teknisi->hasRole('Teknisi Mobil')) {
-            return back()->with('error', 'User yang dipilih bukan teknisi.');
-        }
-
-        $booking->update([
-            'teknisi_id' => $request->teknisi_id,
-        ]);
-
-        return back()->with('success', 'Teknisi berhasil ditugaskan.');
+        return view('adminservis.booking.show', compact('booking'));
     }
 }

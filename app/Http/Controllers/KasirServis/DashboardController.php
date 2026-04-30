@@ -43,12 +43,20 @@ class DashboardController extends Controller
             $grafikPemasukan->push(['label' => $label, 'total' => $sumPemasukan]);
         }
 
+        // --- Data Booking Diproses ---
+        $bookingDiproses = BookingServis::with(['layananServis'])
+            ->where('status', 'diproses')
+            ->latest('updated_at')
+            ->take(10)
+            ->get();
+
         return view('kasirservis.index', compact(
             'totalBookingHariIni',
             'totalTransaksiHariIni',
             'totalPemasukanHariIni',
             'grafikBooking',
-            'grafikPemasukan'
+            'grafikPemasukan',
+            'bookingDiproses'
         ));
     }
 }

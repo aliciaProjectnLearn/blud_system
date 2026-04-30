@@ -342,12 +342,12 @@
 
 <!-- Today's Schedule Table -->
 <div class="card shadow mb-4">
-    <div class="card-header py-3 bg-info text-white">
-        <h6 class="m-0 font-weight-bold"><i class="fas fa-calendar-day mr-1"></i> Jadwal Servis Hari Ini</h6>
-        <small class="d-block d-md-inline">{{ \Carbon\Carbon::now()->translatedFormat("d F Y") }}</small>
-    </div>
-    <div class="card-body">
-        <div class="d-flex flex-wrap justify-content-md-end align-items-center mb-3" style="gap: 10px;">
+    <div class="card-header py-3 bg-info text-white d-flex flex-column flex-md-row align-items-md-center justify-content-between">
+        <div class="mb-3 mb-md-0">
+            <h6 class="m-0 font-weight-bold"><i class="fas fa-calendar-day mr-1"></i> Jadwal Servis Hari Ini</h6>
+            <small class="d-block">{{ \Carbon\Carbon::now()->translatedFormat("d F Y") }}</small>
+        </div>
+        <div class="d-flex flex-wrap align-items-center" style="gap: 10px;">
             <select id="filterKendaraanJadwal" class="form-control form-control-sm" style="width: auto; min-width: 130px;">
                 <option value="">Semua Kendaraan</option>
                 <option value="Motor">Motor</option>
@@ -359,10 +359,12 @@
                 <option value="Sedang Dikerjakan">Sedang Dikerjakan</option>
                 <option value="Selesai">Selesai</option>
             </select>
-            <button id="btnResetJadwal" class="btn btn-outline-secondary btn-sm d-none">
+            <button id="btnResetJadwal" class="btn btn-outline-light btn-sm d-none">
                 <i class="fas fa-undo mr-1"></i> Reset
             </button>
         </div>
+    </div>
+    <div class="card-body">
         <div class="table-responsive">
             <table class="table table-bordered table-hover table-sm" id="tabelJadwal" width="100%" cellspacing="0">
                 <thead>

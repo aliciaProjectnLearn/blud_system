@@ -67,7 +67,7 @@
                                     <div class="small text-muted">{{ $booking->jam_booking }} WIB</div>
                                 </td>
                                 <td class="px-4 py-3 align-middle">
-                                    <div class="text-uppercase small font-weight-bold">{{ $booking->merek_kendaraan }} {{ $booking->tipe_kendaraan }}</div>
+                                    <div class="text-uppercase small font-weight-bold">{{ $booking->merek_kendaraan }}</div>
                                     <div class="badge badge-dark">{{ $booking->nomor_plat }}</div>
                                 </td>
                                 <td class="px-4 py-3 align-middle text-center">
@@ -91,7 +91,7 @@
                                     </div>
                                 </td>
                                 <td class="px-4 py-3 align-middle text-center">
-                                    <a href="{{ route('user.servis.show', $booking->id) }}" class="btn btn-info btn-sm shadow-sm">
+                                    <a href="{{ $booking->access_token ? route('user.token.show', $booking->access_token) : '#' }}" class="btn btn-info btn-sm shadow-sm">
                                         <i class="fas fa-eye fa-sm"></i> Detail
                                     </a>
                                 </td>

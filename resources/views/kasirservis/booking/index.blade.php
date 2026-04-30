@@ -104,9 +104,16 @@
                                     <span class="badge badge-{{ $badgeClass }} px-3 py-2 text-uppercase">{{ $booking->status }}</span>
                                 </td>
                                 <td class="px-4 py-3 align-middle text-center">
-                                    <a href="{{ route('kasir.booking.show', $booking->id) }}" class="btn btn-info btn-sm shadow-sm">
-                                        <i class="fas fa-wrench fa-sm"></i> Proses Rincian
-                                    </a>
+                                    <div class="d-flex justify-content-center align-items-center" style="gap: 8px;">
+                                        <a href="{{ route('kasir.booking.show', $booking->id) }}" class="btn btn-info btn-sm shadow-sm text-nowrap">
+                                            <i class="fas fa-wrench fa-sm mr-1"></i> Proses Rincian
+                                        </a>
+                                        @if($booking->status == 'diproses' || $booking->status == 'selesai')
+                                        <a href="{{ route('kasir.booking.print-wo', $booking->id) }}" target="_blank" class="btn btn-secondary btn-sm shadow-sm text-nowrap" title="Cetak Work Order">
+                                            <i class="fas fa-print mr-1"></i> Cetak WO
+                                        </a>
+                                        @endif
+                                    </div>
                                 </td>
                             </tr>
                         @empty

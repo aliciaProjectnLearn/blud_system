@@ -15,5 +15,6 @@ class PengeluaranKantin extends Model
         'nominal',
         'deskripsi',
         'tanggal',
+        'kategori_pengeluaran',
     ];
 }

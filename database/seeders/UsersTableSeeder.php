@@ -67,7 +67,7 @@ class UsersTableSeeder extends Seeder
                 'name'              => 'Admin Servis',
                 'username'          => 'admin_servis',
                 'nama_lengkap'      => 'Admin Servis',
-                'no_hp'             => '081234567893',
+                'no_hp'             => '081234567801',
                 'email'             => 'adminservis@example.com',
                 'email_verified_at' => now(),
                 'password'          => Hash::make('password'),

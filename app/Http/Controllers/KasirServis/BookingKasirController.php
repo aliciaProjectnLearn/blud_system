@@ -7,6 +7,7 @@ use App\Models\BookingServis;
 use App\Models\RincianServis;
 use App\Models\ProdukServis;
 use App\Models\PembayaranServis;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -33,8 +34,11 @@ class BookingKasirController extends Controller
         // Search Nama Pelanggan
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->whereHas('pelanggan', function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%");
+            $query->where(function ($q) use ($search) {
+                $q->where('nama_pemesan', 'like', "%{$search}%")
+                  ->orWhereHas('pelanggan', function ($q2) use ($search) {
+                      $q2->where('name', 'like', "%{$search}%");
+                  });
             });
         }
 
@@ -59,12 +63,85 @@ class BookingKasirController extends Controller
      */
     public function show($id)
     {
-        $booking = BookingServis::with(['pelanggan', 'rincianServis.produkServis', 'layananServis'])
+        $booking = BookingServis::with(['pelanggan', 'rincianServis.produkServis', 'layananServis', 'teknisi'])
             ->findOrFail($id);
             
-        $produk = ProdukServis::all(); // Untuk pilihan sparepart
+        // Ambil list teknisi yang sesuai dengan tipe kendaraan
+        $tipeKendaraan = strtolower($booking->layananServis->tipe_kendaraan ?? '');
+        $roleDibutuhkan = $tipeKendaraan === 'mobil' ? 'Teknisi Mobil' : 'Teknisi Motor';
 
-        return view('kasirservis.booking.show', compact('booking', 'produk'));
+        $produk = ProdukServis::where('tipe_kendaraan', $tipeKendaraan)->get(); // Untuk pilihan sparepart sesuai kendaraan
+
+        $listTeknisi = User::whereHas('roles', function ($q) use ($roleDibutuhkan) {
+            $q->where('nama', $roleDibutuhkan);
+        })->get();
+
+        return view('kasirservis.booking.show', compact('booking', 'produk', 'listTeknisi'));
+    }
+
+    /**
+     * Update status booking.
+     */
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'status' => 'required|in:menunggu,diproses,selesai,batal',
+        ]);
+
+        $booking = BookingServis::findOrFail($id);
+
+        if ($booking->status === 'batal') {
+            return back()->with('error', 'Booking yang sudah batal tidak bisa diubah statusnya.');
+        }
+
+        $booking->update([
+            'status' => $request->status,
+        ]);
+
+        return back()->with('success', 'Status booking berhasil diperbarui.');
+    }
+
+    /**
+     * Assign teknisi ke booking.
+     */
+    public function assignTeknisi(Request $request, $id)
+    {
+        $request->validate([
+            'teknisi_id' => 'required|exists:users,id',
+        ]);
+
+        $booking = BookingServis::findOrFail($id);
+
+        if ($booking->status === 'batal') {
+            return back()->with('error', 'Tidak bisa assign teknisi ke booking yang sudah batal.');
+        }
+
+        // Validasi role teknisi
+        $teknisi = User::findOrFail($request->teknisi_id);
+        if (!$teknisi->hasRole('Teknisi') && !$teknisi->hasRole('Teknisi Motor') && !$teknisi->hasRole('Teknisi Mobil')) {
+            return back()->with('error', 'User yang dipilih bukan teknisi.');
+        }
+
+        $booking->update([
+            'teknisi_id' => $request->teknisi_id,
+        ]);
+
+        return back()->with('success', 'Teknisi berhasil ditugaskan untuk booking ini.');
+    }
+
+    /**
+     * Cetak Work Order (WO) untuk teknisi
+     */
+    public function printWo($id)
+    {
+        $booking = BookingServis::with(['pelanggan', 'layananServis'])
+            ->findOrFail($id);
+
+        if ($booking->status !== 'diproses') {
+            return back()->with('error', 'Hanya booking dengan status "diproses" yang dapat dicetak Work Order-nya.');
+        }
+
+        return view('kasirservis.booking.print-wo', compact('booking'));
     }
 
     /**
@@ -74,45 +151,84 @@ class BookingKasirController extends Controller
     {
         $booking = BookingServis::findOrFail($id);
 
-        // Validasi status
         if (in_array($booking->status, ['selesai', 'batal'])) {
-            return back()->with('error', 'Booking dengan status selesai atau batal tidak dapat diubah rinciannya.');
+            return back()->with('error', 'Booking dengan status selesai atau batal tidak dapat diubah.');
         }
 
         $request->validate([
-            'items' => 'required|array|min:1',
-            'items.*.nama_item' => 'required|string',
-            'items.*.jumlah' => 'required|integer|min:1',
-            'items.*.harga_satuan' => 'required|numeric|min:0',
+            'items'                    => 'required|array|min:1',
+            'items.*.nama_item'        => 'required|string',
+            'items.*.jumlah'           => 'required|integer|min:1',
+            'items.*.harga_satuan'     => 'required|numeric|min:0',
+            'foto_dokumentasi.*'       => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
         DB::beginTransaction();
         try {
-            // Hapus rincian lama untuk diganti dengan yang baru (sync manual)
+            // 1. Hapus rincian lama
             $booking->rincianServis()->delete();
 
+            // 2. Simpan rincian baru
             foreach ($request->items as $item) {
                 $subtotal = $item['jumlah'] * $item['harga_satuan'];
                 $booking->rincianServis()->create([
-                    'nama_item' => $item['nama_item'],
+                    'nama_item'        => $item['nama_item'],
                     'produk_servis_id' => $item['produk_servis_id'] ?? null,
-                    'jumlah' => $item['jumlah'],
-                    'harga_satuan' => $item['harga_satuan'],
-                    'subtotal' => $subtotal,
+                    'jumlah'           => $item['jumlah'],
+                    'harga_satuan'     => $item['harga_satuan'],
+                    'subtotal'         => $subtotal,
                 ]);
             }
 
-            // Update status booking ke 'diproses' jika sebelumnya 'menunggu'
-            if ($booking->status == 'menunggu') {
+            // 3. Upload foto jika ada
+            if ($request->hasFile('foto_dokumentasi')) {
+                foreach ($request->file('foto_dokumentasi') as $foto) {
+                    $path = $foto->store('foto_servis', 'public');
+                    $booking->fotoServis()->create(['path_foto' => $path]);
+                }
+            }
+
+            // 4. Update status ke diproses jika masih menunggu
+            if ($booking->status === 'menunggu') {
                 $booking->status = 'diproses';
                 $booking->save();
             }
 
+            // 5. Lanjut ke Pembayaran
+            // Hitung total dari rincian yang baru disimpan
+            $booking->load('rincianServis');
+            $totalBiaya = $booking->rincianServis->sum('subtotal');
+
+            // Generate kode pembayaran yang aman
+            $kodePembayaran = 'PAY-' . strtoupper(substr($booking->kode_booking, 0, 6)) 
+                              . '-' . now()->format('His');
+
+            // Cek apakah sudah ada record pembayaran
+            $existingKode = optional($booking->pembayaranServis)->kode_pembayaran;
+
+            PembayaranServis::updateOrCreate(
+                ['booking_servis_id' => $booking->id],
+                [
+                    'kode_pembayaran'   => $existingKode ?? $kodePembayaran,
+                    'total_biaya'       => $totalBiaya,
+                    'status_pembayaran' => 'belum_bayar',
+                ]
+            );
+
+            // Update status booking ke siap_bayar
+            $booking->status = 'siap_bayar';
+            $booking->save();
+
             DB::commit();
-            return back()->with('success', 'Rincian servis berhasil diperbarui.');
+
+            return redirect()->route('kasir.pembayaran.index')
+                ->with('success', 'Rincian disimpan. Booking ' 
+                    . $booking->kode_booking . ' siap diproses pembayaran.');
+
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'Gagal menyimpan rincian: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('simpanRincian error: ' . $e->getMessage());
+            return back()->with('error', 'Gagal menyimpan: ' . $e->getMessage());
         }
     }
 
@@ -180,8 +296,11 @@ class BookingKasirController extends Controller
         // Search nama pelanggan
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->whereHas('pelanggan', function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%");
+            $query->where(function ($q) use ($search) {
+                $q->where('nama_pemesan', 'like', "%{$search}%")
+                  ->orWhereHas('pelanggan', function ($q2) use ($search) {
+                      $q2->where('name', 'like', "%{$search}%");
+                  });
             });
         }
 
@@ -236,11 +355,15 @@ class BookingKasirController extends Controller
         $request->validate([
             'tipe_pembayaran' => 'required|in:tunai,transfer,qris',
             'catatan'         => 'nullable|string|max:500',
+            'total_biaya'     => 'nullable|numeric|min:0', // Validasi input override
         ]);
 
         DB::beginTransaction();
         try {
-            $totalBiaya = $booking->rincianServis->sum('subtotal');
+            // Gunakan override dari kasir jika ada, jika tidak, hitung ulang dari rincian
+            $totalBiaya = $request->filled('total_biaya') 
+                ? $request->total_biaya 
+                : $booking->rincianServis->sum('subtotal');
 
             // Update atau buat record pembayaran
             PembayaranServis::updateOrCreate(
@@ -261,7 +384,7 @@ class BookingKasirController extends Controller
             $booking->save();
 
             DB::commit();
-            return redirect()->route('kasir.pembayaran.index')
+            return redirect()->route('kasir.laporan.index')
                 ->with('success', 'Pembayaran berhasil dikonfirmasi. Booking '
                     . $booking->kode_booking . ' telah selesai.');
         } catch (\Exception $e) {

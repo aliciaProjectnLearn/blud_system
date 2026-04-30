@@ -27,6 +27,9 @@
             } elseif ($user->hasRole('Teknisi')) {
                 $brandLabel = 'Teknisi AC';
                 $brandRoute = route('teknisi.dashboard');
+            } elseif ($user->hasRole('Teknisi Motor') || $user->hasRole('Teknisi Mobil')) {
+                $brandLabel = 'Teknisi Servis';
+                $brandRoute = route('teknisi.servis.dashboard');
             } elseif ($user->hasRole('Kasir')) {
                 $brandLabel = 'Kasir Servis';
                 $brandRoute = route('kasir.dashboard');
@@ -62,7 +65,7 @@
     {{-- DASHBOARD --}}
     @if (auth()->check() && auth()->user()->hasRole('Superadmin'))
         <li class="nav-item {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('dashboard') }}">
+            <a class="nav-link" href="{{ route('admin.dashboard') }}">
                 <i class="fas fa-fw fa-tachometer-alt"></i>
                 <span>Dashboard</span>
             </a>
@@ -105,6 +108,13 @@
     @elseif(auth()->check() && auth()->user()->hasRole('Teknisi'))
         <li class="nav-item {{ request()->routeIs('teknisi.dashboard') ? 'active' : '' }}">
             <a class="nav-link" href="{{ route('teknisi.dashboard') }}">
+                <i class="fas fa-fw fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            </a>
+        </li>
+    @elseif(auth()->check() && (auth()->user()->hasRole('Teknisi Motor') || auth()->user()->hasRole('Teknisi Mobil')))
+        <li class="nav-item {{ request()->routeIs('teknisi.servis.dashboard') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('teknisi.servis.dashboard') }}">
                 <i class="fas fa-fw fa-tachometer-alt"></i>
                 <span>Dashboard</span>
             </a>
@@ -467,9 +477,35 @@
     @endif
 
     {{-- ================================= --}}
+    {{-- TEKNISI SERVIS (MOTOR & MOBIL) --}}
+    {{-- ================================= --}}
+    @if (auth()->check() && (auth()->user()->hasRole('Teknisi Motor') || auth()->user()->hasRole('Teknisi Mobil')))
+        <div class="sidebar-heading">Menu Pekerjaan</div>
+
+        {{-- Pekerjaan Aktif --}}
+        <li class="nav-item {{ request()->routeIs('teknisi.servis.dashboard*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('teknisi.servis.dashboard') }}">
+                <i class="fas fa-fw fa-tools"></i>
+                <span>Pekerjaan Aktif</span>
+            </a>
+        </li>
+    @endif
+
+
+
+    {{-- ================================= --}}
     {{-- KASIR SERVIS MOTOR MOBIL --}}
     {{-- ================================= --}}
     @if (auth()->check() && auth()->user()->hasRole('Kasir'))
+
+        <div class="sidebar-heading">Dashboard</div>
+
+        <li class="nav-item {{ request()->routeIs('kasir.dashboard') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('kasir.dashboard') }}">
+                <i class="fas fa-fw fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            </a>
+        </li>
 
         {{-- Manajemen Booking --}}
         <div class="sidebar-heading">Menu Pekerjaan</div>
