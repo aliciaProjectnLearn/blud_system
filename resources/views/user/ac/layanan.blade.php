@@ -50,7 +50,9 @@
                 <p class="lead">Booking teknisi berpengalaman untuk cuci AC, tambah freon, atau perbaikan komponen dengan harga transparan.</p>
                 <div class="d-flex gap-2">
                     <a href="#layanan-list" class="btn btn-light text-primary font-weight-bold shadow-sm">Lihat Layanan</a>
+                    @auth
                     <a href="{{ route('user.ac.index') }}" class="btn btn-outline-light font-weight-bold">Dashboard Saya</a>
+                    @endauth
                 </div>
                 <i class="fas fa-snowflake hero-icon"></i>
             </div>
@@ -120,6 +122,22 @@
                 <input type="hidden" name="layanan_id" id="layanan_id">
                 <div class="modal-body">
                     <div id="bookingErrors" class="alert alert-danger d-none"></div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="small font-weight-bold">Nama Lengkap</label>
+                                <input type="text" name="nama" class="form-control" value="{{ auth()->user()->nama_lengkap ?? '' }}" required placeholder="Contoh: Budi">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="small font-weight-bold">Nomor WhatsApp</label>
+                                <input type="text" name="no_hp" class="form-control" value="{{ auth()->user()->no_hp ?? '' }}" required placeholder="Contoh: 0812...">
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="form-group">
                         <label class="small font-weight-bold">Layanan Dipilih</label>
                         <input type="text" id="layananName" class="form-control bg-light" readonly>
@@ -150,6 +168,9 @@
                         <label class="small font-weight-bold">Detail Keluhan</label>
                         <textarea name="detail_keluhan" class="form-control" rows="3" placeholder="Contoh: AC tidak dingin, berisik, atau ada air bocor..."></textarea>
                     </div>
+                    <div class="alert alert-info py-2 small mb-0 mt-2">
+                        <i class="fas fa-info-circle mr-2"></i> Link status booking akan dikirim ke nomor WhatsApp Anda.
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-light border btn-sm" data-dismiss="modal">Batal</button>
@@ -178,23 +199,38 @@
 
             $.post('{{ route("user.ac.store") }}', $(this).serialize())
                 .done(function(res){
+                    // Success response from store method is a redirect, 
+                    // but since this is AJAX, we handle the JSON response if it's there
+                    // or handle the redirect manually if the browser follows it.
+                    // Actually, Laravel's redirect in AJAX usually returns JSON with a 'redirect' key or similar.
+                    // But our controller returns a redirect object.
+                    
                     $('#bookingModal').modal('hide');
                     Swal.fire({
                         icon: 'success',
                         title: 'Berhasil!',
-                        text: 'Booking Anda telah diterima. Silakan tunggu konfirmasi dari teknisi kami.',
+                        text: 'Booking AC berhasil dibuat! Link akses sudah dikirim ke WhatsApp Anda.',
                         confirmButtonText: 'OK',
                         confirmButtonColor: '#4e73df'
                     }).then((result) => {
-                        if (result.isConfirmed) {
-                            location.reload();
+                        // Redirect to the dashboard or token page if provided in response
+                        if (res.redirect) {
+                            window.location.href = res.redirect;
+                        } else {
+                            window.location.href = "{{ route('user.ac.index') }}";
                         }
                     });
                 })
                 .fail(function(xhr){
                     btn.prop('disabled', false).text('Buat Pesanan');
-                    let msg = xhr.responseJSON?.message || 'Gagal membuat pesanan.';
-                    $('#bookingErrors').removeClass('d-none').text(msg);
+                    let errors = xhr.responseJSON?.errors;
+                    let msg = 'Gagal membuat pesanan.';
+                    if (errors) {
+                        msg = Object.values(errors).flat().join('<br>');
+                    } else {
+                        msg = xhr.responseJSON?.message || msg;
+                    }
+                    $('#bookingErrors').removeClass('d-none').html(msg);
                 });
         });
     });

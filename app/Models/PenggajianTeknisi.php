@@ -14,10 +14,16 @@ class PenggajianTeknisi extends Model
     protected $fillable = [
         'teknisi_id',
         'booking_servis_id',
+        'booking_ac_id',
         'nominal',
         'status_bayar',
         'tanggal_bayar'
     ];
+
+    public function bookingAc()
+    {
+        return $this->belongsTo(BookingAc::class, 'booking_ac_id');
+    }
 
     public function teknisi()
     {

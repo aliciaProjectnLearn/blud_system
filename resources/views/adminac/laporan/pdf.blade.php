@@ -53,7 +53,7 @@
                 <tr>
                     <td class="text-center">{{ $index + 1 }}</td>
                     <td>{{ $item->invoice_no ?? '-' }}</td>
-                    <td>{{ $item->bookingAc->user->name ?? '-' }}</td>
+                    <td>{{ $item->bookingAc->nama_pelanggan ?? ($item->bookingAc->user->name ?? '-') }}</td>
                     <td>{{ $item->bookingAc->layanan->nama_layanan ?? ($item->bookingAc->layanan->nama ?? '-') }}</td>
                     <td>{{ $item->bookingAc->teknisi->name ?? '-' }}</td>
                     <td>{{ $item->bookingAc->tgl_kunjungan ?? '-' }}</td>
