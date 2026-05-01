@@ -34,11 +34,11 @@
                     <table class="table table-borderless table-sm">
                         <tr>
                             <td width="40%">Nama Pelanggan</td>
-                            <td>: <strong>{{ $pekerjaan->user->nama_lengkap ?? $pekerjaan->user->name }}</strong></td>
+                            <td>: <strong>{{ $pekerjaan->nama_pelanggan ?? ($pekerjaan->user->nama_lengkap ?? ($pekerjaan->user->name ?? '-')) }}</strong></td>
                         </tr>
                         <tr>
                             <td>Telepon/HP</td>
-                            <td>: {{ $pekerjaan->user->no_hp ?? '-' }}</td>
+                            <td>: {{ $pekerjaan->no_hp ?? ($pekerjaan->user->no_hp ?? '-') }}</td>
                         </tr>
                         <tr>
                             <td>Alamat Lengkap</td>
@@ -99,21 +99,21 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td>Biaya Layanan Utama ({{ $pekerjaan->layanan->nama ?? 'N/A' }})</td>
-                                    <td class="text-right">Rp {{ number_format($pekerjaan->layanan->harga_jasa ?? 0, 0, ',', '.') }}</td>
-                                </tr>
                                 @foreach($pekerjaan->detailServis as $detail)
-                                    @if($detail->item !== 'Tindakan Servis (Tanpa Sparepart)')
-                                        @php
-                                            $produk = \App\Models\Produk::where('nama_produk', $detail->item)->first();
-                                            $hargaSparepart = $produk ? $produk->harga * $detail->quantity : 0;
-                                        @endphp
-                                        <tr>
-                                            <td>Sparepart: {{ $detail->item }} (x{{ $detail->quantity }})</td>
-                                            <td class="text-right">Rp {{ number_format($hargaSparepart, 0, ',', '.') }}</td>
-                                        </tr>
-                                    @endif
+                                    <tr>
+                                        <td>
+                                            @if($detail->tipe == 'layanan')
+                                                <i class="fas fa-wrench text-primary mr-1"></i>
+                                            @else
+                                                <i class="fas fa-cog text-info mr-1"></i>
+                                            @endif
+                                            {{ $detail->item }} (x{{ $detail->quantity }})
+                                            @if($detail->catatan)
+                                                <br><small class="text-muted italic"><i class="fas fa-info-circle mr-1"></i> {{ $detail->catatan }}</small>
+                                            @endif
+                                        </td>
+                                        <td class="text-right">Rp {{ number_format($detail->subtotal, 0, ',', '.') }}</td>
+                                    </tr>
                                 @endforeach
                             </tbody>
                             <tfoot class="bg-light">
@@ -144,12 +144,15 @@
                     <div class="col-md-6">
                         <div class="form-group">
                             <label>Tipe Pembayaran <span class="text-danger">*</span></label>
-                            <select name="tipe_pembayaran_id" id="tipe_pembayaran_id" class="form-control" required onchange="toggleQRIS()">
+                            <select name="tipe_pembayaran_id" id="tipe_pembayaran_id" class="form-control @error('tipe_pembayaran_id') is-invalid @enderror" required onchange="toggleQRIS()">
                                 <option value="">-- Pilih Tipe --</option>
                                 @foreach($metodePembayaran as $metode)
-                                    <option value="{{ $metode->id }}" data-nama="{{ strtolower($metode->nama) }}">{{ $metode->nama }}</option>
+                                    <option value="{{ $metode->id }}" data-nama="{{ strtolower($metode->nama) }}" {{ old('tipe_pembayaran_id') == $metode->id ? 'selected' : '' }}>{{ $metode->nama }}</option>
                                 @endforeach
                             </select>
+                            @error('tipe_pembayaran_id')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                     </div>
                 </div>
@@ -170,9 +173,12 @@
                         <div class="form-group mb-0">
                             <label class="font-weight-bold">Upload Bukti Pembayaran <small class="text-muted">(Khusus Transfer Bank / QRIS)</small></label>
                             <div class="custom-file">
-                                <input type="file" name="bukti" class="custom-file-input" id="buktiInput" accept="image/*">
+                                <input type="file" name="bukti" class="custom-file-input @error('bukti') is-invalid @enderror" id="buktiInput" accept="image/*">
                                 <label class="custom-file-label" for="buktiInput" data-browse="Pilih">Pilih file tangkapan layar / nota</label>
                             </div>
+                            @error('bukti')
+                                <div class="text-danger small mt-1">{{ $message }}</div>
+                            @enderror
                         </div>
                     </div>
                     <div class="col-md-4 mt-3 mt-md-0">
@@ -190,16 +196,25 @@
 
 @push('scripts')
 <script>
+    // Jalankan saat halaman dimuat (untuk old input)
+    document.addEventListener('DOMContentLoaded', function() {
+        toggleQRIS();
+    });
+
     function toggleQRIS() {
         var select = document.getElementById('tipe_pembayaran_id');
+        if (!select) return;
+        
         var selectedOption = select.options[select.selectedIndex];
-        var metodeNama = selectedOption ? selectedOption.getAttribute('data-nama') : '';
+        var metodeNama = selectedOption ? (selectedOption.getAttribute('data-nama') || '') : '';
         var qrisContainer = document.getElementById('qris_container');
         
-        if (metodeNama && metodeNama.includes('qris')) {
-            qrisContainer.style.display = 'flex';
-        } else {
-            qrisContainer.style.display = 'none';
+        if (qrisContainer) {
+            if (metodeNama.includes('qris')) {
+                qrisContainer.style.display = 'flex';
+            } else {
+                qrisContainer.style.display = 'none';
+            }
         }
     }
 

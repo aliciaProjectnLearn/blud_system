@@ -5,6 +5,7 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use App\Models\Testimoni;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 
 class LandingController extends Controller
 {
@@ -12,7 +13,7 @@ class LandingController extends Controller
     {
         // Jika sudah login, redirect ke dashboard sesuai role
         if (Auth::check()) {
-            $roleName = strtolower(Auth::user()->roles->first()->nama ?? '');
+            $roleName = strtolower(Auth::user()->roles->first()?->nama ?? '');
 
             return match($roleName) {
                 'superadmin'  => redirect()->route('admin.dashboard'),
@@ -22,7 +23,7 @@ class LandingController extends Controller
                 'adminservis' => redirect()->route('admin.servis.dashboard'),
                 'teknisi'     => redirect()->route('teknisi.dashboard'),
                 'kasir'       => redirect()->route('kasir.dashboard'),
-                default       => redirect()->route('home'),
+                default       => redirect()->route('user.gateway'),
             };
         }
 
