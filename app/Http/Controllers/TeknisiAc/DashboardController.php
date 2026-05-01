@@ -47,7 +47,7 @@ class DashboardController extends Controller
      */
     public function show($id)
     {
-        $pekerjaan = BookingAc::with(['user', 'layanan', 'detailServis'])->findOrFail($id);
+        $pekerjaan = BookingAc::with(['layanan', 'detailServis'])->findOrFail($id);
 
         // Validasi 403: Pastikan teknisi hanya bisa melihat pekerjaannya sendiri
         if ($pekerjaan->teknisi_id !== Auth::id()) {
@@ -55,8 +55,9 @@ class DashboardController extends Controller
         }
 
         $produks = \App\Models\Produk::where('stok', '>', 0)->get();
+        $layanans = \App\Models\LayananAc::all();
 
-        return view('teknisiac.dashboard.show', compact('pekerjaan', 'produks'));
+        return view('teknisiac.dashboard.show', compact('pekerjaan', 'produks', 'layanans'));
     }
 
     /**
@@ -71,44 +72,68 @@ class DashboardController extends Controller
             abort(403);
         }
 
+        $request->validate([
+            'foto_hasil' => 'required|image|mimes:jpeg,png,jpg|max:5120',
+            'detail_layanan.*' => 'nullable|exists:layanan_ac,id',
+            'produk_id.*' => 'nullable|exists:produks,id',
+            'quantity_produk.*' => 'nullable|numeric|min:1',
+        ]);
+
         try {
             DB::beginTransaction();
 
+            // 1. Simpan Foto Dokumentasi
+            if ($request->hasFile('foto_hasil')) {
+                $file = $request->file('foto_hasil');
+                $filename = time() . '_hasil_' . $pekerjaan->id . '.' . $file->getClientOriginalExtension();
+                $file->move(public_path('uploads/ac/hasil'), $filename);
+                $pekerjaan->foto_hasil = $filename;
+            }
+
+            // 2. Simpan Multiple Layanan
+            if ($request->has('detail_layanan')) {
+                foreach ($request->detail_layanan as $key => $layananId) {
+                    if ($layananId) {
+                        $layanan = \App\Models\LayananAc::find($layananId);
+                        DetailServis::create([
+                            'booking_id' => $pekerjaan->id,
+                            'tipe'       => 'layanan',
+                            'layanan_id' => $layanan->id,
+                            'item'       => $layanan->nama . " (" . $layanan->kapasitas_ac . ")",
+                            'satuan'     => 'Unit',
+                            'quantity'   => 1,
+                            'harga'      => $layanan->harga_jasa,
+                            'subtotal'   => $layanan->harga_jasa,
+                            'catatan'    => $request->catatan_layanan[$key] ?? null,
+                        ]);
+                    }
+                }
+            }
+
+            // 3. Simpan Multiple Sparepart
             if ($request->has('produk_id')) {
                 foreach ($request->produk_id as $key => $produkId) {
-                    $qty = $request->quantity[$key] ?? 1;
-                    $catatan = $request->catatan[$key] ?? null;
-
-                    if (!empty($produkId)) {
-                        // Jika menggunakan produk/sparepart
+                    $qty = $request->quantity_produk[$key] ?? 1;
+                    if ($produkId) {
                         $produk = \App\Models\Produk::findOrFail($produkId);
 
                         if ($produk->stok < $qty) {
                             throw new \Exception("Stok tidak mencukupi untuk item: {$produk->nama_produk}");
                         }
 
-                        // Kurangi stok di tabel produks
                         $produk->decrement('stok', $qty);
 
-                        // Insert ke tabel detail_servis
                         DetailServis::create([
                             'booking_id' => $pekerjaan->id,
+                            'tipe'       => 'sparepart',
+                            'produk_id'  => $produk->id,
                             'item'       => $produk->nama_produk,
                             'satuan'     => $produk->satuan ?? 'Pcs',
                             'quantity'   => $qty,
-                            'catatan'    => $catatan,
+                            'harga'      => $produk->harga,
+                            'subtotal'   => $produk->harga * $qty,
+                            'catatan'    => $request->catatan_produk[$key] ?? null,
                         ]);
-                    } else {
-                        // Jika "Tidak pakai sparepart" dipilih tapi ada catatan tindakan
-                        if (!empty($catatan)) {
-                            DetailServis::create([
-                                'booking_id' => $pekerjaan->id,
-                                'item'       => 'Tindakan Servis (Tanpa Sparepart)',
-                                'satuan'     => '-',
-                                'quantity'   => $qty,
-                                'catatan'    => $catatan,
-                            ]);
-                        }
                     }
                 }
             }
@@ -120,7 +145,7 @@ class DashboardController extends Controller
 
             DB::commit();
 
-            return redirect()->route('teknisi.dashboard')->with('success', 'Pekerjaan berhasil diselesaikan dan detail servis telah disimpan.');
+            return redirect()->route('teknisi.dashboard')->with('success', 'Pekerjaan berhasil diselesaikan. Silakan lanjut ke proses pembayaran.');
 
         } catch (\Exception $e) {
             DB::rollback();

@@ -94,8 +94,8 @@ class BookingController extends Controller
                 // Format Pesan Dinamis dari Database
                 $pesan = "*TUGAS SERVIS AC BARU!* 🛠️❄️\n\n";
                 $pesan .= "Halo teknisi *{$teknisi->name}*, Anda memiliki pekerjaan baru dengan rincian:\n\n";
-                $pesan .= "👤 *Nama Pelanggan*: {$booking->user->nama_lengkap}\n";
-                $pesan .= "📞 *No. HP Pelanggan*: {$booking->user->no_hp}\n";
+                $pesan .= "👤 *Nama Pelanggan*: " . ($booking->nama_pelanggan ?? ($booking->user->nama_lengkap ?? '-')) . "\n";
+                $pesan .= "📞 *No. HP Pelanggan*: " . ($booking->no_hp ?? ($booking->user->no_hp ?? '-')) . "\n";
                 $pesan .= "🔧 *Layanan AC*: " . ($booking->layanan->nama ?? '-') . "\n";
                 $pesan .= "🏷️ *Merek AC*: " . ($booking->merek_ac ?? '-') . "\n";
                 $pesan .= "📅 *Tgl Kunjungan*: " . \Carbon\Carbon::parse($booking->tgl_kunjungan)->translatedFormat('d F Y') . "\n";
