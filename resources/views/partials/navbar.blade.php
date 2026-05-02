@@ -74,8 +74,8 @@
                             Dashboard
                         </a>
                     @elseif(Auth::user()->hasRole('Adminkantin'))
-                        <a class="dropdown-item {{ request()->routeIs('admin.profile.edit') ? 'active' : '' }}"
-                            href="{{ route('admin.profile.edit') }}">
+                        <a class="dropdown-item {{ request()->routeIs('profile.edit') ? 'active' : '' }}"
+                            href="{{ route('profile.edit') }}">
                             <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
                             Profile
                         </a>

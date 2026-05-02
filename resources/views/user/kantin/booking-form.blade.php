@@ -66,7 +66,7 @@
         <div class="row">
             {{-- KOLOM KIRI: FORM DATA (col-lg-7) --}}
             <div class="col-lg-7 order-mobile-1">
-                <form action="{{ route('user.kantin.booking.store') }}" method="POST" id="bookingForm">
+                <form action="{{ route('user.kantin.booking.store') }}" method="POST" id="bookingForm" enctype="multipart/form-data">
                     @csrf
                     
                     {{-- 1. Data Pribadi --}}
@@ -85,12 +85,22 @@
                                 </div>
                                 <div class="col-md-6 form-group">
                                     <label>Nomor WhatsApp*</label>
-                                    <input type="text" name="no_hp" id="no_hp" class="form-control" required placeholder="08xxxxxxxx" maxlength="13" value="{{ $penyewa->no_hp ?? old('no_hp') }}">
+                                    <input type="text" name="no_hp" id="no_hp" class="form-control @error('no_hp') is-invalid @enderror" required placeholder="08xxxxxxxx" maxlength="13" value="{{ $penyewa->no_hp ?? old('no_hp') }}">
+                                    @error('no_hp')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                    <div id="phoneCheckMsg" style="display:none; margin-top:6px; font-size:13px; font-weight:600;"></div>
                                     <div id="hp-error" class="text-danger small mt-1" style="display:none;">Gunakan 10-13 digit angka.</div>
                                 </div>
                                 <div class="col-md-6 form-group">
-                                    <label>Email (Opsional)</label>
-                                    <input type="email" name="email" class="form-control" placeholder="user@email.com" value="{{ old('email') }}">
+                                    <label>Foto KTP* (JPG/PNG, Max 2MB)</label>
+                                    <input type="file" name="foto_ktp" id="foto_ktp" class="form-control @error('foto_ktp') is-invalid @enderror" accept="image/*" required>
+                                    @error('foto_ktp')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                    <div id="ktp-preview-container" class="mt-2" style="display:none;">
+                                        <img id="ktp-preview" src="#" alt="Preview KTP" style="max-height: 150px; border-radius: 8px; border: 1px solid #ddd;">
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -351,6 +361,16 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
+    // Show SweetAlert if there is a session error
+    @if(session('error'))
+        Swal.fire({
+            icon: 'error',
+            title: 'Kesalahan',
+            text: "{{ session('error') }}",
+            confirmButtonColor: '#4e73df'
+        });
+    @endif
+
     let currentHarga = {{ $ruko->harga ?? 0 }};
 
     function updateEstimasi() {
@@ -462,6 +482,49 @@ $(document).ready(function() {
     });
 
     // Validasi NIK & HP (Only digits)
+    const phoneInput = document.getElementById('no_hp');
+    const phoneMsg = document.getElementById('phoneCheckMsg');
+    let phoneTimer = null;
+
+    function checkPhoneAvailability() {
+        const val = phoneInput.value.trim();
+        if (val.length < 10) {
+            phoneMsg.style.display = 'none';
+            return;
+        }
+
+        // Show checking state
+        phoneMsg.style.display = 'block';
+        phoneMsg.style.color = '#6b7280';
+        phoneMsg.textContent = 'Memeriksa nomor...';
+
+        fetch("{{ route('user.kantin.check-phone') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: JSON.stringify({ phone: val })
+        })
+        .then(r => r.json())
+        .then(data => {
+            phoneMsg.style.display = 'block';
+            if (data.available) {
+                phoneMsg.style.color = '#16a34a';
+                phoneMsg.textContent = '✓ Nomor dapat digunakan';
+            } else {
+                phoneMsg.style.color = '#dc2626';
+                phoneMsg.textContent = '✗ ' + data.message;
+                // Also disable submit button if phone is taken
+                const submitBtn = document.querySelector('button[type="submit"]');
+                if (submitBtn) submitBtn.disabled = true;
+            }
+        })
+        .catch(() => {
+            phoneMsg.style.display = 'none';
+        });
+    }
+
     $('#nik, #no_hp').on('input', function() {
         this.value = this.value.replace(/[^0-9]/g, '');
         if(this.id === 'nik') {
@@ -471,12 +534,38 @@ $(document).ready(function() {
         if(this.id === 'no_hp') {
             if(this.value.length >= 10 && this.value.length <= 13) $('#hp-error').hide();
             else $('#hp-error').show();
+
+            // Real-time check logic
+            clearTimeout(phoneTimer);
+            const submitBtn = document.querySelector('button[type="submit"]');
+            if (submitBtn) submitBtn.disabled = false;
+            phoneMsg.style.display = 'none';
+            phoneTimer = setTimeout(checkPhoneAvailability, 600);
         }
     });
 
-    // Tgl Selesai minimal tgl mulai + 1 month (asumsi)
+    $('#no_hp').on('blur', function() {
+        checkPhoneAvailability();
+    });
+
+    // Event: Tanggal Selesai minimal tgl mulai + 1 month (asumsi)
     $('#tgl_mulai').on('change', function() {
         $('#tgl_selesai').attr('min', this.value);
+    });
+
+    // Event: Preview Foto KTP
+    $('#foto_ktp').on('change', function() {
+        const file = this.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                $('#ktp-preview').attr('src', e.target.result);
+                $('#ktp-preview-container').show();
+            }
+            reader.readAsDataURL(file);
+        } else {
+            $('#ktp-preview-container').hide();
+        }
     });
 
     // Initial load

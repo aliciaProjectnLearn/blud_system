@@ -61,7 +61,22 @@ class KantinController extends Controller
             'ruko_id' => 'required|exists:ruko,id',
             'tanggal_mulai_sewa' => 'required|date|after_or_equal:today',
             'tipe_pembayaran' => 'required|in:1_termin,2_termin',
+            'foto_ktp' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+        ], [
+            'foto_ktp.required' => 'Foto KTP wajib diunggah.',
+            'foto_ktp.image' => 'File harus berupa gambar.',
+            'foto_ktp.mimes' => 'Format gambar harus jpg, jpeg, atau png.',
+            'foto_ktp.max' => 'Ukuran gambar maksimal 2MB.',
         ]);
+
+        // REVISION 2: Block Duplicate Active Bookings (Fallback server-side check)
+        $cekBooking = SewaRuko::where('no_hp_snapshot', $request->no_hp)
+            ->whereIn('status_sewa', ['aktif', 'pending', 'proses'])
+            ->exists();
+
+        if ($cekBooking) {
+            return back()->withInput()->with('error', 'Maaf, nomor HP ini masih memiliki pengajuan sewa yang aktif atau sedang diproses.');
+        }
 
         $ruko = Ruko::findOrFail($request->ruko_id);
         if ($ruko->status !== 'tersedia') {
@@ -70,12 +85,12 @@ class KantinController extends Controller
 
         DB::beginTransaction();
         try {
-            // 1. Cek/Buat User (Revision: No Login Required)
+            // 1. Cek/Buat User
             $user = User::where('no_hp', $request->no_hp)->first();
             if (!$user) {
                 $user = User::create([
                     'name'         => $request->nama,
-                    'username'     => $request->nama,
+                    'username'     => $request->no_hp,
                     'nama_lengkap' => $request->nama,
                     'email'        => $request->no_hp . '@example.com',
                     'no_hp'        => $request->no_hp,
@@ -84,10 +99,18 @@ class KantinController extends Controller
                 ]);
             }
 
-            // 2. Generate Token
+            // 2. Handle File Upload
+            $fotoPath = null;
+            if ($request->hasFile('foto_ktp')) {
+                $file = $request->file('foto_ktp');
+                $filename = 'KTP_' . time() . '_' . $request->no_hp . '.' . $file->getClientOriginalExtension();
+                $fotoPath = $file->storeAs('foto_ktp', $filename, 'public');
+            }
+
+            // 3. Generate Token
             $token = bin2hex(random_bytes(32));
 
-            // 3. Simpan SewaRuko
+            // 4. Simpan SewaRuko
             $tgl_mulai = Carbon::parse($request->tanggal_mulai_sewa);
             $tgl_selesai = $tgl_mulai->copy()->addYear();
 
@@ -98,13 +121,15 @@ class KantinController extends Controller
                 'nama_penyewa' => $request->nama,
                 'no_hp_snapshot' => $request->no_hp,
                 'nik_penyewa' => $request->nik,
-                'status_sewa' => 'pending',
+                'status_sewa' => 'pending', // REVISION 3: Default status pending
                 'tanggal_mulai_sewa' => $tgl_mulai,
                 'tanggal_selesai_sewa' => $tgl_selesai,
                 'tipe_pembayaran' => $request->tipe_pembayaran,
+                'foto_ktp' => $fotoPath,
+                'harga_sewa_tahunan' => $ruko->harga,
             ]);
 
-            // 4. Buat Pembayaran
+            // 5. Buat Pembayaran (Akan digenerate ulang oleh admin saat approve, tapi ini untuk data awal)
             $total_harga = $ruko->harga;
             if ($request->tipe_pembayaran === '1_termin') {
                 PembayaranRuko::create([
@@ -132,10 +157,10 @@ class KantinController extends Controller
                 ]);
             }
 
-            // 5. Update Ruko
+            // 6. Update Ruko
             $ruko->update(['status' => 'disewa']);
 
-            // 6. Kirim Notifikasi WhatsApp
+            // 7. Kirim Notifikasi WhatsApp
             $sewa->load('ruko');
             $this->sendWhatsAppNotification($sewa);
 
@@ -146,7 +171,7 @@ class KantinController extends Controller
                 ->with('booking_token', $token)
                 ->with('booking_pesan', 
                     'Pengajuan sewa telah berhasil dikirim. '.
-                    'Periksa status sewa Anda dengan klik link '.
+                    'Admin akan meninjau pengajuan Anda. Periksa status sewa Anda dengan klik link '.
                     'yang kami kirimkan melalui WhatsApp.'
                 );
 
@@ -154,6 +179,30 @@ class KantinController extends Controller
             DB::rollBack();
             return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * AJAX: Check if phone number already has an active booking.
+     */
+    public function checkPhone(Request $request)
+    {
+        $phone = preg_replace('/[^0-9]/', '', $request->phone ?? '');
+        
+        // Ensure standard format for checking
+        // (Though snapshot is saved as input, we should be consistent with how store() checks)
+        
+        $cekBooking = SewaRuko::where('no_hp_snapshot', $phone)
+            ->whereIn('status_sewa', ['aktif', 'pending', 'proses'])
+            ->exists();
+
+        if ($cekBooking) {
+            return response()->json([
+                'available' => false,
+                'message' => 'Maaf, tidak bisa mengajukan sewa. Nomor HP ini sudah memiliki pengajuan sewa yang aktif atau sedang diproses.'
+            ]);
+        }
+
+        return response()->json(['available' => true]);
     }
 
     public function unitDetail($id)

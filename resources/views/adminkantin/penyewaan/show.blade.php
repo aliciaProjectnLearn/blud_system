@@ -5,6 +5,14 @@
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">Detail Penyewaan: {{ $data->ruko->kode_unit }}</h1>
         <div>
+            @if($data->status_sewa == 'pending')
+            <form action="{{ route('admin.kantin.penyewaan.approve', $data->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Setujui pengajuan ini?')">
+                @csrf
+                <button type="submit" class="btn btn-success btn-sm shadow-sm mr-2">
+                    <i class="fas fa-check fa-sm text-white-50"></i> Setujui Pengajuan
+                </button>
+            </form>
+            @endif
             <a href="{{ route('admin.kantin.penyewaan.index') }}" class="btn btn-secondary btn-sm shadow-sm mr-2">
                 <i class="fas fa-arrow-left fa-sm text-white-50"></i> Kembali
             </a>
@@ -42,6 +50,16 @@
                             <td>No HP</td>
                             <td>: {{ $data->no_hp_snapshot ? substr($data->no_hp_snapshot, 0, 4) . '****' . substr($data->no_hp_snapshot, -4) : '-' }}</td>
                         </tr>
+                        @if($data->foto_ktp)
+                        <tr>
+                            <td>Foto KTP</td>
+                            <td>: 
+                                <a href="{{ asset('storage/' . $data->foto_ktp) }}" target="_blank">
+                                    <img src="{{ asset('storage/' . $data->foto_ktp) }}" alt="Foto KTP" class="img-thumbnail mt-1" style="max-height: 100px;">
+                                </a>
+                            </td>
+                        </tr>
+                        @endif
                     </table>
                 </div>
             </div>

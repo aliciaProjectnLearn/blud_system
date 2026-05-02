@@ -21,6 +21,7 @@ class SewaRuko extends Model
         'tipe_pembayaran',
         'harga_sewa_tahunan',
         'catatan',
+        'foto_ktp',
         'booking_id', // legacy
         'penyewa_id',
     ];

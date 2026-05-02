@@ -29,43 +29,64 @@ use App\Http\Controllers\AdminAc\BookingController as AdminAcBookingController;
 use App\Http\Controllers\AdminAc\TransaksiController as AdminAcTransaksiController;
 use App\Http\Controllers\KasirServis\DashboardController as KasirDashboardController;
 use App\Http\Controllers\User\DashboardUserController;
+use App\Http\Controllers\User\AcBookingController;
 use App\Http\Controllers\KasirServis\BookingKasirController;
 use App\Http\Controllers\User\UserServisController;
+use App\Http\Controllers\User\CekBookingController;
 
 Route::get('/', [LandingController::class, 'index'])->name('home');
 
-Route::prefix('user')->group(function () {
-    Route::name('user.')->group(function() {
-        Route::get('/', [LandingController::class, 'index'])->name('gateway');
-        
-        Route::get('/access/{token}', [App\Http\Controllers\User\TokenAccessController::class, 'show'])->name('token.show');
-        Route::get('/access/{token}/history', [App\Http\Controllers\User\TokenAccessController::class, 'riwayat'])->name('token.riwayat');
-        Route::get('/access/{token}/cancel', [App\Http\Controllers\User\TokenAccessController::class, 'batalkan'])->name('token.batalkan');
-        Route::post('/access/{token}/cancel', [App\Http\Controllers\User\TokenAccessController::class, 'prosesBatalkan'])->name('token.batalkan.proses');
+Route::prefix('user')->name('user.')->group(function () {
+    Route::get('/', [LandingController::class, 'index'])->name('gateway');
+    
+    Route::post('/cek-booking/otp', [CekBookingController::class, 'requestOtp'])->name('cek-booking.otp')->middleware('throttle:10,1');
+    Route::post('/cek-booking/verify', [CekBookingController::class, 'verifyOtp'])->name('cek-booking.verify')->middleware('throttle:10,1');
+    
+    Route::get('/access/{token}/otp', [App\Http\Controllers\User\TokenAccessController::class, 'showOtpForm'])->name('token.otp');
+    Route::post('/access/{token}/otp', [App\Http\Controllers\User\TokenAccessController::class, 'verifyOtp'])->name('token.otp.verify');
+    Route::post('/access/{token}/otp/resend', [App\Http\Controllers\User\TokenAccessController::class, 'resendOtp'])->name('token.otp.resend');
+    Route::get('/access/{token}', [App\Http\Controllers\User\TokenAccessController::class, 'show'])->name('token.show');
 
-        Route::prefix('futsal')->name('futsal.')->group(function () {
-            Route::get('/landing', [App\Http\Controllers\User\FutsalBookingController::class, 'landing'])->name('landing');
-            Route::get('/booking', [App\Http\Controllers\User\FutsalBookingController::class, 'index'])->name('booking.form');
-            Route::post('/booking', [App\Http\Controllers\User\FutsalBookingController::class, 'store'])->name('booking.store');
-            Route::get('/membership', [App\Http\Controllers\User\FutsalBookingController::class, 'membershipForm'])->name('membership.form');
-            Route::post('/membership', [App\Http\Controllers\User\FutsalBookingController::class, 'membershipStore'])->name('membership.store');
-            Route::get('/check-availability', [App\Http\Controllers\User\FutsalBookingController::class, 'checkAvailability'])->name('booking.check');
+        Route::middleware(['token.session'])->group(function () {
+            Route::get('/access/{token}/cancel', [App\Http\Controllers\User\TokenAccessController::class, 'batalkan'])->name('token.batalkan');
+            Route::post('/access/{token}/cancel', [App\Http\Controllers\User\TokenAccessController::class, 'prosesBatalkan'])->name('token.batalkan.proses');
         });
+
+        // REVISION 3: Riwayat removed
+        // Route::get('/access/{token}/history', [App\Http\Controllers\User\TokenAccessController::class, 'riwayat'])->name('token.riwayat');
+
+    Route::prefix('futsal')->name('futsal.')->group(function () {
+        Route::get('/landing', [App\Http\Controllers\User\FutsalBookingController::class, 'landing'])->name('landing');
+        Route::get('/booking', [App\Http\Controllers\User\FutsalBookingController::class, 'index'])->name('booking.form');
+        Route::post('/booking', [App\Http\Controllers\User\FutsalBookingController::class, 'store'])->name('booking.store');
+        Route::get('/membership', [App\Http\Controllers\User\FutsalBookingController::class, 'membershipForm'])->name('membership.form');
+        Route::post('/membership', [App\Http\Controllers\User\FutsalBookingController::class, 'membershipStore'])->name('membership.store');
+        Route::get('/check-availability', [App\Http\Controllers\User\FutsalBookingController::class, 'checkAvailability'])->name('booking.check');
     });
 
-    Route::prefix('kantin')->name('user.kantin.')->group(function () {
+    Route::prefix('kantin')->name('kantin.')->group(function () {
         Route::get('/', [\App\Http\Controllers\User\KantinController::class, 'index'])->name('index');
         Route::get('/katalog', [\App\Http\Controllers\User\KantinController::class, 'katalog'])->name('katalog');
         Route::get('/booking/{ruko_id}', [\App\Http\Controllers\User\KantinController::class, 'formBooking'])->name('booking');
         Route::post('/booking', [\App\Http\Controllers\User\KantinController::class, 'simpanBooking'])->name('booking.store');
+        Route::post('/check-phone', [\App\Http\Controllers\User\KantinController::class, 'checkPhone'])->name('check-phone');
         Route::get('/unit/{id}/detail', [\App\Http\Controllers\User\KantinController::class, 'unitDetail'])->name('unit.detail');
 
+        // REVISION 11 & 12: OTP & Session flow
+        Route::get('/sewa/{token}/otp', [\App\Http\Controllers\User\SewaTokenController::class, 'showOtpForm'])->name('sewa.otp');
+        Route::post('/sewa/{token}/otp', [\App\Http\Controllers\User\SewaTokenController::class, 'verifyOtp'])->name('sewa.otp.verify');
+        Route::post('/sewa/{token}/otp/resend', [\App\Http\Controllers\User\SewaTokenController::class, 'resendOtp'])->name('sewa.otp.resend');
         Route::get('/sewa/{token}', [\App\Http\Controllers\User\SewaTokenController::class, 'detail'])->name('sewa.detail');
-        Route::get('/sewa/{token}/riwayat', [\App\Http\Controllers\User\SewaTokenController::class, 'riwayat'])->name('sewa.riwayat');
-        Route::get('/sewa/{token}/pembayaran', [\App\Http\Controllers\User\SewaTokenController::class, 'pembayaran'])->name('sewa.pembayaran');
-        Route::post('/sewa/{token}/upload-bukti', [\App\Http\Controllers\User\SewaTokenController::class, 'uploadBukti'])->name('sewa.upload');
-        Route::get('/sewa/{token}/dokumen', [\App\Http\Controllers\User\SewaTokenController::class, 'dokumen'])->name('sewa.dokumen');
-        Route::post('/sewa/{token}/batalkan', [\App\Http\Controllers\User\SewaTokenController::class, 'batalkan'])->name('sewa.batalkan');
+
+        Route::middleware(['token.session'])->group(function () {
+            Route::get('/sewa/{token}/pembayaran', [\App\Http\Controllers\User\SewaTokenController::class, 'pembayaran'])->name('sewa.pembayaran');
+            Route::post('/sewa/{token}/upload-bukti', [\App\Http\Controllers\User\SewaTokenController::class, 'uploadBukti'])->name('sewa.upload');
+            Route::get('/sewa/{token}/dokumen', [\App\Http\Controllers\User\SewaTokenController::class, 'dokumen'])->name('sewa.dokumen');
+            Route::post('/sewa/{token}/batalkan', [\App\Http\Controllers\User\SewaTokenController::class, 'batalkan'])->name('sewa.batalkan');
+        });
+
+        // REVISION 3: Riwayat Pemesanan removed from token flow
+        // Route::get('/sewa/{token}/riwayat', [\App\Http\Controllers\User\SewaTokenController::class, 'riwayat'])->name('sewa.riwayat');
     });
 
     Route::prefix('ac')->name('ac.')->group(function () {
@@ -150,6 +171,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Superadmin|Adm
         Route::patch('dokumentasi/{dokumen}/detail', [AdminKantinUnitController::class, 'updateDokumenDetail'])->name('unit.dokumen.updateDetail');
         Route::resource('penyewa', \App\Http\Controllers\AdminKantin\PenyewaController::class)->except(['create', 'store']);
         Route::resource('penyewaan', \App\Http\Controllers\AdminKantin\PenyewaanController::class);
+        Route::post('penyewaan/{id}/approve', [\App\Http\Controllers\AdminKantin\PenyewaanController::class, 'approve'])->name('penyewaan.approve');
         Route::get('penyewaan/{id}/generate-mou', [\App\Http\Controllers\AdminKantin\PenyewaanController::class, 'generateMOU'])->name('penyewaan.generate-mou');
         Route::post('penyewaan/{id}/upload-dokumen', [\App\Http\Controllers\AdminKantin\PenyewaanController::class, 'uploadDokumen'])->name('penyewaan.upload-dokumen');
         Route::delete('dokumen/{id}', [\App\Http\Controllers\AdminKantin\PenyewaanController::class, 'hapusDokumen'])->name('dokumen.hapus');

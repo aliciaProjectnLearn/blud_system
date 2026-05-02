@@ -86,9 +86,6 @@
                     <hr class="my-4">
 
                     <div class="text-center">
-                        <a href="{{ route('user.token.riwayat', $token) }}" class="btn btn-outline-primary btn-sm mx-1">
-                            <i class="fas fa-history mr-1"></i> Lihat Semua Riwayat Saya
-                        </a>
                         @php
                             $currentStatus = strtolower($booking->status ?? ($booking->booking->status ?? ''));
                         @endphp

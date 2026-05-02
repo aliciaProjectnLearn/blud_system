@@ -112,6 +112,15 @@
                                        title="Detail" data-toggle="tooltip">
                                         <i class="fas fa-eye"></i>
                                     </a>
+
+                                    @if($item->status_sewa == 'pending')
+                                    <form action="{{ route('admin.kantin.penyewaan.approve', $item->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Setujui pengajuan ini?')">
+                                        @csrf
+                                        <button type="submit" class="btn btn-success btn-sm px-2" title="Setujui" data-toggle="tooltip">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                    </form>
+                                    @endif
                                     
                                     <button type="button" class="btn btn-warning btn-sm px-2"
                                             title="Edit" data-toggle="tooltip"
