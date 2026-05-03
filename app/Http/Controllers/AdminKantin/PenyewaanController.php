@@ -83,7 +83,19 @@ class PenyewaanController extends Controller
         try {
             $statusLama = $sewa->status_sewa;
 
+            $sebelum = $sewa->toArray();
             $sewa->update($request->validated());
+
+            // Catat audit
+            \App\Services\AuditService::catat(
+                'kantin',
+                'sewa_ruko',
+                $sewa->id,
+                'data_diupdate',
+                ['nama_penyewa' => $sebelum['nama_penyewa'], 'status_sewa' => $sebelum['status_sewa']],
+                ['nama_penyewa' => $sewa->nama_penyewa, 'status_sewa' => $sewa->status_sewa],
+                'Data penyewaan diupdate oleh admin'
+            );
 
             // Generate pembayaran saat status berubah jadi disetujui atau aktif
             if ($statusLama === 'pending' && in_array($sewa->status_sewa, ['disetujui', 'aktif'])) {
@@ -111,7 +123,19 @@ class PenyewaanController extends Controller
         DB::beginTransaction();
         try {
             // Update Status ke Aktif
+            $sebelum = $sewa->status_sewa;
             $sewa->update(['status_sewa' => 'aktif']);
+
+            // Catat audit
+            \App\Services\AuditService::catat(
+                'kantin',
+                'sewa_ruko',
+                $sewa->id,
+                'sewa_disetujui',
+                ['status_sewa' => $sebelum],
+                ['status_sewa' => 'aktif'],
+                'Pengajuan sewa disetujui oleh admin'
+            );
 
             // Update Status Unit Ruko
             $sewa->ruko->update(['status' => 'disewa']); // Pastikan status unit sinkron
@@ -306,6 +330,17 @@ class PenyewaanController extends Controller
             ]
         );
 
+        // Catat audit
+        \App\Services\AuditService::catat(
+            'kantin',
+            'dokumen_sewas',
+            $sewa->id,
+            'mou_digenerate',
+            null,
+            ['nama_dokumen' => 'MOU - ' . $sewa->ruko->kode_unit],
+            'MOU digenerate otomatis oleh sistem'
+        );
+
         // Download PDF ke browser
         return $pdf->download($filename);
     }
@@ -334,6 +369,17 @@ class PenyewaanController extends Controller
             'diunggah_oleh' => 'admin',
             'keterangan'   => $request->keterangan,
         ]);
+
+        // Catat audit
+        \App\Services\AuditService::catat(
+            'kantin',
+            'dokumen_sewas',
+            $sewa->id,
+            'dokumen_diupload',
+            null,
+            ['nama_dokumen' => $request->nama_dokumen, 'tipe' => $request->tipe_dokumen],
+            'Dokumen hardfile diupload oleh admin'
+        );
 
         return back()->with('success', 'Dokumen berhasil diupload!');
     }

@@ -315,6 +315,14 @@
                 <span>Manajemen Keuangan</span>
             </a>
         </li>
+
+        {{-- Audit Log --}}
+        <li class="nav-item {{ request()->routeIs('admin.kantin.audit.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('admin.kantin.audit.index') }}">
+                <i class="fas fa-fw fa-history"></i>
+                <span>Audit Log</span>
+            </a>
+        </li>
     @endif
 
     {{-- ================================= --}}

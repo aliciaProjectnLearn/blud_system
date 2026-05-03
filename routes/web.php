@@ -33,6 +33,7 @@ use App\Http\Controllers\User\AcBookingController;
 use App\Http\Controllers\KasirServis\BookingKasirController;
 use App\Http\Controllers\User\UserServisController;
 use App\Http\Controllers\User\CekBookingController;
+use App\Http\Controllers\User\OtpController;
 
 Route::get('/', [LandingController::class, 'index'])->name('home');
 
@@ -70,12 +71,17 @@ Route::prefix('user')->name('user.')->group(function () {
         Route::get('/booking/{ruko_id}', [\App\Http\Controllers\User\KantinController::class, 'formBooking'])->name('booking');
         Route::post('/booking', [\App\Http\Controllers\User\KantinController::class, 'simpanBooking'])->name('booking.store');
         Route::post('/check-phone', [\App\Http\Controllers\User\KantinController::class, 'checkPhone'])->name('check-phone');
+        Route::get('/cek-hp', [\App\Http\Controllers\User\KantinController::class, 'cekHp'])->name('cek.hp');
+        Route::post('/check-nik', [\App\Http\Controllers\User\KantinController::class, 'checkNik'])->name('check-nik');
         Route::get('/unit/{id}/detail', [\App\Http\Controllers\User\KantinController::class, 'unitDetail'])->name('unit.detail');
 
-        // REVISION 11 & 12: OTP & Session flow
-        Route::get('/sewa/{token}/otp', [\App\Http\Controllers\User\SewaTokenController::class, 'showOtpForm'])->name('sewa.otp');
-        Route::post('/sewa/{token}/otp', [\App\Http\Controllers\User\SewaTokenController::class, 'verifyOtp'])->name('sewa.otp.verify');
-        Route::post('/sewa/{token}/otp/resend', [\App\Http\Controllers\User\SewaTokenController::class, 'resendOtp'])->name('sewa.otp.resend');
+        // OTP & Session flow
+        Route::prefix('otp')->name('otp.')->group(function () {
+            Route::get('/{token}', [OtpController::class, 'form'])->name('form');
+            Route::post('/{token}/verifikasi', [OtpController::class, 'verifikasi'])->name('verifikasi');
+            Route::get('/{token}/kirim-ulang', [OtpController::class, 'kirimUlang'])->name('kirim-ulang');
+        });
+        
         Route::get('/sewa/{token}', [\App\Http\Controllers\User\SewaTokenController::class, 'detail'])->name('sewa.detail');
 
         Route::middleware(['token.session'])->group(function () {
@@ -184,6 +190,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Superadmin|Adm
         Route::get('laporan/export-excel', [\App\Http\Controllers\AdminKantin\LaporanController::class, 'exportExcel'])->name('laporan.export.excel');
         Route::get('keuangan', [\App\Http\Controllers\AdminKantin\KeuanganController::class, 'index'])->name('keuangan.index');
         Route::post('keuangan', [\App\Http\Controllers\AdminKantin\KeuanganController::class, 'store'])->name('keuangan.store');
+
+        // Audit Log
+        Route::get('audit', [\App\Http\Controllers\AdminKantin\AuditLogController::class, 'index'])->name('audit.index');
+        Route::get('audit/{id}', [\App\Http\Controllers\AdminKantin\AuditLogController::class, 'show'])->name('audit.show');
     });
 
     // Admin AC

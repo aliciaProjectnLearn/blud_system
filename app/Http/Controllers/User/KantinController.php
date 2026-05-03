@@ -69,13 +69,35 @@ class KantinController extends Controller
             'foto_ktp.max' => 'Ukuran gambar maksimal 2MB.',
         ]);
 
-        // REVISION 2: Block Duplicate Active Bookings (Fallback server-side check)
-        $cekBooking = SewaRuko::where('no_hp_snapshot', $request->no_hp)
-            ->whereIn('status_sewa', ['aktif', 'pending', 'proses'])
-            ->exists();
+        // Cek no_hp: apakah masih punya sewa aktif?
+        $sewaAktifByHp = SewaRuko::where('no_hp_snapshot', $request->no_hp)
+            ->whereIn('status_sewa', ['pending', 'proses', 'aktif'])
+            ->first();
 
-        if ($cekBooking) {
-            return back()->withInput()->with('error', 'Maaf, nomor HP ini masih memiliki pengajuan sewa yang aktif atau sedang diproses.');
+        if ($sewaAktifByHp) {
+            return back()
+                ->withInput()
+                ->with('error', 
+                    'Nomor HP ini masih memiliki sewa aktif (' . 
+                    ($sewaAktifByHp->ruko->kode_unit ?? 'Unit') . '). ' .
+                    'Booking baru hanya dapat dilakukan setelah sewa sebelumnya ' .
+                    'selesai atau dibatalkan.'
+                );
+        }
+
+        // Cek NIK: apakah masih punya sewa aktif?
+        $sewaAktifByNik = SewaRuko::where('nik_penyewa', $request->nik)
+            ->whereIn('status_sewa', ['pending', 'proses', 'aktif'])
+            ->first();
+
+        if ($sewaAktifByNik) {
+            return back()
+                ->withInput()
+                ->with('error',
+                    'NIK ini masih terdaftar dalam sewa aktif (' .
+                    ($sewaAktifByNik->ruko->kode_unit ?? 'Unit') . '). ' .
+                    'Setiap NIK hanya dapat memiliki 1 sewa aktif.'
+                );
         }
 
         $ruko = Ruko::findOrFail($request->ruko_id);
@@ -109,6 +131,7 @@ class KantinController extends Controller
 
             // 3. Generate Token
             $token = bin2hex(random_bytes(32));
+            $tokenExpiredAt = now()->addYear();
 
             // 4. Simpan SewaRuko
             $tgl_mulai = Carbon::parse($request->tanggal_mulai_sewa);
@@ -118,6 +141,7 @@ class KantinController extends Controller
                 'user_id' => $user->id,
                 'ruko_id' => $ruko->id,
                 'access_token' => $token,
+                'token_expired_at' => $tokenExpiredAt,
                 'nama_penyewa' => $request->nama,
                 'no_hp_snapshot' => $request->no_hp,
                 'nik_penyewa' => $request->nik,
@@ -166,6 +190,25 @@ class KantinController extends Controller
 
             DB::commit();
 
+            // CATAT AUDIT
+            \App\Services\AuditService::catat(
+                sistem: 'kantin',
+                tabelEntitas: 'sewa_ruko',
+                entitasId: $sewa->id,
+                aksi: 'booking_dibuat',
+                dataLama: null,
+                dataBaru: [
+                    'nama_penyewa'       => $sewa->nama_penyewa,
+                    'no_hp_snapshot'     => $sewa->no_hp_snapshot,
+                    'nik_penyewa'        => $sewa->nik_penyewa,
+                    'ruko'               => $ruko->kode_unit,
+                    'tipe_pembayaran'    => $sewa->tipe_pembayaran,
+                    'tanggal_mulai_sewa' => $sewa->tanggal_mulai_sewa,
+                    'status_sewa'        => $sewa->status_sewa,
+                ],
+                keterangan: 'Booking baru via portal publik'
+            );
+
             return redirect()->route('user.kantin.katalog')
                 ->with('booking_sukses', true)
                 ->with('booking_token', $token)
@@ -199,6 +242,52 @@ class KantinController extends Controller
             return response()->json([
                 'available' => false,
                 'message' => 'Maaf, tidak bisa mengajukan sewa. Nomor HP ini sudah memiliki pengajuan sewa yang aktif atau sedang diproses.'
+            ]);
+        }
+
+        return response()->json(['available' => true]);
+    }
+
+    public function cekHp(Request $request)
+    {
+        $noHp = $request->no_hp;
+
+        if (!$noHp) {
+            return response()->json(['status' => 'kosong']);
+        }
+
+        // Cek apakah no HP punya sewa aktif
+        $sewaAktif = SewaRuko::where('no_hp_snapshot', $noHp)
+            ->whereIn('status_sewa', ['pending', 'proses', 'aktif'])
+            ->first();
+
+        if ($sewaAktif) {
+            return response()->json([
+                'status'  => 'aktif',
+                'pesan'   => 'Nomor ini masih memiliki sewa aktif pada unit ' . 
+                             ($sewaAktif->ruko->kode_unit ?? '-') . 
+                             '. Booking baru hanya bisa dilakukan setelah sewa selesai.',
+            ]);
+        }
+
+        return response()->json([
+            'status' => 'tersedia',
+            'pesan'  => 'Nomor dapat digunakan',
+        ]);
+    }
+
+    public function checkNik(Request $request)
+    {
+        $nik = preg_replace('/[^0-9]/', '', $request->nik ?? '');
+        
+        $cekBooking = SewaRuko::where('nik_penyewa', $nik)
+            ->whereIn('status_sewa', ['aktif', 'pending', 'proses'])
+            ->exists();
+
+        if ($cekBooking) {
+            return response()->json([
+                'available' => false,
+                'message' => 'Maaf, NIK ini sudah terdaftar dalam pengajuan sewa yang aktif atau sedang diproses.'
             ]);
         }
 

@@ -1,81 +1,125 @@
 @extends('layouts.publik')
-@php $hideNavbarBack = true; @endphp
 
-@section('title', 'Verifikasi Keamanan')
+@section('title', 'Verifikasi OTP')
 
 @section('content')
 <div class="container py-5">
     <div class="row justify-content-center">
-        <div class="col-md-6 col-lg-5">
-            <div class="card border-0 shadow-lg rounded-xl overflow-hidden">
-                <div class="card-header bg-primary text-white text-center py-4 border-0">
-                    <div class="bg-white d-inline-flex p-3 rounded-circle mb-3 shadow-sm">
-                        <i class="fas fa-shield-alt fa-2x text-primary"></i>
-                    </div>
-                    <h4 class="font-weight-bold mb-0">Verifikasi OTP</h4>
-                    <p class="small opacity-75 mb-0">Keamanan akses penyewaan Anda</p>
-                </div>
-                <div class="card-body p-4 p-md-5">
-                    @if(session('info'))
-                        <div class="alert alert-info border-0 shadow-sm mb-4 small">
-                            <i class="fas fa-info-circle mr-2"></i> {{ session('info') }}
+        <div class="col-md-5">
+            <div class="card shadow-sm border-0" style="border-radius: 15px;">
+                <div class="card-body p-4 text-center">
+
+                    {{-- Icon --}}
+                    <div class="mb-3">
+                        <div class="rounded-circle bg-primary d-inline-flex 
+                                    align-items-center justify-content-center"
+                             style="width:70px;height:70px; box-shadow: 0 4px 10px rgba(78, 115, 223, 0.2);">
+                            <i class="fas fa-shield-alt fa-2x text-white"></i>
                         </div>
+                    </div>
+
+                    <h5 class="font-weight-bold mb-1">Verifikasi OTP</h5>
+                    <p class="text-muted small mb-3">
+                        Kode OTP telah dikirim ke WhatsApp<br>
+                        <strong>{{ $hpSensor }}</strong>
+                    </p>
+
+                    {{-- Alert --}}
+                    @if(session('error'))
+                    <div class="alert alert-danger small border-0 shadow-sm">
+                        <i class="fas fa-times-circle mr-1"></i>
+                        {{ session('error') }}
+                    </div>
+                    @endif
+                    @if(session('info'))
+                    <div class="alert alert-info small border-0 shadow-sm">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        {{ session('info') }}
+                    </div>
                     @endif
 
-                    <div class="text-center mb-4">
-                        <p class="text-muted small mb-1">Kode OTP telah dikirim ke nomor WhatsApp:</p>
-                        <h6 class="font-weight-bold">{{ substr($sewa->no_hp_snapshot, 0, 4) }}****{{ substr($sewa->no_hp_snapshot, -4) }}</h6>
-                    </div>
-
-                    <form action="{{ route('user.kantin.sewa.otp.verify', $sewa->access_token) }}" method="POST">
+                    {{-- Form OTP --}}
+                    <form action="{{ route('user.kantin.otp.verifikasi', $token) }}" 
+                          method="POST" id="otpForm">
                         @csrf
-                        <div class="form-group mb-4">
-                            <label class="small font-weight-bold text-dark mb-2">Masukkan 6 Digit Kode OTP</label>
+                        <div class="mb-3">
                             <input type="text" name="otp" 
-                                   class="form-control form-control-lg text-center letter-spacing-lg @error('otp') is-invalid @enderror" 
-                                   placeholder="000000" maxlength="6" autofocus required>
-                            @error('otp')
-                                <div class="invalid-feedback text-center mt-2">{{ $message }}</div>
-                            @enderror
+                                   class="form-control form-control-lg text-center 
+                                          font-weight-bold letter-spacing-wide"
+                                   maxlength="6" 
+                                   placeholder="_ _ _ _ _ _"
+                                   pattern="[0-9]{6}"
+                                   inputmode="numeric"
+                                   autocomplete="one-time-code"
+                                   autofocus
+                                   style="font-size:28px; letter-spacing:10px; border-radius: 10px; border: 2px solid #e3e6f0;">
                         </div>
 
-                        <button type="submit" class="btn btn-primary btn-block btn-lg rounded-pill shadow-sm mb-3">
-                            Verifikasi Sekarang <i class="fas fa-arrow-right ml-2"></i>
+                        <button type="submit" class="btn btn-primary btn-block btn-lg mb-3 py-3 font-weight-bold" style="border-radius: 10px;">
+                            <i class="fas fa-check-circle mr-2"></i> Verifikasi
                         </button>
                     </form>
 
-                    <div class="text-center mt-4">
-                        <p class="small text-muted mb-0">Tidak menerima kode?</p>
-                        <form action="{{ route('user.kantin.sewa.otp.resend', $sewa->access_token) }}" method="POST">
-                            @csrf
-                            <button type="submit" class="btn btn-link btn-sm text-primary font-weight-bold text-decoration-none">
-                                Kirim Ulang Kode OTP
-                            </button>
-                        </form>
+                    {{-- Timer & Kirim Ulang --}}
+                    <div class="py-2">
+                        <p class="text-muted small mb-1">
+                            Kode berlaku selama <span id="timer" class="font-weight-bold text-danger">5:00</span>
+                        </p>
+                        <a href="{{ route('user.kantin.otp.kirim-ulang', $token) }}"
+                           id="btn-kirim-ulang" class="btn btn-link btn-sm text-primary font-weight-bold d-none">
+                            <i class="fas fa-redo mr-1"></i> Kirim Ulang OTP
+                        </a>
+                    </div>
+
+                    <hr class="my-4">
+                    <div class="text-left bg-light p-3 rounded small text-muted">
+                        <i class="fas fa-info-circle mr-1 text-primary"></i>
+                        Tidak menerima OTP? Pastikan nomor WhatsApp 
+                        <strong>{{ $hpSensor }}</strong> aktif dan terhubung ke internet.
                     </div>
                 </div>
-                <div class="card-footer bg-light border-0 text-center py-3">
-                    <p class="small text-muted mb-0">
-                        <i class="fas fa-lock mr-1"></i> Koneksi aman & terenkripsi
-                    </p>
-                </div>
             </div>
-
+            
             <div class="text-center mt-4">
-                <a href="{{ route('user.gateway') }}" class="text-muted small text-decoration-none hover-primary">
-                    <i class="fas fa-home mr-1"></i> Kembali ke Beranda
+                <a href="{{ route('user.kantin.katalog') }}" class="text-muted small">
+                    <i class="fas fa-arrow-left mr-1"></i> Kembali ke Katalog
                 </a>
             </div>
         </div>
     </div>
 </div>
-
-<style>
-    .rounded-xl { border-radius: 1.25rem !important; }
-    .letter-spacing-lg { letter-spacing: 0.5rem; font-weight: 700; font-size: 1.5rem; }
-    .btn-primary { background: linear-gradient(135deg, #4e73df 0%, #224abe 100%); border: none; }
-    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15); }
-    .opacity-75 { opacity: 0.75; }
-    .hover-primary:hover { color: #4e73df !important; }
-</style>
 @endsection
+
+@push('scripts')
+<script>
+$(document).ready(function() {
+    // Countdown timer 5 menit
+    let waktu = 5 * 60;
+    const timerEl = document.getElementById('timer');
+    const btnKirimUlang = document.getElementById('btn-kirim-ulang');
+
+    const interval = setInterval(() => {
+        waktu--;
+        const menit = Math.floor(waktu / 60);
+        const detik = Math.floor(waktu % 60);
+        timerEl.textContent = menit + ':' + String(detik).padStart(2, '0');
+
+        if (waktu <= 0) {
+            clearInterval(interval);
+            timerEl.textContent = 'Kadaluarsa';
+            timerEl.classList.remove('text-danger');
+            timerEl.classList.add('text-secondary');
+            btnKirimUlang.classList.remove('d-none');
+        }
+    }, 1000);
+
+    // Auto format input OTP
+    $('input[name="otp"]').on('input', function() {
+        this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6);
+        if(this.value.length === 6) {
+            // Auto submit optionally? Let's not for better UX unless requested
+        }
+    });
+});
+</script>
+@endpush

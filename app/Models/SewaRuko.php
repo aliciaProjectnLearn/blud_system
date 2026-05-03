@@ -24,6 +24,7 @@ class SewaRuko extends Model
         'foto_ktp',
         'booking_id', // legacy
         'penyewa_id',
+        'token_expired_at',
     ];
 
     public function ruko()

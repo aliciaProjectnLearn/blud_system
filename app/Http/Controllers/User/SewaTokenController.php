@@ -19,22 +19,28 @@ class SewaTokenController extends Controller
 {
     public function detail($token)
     {
-        $sewa = SewaRuko::with(['ruko', 'user', 'pembayaran'])->where('access_token', $token)->firstOrFail();
+        $sewa = SewaRuko::where('access_token', $token)->first();
 
-        // REVISION 11 & 12: Session Check & Auto OTP Send
-        $sessionToken = session('booking_token');
-        $isVerified = session('token_verified') === true && 
-                     $sessionToken === $token &&
-                     session('token_verified_at') && 
-                     Carbon::parse(session('token_verified_at'))->addMinutes(60)->isFuture();
-
-        if (!$isVerified) {
-            // Trigger auto-send OTP
-            $this->sendOtp($sewa);
-            return redirect()->route('user.kantin.sewa.otp', ['token' => $token])
-                ->with('info', 'Sesi Anda telah berakhir. Kode OTP baru telah dikirim ke WhatsApp Anda.');
+        // Token tidak ditemukan
+        if (!$sewa) {
+            return view('user.kantin.token.invalid', [
+                'pesan' => 'Link tidak valid atau tidak ditemukan.'
+            ]);
         }
 
+        // Token sudah expired (waktu)
+        if ($sewa->token_expired_at && now()->isAfter($sewa->token_expired_at)) {
+            return view('user.kantin.token.invalid', [
+                'pesan' => 'Link akses ini sudah kadaluarsa.'
+            ]);
+        }
+
+        // Lanjut ke verifikasi OTP
+        if (!session('sewa_verified_' . $token)) {
+            return redirect()->route('user.kantin.otp.form', $token);
+        }
+
+        $sewa->load(['ruko', 'ruko.kategori', 'user', 'pembayaran', 'dokumen']);
         return view('user.kantin.token.detail', compact('sewa'));
     }
 
