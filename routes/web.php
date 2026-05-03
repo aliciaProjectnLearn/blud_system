@@ -38,6 +38,21 @@ Route::get('/', [LandingController::class, 'index'])->name('home');
 
 Route::prefix('user')->name('user.')->group(function () {
     Route::get('/', [LandingController::class, 'index'])->name('gateway');
+
+    // Fitur Cek Booking via Nomor HP (Poin 2)
+    Route::post('/cek-booking/otp', [CekBookingController::class, 'requestOtp'])->name('cek-booking.otp')->middleware('throttle:10,1');
+    Route::post('/cek-booking/verify', [CekBookingController::class, 'verifyOtp'])->name('cek-booking.verify')->middleware('throttle:10,1');
+    
+    // Revised Cek Booking Routes (Modal Flow) - Hardened with Throttle
+    Route::middleware(['throttle:5,1'])->group(function () {
+        Route::post('/cek-booking/kirim-otp', [CekBookingController::class, 'kirimOtp'])->name('cek.booking.kirim-otp');
+    });
+
+    Route::middleware(['throttle:10,1'])->group(function () {
+        Route::post('/cek-booking/verifikasi', [CekBookingController::class, 'verifikasi'])->name('cek.booking.verifikasi');
+    });
+    
+    Route::get('/cek-booking/riwayat', [CekBookingController::class, 'riwayat'])->name('cek.booking.riwayat');
     
     // Token-Based Access (Detail, Pembatalan) — Riwayat dihapus (Poin 2)
     Route::get('/access/{token}', [App\Http\Controllers\User\TokenAccessController::class, 'show'])->name('token.show');
@@ -92,9 +107,9 @@ Route::prefix('user')->name('user.')->group(function () {
         Route::post('/', [App\Http\Controllers\User\AcBookingController::class, 'store'])->name('store');
         Route::get('/layanan', [App\Http\Controllers\User\AcBookingController::class, 'layanan'])->name('layanan');
         
-        // Token Based Access
-        Route::get('/booking/{token}', [App\Http\Controllers\User\AcTokenController::class, 'show'])->name('token.show');
-        Route::get('/booking/{token}/history', [App\Http\Controllers\User\AcTokenController::class, 'riwayat'])->name('token.riwayat');
+        // // Token Based Access
+        // Route::get('/booking/{token}', [App\Http\Controllers\User\AcTokenController::class, 'show'])->name('token.show');
+        // Route::get('/booking/{token}/history', [App\Http\Controllers\User\AcTokenController::class, 'riwayat'])->name('token.riwayat');
     });
 
     Route::prefix('servis')->name('servis.')->group(function () {
