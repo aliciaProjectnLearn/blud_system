@@ -67,7 +67,7 @@ class JadwalLapanganController extends Controller
         // --- Rekonsiliasi: Sinkronkan jadwal_lapangan.status dengan booking_futsal aktif ---
         // Ambil semua booking aktif untuk tanggal tersebut di semua lapangan
         $bookings = \App\Models\BookingFutsal::with('booking')
-            ->where('type', 'regular')
+            ->whereRaw('DATE(start_datetime) = DATE(end_datetime)')
             ->whereHas('booking', fn($q) => $q->whereNotIn('status', ['dibatalkan']))
             ->where(function($q) use ($tanggal) {
                 $start = Carbon::parse($tanggal)->startOfDay();
@@ -106,7 +106,7 @@ class JadwalLapanganController extends Controller
         // --- Ambil event booking aktif yang mencakup tanggal ini ---
         $tanggalCarbon = Carbon::parse($tanggal);
         $eventBookings = \App\Models\BookingFutsal::with(['booking', 'lapangan', 'booking.user'])
-            ->where('type', 'event')
+            ->whereRaw('DATE(start_datetime) != DATE(end_datetime)')
             ->whereHas('booking', fn($q) => $q->whereNotIn('status', ['dibatalkan']))
             ->where(function ($q) use ($tanggalCarbon) {
                 // Event yang sedang berlangsung mencakup tanggal ini
@@ -135,6 +135,13 @@ class JadwalLapanganController extends Controller
         }
         // --- Akhir event booking ---
 
+        // Ambil data jam operasional untuk tanggal yang diminta
+        $hariIndo = Carbon::parse($tanggal)->locale('id')->isoFormat('dddd');
+        $jamOperasional = \App\Models\JamOperasionalLapangan::where('lapangan_id', 
+            $request->lapangan_id ?? null)
+            ->where('hari', ucfirst($hariIndo))
+            ->where('is_aktif', true)->first();
+
         // Kembalikan Response JSON yang rapi
         return response()->json([
             'status'            => 'success',
@@ -143,6 +150,7 @@ class JadwalLapanganController extends Controller
             'data'              => $jadwal,           // flat (untuk kompatibilitas)
             'grouped'           => $grouped,          // grouped per lapangan_id
             'events_by_lapangan'=> $eventsByLapangan, // event aktif per lapangan
+            'jam_operasional'   => $jamOperasional,
         ]);
     }
 
@@ -162,6 +170,21 @@ class JadwalLapanganController extends Controller
                 'status'  => 'error',
                 'message' => 'Slot jadwal ini sudah dibooking'
             ], 400); // HTTP Status 400 (Bad Request)
+        }
+
+        // Validasi Jam Operasional
+        $tanggalObj = Carbon::parse($jadwal->tanggal);
+        $hariIndo = $tanggalObj->locale('id')->isoFormat('dddd');
+        $jamOps = \App\Models\JamOperasionalLapangan::where('lapangan_id', $jadwal->lapangan_id)
+            ->where('hari', ucfirst($hariIndo))
+            ->where('is_aktif', true)
+            ->first();
+
+        if (!$jamOps || $jadwal->jam_mulai < $jamOps->jam_buka || $jadwal->jam_selesai > $jamOps->jam_tutup) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Di luar jam operasional'
+            ], 400);
         }
 
         $jadwal->update(['status' => 'terisi']);

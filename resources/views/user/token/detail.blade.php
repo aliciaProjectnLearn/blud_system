@@ -1,86 +1,76 @@
 @extends('layouts.publik')
 
-@section('title', 'Detail Booking #' . $booking->id)
-
 @section('content')
-<div class="container-fluid">
+<div class="container py-5 mt-5">
     <div class="row justify-content-center">
-        <div class="col-lg-8">
-            {{-- Alert Success/Error --}}
-            @if(session('success'))
-                <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
-                    <i class="fas fa-check-circle mr-1"></i> {{ session('success') }}
-                    <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0 py-2"><i class="fas fa-ticket-alt mr-2"></i> Detail Booking</h5>
                 </div>
-            @endif
-            @if(session('error'))
-                <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
-                    <i class="fas fa-exclamation-circle mr-1"></i> {{ session('error') }}
-                    <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
-                </div>
-            @endif
-
-            {{-- Token Link Copy --}}
-            <div class="card shadow-sm border-left-primary mb-4">
-                <div class="card-body">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div>
-                            <h6 class="font-weight-bold text-primary mb-1">Simpan Link Akses Ini</h6>
-                            <p class="text-muted small mb-0">Gunakan link ini untuk melihat status booking Anda di lain waktu tanpa perlu login.</p>
+                <div class="card-body p-4">
+                    @if(session('error'))
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            {{ session('error') }}
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
                         </div>
-                        <button class="btn btn-primary btn-sm px-3" onclick="copyTokenLink()">
-                            <i class="fas fa-copy mr-1"></i> Copy Link
-                        </button>
+                    @endif
+
+                    <div class="alert alert-info">
+                        <strong>PENTING:</strong> Simpan link halaman ini untuk mengakses informasi booking Anda di kemudian hari.
                     </div>
-                    <div class="input-group mt-3">
-                        <input type="text" id="tokenLink" class="form-control form-control-sm bg-light" readonly value="{{ url()->current() }}">
-                    </div>
-                </div>
-            </div>
-
-            <div class="card shadow mb-4">
-                <div class="card-header py-3 d-flex justify-content-between align-items-center bg-white">
-                    <h6 class="m-0 font-weight-bold text-gray-800">
-                        <i class="fas fa-receipt mr-1 text-primary"></i> Detail Booking
-                    </h6>
-                    <span class="badge badge-{{ $booking->status == 'dikonfirmasi' || $booking->status == 'aktif' ? 'success' : (in_array($booking->status, ['dibatalkan', 'batal']) ? 'danger' : 'warning') }} px-3 py-2">
-                        {{ strtoupper($booking->status ?? ($booking->booking->status ?? 'MENUNGGU')) }}
-                    </span>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h6 class="text-xs font-weight-bold text-primary text-uppercase mb-3">Informasi Pelanggan</h6>
-                            <p class="mb-1"><strong>Nama:</strong> {{ $user->nama_lengkap ?? $user->name ?? '-' }}</p>
-                            <p class="mb-4"><strong>No. HP:</strong> {{ $user->no_hp ?? '-' }}</p>
-
-                            <h6 class="text-xs font-weight-bold text-primary text-uppercase mb-3">Layanan</h6>
-                            <p class="mb-1 text-gray-800 h5 font-weight-bold">
-                                @if($type == 'futsal')
-                                    <i class="fas fa-futbol mr-2 text-success"></i> Futsal - {{ $booking->lapangan->nama ?? '-' }}
-                                @elseif($type == 'ac')
-                                    <i class="fas fa-snowflake mr-2 text-info"></i> Servis AC - {{ $booking->layanan->nama ?? '-' }}
-                                @elseif($type == 'servis')
-                                    <i class="fas fa-tools mr-2 text-warning"></i> Servis Kendaraan - {{ $booking->layananServis->nama_layanan ?? '-' }}
-                                @elseif($type == 'kantin')
-                                    <i class="fas fa-store mr-2 text-danger"></i> Sewa Kantin - {{ $booking->ruko->kode_unit ?? '-' }}
-                                @endif
-                            </p>
-                        </div>
-                        <div class="col-md-6 text-md-right mt-4 mt-md-0">
-                            <h6 class="text-xs font-weight-bold text-primary text-uppercase mb-3">Waktu & Tanggal</h6>
-                            @if($type == 'futsal')
-                                <p class="mb-1"><strong>Tanggal:</strong> {{ $booking->start_datetime->format('d M Y') }}</p>
-                                <p class="mb-0"><strong>Jam:</strong> {{ $booking->start_datetime->format('H:i') }} - {{ $booking->end_datetime->format('H:i') }}</p>
-                            @elseif($type == 'ac')
-                                <p class="mb-1"><strong>Tanggal Kunjungan:</strong> {{ \Carbon\Carbon::parse($booking->tgl_kunjungan)->format('d M Y') }}</p>
-                            @elseif($type == 'servis')
-                                <p class="mb-1"><strong>Tanggal:</strong> {{ \Carbon\Carbon::parse($booking->tanggal_booking)->format('d M Y') }}</p>
-                                <p class="mb-0"><strong>Jam:</strong> {{ $booking->jam_booking }}</p>
-                            @elseif($type == 'kantin')
-                                <p class="mb-1"><strong>Periode:</strong> {{ \Carbon\Carbon::parse($booking->tgl_mulai)->format('d M Y') }} s/d {{ \Carbon\Carbon::parse($booking->tgl_selesai)->format('d M Y') }}</p>
-                            @endif
-                        </div>
+                    
+                    <div class="table-responsive mt-4">
+                        <table class="table table-bordered">
+                            <tr>
+                                <th width="35%" class="bg-light">Kode Booking</th>
+                                <td><strong>{{ $bookingFutsal->booking->kode_booking ?? 'BKG-'.$bookingFutsal->booking->id }}</strong></td>
+                            </tr>
+                            <tr>
+                                <th class="bg-light">Status</th>
+                                <td>
+                                    @if($bookingFutsal->status == 'menunggu')
+                                        <span class="badge badge-warning p-2">Menunggu</span>
+                                    @elseif($bookingFutsal->status == 'dikonfirmasi')
+                                        <span class="badge badge-primary p-2">Dikonfirmasi</span>
+                                    @elseif($bookingFutsal->status == 'selesai')
+                                        <span class="badge badge-success p-2">Selesai</span>
+                                    @elseif($bookingFutsal->status == 'dibatalkan')
+                                        <span class="badge badge-danger p-2">Dibatalkan</span>
+                                    @else
+                                        <span class="badge badge-secondary p-2">{{ ucfirst($bookingFutsal->status) }}</span>
+                                    @endif
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="bg-light">Nama Lapangan</th>
+                                <td>{{ $bookingFutsal->lapangan->nama }}</td>
+                            </tr>
+                            <tr>
+                                <th class="bg-light">Waktu Main</th>
+                                <td>{{ \Carbon\Carbon::parse($bookingFutsal->start_datetime)->locale('id')->translatedFormat('l, d F Y') }} | {{ \Carbon\Carbon::parse($bookingFutsal->start_datetime)->format('H:i') }} - {{ \Carbon\Carbon::parse($bookingFutsal->end_datetime)->format('H:i') }}</td>
+                            </tr>
+                            <tr>
+                                <th class="bg-light">Nama Pemesan</th>
+                                <td>{{ $bookingFutsal->nama_pemesan }}</td>
+                            </tr>
+                            <tr>
+                                <th class="bg-light">No HP</th>
+                                <td>{{ $bookingFutsal->no_hp }}</td>
+                            </tr>
+                            <tr>
+                                <th class="bg-light">Jenis Pembayaran</th>
+                                <td>
+                                    @php 
+                                        $pembayaran = $bookingFutsal->booking->pembayaranFutsal->first();
+                                        $tipe = $pembayaran->tipePembayaran->nama ?? ($bookingFutsal->jenis_pembayaran === 'membership' ? 'Paket' : 'Reguler');
+                                    @endphp
+                                    {{ $tipe }}
+                                </td>
+                            </tr>
+                        </table>
                     </div>
 
                     <hr class="my-4">
@@ -102,47 +92,7 @@
                     </div>
                 </div>
             </div>
-            
-            <div class="text-center mt-4">
-                <a href="{{ route('home') }}" class="text-muted small">
-                    <i class="fas fa-home mr-1"></i> Kembali ke Halaman Utama
-                </a>
-            </div>
         </div>
     </div>
 </div>
-
-<script>
-function copyTokenLink() {
-    var copyText = document.getElementById("tokenLink");
-    copyText.select();
-    copyText.setSelectionRange(0, 99999);
-    document.execCommand("copy");
-    
-    Swal.fire({
-        icon: 'success',
-        title: 'Link Berhasil Disalin',
-        showConfirmButton: false,
-        timer: 1500
-    });
-}
-
-function konfirmasiBatal(e) {
-    e.preventDefault();
-    Swal.fire({
-        title: 'Batalkan Booking?',
-        text: 'Apakah Anda yakin ingin membatalkan booking ini? Tindakan ini tidak dapat diurungkan.',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#e74a3b',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Ya, Batalkan',
-        cancelButtonText: 'Tidak'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            window.location.href = "{{ route('user.token.batalkan', $token) }}";
-        }
-    });
-}
-</script>
 @endsection

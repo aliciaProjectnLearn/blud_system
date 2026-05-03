@@ -14,6 +14,11 @@ class Booking extends Model
         'access_token',
     ];
 
+    public function getKodeBookingAttribute()
+    {
+        return 'BKG-' . str_pad($this->id, 5, '0', STR_PAD_LEFT);
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class);

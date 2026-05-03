@@ -11,6 +11,8 @@ class BookingAc extends Model
     protected $fillable = [
         'booking_id',
         'user_id',
+        'nama_pelanggan',
+        'no_hp',
         'teknisi_id',
         'layanan_id',
         'tgl_kunjungan',
@@ -18,8 +20,14 @@ class BookingAc extends Model
         'merek_ac',
         'detail_keluhan',
         'status',
+        'foto_hasil',
         'access_token',
     ];
+
+    public function penggajian()
+    {
+        return $this->hasOne(PenggajianTeknisi::class, 'booking_ac_id');
+    }
 
     public function booking()
     {

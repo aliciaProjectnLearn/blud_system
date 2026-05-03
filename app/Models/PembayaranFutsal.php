@@ -59,4 +59,9 @@ class PembayaranFutsal extends Model
     {
         return $this->belongsTo(TipePembayaran::class, 'tipe_pembayaran_id');
     }
+
+    public function membership()
+    {
+        return $this->hasOne(Membership::class, 'transaksi_id');
+    }
 }

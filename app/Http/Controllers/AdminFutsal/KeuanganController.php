@@ -41,6 +41,7 @@ class KeuanganController extends Controller
                     'nominal' => $item->jumlah_bayar,
                     'deskripsi' => 'Pembayaran Futsal', // Keterangan default pemasukan
                     'tipe_transaksi' => 'Pemasukan',
+                    'kategori' => '-',
                 ];
             });
 
@@ -66,6 +67,7 @@ class KeuanganController extends Controller
                     'nominal' => $item->nominal,
                     'deskripsi' => $item->deskripsi,
                     'tipe_transaksi' => 'Pengeluaran',
+                    'kategori' => $item->kategori,
                 ];
             });
 
@@ -78,12 +80,24 @@ class KeuanganController extends Controller
         // 5. Hitung saldo akhir
         $saldoAkhir = $totalPemasukan - $totalPengeluaran;
 
-        // 6. Return view dengan membawa data
+        // Summary pengeluaran per kategori
+        $summaryKategori = PengeluaranFutsal::selectRaw('kategori, SUM(nominal) as total')
+            ->groupBy('kategori')->get();
+
+        // 6. Hitung Pembagian Pendapatan (60% Sekolah, 40% Unit)
+        $pembagian = [
+            'sekolah' => $totalPemasukan * 0.6,
+            'unit'    => $totalPemasukan * 0.4,
+        ];
+
+        // 7. Return view dengan membawa data
         return view('adminfutsal.keuangan.index', compact(
             'transaksiGabungan',
             'totalPemasukan',
             'totalPengeluaran',
-            'saldoAkhir'
+            'saldoAkhir',
+            'summaryKategori',
+            'pembagian'
         ));
     }
 
@@ -97,11 +111,14 @@ class KeuanganController extends Controller
             'tgl_pengeluaran' => 'required|date',
             'nominal' => 'required|numeric|min:1',
             'deskripsi' => 'required|string|max:255',
+            'kategori' => 'required|in:pemeliharaan,gaji_penjaga,lainnya',
         ], [
             'tgl_pengeluaran.required' => 'Tanggal pengeluaran wajib diisi.',
             'nominal.required' => 'Nominal wajib diisi.',
             'nominal.numeric' => 'Nominal harus berupa angka.',
             'deskripsi.required' => 'Deskripsi wajib diisi.',
+            'kategori.required' => 'Kategori wajib dipilih.',
+            'kategori.in' => 'Kategori tidak valid.',
         ]);
 
         // 2. Simpan data pengeluaran baru
@@ -110,6 +127,7 @@ class KeuanganController extends Controller
             'tgl_pengeluaran' => $request->tgl_pengeluaran,
             'nominal' => $request->nominal,
             'deskripsi' => $request->deskripsi,
+            'kategori' => $request->kategori,
         ]);
 
         // 3. Redirect kembali dengan pesan sukses

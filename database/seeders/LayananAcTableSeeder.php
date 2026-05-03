@@ -24,19 +24,19 @@ class LayananAcTableSeeder extends Seeder
         $layanans = [
             [
                 'kategori_id' => $kategori->id,
-                'nama' => 'Cleaning AC',
+                'nama' => 'Cuci AC Rutin',
                 'kapasitas_ac' => '0.5 - 1 PK',
                 'harga_jasa' => 75000,
             ],
             [
                 'kategori_id' => $kategori->id,
-                'nama' => 'Tambah R22',
+                'nama' => 'Isi Freon',
                 'kapasitas_ac' => '0.5 - 1 PK',
                 'harga_jasa' => 100000,
             ],
             [
                 'kategori_id' => $kategori->id,
-                'nama' => 'Bongkar AC',
+                'nama' => 'Bongkar Pasang AC',
                 'kapasitas_ac' => '0.5 - 1 PK',
                 'harga_jasa' => 200000,
             ],
