@@ -76,7 +76,9 @@ Route::prefix('user')->name('user.')->group(function () {
         
         // Token Based Access
         Route::get('/booking/{token}', [App\Http\Controllers\User\AcTokenController::class, 'show'])->name('token.show');
-        Route::get('/booking/{token}/history', [App\Http\Controllers\User\AcTokenController::class, 'riwayat'])->name('token.riwayat');
+        Route::get('/booking/{token}/otp', [App\Http\Controllers\User\AcTokenController::class, 'otpForm'])->name('token.otp');
+        Route::post('/booking/{token}/otp', [App\Http\Controllers\User\AcTokenController::class, 'verifyOtp'])->name('token.otp.verify');
+        Route::post('/booking/{token}/resend', [App\Http\Controllers\User\AcTokenController::class, 'resendOtp'])->name('token.otp.resend');
     });
 
     Route::prefix('servis')->name('servis.')->group(function () {

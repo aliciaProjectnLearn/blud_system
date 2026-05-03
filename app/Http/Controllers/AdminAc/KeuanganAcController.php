@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\PengeluaranAc;
+use App\Models\BookingAc;
+use App\Models\User;
+use App\Models\PenggajianTeknisi;
 use Carbon\Carbon;
 
 class KeuanganAcController extends Controller
@@ -102,7 +105,7 @@ class KeuanganAcController extends Controller
     public function payrollIndex(Request $request)
     {
         $teknisiId = $request->teknisi_id;
-        $teknisis = \App\Models\User::whereHas('roles', fn($q) => $q->where('nama', 'Teknisi'))->get();
+        $teknisis = User::whereHas('roles', fn($q) => $q->where('nama', 'Teknisi'))->get();
 
         $pekerjaanUnpaid = BookingAc::with(['layanan', 'pembayaran', 'teknisi'])
             ->where('status', 'selesai')
@@ -134,7 +137,7 @@ class KeuanganAcController extends Controller
                 $nominal = $request->nominal[$key];
 
                 if ($nominal > 0) {
-                    \App\Models\PenggajianTeknisi::create([
+                    PenggajianTeknisi::create([
                         'teknisi_id' => $booking->teknisi_id,
                         'booking_ac_id' => $booking->id,
                         'nominal' => $nominal,
