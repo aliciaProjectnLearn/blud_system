@@ -73,21 +73,10 @@
                         </table>
                     </div>
 
-                    <hr class="my-4">
-
-                    <div class="text-center">
-                        @php
-                            $currentStatus = strtolower($booking->status ?? ($booking->booking->status ?? ''));
-                        @endphp
-                        
-                        @if($currentStatus === 'menunggu')
-                            <a href="#" onclick="konfirmasiBatal(event)" class="btn btn-outline-danger btn-sm mx-1">
-                                <i class="fas fa-times mr-1"></i> Batalkan Booking
-                            </a>
-                        @elseif(in_array($currentStatus, ['diproses', 'siap_bayar', 'selesai', 'proses', 'aktif']))
-                            <button class="btn btn-outline-secondary btn-sm mx-1" disabled>
-                                <i class="fas fa-lock mr-1"></i> Tidak dapat dibatalkan
-                            </button>
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{{ route('user.token.riwayat', $token) }}" class="btn btn-info text-white"><i class="fas fa-history"></i> Lihat Riwayat</a>
+                        @if($bookingFutsal->status == 'menunggu' && \Carbon\Carbon::parse($bookingFutsal->start_datetime)->gt(now()->addHours(2)))
+                            <a href="{{ route('user.token.batalkan', $token) }}" class="btn btn-danger"><i class="fas fa-times-circle"></i> Batalkan Booking</a>
                         @endif
                     </div>
                 </div>

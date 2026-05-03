@@ -272,6 +272,9 @@
             <div class="card-body">
                 <h6 class="font-weight-bold mb-3">Menu Akses Cepat</h6>
                 <div class="list-group list-group-flush list-group-transparent">
+                    <a href="{{ route('user.kantin.sewa.riwayat', $sewa->access_token) }}" class="list-group-item list-group-item-action d-flex align-items-center">
+                        <i class="fas fa-history mr-3"></i> Riwayat Sewa Saya
+                    </a>
                     <a href="{{ route('user.kantin.sewa.dokumen', $sewa->access_token) }}" class="list-group-item list-group-item-action d-flex align-items-center">
                         <i class="fas fa-file-contract mr-3"></i> Dokumen & MOU
                     </a>

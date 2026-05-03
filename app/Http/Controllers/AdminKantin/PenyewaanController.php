@@ -83,22 +83,10 @@ class PenyewaanController extends Controller
         try {
             $statusLama = $sewa->status_sewa;
 
-            $sebelum = $sewa->toArray();
             $sewa->update($request->validated());
 
-            // Catat audit
-            \App\Services\AuditService::catat(
-                'kantin',
-                'sewa_ruko',
-                $sewa->id,
-                'data_diupdate',
-                ['nama_penyewa' => $sebelum['nama_penyewa'], 'status_sewa' => $sebelum['status_sewa']],
-                ['nama_penyewa' => $sewa->nama_penyewa, 'status_sewa' => $sewa->status_sewa],
-                'Data penyewaan diupdate oleh admin'
-            );
-
-            // Generate pembayaran saat status berubah jadi disetujui atau aktif
-            if ($statusLama === 'pending' && in_array($sewa->status_sewa, ['disetujui', 'aktif'])) {
+            // Generate pembayaran saat status berubah jadi disetujui
+            if ($statusLama !== 'disetujui' && $sewa->status_sewa === 'disetujui') {
                 $this->generatePembayaranTermin($sewa);
             }
 
@@ -109,81 +97,6 @@ class PenyewaanController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()->with('error', 'Gagal memperbarui data: ' . $e->getMessage());
-        }
-    }
-
-    public function approve($id)
-    {
-        $sewa = SewaRuko::findOrFail($id);
-
-        if ($sewa->status_sewa !== 'pending') {
-            return back()->with('error', 'Hanya pengajuan dengan status Pending yang bisa disetujui.');
-        }
-
-        DB::beginTransaction();
-        try {
-            // Update Status ke Aktif
-            $sebelum = $sewa->status_sewa;
-            $sewa->update(['status_sewa' => 'aktif']);
-
-            // Catat audit
-            \App\Services\AuditService::catat(
-                'kantin',
-                'sewa_ruko',
-                $sewa->id,
-                'sewa_disetujui',
-                ['status_sewa' => $sebelum],
-                ['status_sewa' => 'aktif'],
-                'Pengajuan sewa disetujui oleh admin'
-            );
-
-            // Update Status Unit Ruko
-            $sewa->ruko->update(['status' => 'disewa']); // Pastikan status unit sinkron
-
-            // Generate Pembayaran jika belum ada
-            $this->generatePembayaranTermin($sewa);
-
-            $this->recalculateStatuses();
-
-            // Kirim Notifikasi WA
-            $this->sendWhatsAppApproval($sewa);
-
-            DB::commit();
-            return back()->with('success', 'Pengajuan sewa berhasil disetujui dan notifikasi telah dikirim.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return back()->with('error', 'Gagal menyetujui pengajuan: ' . $e->getMessage());
-        }
-    }
-
-    private function sendWhatsAppApproval($sewa)
-    {
-        $apiToken = config('services.fonnte.token');
-        if (!$apiToken) return;
-
-        $link = route('user.kantin.sewa.detail', ['token' => $sewa->access_token]);
-        $pesan = "Halo *{$sewa->nama_penyewa}* 👋\n\n";
-        $pesan .= "Kabar baik! Pengajuan sewa unit *{$sewa->ruko->kode_unit}* telah *DISETUJUI* oleh Admin.\n\n";
-        $pesan .= "Silakan klik link di bawah untuk melihat rincian pembayaran dan mengunduh MOU digital:\n";
-        $pesan .= "🔗 {$link}\n\n";
-        $pesan .= "Terima kasih telah bergabung bersama kami.\n";
-        $pesan .= "— Admin Kantin BLUD SMK";
-
-        $target = preg_replace('/[^0-9]/', '', $sewa->no_hp_snapshot);
-        if (str_starts_with($target, '0')) {
-            $target = '62' . substr($target, 1);
-        }
-
-        try {
-            \Illuminate\Support\Facades\Http::withHeaders([
-                'Authorization' => $apiToken,
-            ])->post('https://api.fonnte.com/send', [
-                'target'      => $target,
-                'message'     => $pesan,
-                'countryCode' => '62',
-            ]);
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Gagal Kirim WA Approval: ' . $e->getMessage());
         }
     }
 
@@ -330,17 +243,6 @@ class PenyewaanController extends Controller
             ]
         );
 
-        // Catat audit
-        \App\Services\AuditService::catat(
-            'kantin',
-            'dokumen_sewas',
-            $sewa->id,
-            'mou_digenerate',
-            null,
-            ['nama_dokumen' => 'MOU - ' . $sewa->ruko->kode_unit],
-            'MOU digenerate otomatis oleh sistem'
-        );
-
         // Download PDF ke browser
         return $pdf->download($filename);
     }
@@ -369,17 +271,6 @@ class PenyewaanController extends Controller
             'diunggah_oleh' => 'admin',
             'keterangan'   => $request->keterangan,
         ]);
-
-        // Catat audit
-        \App\Services\AuditService::catat(
-            'kantin',
-            'dokumen_sewas',
-            $sewa->id,
-            'dokumen_diupload',
-            null,
-            ['nama_dokumen' => $request->nama_dokumen, 'tipe' => $request->tipe_dokumen],
-            'Dokumen hardfile diupload oleh admin'
-        );
 
         return back()->with('success', 'Dokumen berhasil diupload!');
     }

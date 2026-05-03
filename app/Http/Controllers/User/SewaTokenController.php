@@ -10,135 +10,27 @@ use App\Models\Ruko;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
-use Carbon\Carbon;
 
 class SewaTokenController extends Controller
 {
     public function detail($token)
     {
-        $sewa = SewaRuko::where('access_token', $token)->first();
-
-        // Token tidak ditemukan
-        if (!$sewa) {
-            return view('user.kantin.token.invalid', [
-                'pesan' => 'Link tidak valid atau tidak ditemukan.'
-            ]);
-        }
-
-        // Token sudah expired (waktu)
-        if ($sewa->token_expired_at && now()->isAfter($sewa->token_expired_at)) {
-            return view('user.kantin.token.invalid', [
-                'pesan' => 'Link akses ini sudah kadaluarsa.'
-            ]);
-        }
-
-        // Lanjut ke verifikasi OTP
-        if (!session('sewa_verified_' . $token)) {
-            return redirect()->route('user.kantin.otp.form', $token);
-        }
-
-        $sewa->load(['ruko', 'ruko.kategori', 'user', 'pembayaran', 'dokumen']);
+        $sewa = SewaRuko::with(['ruko', 'user', 'pembayaran'])->where('access_token', $token)->firstOrFail();
         return view('user.kantin.token.detail', compact('sewa'));
     }
 
-    public function showOtpForm($token)
+    public function riwayat($token)
     {
         $sewa = SewaRuko::where('access_token', $token)->firstOrFail();
-        return view('user.kantin.token.otp', compact('sewa'));
-    }
-
-    public function verifyOtp(Request $request, $token)
-    {
-        $request->validate([
-            'otp' => 'required|numeric|digits:6',
-        ]);
-
-        $sewa = SewaRuko::where('access_token', $token)->firstOrFail();
+        $riwayat = SewaRuko::where('no_hp_snapshot', $sewa->no_hp_snapshot)
+            ->with('ruko')
+            ->orderBy('created_at', 'desc')
+            ->get();
         
-        $attemptsKey = 'otp_attempts_' . $token;
-        $attempts = Cache::get($attemptsKey, 0);
+        $sewa_aktif = $riwayat->whereIn('status_sewa', ['pending', 'aktif']);
+        $riwayat = $riwayat->whereNotIn('status_sewa', ['pending', 'aktif']);
 
-        if ($attempts >= 5) {
-            return back()->withErrors(['otp' => 'Terlalu banyak percobaan yang salah. Silakan kirim ulang kode OTP baru.']);
-        }
-
-        $cachedOtp = Cache::get('otp_' . $token);
-
-        if ($request->otp == $cachedOtp) {
-            // REVISION 11: Store session flag
-            session([
-                'token_verified' => true,
-                'token_verified_at' => now(),
-                'booking_token' => $token,
-            ]);
-
-            Cache::forget('otp_' . $token);
-            Cache::forget($attemptsKey);
-
-            return redirect()->route('user.kantin.sewa.detail', $token)
-                ->with('success', 'Verifikasi berhasil. Selamat datang!');
-        }
-
-        // Increment attempts
-        Cache::put($attemptsKey, $attempts + 1, now()->addMinutes(10));
-
-        return back()->withErrors(['otp' => 'Kode OTP tidak valid atau sudah kadaluwarsa.']);
-    }
-
-    public function resendOtp($token)
-    {
-        $sewa = SewaRuko::where('access_token', $token)->firstOrFail();
-        
-        // Clear attempts on resend
-        Cache::forget('otp_attempts_' . $token);
-        
-        $this->sendOtp($sewa);
-        return back()->with('success', 'Kode OTP baru telah dikirim.');
-    }
-
-    private function sendOtp($sewa)
-    {
-        $otp = rand(100000, 999999);
-        // Set OTP expiry to 3 minutes as requested
-        Cache::put('otp_' . $sewa->access_token, $otp, now()->addMinutes(3));
-
-        $apiToken = config('services.fonnte.token');
-        if (!$apiToken) {
-            Log::warning('Fonnte API Token tidak ditemukan di config/services.php');
-            return;
-        }
-
-        $pesan = "Kode OTP Anda adalah: *{$otp}*. Berlaku selama 3 menit. Jangan berikan kode ini kepada siapapun.";
-
-        $target = preg_replace('/[^0-9]/', '', $sewa->no_hp_snapshot);
-        if (str_starts_with($target, '0')) {
-            $target = '62' . substr($target, 1);
-        } elseif (!str_starts_with($target, '62')) {
-            $target = '62' . $target;
-        }
-
-        try {
-            $response = Http::withHeaders([
-                'Authorization' => $apiToken,
-            ])->post('https://api.fonnte.com/send', [
-                'target'      => $target,
-                'message'     => $pesan,
-                'countryCode' => '62',
-            ]);
-
-            $resBody = $response->json();
-            
-            if ($response->failed() || ($resBody['status'] ?? false) == false) {
-                Log::warning('Fonnte OTP Send Error: ' . ($resBody['reason'] ?? $response->body()));
-            } else {
-                Log::info('OTP Berhasil Dikirim ke Fonnte: ' . $target);
-            }
-        } catch (\Exception $e) {
-            Log::error('Gagal Kirim OTP WA via Fonnte: ' . $e->getMessage());
-        }
+        return view('user.kantin.token.riwayat', compact('sewa', 'sewa_aktif', 'riwayat'));
     }
 
     public function pembayaran(Request $request, $token)
