@@ -23,7 +23,26 @@
 
 @section('content')
 <div class="container-fluid">
-    <!-- Page Heading -->
+    @if(!auth()->check())
+    <!-- Landing for Guest -->
+    <div class="row justify-content-center mb-5">
+        <div class="col-md-10 text-center">
+            <div class="py-5">
+                <h1 class="display-4 font-weight-bold text-primary mb-3">Servis AC Jadi Lebih Mudah</h1>
+                <p class="lead text-gray-700 mb-4">Tanpa perlu login, pesan layanan servis AC Anda sekarang dan pantau statusnya langsung dari WhatsApp.</p>
+                <div class="d-flex justify-content-center" style="gap: 15px;">
+                    <button class="btn btn-primary btn-lg px-5 shadow-sm rounded-pill" onclick="openLayananModal()">
+                        <i class="fas fa-plus-circle mr-2"></i> Booking Sekarang
+                    </button>
+                    <a href="{{ route('user.gateway') }}" class="btn btn-outline-secondary btn-lg px-5 rounded-pill">
+                        <i class="fas fa-home mr-2"></i> Home
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    @else
+    <!-- Page Heading for Logged In User -->
     <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between mb-4">
         <h1 class="h3 mb-3 mb-sm-0 text-gray-800 font-weight-bold">Daftar Booking & Riwayat Servis AC</h1>
         <button class="btn btn-sm btn-primary" onclick="openLayananModal()">
@@ -56,7 +75,7 @@
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pending / Menunggu</div>
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pending</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $stats['pending'] }}</div>
                         </div>
                         <div class="col-auto">
@@ -105,7 +124,7 @@
     <!-- Data Table Card -->
     <div class="card shadow mb-4">
         <div class="card-header py-3 d-flex flex-column flex-md-row align-items-md-center justify-content-between">
-            <h6 class="m-0 font-weight-bold text-primary mb-2 mb-md-0">Daftar Transaksi Layanan AC</h6>
+            <h6 class="m-0 font-weight-bold text-primary mb-2 mb-md-0">Riwayat Booking Anda</h6>
             <form action="{{ route('user.ac.index') }}" method="GET" id="filterForm" class="form-inline w-100 w-md-auto">
                 <select name="status" class="form-control form-control-sm w-100" onchange="this.form.submit()">
                     <option value="">Semua Status</option>
@@ -124,9 +143,7 @@
                             <th>No</th>
                             <th>Tanggal Kunjungan</th>
                             <th>Layanan</th>
-                            <th>Merek AC</th>
                             <th>Status (Booking)</th>
-                            <th>Status (Bayar)</th>
                             <th class="text-center">Aksi</th>
                         </tr>
                     </thead>
@@ -152,38 +169,21 @@
                             <td>{{ ($bookings->currentPage()-1) * $bookings->perPage() + $loop->iteration }}</td>
                             <td>{{ \Carbon\Carbon::parse($booking->tgl_kunjungan)->format('d/m/Y') }}</td>
                             <td>{{ $booking->layanan->nama ?? '-' }}</td>
-                            <td>{{ $booking->merek_ac ?? '-' }}</td>
                             <td>
                                 <span class="badge badge-{{ $badgeClass }} px-3 py-2">
                                     {{ ucfirst($statusLabel) }}
                                 </span>
                             </td>
-                            <td>
-                                @if($booking->pembayaran)
-                                    <span class="badge badge-{{ $booking->pembayaran->status == 'dibayar' ? 'success' : ($booking->pembayaran->status == 'ditolak' ? 'danger' : 'warning') }}">
-                                        {{ ucfirst($booking->pembayaran->status) }}
-                                    </span>
-                                @else
-                                    <span class="text-muted small">Belum ada invoice</span>
-                                @endif
-                            </td>
                             <td class="text-center">
-                                <div class="d-flex flex-column flex-md-row justify-content-center" style="gap: 5px;">
-                                    <button class="btn btn-sm btn-info w-100 w-md-auto" onclick="viewDetail({{ $booking->id }})" title="Lihat Detail">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    @if($booking->status == 'menunggu' && !$isCanceled)
-                                    <button class="btn btn-sm btn-danger w-100 w-md-auto" onclick="openCancelModal({{ $booking->id }})" title="Batalkan">
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                    @endif
-                                </div>
+                                <a href="{{ route('user.ac.token.show', $booking->access_token) }}" class="btn btn-sm btn-info" title="Lihat Detail">
+                                    <i class="fas fa-eye mr-1"></i> Detail
+                                </a>
                             </td>
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="7" class="text-center py-4">
-                                <p class="text-muted">Belum ada data layanan AC yang ditemukan.</p>
+                            <td colspan="5" class="text-center py-4 text-muted italic">
+                                Belum ada riwayat booking.
                             </td>
                         </tr>
                         @endforelse
@@ -196,70 +196,70 @@
             </div>
         </div>
     </div>
+    @endif
 </div>
 
 <!-- Modal Booking -->
 <div class="modal fade" id="bookingModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog" role="document">
+    <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content border-0 shadow">
             <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title">Konfirmasi Booking</h5>
+                <h5 class="modal-title font-weight-bold"><i class="fas fa-edit mr-2"></i>Formulir Booking Servis AC</h5>
                 <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>
             </div>
             <form action="{{ route('user.ac.store') }}" method="POST">
                 @csrf
-                <div class="modal-body">
+                <div class="modal-body p-4">
                     <div id="bookingErrors" class="alert alert-danger d-none"></div>
+                    
                     <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label class="small font-weight-bold">Nama Lengkap</label>
-                                <input type="text" name="nama" class="form-control" value="{{ Auth::user()->nama_lengkap ?? '' }}" required placeholder="Contoh: Budi">
-                            </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="small font-weight-bold text-dark text-uppercase">Nama Lengkap</label>
+                            <input type="text" name="nama" class="form-control form-control-lg bg-light border-0 shadow-sm" value="{{ auth()->user()->nama_lengkap ?? '' }}" required placeholder="Contoh: Budi Santoso">
                         </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label class="small font-weight-bold">Nomor WhatsApp</label>
-                                <input type="text" name="no_hp" class="form-control" value="{{ Auth::user()->no_hp ?? '' }}" required placeholder="Contoh: 0812...">
-                            </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="small font-weight-bold text-dark text-uppercase">Nomor WhatsApp (Aktif)</label>
+                            <input type="text" name="no_hp" class="form-control form-control-lg bg-light border-0 shadow-sm" value="{{ auth()->user()->no_hp ?? '' }}" required placeholder="Contoh: 08123456789">
+                            <small class="text-muted">Link status booking akan dikirim ke nomor ini.</small>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label class="small font-weight-bold">Pilih Layanan</label>
-                        <select name="layanan_id" id="layanan_id" class="form-control" required>
-                            <option value="">-- Pilih Layanan --</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="small font-weight-bold">Tanggal Kunjungan</label>
-                        <input type="date" name="tgl_kunjungan" class="form-control" required min="{{ date('Y-m-d') }}">
-                    </div>
-                    <div class="form-group">
-                        <label class="small font-weight-bold">Alamat Lengkap</label>
-                        <textarea name="alamat" class="form-control" rows="2" required placeholder="Contoh: Jl. Merpati No. 123..."></textarea>
-                    </div>
+
                     <div class="row">
-                        <div class="col-12 col-md-6 mb-3 mb-md-0">
-                            <div class="form-group mb-0">
-                                <label class="small font-weight-bold">Merek AC</label>
-                                <input type="text" name="merek_ac" class="form-control" placeholder="LG, Samsung, dll">
-                            </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="small font-weight-bold text-dark text-uppercase">Pilih Layanan</label>
+                            <select name="layanan_id" id="layanan_id" class="form-control form-control-lg bg-light border-0 shadow-sm" required>
+                                <option value="">-- Pilih Layanan --</option>
+                            </select>
                         </div>
-                        <div class="col-12 col-md-6">
-                            <div class="form-group mb-0">
-                                <label class="small font-weight-bold">Jumlah Unit</label>
-                                <input type="number" name="jumlah_unit" class="form-control" value="1" min="1">
-                            </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="small font-weight-bold text-dark text-uppercase">Tanggal Kunjungan</label>
+                            <input type="date" name="tgl_kunjungan" class="form-control form-control-lg bg-light border-0 shadow-sm" required min="{{ date('Y-m-d') }}">
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label class="small font-weight-bold">Detail Keluhan</label>
-                        <textarea name="detail_keluhan" class="form-control" rows="3" placeholder="Contoh: AC tidak dingin, berisik, atau ada air bocor..."></textarea>
+
+                    <div class="mb-3">
+                        <label class="small font-weight-bold text-dark text-uppercase">Alamat Lengkap</label>
+                        <textarea name="alamat" class="form-control bg-light border-0 shadow-sm" rows="2" required placeholder="Jl. Merpati No. 123, Kel. Sukamaju, Kec. Cilodong..."></textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="small font-weight-bold text-dark text-uppercase">Merek AC (Opsional)</label>
+                            <input type="text" name="merek_ac" class="form-control bg-light border-0 shadow-sm" placeholder="Contoh: Sharp, LG, Samsung">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="small font-weight-bold text-dark text-uppercase">Detail Keluhan (Opsional)</label>
+                            <textarea name="detail_keluhan" class="form-control bg-light border-0 shadow-sm" rows="1" placeholder="Contoh: AC tidak dingin / Berisik"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info py-2 small mb-0 mt-2">
+                        <i class="fas fa-info-circle mr-2"></i> Klik tombol di bawah untuk membuat pesanan. Teknisi akan segera menghubungi Anda.
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-light border btn-sm" data-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary btn-sm px-4">Buat Pesanan</button>
+                <div class="modal-footer bg-light border-0">
+                    <button type="button" class="btn btn-secondary btn-sm rounded-pill px-4" data-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary btn-sm rounded-pill px-5 shadow-sm font-weight-bold">Konfirmasi Pesanan</button>
                 </div>
             </form>
         </div>

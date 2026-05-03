@@ -69,8 +69,8 @@
                             <td>{{ $bookings->firstItem() + $i }}</td>
                             <td>{{ \Carbon\Carbon::parse($b->created_at)->format('d M Y H:i') }}</td>
                             <td>
-                                {{ $b->user->name ?? '-' }}<br>
-                                <small class="text-muted">{{ $b->user->no_hp ?? '' }}</small>
+                                {{ $b->nama_pelanggan ?? ($b->user->name ?? '-') }}<br>
+                                <small class="text-muted">{{ $b->no_hp ?? ($b->user->no_hp ?? '') }}</small>
                             </td>
                             <td>{{ $b->layanan->nama ?? '-' }}</td>
                             <td>{{ \Carbon\Carbon::parse($b->tgl_kunjungan)->format('d M Y') }}</td>
@@ -128,8 +128,8 @@
                                         </button>
                                     </div>
                                     <div class="modal-body text-left">
-                                        <p><strong>Pelanggan:</strong> {{ $b->user->name ?? '-' }}</p>
-                                        <p><strong>No. HP:</strong> {{ $b->user->no_hp ?? '-' }}</p>
+                                        <p><strong>Pelanggan:</strong> {{ $b->nama_pelanggan ?? ($b->user->name ?? '-') }}</p>
+                                        <p><strong>No. HP:</strong> {{ $b->no_hp ?? ($b->user->no_hp ?? '-') }}</p>
                                         <p><strong>Layanan:</strong> {{ $b->layanan->nama ?? '-' }}</p>
                                         <p><strong>Tgl Kunjungan:</strong> {{ \Carbon\Carbon::parse($b->tgl_kunjungan)->format('d F Y') }}</p>
                                         <p><strong>Alamat:</strong> {{ $b->alamat }}</p>
@@ -161,7 +161,7 @@
                                     <form action="{{ route('admin.ac.booking.approve', $b->id) }}" method="POST">
                                         @csrf
                                         <div class="modal-body text-left">
-                                            <p><strong>Pelanggan:</strong> {{ $b->user->name ?? '-' }}</p>
+                                            <p><strong>Pelanggan:</strong> {{ $b->nama_pelanggan ?? ($b->user->name ?? '-') }}</p>
                                             <p><strong>Layanan:</strong> {{ $b->layanan->nama ?? '-' }}</p>
                                             <p><strong>Tgl Kunjungan:</strong> {{ \Carbon\Carbon::parse($b->tgl_kunjungan)->format('d F Y') }}</p>
                                             <hr>
@@ -209,7 +209,7 @@
                                     </div>
                                     <div class="modal-body text-left">
                                         <p>Tandai booking ini sebagai selesai?</p>
-                                        <p><strong>Pelanggan:</strong> {{ $b->user->name ?? '-' }}</p>
+                                        <p><strong>Pelanggan:</strong> {{ $b->nama_pelanggan ?? ($b->user->name ?? '-') }}</p>
                                         <p><strong>Teknisi:</strong> {{ $b->teknisi->name ?? '-' }}</p>
                                     </div>
                                     <div class="modal-footer">

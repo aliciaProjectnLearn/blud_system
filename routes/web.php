@@ -80,6 +80,10 @@ Route::prefix('user')->name('user.')->group(function () {
         Route::get('/', [App\Http\Controllers\User\AcBookingController::class, 'index'])->name('index');
         Route::post('/', [App\Http\Controllers\User\AcBookingController::class, 'store'])->name('store');
         Route::get('/layanan', [App\Http\Controllers\User\AcBookingController::class, 'layanan'])->name('layanan');
+        
+        // Token Based Access
+        Route::get('/booking/{token}', [App\Http\Controllers\User\AcTokenController::class, 'show'])->name('token.show');
+        Route::get('/booking/{token}/history', [App\Http\Controllers\User\AcTokenController::class, 'riwayat'])->name('token.riwayat');
     });
 
     Route::prefix('servis')->name('servis.')->group(function () {
@@ -207,6 +211,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Superadmin|Adm
         Route::get('laporan/export-excel', [\App\Http\Controllers\AdminAc\LaporanController::class, 'exportExcel'])->name('laporan.export.excel');
         Route::get('keuangan', [\App\Http\Controllers\AdminAc\KeuanganAcController::class, 'index'])->name('keuangan.index');
         Route::post('keuangan', [\App\Http\Controllers\AdminAc\KeuanganAcController::class, 'storePengeluaran'])->name('keuangan.store');
+        Route::get('payroll', [\App\Http\Controllers\AdminAc\KeuanganAcController::class, 'payrollIndex'])->name('keuangan.payroll');
+        Route::post('payroll', [\App\Http\Controllers\AdminAc\KeuanganAcController::class, 'storePayroll'])->name('keuangan.payroll.store');
     });
 
     // Admin Servis

@@ -55,10 +55,10 @@ class DashboardController extends Controller
         // ── Transaksi Terbaru ───────────────────────────────
         $transaksiTerbaru = DB::table('pembayaran_ac')
             ->join('booking_ac', 'pembayaran_ac.booking_id', '=', 'booking_ac.id')
-            ->join('users', 'booking_ac.user_id', '=', 'users.id')
+            ->leftJoin('users', 'booking_ac.user_id', '=', 'users.id')
             ->join('layanan_ac', 'booking_ac.layanan_id', '=', 'layanan_ac.id')
             ->select(
-                'users.name as nama_user',
+                DB::raw('COALESCE(users.name, booking_ac.nama_pelanggan) as nama_user'),
                 'layanan_ac.nama as nama_layanan',
                 'pembayaran_ac.total_harga',
                 'pembayaran_ac.status',
@@ -70,10 +70,10 @@ class DashboardController extends Controller
 
         // ── Jadwal Kunjungan Hari Ini ───────────────────────
         $jadwalHariIni = DB::table('booking_ac')
-            ->join('users', 'booking_ac.user_id', '=', 'users.id')
+            ->leftJoin('users', 'booking_ac.user_id', '=', 'users.id')
             ->join('layanan_ac', 'booking_ac.layanan_id', '=', 'layanan_ac.id')
             ->select(
-                'users.name as nama_user',
+                DB::raw('COALESCE(users.name, booking_ac.nama_pelanggan) as nama_user'),
                 'layanan_ac.nama as nama_layanan',
                 'booking_ac.tgl_kunjungan',
                 'booking_ac.alamat',

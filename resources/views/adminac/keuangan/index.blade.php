@@ -6,10 +6,15 @@
 
     {{-- Page Heading --}}
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">Manajemen Keuangan AC</h1>
-        <button class="d-none d-sm-inline-block btn btn-sm btn-danger shadow-sm" data-toggle="modal" data-target="#modalPengeluaran">
-            <i class="fas fa-plus fa-sm text-white-50"></i> Tambah Pengeluaran
-        </button>
+        <h1 class="h3 mb-0 text-gray-800 font-weight-bold">Manajemen Keuangan AC</h1>
+        <div class="d-flex" style="gap: 10px;">
+            <a href="{{ route('admin.ac.keuangan.payroll') }}" class="btn btn-sm btn-info shadow-sm">
+                <i class="fas fa-hand-holding-usd fa-sm text-white-50"></i> Pembayaran Gaji Teknisi
+            </a>
+            <button class="btn btn-sm btn-danger shadow-sm" data-toggle="modal" data-target="#modalPengeluaran">
+                <i class="fas fa-plus fa-sm text-white-50"></i> Tambah Pengeluaran
+            </button>
+        </div>
     </div>
 
     @if (session('success'))
@@ -97,11 +102,13 @@
                     <input type="date" class="form-control" name="end_date" id="end_date" value="{{ request('end_date') }}">
                 </div>
                 <div class="form-group mb-2 mr-sm-2">
-                    <label for="tipe" class="mr-2">Tipe</label>
-                    <select class="form-control" name="tipe" id="tipe">
+                    <label for="kategori" class="mr-2">Kategori</label>
+                    <select class="form-control" name="kategori" id="kategori">
                         <option value="">Semua</option>
-                        <option value="pemasukan" {{ request('tipe') == 'pemasukan' ? 'selected' : '' }}>Pemasukan</option>
-                        <option value="pengeluaran" {{ request('tipe') == 'pengeluaran' ? 'selected' : '' }}>Pengeluaran</option>
+                        <option value="Sparepart" {{ request('kategori') == 'Sparepart' ? 'selected' : '' }}>Sparepart</option>
+                        <option value="Gaji Teknisi" {{ request('kategori') == 'Gaji Teknisi' ? 'selected' : '' }}>Gaji Teknisi</option>
+                        <option value="Operasional" {{ request('kategori') == 'Operasional' ? 'selected' : '' }}>Operasional</option>
+                        <option value="Lainnya" {{ request('kategori') == 'Lainnya' ? 'selected' : '' }}>Lainnya</option>
                     </select>
                 </div>
                 <button type="submit" class="btn btn-primary mb-2 mr-2"><i class="fas fa-filter"></i> Filter</button>
@@ -170,6 +177,15 @@
                         <div class="form-group">
                             <label for="tanggal">Tanggal Pengeluaran</label>
                             <input type="date" class="form-control" name="tanggal" id="tanggal" required value="{{ date('Y-m-d') }}">
+                        </div>
+                        <div class="form-group">
+                            <label for="kategori">Kategori</label>
+                            <select class="form-control" name="kategori" id="kategori" required>
+                                <option value="Sparepart">Sparepart</option>
+                                <option value="Gaji Teknisi">Gaji Teknisi</option>
+                                <option value="Operasional">Operasional</option>
+                                <option value="Lainnya">Lainnya</option>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label for="deskripsi">Deskripsi / Keterangan</label>
