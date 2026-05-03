@@ -34,14 +34,21 @@ class KeuanganController extends Controller
             $totalPemasukan = $pemasukanQuery->sum('jumlah_bayar');
 
             $pemasukan = $pemasukanQuery->get()->map(function ($item) {
+                $kategori = match($item->jenis_transaksi) {
+                    'booking' => 'Booking Reguler',
+                    'event' => 'Booking Event',
+                    'membership' => 'Paket/Membership',
+                    default => ucfirst($item->jenis_transaksi ?? 'Lainnya'),
+                };
+
                 return [
                     'id' => $item->id,
                     'tanggal_transaksi' => $item->tgl_bayar,
                     'kode_transaksi' => $item->kode_pembayaran,
                     'nominal' => $item->jumlah_bayar,
-                    'deskripsi' => 'Pembayaran Futsal', // Keterangan default pemasukan
+                    'deskripsi' => 'Pemasukan Pembayaran Futsal', // Keterangan default pemasukan
                     'tipe_transaksi' => 'Pemasukan',
-                    'kategori' => '-',
+                    'kategori' => $kategori,
                 ];
             });
 

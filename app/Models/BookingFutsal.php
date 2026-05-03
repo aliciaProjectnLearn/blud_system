@@ -20,11 +20,20 @@ class BookingFutsal extends Model
         'jenis_pembayaran',
         'status',
         'catatan',
+        // OTP fields
+        'otp_code',
+        'otp_expired_at',
+        'otp_attempt',
+        'otp_blocked_until',
+        'otp_sent_at',
     ];
 
     protected $casts = [
-        'start_datetime' => 'datetime',
-        'end_datetime'   => 'datetime',
+        'start_datetime'   => 'datetime',
+        'end_datetime'     => 'datetime',
+        'otp_expired_at'   => 'datetime',
+        'otp_blocked_until'=> 'datetime',
+        'otp_sent_at'      => 'datetime',
     ];
 
     public function getStartWithToleranceAttribute()
@@ -47,10 +56,7 @@ class BookingFutsal extends Model
         return $this->belongsTo(Booking::class, 'booking_id');
     }
 
-    public function user()
-    {
-        return $this->belongsTo(User::class, 'user_id');
-    }
+
 
     public function lapangan()
     {

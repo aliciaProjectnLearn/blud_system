@@ -29,7 +29,7 @@
                 </div>
             </div>
         @else
-            <form action="{{ route('user.futsal.paket.store') }}" method="POST" id="formPaket">
+            <form action="{{ route('user.futsal.paket.store') }}" method="POST" id="formPaket" enctype="multipart/form-data">
                 @csrf
                 <div class="row">
                     @foreach($paketMemberships as $paket)
@@ -90,8 +90,18 @@
                                         <i class="fas fa-qrcode text-primary mr-1"></i> Pembayaran QRIS
                                     </label>
                                     <br>
-                                    <img src="{{ asset('assets/img/qris_blud.png') }}" alt="QRIS" class="img-fluid border shadow-sm mb-2" style="max-height:200px;">
-                                    <p class="small text-muted mb-0">Silahkan scan QR di atas untuk membayar sesuai harga paket. Transaksi Anda akan diproses oleh admin setelah pembayaran terverifikasi.</p>
+                                    <img src="{{ asset('assets/img/qris_blud.png') }}" alt="QRIS" class="img-fluid border shadow-sm mb-3" style="max-height:200px;">
+                                    
+                                    <div class="form-group text-left px-3">
+                                        <label class="small font-weight-bold text-danger"><i class="fas fa-upload mr-1"></i> Upload Bukti Pembayaran (Wajib)</label>
+                                        <div class="custom-file">
+                                            <input type="file" name="bukti_pembayaran" class="custom-file-input" id="bukti_pembayaran" required accept="image/*">
+                                            <label class="custom-file-label small" for="bukti_pembayaran">Pilih gambar bukti transfer...</label>
+                                        </div>
+                                        <p class="x-small text-muted mt-1 mb-0" style="font-size: 10px;">Format: JPG, PNG, JPEG. Maks: 2MB</p>
+                                    </div>
+                                    <hr class="my-2">
+                                    <p class="small text-muted mb-0">Silahkan scan QR di atas untuk membayar sesuai harga paket. Transaksi Anda akan diproses oleh admin setelah bukti pembayaran diverifikasi.</p>
                                 </div>
                             </div>
                         </div>
@@ -127,6 +137,12 @@
                 selectedCard.style.boxShadow = '0 0 0 3px rgba(78,115,223,.2)';
             }
         });
+    });
+    // Tampilkan nama file yang dipilih
+    document.getElementById('bukti_pembayaran').addEventListener('change', function(e) {
+        var fileName = e.target.files[0].name;
+        var nextSibling = e.target.nextElementSibling;
+        nextSibling.innerText = fileName;
     });
 </script>
 @endpush

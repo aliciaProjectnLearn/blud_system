@@ -19,7 +19,7 @@ class BookingController extends Controller
 {
     public function index(Request $request)
     {
-        $query = BookingFutsal::with(['booking', 'user', 'lapangan']);
+        $query = BookingFutsal::with(['booking.user', 'lapangan']);
 
         // Filter by Date (using start_datetime instead of tgl_main)
         if ($request->filled('tanggal')) {
@@ -35,7 +35,7 @@ class BookingController extends Controller
 
         // Search by User Name / Email
         if ($request->filled('search')) {
-            $query->whereHas('user', function ($q) use ($request) {
+            $query->whereHas('booking.user', function ($q) use ($request) {
                 $q->where('name', 'like', '%' . $request->search . '%')
                   ->orWhere('email', 'like', '%' . $request->search . '%');
             });
