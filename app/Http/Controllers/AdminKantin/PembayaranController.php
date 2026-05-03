@@ -71,24 +71,12 @@ class PembayaranController extends Controller
 
         DB::beginTransaction();
         try {
-            $sebelum = $pembayaran->status_pembayaran;
             $pembayaran->update([
                 'tanggal_bayar'      => $request->tgl_bayar,
                 'tipe_pembayaran_id' => $request->tipe_pembayaran_id,
                 'status_pembayaran'  => 'dibayar',
                 'no_kwitansi'        => $noKwitansi,
             ]);
-
-            // Catat audit
-            \App\Services\AuditService::catat(
-                'kantin',
-                'pembayaran_ruko',
-                $pembayaran->id,
-                'pembayaran_diverifikasi',
-                ['status_pembayaran' => $sebelum],
-                ['status_pembayaran' => 'dibayar', 'no_kwitansi' => $noKwitansi],
-                'Termin ' . $pembayaran->termin_ke . ' diverifikasi lunas'
-            );
 
             // Jika Termin 1 lunas, aktifkan status sewa
             if ($pembayaran->termin_ke == 1) {
