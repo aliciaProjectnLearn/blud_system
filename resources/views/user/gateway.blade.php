@@ -9,10 +9,14 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
         * { font-family: 'Poppins', sans-serif; }
+        [x-cloak] { display: none !important; }
         body { background-color: #f8f9fc; -webkit-font-smoothing: antialiased; }
         .card-hover { transition: transform .25s, box-shadow .25s; cursor: pointer; }
         .card-hover:hover { transform: translateY(-6px); box-shadow: 0 12px 32px rgba(78,115,223,.15); }
@@ -35,6 +39,128 @@
         }
         @media (min-width: 768px) { .grid-layanan { grid-template-columns: repeat(2, 1fr); } }
         @media (min-width: 1024px) { .grid-layanan { grid-template-columns: repeat(4, 1fr); } }
+
+        /* Premium Modal Styling */
+        .modal-content-premium {
+            border-radius: 24px;
+            border: none;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+        }
+        .modal-header-premium {
+            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            padding: 2rem;
+            border: none;
+            position: relative;
+        }
+        .modal-header-premium .modal-title {
+            color: white !important;
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+        .modal-header-premium .close {
+            color: white;
+            opacity: 0.8;
+            text-shadow: none;
+            transition: all 0.2s;
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            outline: none;
+        }
+        .modal-header-premium .close:hover {
+            opacity: 1;
+            transform: rotate(90deg);
+        }
+        .premium-input {
+            border-radius: 12px !important;
+            border: 2px solid #e3e6f0 !important;
+            padding: 0.75rem 1rem;
+            transition: all 0.2s;
+            font-size: 1rem;
+        }
+        .premium-input:focus {
+            border-color: #4e73df !important;
+            box-shadow: 0 0 0 0.25rem rgba(78, 115, 223, 0.1) !important;
+        }
+        .otp-container {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 2rem 0;
+        }
+        .otp-field {
+            width: 45px;
+            height: 55px;
+            border-radius: 12px;
+            border: 2px solid #e3e6f0;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #4e73df;
+            background-color: #f8f9fc;
+            transition: all 0.2s;
+        }
+        .otp-field:focus {
+            border-color: #4e73df;
+            background-color: white;
+            box-shadow: 0 0 0 0.25rem rgba(78, 115, 223, 0.1);
+            outline: none;
+            transform: translateY(-2px);
+        }
+        .btn-premium {
+            border-radius: 12px !important;
+            padding: 0.8rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .btn-premium-primary {
+            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%) !important;
+            color: white !important;
+            border: none !important;
+            box-shadow: 0 4px 15px rgba(78, 115, 223, 0.3) !important;
+        }
+        .btn-premium-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(78, 115, 223, 0.4) !important;
+        }
+        .btn-premium-primary:active {
+            transform: translateY(0);
+        }
+        .btn-premium-primary:disabled {
+            background: #d1d3e2 !important;
+            box-shadow: none !important;
+            transform: none;
+        }
+        .status-icon-box {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-size: 2rem;
+        }
+        .success-glow {
+            background: rgba(28, 200, 138, 0.1);
+            color: #1cc88a;
+            box-shadow: 0 0 20px rgba(28, 200, 138, 0.2);
+        }
+        .warning-glow {
+            background: rgba(246, 194, 62, 0.1);
+            color: #f6c23e;
+            box-shadow: 0 0 20px rgba(246, 194, 62, 0.2);
+        }
+        .alert-danger-soft {
+            background-color: #fff5f5;
+            color: #e53e3e;
+            border: 1px solid #fed7d7;
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+        }
     </style>
 </head>
 <body class="min-h-screen">
@@ -52,6 +178,16 @@
             </div>
 
             {{-- Jalur Publik: Tidak ada tombol login/dashboard di sini --}}
+            <button type="button" 
+                @click="$dispatch('open-cek-booking')"
+                class="inline-flex items-center gap-2 text-sm font-semibold text-white 
+                       px-4 py-2 rounded-lg transition-all hover:opacity-90 active:scale-95"
+                style="background: linear-gradient(135deg, #4e73df 0%, #224abe 100%); 
+                       box-shadow: 0 4px 12px rgba(78,115,223,0.35);">
+                <i class="fas fa-search text-xs"></i>
+                Cek Booking
+            </button>
+ 
         </nav>
     </header>
 
@@ -275,6 +411,360 @@
             </div>
         </div>
     </footer>
+
+    <!-- Modal Cek Booking -->
+    <!-- Modal Cek Booking — Alpine.js -->
+<div 
+    x-data="cekBookingModal()"
+    @open-cek-booking.window="buka()"
+    x-show="tampil"
+    x-cloak
+    class="fixed inset-0 z-50 flex items-center justify-center p-4"
+    style="background: rgba(0,0,0,0.5);"
+    @click.self="tutup()">
+
+    <div 
+        x-show="tampil"
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0 scale-95"
+        x-transition:enter-end="opacity-100 scale-100"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100 scale-100"
+        x-transition:leave-end="opacity-0 scale-95"
+        class="bg-white w-full rounded-2xl shadow-2xl overflow-hidden"
+        style="max-width: 420px;">
+
+        {{-- Header --}}
+        <div class="text-white p-6 relative"
+             style="background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);">
+            <h5 class="font-bold text-xl mb-1">
+                <i class="fas fa-search mr-2"></i> Cek Status Booking
+            </h5>
+            <p class="text-sm mb-0" style="opacity: 0.85;">
+                Masukkan nomor WhatsApp untuk melihat booking Anda
+            </p>
+            <button @click="tutup()" 
+                    class="text-white hover:rotate-90 transition-all border-0 bg-transparent"
+                    style="position: absolute; top: 1.25rem; right: 1.25rem; opacity: 0.7; font-size: 1.5rem; line-height: 1; outline: none; cursor: pointer;">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        {{-- Body --}}
+        <div class="p-6">
+
+            {{-- Step 1: Input HP --}}
+            <div x-show="step === 'hp'">
+                <div class="text-center mb-6">
+                    <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3"
+                         style="background: linear-gradient(135deg, #4e73df, #224abe);">
+                        <i class="fab fa-whatsapp text-white text-2xl"></i>
+                    </div>
+                    <p class="text-gray-500 text-sm">
+                        Masukkan nomor WhatsApp yang terdaftar<br>untuk menerima kode OTP
+                    </p>
+                </div>
+
+                <div x-show="alertHp" x-text="alertHp"
+                     class="mb-3 p-3 rounded-lg text-sm"
+                     :class="alertHpType === 'danger' ? 'bg-red-50 text-red-600 border border-red-200' : 'bg-green-50 text-green-600 border border-green-200'">
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Nomor WhatsApp</label>
+                    <div class="flex">
+                        <span class="flex items-center px-3 bg-gray-100 border border-r-0 border-gray-300 rounded-l-xl text-sm font-bold text-gray-600">+62</span>
+                        <input type="text" x-model="noHp"
+                               @keyup.enter="kirimOtp()"
+                               class="flex-1 border border-gray-300 rounded-r-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                               placeholder="812xxxx"
+                               inputmode="numeric"
+                               maxlength="13">
+                    </div>
+                    <p class="text-xs text-gray-400 mt-1">Contoh: 81234567890</p>
+                </div>
+
+                <button @click="kirimOtp()" 
+                        :disabled="loading"
+                        class="w-full py-3 px-4 rounded-xl text-white font-semibold transition-all"
+                        style="background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);">
+                    <span x-show="!loading"><i class="fas fa-paper-plane mr-2"></i> Dapatkan Kode OTP</span>
+                    <span x-show="loading"><i class="fas fa-spinner fa-spin mr-2"></i> Mengirim...</span>
+                </button>
+            </div>
+
+            {{-- Step 2: Input OTP --}}
+            <div x-show="step === 'otp'">
+                <div class="text-center mb-6">
+                    <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3"
+                         style="background: #eef0fb;">
+                        <i class="fas fa-shield-alt text-2xl" style="color: #4e73df;"></i>
+                    </div>
+                    <p class="font-semibold text-gray-800 mb-1">Verifikasi OTP</p>
+                    <p class="text-gray-500 text-sm">
+                        Jika nomor Anda terdaftar, kode OTP telah dikirim ke WhatsApp.<br>
+                        <span class="text-xs text-gray-400">
+                            Tidak menerima kode? Pastikan nomor terdaftar di sistem.
+                        </span>
+                    </p>
+                </div>
+
+                <div x-show="alertOtp" x-text="alertOtp"
+                     class="mb-3 p-3 rounded-lg text-sm"
+                     :class="alertOtpType === 'danger' ? 'bg-red-50 text-red-600 border border-red-200' : 'bg-green-50 text-green-600 border border-green-200'">
+                </div>
+
+                {{-- 6 OTP boxes --}}
+                <div class="flex justify-center mb-4" style="gap: 8px;">
+                    <template x-for="(digit, idx) in otpDigits" :key="idx">
+                        <input type="text"
+                               class="text-center font-bold border-2 rounded-xl transition-all focus:outline-none"
+                               :class="digit ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-gray-50'"
+                               style="width: 40px; height: 46px; font-size: 1.2rem; color: #4e73df;"
+                               maxlength="1"
+                               inputmode="numeric"
+                               :id="'otp-alpine-' + idx"
+                               @input="handleOtpInput($event, idx)"
+                               @keydown="handleOtpKeydown($event, idx)"
+                               @paste.prevent="handleOtpPaste($event)">
+                    </template>
+                </div>
+
+                <div class="text-center mb-4">
+                    <span class="text-sm px-3 py-1 rounded-full border text-gray-500"
+                          :class="otpSisa <= 30 ? 'border-red-300 text-red-500' : 'border-gray-200'">
+                        <i class="fas fa-clock mr-1"></i>
+                        Berlaku: <span x-text="formatTime(otpSisa)"></span>
+                    </span>
+                </div>
+
+                <button @click="verifOtp()"
+                        :disabled="otpDigits.join('').length < 6 || loading"
+                        class="w-full py-3 px-4 rounded-xl text-white font-semibold transition-all mb-3 disabled:opacity-50"
+                        style="background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);">
+                    <span x-show="!loading"><i class="fas fa-check-circle mr-2"></i> Verifikasi & Lihat Booking</span>
+                    <span x-show="loading"><i class="fas fa-spinner fa-spin mr-2"></i> Memverifikasi...</span>
+                </button>
+
+                <div class="flex justify-center items-center gap-2 text-sm">
+                    <button @click="reset()" 
+                            class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-arrow-left mr-1"></i> Ganti nomor
+                    </button>
+                    <span class="text-gray-300">|</span>
+                    <button @click="resendOtp()" 
+                            :disabled="resendSisa > 0"
+                            class="text-blue-500 disabled:text-gray-400 disabled:cursor-not-allowed">
+                        <span x-show="resendSisa > 0">Kirim Ulang (<span x-text="resendSisa"></span>s)</span>
+                        <span x-show="resendSisa === 0">Kirim Ulang</span>
+                    </button>
+                </div>
+            </div>
+
+        </div> 
+    </div>
+</div>
+
+    <script>
+function cekBookingModal() {
+    return {
+        tampil: false,
+        step: 'hp',
+        noHp: '',
+        otpDigits: ['','','','','',''],
+        loading: false,
+        alertHp: '',
+        alertHpType: 'danger',
+        alertOtp: '',
+        alertOtpType: 'danger',
+        otpSisa: 180,
+        resendSisa: 60,
+        otpTimer: null,
+        resendTimer: null,
+
+        buka() {
+            this.tampil = true;
+            document.body.style.overflow = 'hidden';
+
+            // Jika step otp tapi timer sudah habis → reset ke hp
+            if (this.step === 'otp' && this.otpSisa <= 0) {
+                this.resetKeHp();
+            }
+        },
+
+        tutup() {
+            this.tampil = false;
+            document.body.style.overflow = '';
+        },
+
+        reset() {
+            this.resetKeHp();
+            this.noHp = '';
+            this.alertHp = '';
+        },
+
+        resetKeHp() {
+            this.step = 'hp';
+            this.otpDigits = ['','','','','',''];
+            this.alertOtp = '';
+            clearInterval(this.otpTimer);
+            clearInterval(this.resendTimer);
+            this.otpSisa = 180;
+            this.resendSisa = 60;
+        },
+
+        formatTime(s) {
+            return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0');
+        },
+
+        handleOtpInput(e, idx) {
+            const val = e.target.value.replace(/\D/g,'');
+            e.target.value = val;
+            this.otpDigits[idx] = val;
+            if (val && idx < 5) {
+                document.getElementById('otp-alpine-' + (idx+1))?.focus();
+            }
+        },
+
+        handleOtpKeydown(e, idx) {
+            if (e.key === 'Backspace' && !this.otpDigits[idx] && idx > 0) {
+                this.otpDigits[idx-1] = '';
+                document.getElementById('otp-alpine-' + (idx-1))?.focus();
+            }
+        },
+
+        handleOtpPaste(e) {
+            const text = (e.clipboardData||window.clipboardData).getData('text').replace(/\D/g,'');
+            text.split('').forEach((ch, i) => {
+                if (i < 6) this.otpDigits[i] = ch;
+            });
+            // Update input values
+            this.$nextTick(() => {
+                this.otpDigits.forEach((d, i) => {
+                    const el = document.getElementById('otp-alpine-' + i);
+                    if (el) el.value = d;
+                });
+            });
+        },
+
+        async kirimOtp() {
+            const hp = this.noHp.replace(/\D/g,'');
+            if (!hp || hp.length < 9) {
+                this.alertHp = 'Masukkan nomor WhatsApp yang valid.';
+                this.alertHpType = 'danger';
+                return;
+            }
+
+            this.loading = true;
+            this.alertHp = '';
+
+            try {
+                const res = await fetch('{{ route("user.cek.booking.kirim-otp") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+                    },
+                    body: JSON.stringify({ no_hp: '62' + hp })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    this.alertHp = '';
+                    this.step = 'otp';
+                    this.startOtpTimer();
+                    this.startResendTimer();
+                } else {
+                    // Bagian ini sekarang jarang tersentuh karena controller selalu return sukses
+                    this.alertHp = data.message || 'Terjadi kesalahan. Silakan coba lagi.';
+                    this.alertHpType = 'danger';
+                }
+            } catch(e) {
+                this.alertHp = 'Terjadi kesalahan. Coba lagi.';
+                this.alertHpType = 'danger';
+            }
+
+            this.loading = false;
+        },
+
+        async verifOtp() {
+            const otp = this.otpDigits.join('');
+            if (otp.length < 6) return;
+
+            this.loading = true;
+            this.alertOtp = '';
+
+            try {
+                const res = await fetch('{{ route("user.cek.booking.verifikasi") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+                    },
+                    body: JSON.stringify({ no_hp: '62' + this.noHp.replace(/\D/g,''), otp: otp })
+                });
+                const data = await res.json();
+
+                if (data.success && data.redirect) {
+                    window.location.href = data.redirect;
+                } else {
+                    this.alertOtp = data.message || 'OTP salah atau kadaluarsa.';
+                    this.alertOtpType = 'danger';
+                    this.loading = false;
+                }
+            } catch(e) {
+                this.alertOtp = 'Terjadi kesalahan. Coba lagi.';
+                this.alertOtpType = 'danger';
+                this.loading = false;
+            }
+        },
+
+        async resendOtp() {
+            if (this.resendSisa > 0) return;
+            clearInterval(this.resendTimer);
+
+            try {
+                await fetch('{{ route("user.cek.booking.kirim-otp") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+                    },
+                    body: JSON.stringify({ no_hp: '62' + this.noHp.replace(/\D/g,'') })
+                });
+                this.alertOtp = 'OTP baru telah dikirim.';
+                this.alertOtpType = 'success';
+                this.otpSisa = 180;
+                this.startOtpTimer();
+                this.startResendTimer();
+            } catch(e) {}
+        },
+
+        startOtpTimer() {
+            this.otpSisa = 180;
+            clearInterval(this.otpTimer);
+            this.otpTimer = setInterval(() => {
+                this.otpSisa--;
+                if (this.otpSisa <= 0) {
+                    clearInterval(this.otpTimer);
+                    // Timer habis → tampilkan pesan di step OTP
+                    this.alertOtp = 'Kode OTP sudah kadaluarsa. Klik "Kirim Ulang" atau ganti nomor.';
+                    this.alertOtpType = 'danger';
+                }
+            }, 1000);
+        },
+
+        startResendTimer() {
+            this.resendSisa = 60;
+            clearInterval(this.resendTimer);
+            this.resendTimer = setInterval(() => {
+                this.resendSisa--;
+                if (this.resendSisa <= 0) clearInterval(this.resendTimer);
+            }, 1000);
+        }
+    }
+}
+</script>
 
     @if(session('booking_success'))
     <script>

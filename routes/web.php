@@ -31,11 +31,28 @@ use App\Http\Controllers\KasirServis\DashboardController as KasirDashboardContro
 use App\Http\Controllers\User\DashboardUserController;
 use App\Http\Controllers\KasirServis\BookingKasirController;
 use App\Http\Controllers\User\UserServisController;
+use App\Http\Controllers\User\CekBookingController;
+use App\Http\Controllers\User\OtpController;
 
 Route::get('/', [LandingController::class, 'index'])->name('home');
 
 Route::prefix('user')->name('user.')->group(function () {
     Route::get('/', [LandingController::class, 'index'])->name('gateway');
+
+    // Fitur Cek Booking via Nomor HP (Poin 2)
+    Route::post('/cek-booking/otp', [CekBookingController::class, 'requestOtp'])->name('cek-booking.otp')->middleware('throttle:10,1');
+    Route::post('/cek-booking/verify', [CekBookingController::class, 'verifyOtp'])->name('cek-booking.verify')->middleware('throttle:10,1');
+    
+    // Revised Cek Booking Routes (Modal Flow) - Hardened with Throttle
+    Route::middleware(['throttle:5,1'])->group(function () {
+        Route::post('/cek-booking/kirim-otp', [CekBookingController::class, 'kirimOtp'])->name('cek.booking.kirim-otp');
+    });
+
+    Route::middleware(['throttle:10,1'])->group(function () {
+        Route::post('/cek-booking/verifikasi', [CekBookingController::class, 'verifikasi'])->name('cek.booking.verifikasi');
+    });
+    
+    Route::get('/cek-booking/riwayat', [CekBookingController::class, 'riwayat'])->name('cek.booking.riwayat');
     
     // Token-Based Access (Detail, Pembatalan) — Riwayat dihapus (Poin 2)
     Route::get('/access/{token}', [App\Http\Controllers\User\TokenAccessController::class, 'show'])->name('token.show');
@@ -66,8 +83,17 @@ Route::prefix('user')->name('user.')->group(function () {
         Route::get('/katalog', [\App\Http\Controllers\User\KantinController::class, 'katalog'])->name('katalog');
         Route::get('/booking/{ruko_id}', [\App\Http\Controllers\User\KantinController::class, 'formBooking'])->name('booking');
         Route::post('/booking', [\App\Http\Controllers\User\KantinController::class, 'simpanBooking'])->name('booking.store');
+        Route::post('/check-phone', [\App\Http\Controllers\User\KantinController::class, 'checkPhone'])->name('check-phone');
+        Route::get('/cek-hp', [\App\Http\Controllers\User\KantinController::class, 'cekHp'])->name('cek.hp');
+        Route::post('/check-nik', [\App\Http\Controllers\User\KantinController::class, 'checkNik'])->name('check-nik');
         Route::get('/unit/{id}/detail', [\App\Http\Controllers\User\KantinController::class, 'unitDetail'])->name('unit.detail');
 
+        // OTP & Session flow
+        Route::prefix('otp')->name('otp.')->group(function () {
+            Route::get('/{token}', [OtpController::class, 'form'])->name('form');
+            Route::post('/{token}/verifikasi', [OtpController::class, 'verifikasi'])->name('verifikasi');
+            Route::get('/{token}/kirim-ulang', [OtpController::class, 'kirimUlang'])->name('kirim-ulang');
+        });
         Route::get('/sewa/{token}', [\App\Http\Controllers\User\SewaTokenController::class, 'detail'])->name('sewa.detail');
         Route::get('/sewa/{token}/riwayat', [\App\Http\Controllers\User\SewaTokenController::class, 'riwayat'])->name('sewa.riwayat');
         Route::get('/sewa/{token}/pembayaran', [\App\Http\Controllers\User\SewaTokenController::class, 'pembayaran'])->name('sewa.pembayaran');
@@ -81,9 +107,9 @@ Route::prefix('user')->name('user.')->group(function () {
         Route::post('/', [App\Http\Controllers\User\AcBookingController::class, 'store'])->name('store');
         Route::get('/layanan', [App\Http\Controllers\User\AcBookingController::class, 'layanan'])->name('layanan');
         
-        // Token Based Access
-        Route::get('/booking/{token}', [App\Http\Controllers\User\AcTokenController::class, 'show'])->name('token.show');
-        Route::get('/booking/{token}/history', [App\Http\Controllers\User\AcTokenController::class, 'riwayat'])->name('token.riwayat');
+        // // Token Based Access
+        // Route::get('/booking/{token}', [App\Http\Controllers\User\AcTokenController::class, 'show'])->name('token.show');
+        // Route::get('/booking/{token}/history', [App\Http\Controllers\User\AcTokenController::class, 'riwayat'])->name('token.riwayat');
     });
 
     Route::prefix('servis')->name('servis.')->group(function () {
@@ -184,7 +210,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Superadmin|Adm
         Route::get('laporan/export-excel', [\App\Http\Controllers\AdminKantin\LaporanController::class, 'exportExcel'])->name('laporan.export.excel');
         Route::get('keuangan', [\App\Http\Controllers\AdminKantin\KeuanganController::class, 'index'])->name('keuangan.index');
         Route::post('keuangan', [\App\Http\Controllers\AdminKantin\KeuanganController::class, 'store'])->name('keuangan.store');
-        
+
+        // Audit Log
+        Route::get('audit', [\App\Http\Controllers\AdminKantin\AuditLogController::class, 'index'])->name('audit.index');
+        Route::get('audit/{id}', [\App\Http\Controllers\AdminKantin\AuditLogController::class, 'show'])->name('audit.show');
     });
 
     // Admin AC
