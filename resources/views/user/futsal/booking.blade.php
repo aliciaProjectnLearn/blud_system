@@ -43,7 +43,7 @@
                     </h6>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('user.futsal.booking.store') }}" method="POST" enctype="multipart/form-data">
+                    <form id="bookingForm" action="{{ route('user.futsal.booking.store') }}" method="POST" enctype="multipart/form-data" @submit.prevent="submitForm($event)">
                         @csrf
 
                         {{-- Validation Errors --}}
@@ -72,8 +72,18 @@
                                     <label class="font-weight-bold text-gray-700">
                                         <i class="fas fa-phone text-primary mr-1"></i> Nomor WhatsApp
                                     </label>
-                                    <input type="tel" name="no_hp" class="form-control" x-model="form.no_hp" required placeholder="08xxxxxxxxxx">
+                                    <input type="tel" name="no_hp" id="no_hp" class="form-control" x-model="form.no_hp" required placeholder="08xxxxxxxxxx"
+                                           @blur="onNoHpBlur()">
                                     <small x-show="form.no_hp && !isNoHpValid" class="text-danger">Nomor HP harus diawali 08 dan minimal 10 digit.</small>
+                                    {{-- Error booking aktif (real-time AJAX check) --}}
+                                    <div id="error-booking-aktif"
+                                         x-show="hasActiveBooking"
+                                         x-cloak
+                                         class="alert alert-danger mt-2 py-2 mb-0"
+                                         style="font-size: 0.85rem;">
+                                        <i class="fas fa-exclamation-circle mr-1"></i>
+                                        <span x-text="activeBookingPesan"></span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -671,6 +681,9 @@ function bookingForm() {
         membershipData: null,
         checkingMembership: false,
         eventPesan: '',
+        hasActiveBooking: false,
+        activeBookingPesan: '',
+        checkingBookingAktif: false,
 
         form: {
             nama_pemesan: '{{ old('nama_pemesan', '') }}',
@@ -758,6 +771,7 @@ function bookingForm() {
 
         get isFormValid() {
             if (!this.form.nama_pemesan || !this.isNoHpValid) return false;
+            if (this.hasActiveBooking) return false;
 
             if (this.form.type === 'event') {
                 return this.form.lapangan_id && 
@@ -789,6 +803,9 @@ function bookingForm() {
 
             // Watch no_hp
             this.$watch('form.no_hp', (val) => {
+                // Reset booking aktif saat nomor berubah
+                this.hasActiveBooking = false;
+                this.activeBookingPesan = '';
                 if (val && val.startsWith('08') && val.length >= 10) {
                     this.checkMembership(val);
                 } else {
@@ -838,6 +855,34 @@ function bookingForm() {
             if (this.form.metode_pembayaran === 'membership') {
                 this.form.metode_pembayaran = 'transfer';
             }
+        },
+
+        onNoHpBlur() {
+            const val = this.form.no_hp ? this.form.no_hp.trim() : '';
+            if (!val || !val.startsWith('08') || val.length < 10) return;
+            this.checkBookingAktif(val);
+        },
+
+        checkBookingAktif(noHp) {
+            this.checkingBookingAktif = true;
+            axios.post('{{ route('user.futsal.check.booking.aktif') }}', { no_hp: noHp })
+                .then(res => {
+                    if (res.data.aktif) {
+                        this.hasActiveBooking = true;
+                        this.activeBookingPesan = res.data.pesan;
+                    } else {
+                        this.hasActiveBooking = false;
+                        this.activeBookingPesan = '';
+                    }
+                })
+                .catch(err => {
+                    console.error('Gagal cek booking aktif:', err);
+                    // Gagal cek tidak blokir user — fallback ke validasi server
+                    this.hasActiveBooking = false;
+                })
+                .finally(() => {
+                    this.checkingBookingAktif = false;
+                });
         },
 
         onLapanganChange() {
@@ -922,8 +967,27 @@ function bookingForm() {
 
         submitForm(e) {
             if (!this.isFormValid || this.submitting) return;
-            this.submitting = true;
-            e.target.submit();
+
+            if (this.form.metode_pembayaran === 'membership' && !this.isFirstMembership) {
+                Swal.fire({
+                    title: 'Konfirmasi Booking Paket',
+                    text: 'Anda yakin ingin booking menggunakan metode Paket? Kuota paket Anda akan otomatis terpotong.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Ya, Booking!',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        this.submitting = true;
+                        e.target.submit();
+                    }
+                });
+            } else {
+                this.submitting = true;
+                e.target.submit();
+            }
         },
 
         formatTime(time) {

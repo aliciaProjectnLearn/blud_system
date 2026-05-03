@@ -105,7 +105,7 @@
                             <th>Nama Pelanggan</th>
                             <th>Tgl Booking</th>
                             <th>Tgl Pembayaran</th>
-                            <th>Jenis Pembayaran</th>
+                            <th>Tipe & Metode Bayar</th>
                             <th class="text-right">Jumlah Bayar</th>
                             <th class="text-center">Status</th>
                         </tr>
@@ -114,22 +114,55 @@
                         @forelse ($laporan as $index => $item)
                             <tr>
                                 <td class="text-center align-middle">{{ $index + 1 }}</td>
-                                <td class="align-middle">{{ $item->booking->user->name ?? '-' }}</td>
                                 <td class="align-middle">
-                                    @php $bf = $item->booking->bookingFutsal; @endphp
-                                    @if($bf)
-                                        @if($bf->type === 'event')
-                                            {{ \Carbon\Carbon::parse($bf->start_datetime)->format('d-m-Y') }} s/d {{ \Carbon\Carbon::parse($bf->end_datetime)->format('d-m-Y') }}
-                                        @else
-                                            {{ \Carbon\Carbon::parse($bf->start_datetime)->format('d-m-Y H:i') }}
-                                        @endif
+                                    @if($item->jenis_transaksi === 'membership')
+                                        {{ $item->membership->user->nama_lengkap ?? ($item->membership->user->name ?? '-') }}
                                     @else
-                                        -
+                                        {{ $item->booking->user->name ?? '-' }}
                                     @endif
                                 </td>
-                                <td class="align-middle">{{ \Carbon\Carbon::parse($item->tgl_bayar)->format('d-m-Y H:i') }}</td>
                                 <td class="align-middle">
-                                    {{ $item->booking->bookingFutsal->jenis_pembayaran ?? ($item->tipePembayaran->nama_tipe ?? '-') }}
+                                    @if($item->jenis_transaksi === 'membership')
+                                        {{ \Carbon\Carbon::parse($item->created_at)->format('d-m-Y H:i') }} (Pembelian Paket)
+                                    @else
+                                        @php $bf = $item->booking->bookingFutsal ?? null; @endphp
+                                        @if($bf)
+                                            @if($bf->jenis_pembayaran === 'event')
+                                                {{ \Carbon\Carbon::parse($bf->start_datetime)->format('d-m-Y') }} s/d {{ \Carbon\Carbon::parse($bf->end_datetime)->format('d-m-Y') }}
+                                            @else
+                                                {{ \Carbon\Carbon::parse($bf->start_datetime)->format('d-m-Y H:i') }}
+                                            @endif
+                                        @else
+                                            -
+                                        @endif
+                                    @endif
+                                </td>
+                                <td class="align-middle">{{ $item->tgl_bayar ? \Carbon\Carbon::parse($item->tgl_bayar)->format('d-m-Y H:i') : '-' }}</td>
+                                <td class="align-middle">
+                                    @php
+                                        $namaMetodeBayar = $item->tipePembayaran->nama ?? null;
+                                        if($item->jenis_transaksi === 'membership') {
+                                            $labelTipe = 'Membership';
+                                            $badgeTipe = 'badge-info';
+                                        } else {
+                                            $bf = $item->booking->bookingFutsal ?? null;
+                                            $tipeBooking = $bf->jenis_pembayaran ?? 'reguler';
+                                            $labelTipe = match($tipeBooking) {
+                                                'event'  => 'Event',
+                                                'paket'  => 'Paket',
+                                                default  => 'Reguler',
+                                            };
+                                            $badgeTipe = match($tipeBooking) {
+                                                'event'  => 'badge-warning',
+                                                'paket'  => 'badge-info',
+                                                default  => 'badge-primary',
+                                            };
+                                        }
+                                    @endphp
+                                    <span class="badge {{ $badgeTipe }}">{{ $labelTipe }}</span>
+                                    @if($namaMetodeBayar)
+                                        <div class="small text-muted mt-1">{{ $namaMetodeBayar }}</div>
+                                    @endif
                                 </td>
                                 <td class="align-middle text-right font-weight-bold">
                                     Rp {{ number_format($item->jumlah_bayar, 0, ',', '.') }}

@@ -57,12 +57,35 @@ class FutsalBookingController extends Controller
         ]);
     }
 
+    public function checkBookingAktif(Request $request)
+    {
+        $request->validate(['no_hp' => 'required|string']);
+
+        $bookingAktif = BookingFutsal::where('no_hp', $request->no_hp)
+            ->where('status', '!=', 'dibatalkan')
+            ->where('end_datetime', '>=', now())
+            ->first();
+
+        if ($bookingAktif) {
+            return response()->json([
+                'aktif' => true,
+                'pesan' => 'Nomor ini masih memiliki booking aktif ('
+                    . $bookingAktif->status . ') sampai jam '
+                    . Carbon::parse($bookingAktif->end_datetime)->format('H:i')
+                    . '. Selesaikan atau batalkan dulu.',
+            ]);
+        }
+
+        return response()->json(['aktif' => false]);
+    }
+
     public function paketStore(Request $request)
     {
         $request->validate([
             'paket_membership_id' => 'required|exists:paket_membership,id',
             'nama_pemesan' => 'required|string|max:255',
             'no_hp' => 'required|string|max:20',
+            'bukti_pembayaran' => 'required|image|mimes:jpg,png,jpeg|max:2048',
         ]);
 
         $paket = PaketMembership::findOrFail($request->paket_membership_id);
@@ -83,25 +106,30 @@ class FutsalBookingController extends Controller
 
         DB::beginTransaction();
         try {
-            $membership = Membership::create([
-                'user_id'             => $user->id,
-                'paket_membership_id' => $paket->id,
-                'status'              => 'aktif', // Langsung aktif
-                'sisa_kuota'          => $paket->jumlah_kuota,
-                'total_kuota'         => $paket->jumlah_kuota,
-                'tgl_daftar'          => now()->toDateString(),
-            ]);
+            // Simpan bukti pembayaran
+            $buktiPath = null;
+            if ($request->hasFile('bukti_pembayaran')) {
+                $buktiPath = $request->file('bukti_pembayaran')->store('bukti_pembayaran_membership', 'public');
+            }
 
             $pembayaran = PembayaranFutsal::create([
                 'booking_id' => null, 
                 'tipe_pembayaran_id' => 3, // QRIS
                 'jumlah_bayar' => $paket->harga,
                 'jenis_transaksi' => 'membership',
-                'status' => 'verifikasi' // Langsung lunas/verifikasi
+                'status' => 'menunggu', // Berubah dari 'verifikasi' ke 'menunggu'
+                'bukti' => $buktiPath,
             ]);
-            
-            $membership->transaksi_id = $pembayaran->id;
-            $membership->save();
+
+            $membership = Membership::create([
+                'user_id'             => $user->id,
+                'paket_membership_id' => $paket->id,
+                'status'              => 'menunggu', // Berubah dari 'aktif' ke 'menunggu'
+                'sisa_kuota'          => $paket->jumlah_kuota,
+                'total_kuota'         => $paket->jumlah_kuota,
+                'tgl_daftar'          => now()->toDateString(),
+                'transaksi_id'        => $pembayaran->id,
+            ]);
 
             // Kirim Notifikasi WA
             $apiToken = env('FONNTE_TOKEN');
@@ -112,12 +140,13 @@ class FutsalBookingController extends Controller
             $harga = number_format($paket->harga, 0, ',', '.');
 
             $pesan  = "Halo *{$namaPemesan}* 👋\n\n";
-            $pesan .= "Pembelian membership futsal Anda telah *Aktif* ✅\n\n";
-            $pesan .= "📋 *Detail Membership:*\n";
+            $pesan .= "Pembelian paket membership futsal Anda telah diterima. ✅\n\n";
+            $pesan .= "📋 *Detail Pesanan:*\n";
             $pesan .= "📦 Paket   : *{$namaPaket}*\n";
             $pesan .= "⏱️ Kuota   : *{$kuota} Jam*\n";
-            $pesan .= "💰 Harga   : *Rp {$harga}*\n\n";
-            $pesan .= "Anda sekarang dapat menggunakan kuota membership ini untuk melakukan booking lapangan tanpa perlu membayar lagi per sesi.\n\n";
+            $pesan .= "💰 Harga   : *Rp {$harga}*\n";
+            $pesan .= "📍 Status  : *Menunggu Verifikasi Admin*\n\n";
+            $pesan .= "Pesanan Anda sedang dalam proses verifikasi pembayaran. Anda akan menerima notifikasi otomatis jika paket telah diaktifkan oleh admin.\n\n";
             $pesan .= "Terima kasih 🙏\n— Admin Futsal BLUD SMK";
 
             try {
@@ -135,7 +164,7 @@ class FutsalBookingController extends Controller
 
             DB::commit();
             return redirect()->route('user.futsal.landing')
-                ->with('success', 'Pendaftaran membership berhasil! Akun Anda sudah aktif dan kuota siap digunakan.');
+                ->with('success', 'Pembelian paket berhasil! Pesanan Anda sedang menunggu verifikasi admin. Kami akan mengaktifkan paket Anda segera.');
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -199,12 +228,10 @@ class FutsalBookingController extends Controller
             ->orderBy('jam_mulai')
             ->get(['id', 'jam_mulai', 'jam_selesai', 'status']);
 
-        // School Hour Restriction Logic
-        // Monday (Senin) to Friday (Jumat) usually school hours are until 15:00
-        $isSchoolDay = in_array(ucfirst($hariIndo), ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat']);
-        $schoolEndTime = '15:00:00';
+        // Cek Jam Blokir (dari pengaturan admin, fleksibel - menggantikan hardcode jam sekolah)
+        $pengaturanBlokir = \App\Models\Pengaturan::first();
 
-        $slots = $jadwals->map(function ($slot) use ($request, $isSchoolDay, $schoolEndTime) {
+        $slots = $jadwals->map(function ($slot) use ($request, $pengaturanBlokir, $hariIndo) {
             $startDatetime = Carbon::parse($request->tanggal . ' ' . $slot->jam_mulai);
             $endDatetime = Carbon::parse($request->tanggal . ' ' . $slot->jam_selesai);
 
@@ -217,10 +244,18 @@ class FutsalBookingController extends Controller
                 })
                 ->exists();
 
-            // 2. Check School Hour Restriction
+            // 2. Cek Jam Blokir dari database (menggantikan hardcode jam sekolah)
             $isSchoolHour = false;
-            if ($isSchoolDay && $slot->jam_mulai < $schoolEndTime) {
-                $isSchoolHour = true;
+            if ($pengaturanBlokir && $pengaturanBlokir->jam_blokir_aktif) {
+                $hariBlokir = explode(',', $pengaturanBlokir->hari_blokir ?? '');
+                $isHariBlokir = in_array(ucfirst($hariIndo), $hariBlokir);
+                if ($isHariBlokir) {
+                    $jamBlokirMulai = $pengaturanBlokir->jam_blokir_mulai ?? '07:00:00';
+                    $jamBlokirSelesai = $pengaturanBlokir->jam_blokir_selesai ?? '15:00:00';
+                    if ($slot->jam_mulai >= $jamBlokirMulai && $slot->jam_mulai < $jamBlokirSelesai) {
+                        $isSchoolHour = true;
+                    }
+                }
             }
                 
             $booked = $isBooked || $slot->status === 'terisi' || $isSchoolHour;
@@ -283,6 +318,16 @@ class FutsalBookingController extends Controller
             $end   = $start->copy()->addHours((int) $request->durasi);
         }
 
+        // Cek apakah no_hp sudah punya booking aktif (yang belum selesai)
+        $bookingAktif = BookingFutsal::where('no_hp', $request->no_hp)
+            ->where('status', '!=', 'dibatalkan')
+            ->where('end_datetime', '>=', now())
+            ->exists();
+
+        if ($bookingAktif) {
+            return back()->withInput()->with('error', 'Anda masih memiliki booking aktif. Selesaikan atau batalkan dulu sebelum membuat booking baru.');
+        }
+
         // 3. Cek konflik jadwal di booking_futsal
         $conflict = BookingFutsal::where('lapangan_id', $request->lapangan_id)
             ->where('status', '!=', 'dibatalkan')
@@ -318,11 +363,27 @@ class FutsalBookingController extends Controller
                 return back()->withInput()->with('error', 'Di luar jam operasional');
             }
 
-            // Cek Jam Sekolah (Senin-Jumat sebelum jam 15:00)
-            $isSchoolDay = in_array(ucfirst($hariIndo), ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat']);
-            $schoolEndTime = '15:00:00';
-            if ($isSchoolDay && $jamMulaiTime < $schoolEndTime) {
-                 return back()->withInput()->with('error', 'Booking tidak diizinkan selama jam kegiatan sekolah (Sebelum jam 15:00)');
+            // Cek Jam Blokir (dari pengaturan admin, fleksibel - menggantikan hardcode jam sekolah)
+            $pengaturan = \App\Models\Pengaturan::first();
+            if ($pengaturan && $pengaturan->jam_blokir_aktif) {
+                $hariBlokir = explode(',', $pengaturan->hari_blokir ?? '');
+                $isHariBlokir = in_array(ucfirst($hariIndo), $hariBlokir);
+
+                if ($isHariBlokir) {
+                    $jamBlokirMulai = $pengaturan->jam_blokir_mulai ?? '07:00:00';
+                    $jamBlokirSelesai = $pengaturan->jam_blokir_selesai ?? '15:00:00';
+
+                    // Booking diblokir jika jam mulai booking ada di dalam rentang blokir
+                    if ($jamMulaiTime >= $jamBlokirMulai && $jamMulaiTime < $jamBlokirSelesai) {
+                        $keterangan = $pengaturan->keterangan_blokir
+                            ? " ({$pengaturan->keterangan_blokir})"
+                            : '';
+                        $jamMulaiTampil = \Carbon\Carbon::parse($jamBlokirMulai)->format('H:i');
+                        $jamSelesaiTampil = \Carbon\Carbon::parse($jamBlokirSelesai)->format('H:i');
+                        return back()->withInput()->with('error',
+                            "Booking tidak tersedia pada jam {$jamMulaiTampil} - {$jamSelesaiTampil}{$keterangan}.");
+                    }
+                }
             }
         }
 
@@ -371,7 +432,7 @@ class FutsalBookingController extends Controller
                 'no_hp'            => $request->no_hp,
                 'start_datetime'   => $start,
                 'end_datetime'     => $end,
-                'jenis_pembayaran' => $isMembership ? 'paket' : 'reguler',
+                'jenis_pembayaran' => $isMembership ? 'paket' : ($isEvent ? 'event' : 'reguler'),
                 'status'           => $statusBooking,
                 'access_token'     => $token,
             ]);
@@ -391,7 +452,8 @@ class FutsalBookingController extends Controller
                     'tipe_pembayaran_id' => 4, // Tipe Membership
                     'jumlah_bayar' => 0, // Sudah bayar via membership
                     'jenis_transaksi' => 'booking',
-                    'status' => 'verifikasi' // Langsung verifikasi karena pakai kuota
+                    'status' => 'verifikasi', // Langsung verifikasi karena pakai kuota
+                    'tgl_bayar' => now()
                 ]);
             } else {
                 $pengaturan = \App\Models\Pengaturan::first();
@@ -406,12 +468,19 @@ class FutsalBookingController extends Controller
                     $totalHarga = $hargaPerJam * $request->durasi;
                 }
                 
+                $buktiPath = null;
+                if ($request->hasFile('bukti_pembayaran')) {
+                    $buktiPath = $request->file('bukti_pembayaran')
+                        ->store('bukti_pembayaran_futsal', 'public');
+                }
+
                 \App\Models\PembayaranFutsal::create([
-                    'booking_id' => $booking->id,
+                    'booking_id'        => $booking->id,
                     'tipe_pembayaran_id' => $tipePembayaran,
-                    'jumlah_bayar' => $totalHarga,
-                    'jenis_transaksi' => $isEvent ? 'event' : 'booking',
-                    'status' => 'menunggu'
+                    'jumlah_bayar'      => $totalHarga,
+                    'jenis_transaksi'   => $isEvent ? 'event' : 'booking',
+                    'status'            => 'menunggu',
+                    'bukti'             => $buktiPath,
                 ]);
             }
 

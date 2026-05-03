@@ -14,12 +14,11 @@ class KasirFutsalUserSeeder extends Seeder
         $user = User::firstOrCreate(
             ['email' => 'kasir.futsal@blud.com'],
             [
-                'name'              => 'Kasir Futsal',
-                'username'          => 'kasir_futsal',
-                'nama_lengkap'      => 'Kasir Futsal',
-                'no_hp'             => '081234567800',
-                'email_verified_at' => now(),
-                'password'          => Hash::make('password'),
+                'name'         => 'Kasir Futsal',
+                'username'     => 'kasir_futsal',
+                'nama_lengkap' => 'Kasir Futsal',
+                'no_hp'        => '081200000099',
+                'password'     => Hash::make('password'),
             ]
         );
 

@@ -19,18 +19,24 @@ class DashboardController extends Controller
             ->where('status', '!=', 'dibatalkan')
             ->count();
 
+        // Total booking event yang masih aktif (belum selesai/batal)
+        $totalEventAktif = BookingFutsal::where('jenis_pembayaran', 'event')
+            ->whereIn('status', ['menunggu', 'dikonfirmasi'])
+            ->count();
+
         // Jumlah transaksi selesai
         $jumlahTransaksiSelesai = PembayaranFutsal::whereDate('tgl_bayar', $hariIni)
             ->where('status', PembayaranFutsal::STATUS_VERIFIKASI)
             ->count();
 
-        // Total pemasukan hari ini
+        // Total pemasukan hari ini (berdasarkan tgl_bayar — saat kasir proses lunas)
         $totalPemasukanHariIni = PembayaranFutsal::whereDate('tgl_bayar', $hariIni)
             ->where('status', PembayaranFutsal::STATUS_VERIFIKASI)
             ->sum('jumlah_bayar');
 
         return view('kasirfutsal.index', compact(
             'totalBookingAktif',
+            'totalEventAktif',
             'jumlahTransaksiSelesai',
             'totalPemasukanHariIni'
         ));

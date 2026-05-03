@@ -60,12 +60,13 @@
                     <thead class="bg-light">
                         <tr>
                             <th>No</th>
+                            <th>Kode Transaksi</th>
                             <th>Tanggal Data</th>
                             <th>Jadwal Main</th>
                             <th>Durasi</th>
                             <th>Pemesan</th>
                             <th>Lapangan</th>
-                            <th>Jenis Transaksi</th>
+                            <th>Tipe & Metode Bayar</th>
                             <th>Status</th>
                             <th>Aksi</th>
                         </tr>
@@ -74,6 +75,7 @@
                         @forelse($bookings as $index => $item)
                         <tr>
                             <td>{{ $index+1 }}</td>
+                            <td>{{ $item->booking->pembayaranFutsal->first()?->kode_pembayaran ?? '-' }}</td>
                             <td>{{ \Carbon\Carbon::parse($item->created_at)->format('d M Y H:i') }}</td>
                             <td>
                                 @if($item->type === 'event')
@@ -89,18 +91,33 @@
                                     {{ $item->durasi_jam }} Jam
                                 @endif
                             </td>
-                            <td>{{ $item->user->name ?? 'User Tidak Diketahui' }}</td>
+                            <td>{{ $item->nama_pemesan ?? ($item->booking->user->name ?? 'User Tidak Diketahui') }}</td>
                             <td>{{ $item->lapangan->nama ?? 'Lapangan X' }}</td>
                             <td>
-                                @if($item->type === 'event')
-                                    <span class="badge badge-warning"><i class="fas fa-calendar-alt"></i> Event</span>
-                                @else
-                                    @if($item->jenis_pembayaran == 'membership')
-                                        <span class="badge badge-info"><i class="fas fa-id-card"></i> Membership</span>
+                                @php
+                                    $tipeBooking = $item->jenis_pembayaran ?? 'reguler';
+                                    $labelTipe = match($tipeBooking) {
+                                        'event'  => 'Event',
+                                        'paket'  => 'Paket',
+                                        'membership' => 'Membership',
+                                        default  => 'Reguler',
+                                    };
+                                    $badgeTipe = match($tipeBooking) {
+                                        'event'  => 'badge-warning',
+                                        'paket'  => 'badge-info',
+                                        'membership' => 'badge-info',
+                                        default  => 'badge-secondary',
+                                    };
+                                    $namaMetode = $item->booking->pembayaranFutsal->first()?->tipePembayaran?->nama ?? null;
+                                @endphp
+                                <span class="badge {{ $badgeTipe }} badge-sm">{{ $labelTipe }}</span>
+                                <div class="mt-1 small text-gray-700">
+                                    @if($namaMetode)
+                                        <i class="fas fa-money-bill-alt mr-1 text-success"></i>{{ $namaMetode }}
                                     @else
-                                        <span class="badge badge-secondary"><i class="fas fa-money-bill"></i> Reguler</span>
+                                        <span class="text-muted"><i class="fas fa-clock mr-1"></i>Belum dipilih</span>
                                     @endif
-                                @endif
+                                </div>
                             </td>
                             <td>
                                 @if($item->booking && $item->booking->status == 'selesai')
@@ -151,17 +168,17 @@
                                         </button>
                                     </div>
                                     <div class="modal-body text-left">
-                                        <p><strong>Nama Pemesan:</strong> {{ $item->user->name ?? '-' }}</p>
+                                        <p><strong>Nama Pemesan:</strong> {{ $item->nama_pemesan ?? ($item->booking->user->name ?? '-') }}</p>
                                         <p><strong>Lapangan:</strong> {{ $item->lapangan->nama ?? '-' }}</p>
-                                        <p><strong>Tipe Booking:</strong> {{ ucfirst($item->type) }}</p>
-                                        @if($item->type === 'event')
+                                        <p><strong>Tipe Booking:</strong> {{ $labelTipe }}</p>
+                                        @if($item->jenis_pembayaran === 'event')
                                             <p><strong>Jadwal:</strong> {{ \Carbon\Carbon::parse($item->start_datetime)->format('d M Y H:i') }} s.d {{ \Carbon\Carbon::parse($item->end_datetime)->format('d M Y H:i') }}</p>
                                             <p><strong>Durasi:</strong> {{ $item->durasi_hari }} Hari</p>
                                         @else
                                             <p><strong>Jadwal:</strong> {{ \Carbon\Carbon::parse($item->start_datetime)->format('d F Y') }}, {{ $item->start_datetime->format('H:i') }} - {{ $item->end_datetime->format('H:i') }}</p>
                                             <p><strong>Durasi:</strong> {{ $item->durasi_jam }} Jam</p>
                                         @endif
-                                        <p><strong>Jenis Pembayaran:</strong> {{ ucfirst($item->jenis_pembayaran) }}</p>
+                                        <p><strong>Metode Pembayaran:</strong> {{ $namaMetode ?? 'Belum dipilih' }}</p>
                                         <p><strong>Status:</strong> {{ ucfirst($item->booking->status ?? '-') }}</p>
                                     </div>
                                     <div class="modal-footer">
@@ -297,7 +314,7 @@
                                     </div>
                                     <div class="modal-body">
                                         Apakah Anda yakin ingin membatalkan jadwal ini?<br>
-                                        Pemain: <strong>{{ $item->user->name ?? '-' }}</strong> pada <strong>{{ \Carbon\Carbon::parse($item->start_datetime)->format('d M y H:i') }}</strong>.
+                                        Pemain: <strong>{{ $item->nama_pemesan ?? ($item->booking->user->name ?? '-') }}</strong> pada <strong>{{ \Carbon\Carbon::parse($item->start_datetime)->format('d M y H:i') }}</strong>.
                                         <br><br>
                                         @if($item->jenis_pembayaran == 'membership')
                                             <span class="text-danger"><i class="fas fa-exclamation-triangle"></i> Membatalkan booking membership akan mengembalikan kuota member tersebut.</span>
@@ -318,7 +335,7 @@
 
                         @empty
                         <tr>
-                            <td colspan="9" class="text-center">Belum ada data booking.</td>
+                            <td colspan="10" class="text-center">Belum ada data booking.</td>
                         </tr>
                         @endforelse
                     </tbody>

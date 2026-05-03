@@ -17,6 +17,11 @@ class PengaturanTableSeeder extends Seeder
             'jam_tutup'            => '22:00:00',
             'harga_reguler_futsal' => 75000,
             'harga_event_futsal'   => 800000,
+            'jam_blokir_aktif'     => true,
+            'jam_blokir_mulai'     => '07:00:00',
+            'jam_blokir_selesai'   => '15:00:00',
+            'hari_blokir'          => 'Senin,Selasa,Rabu,Kamis,Jumat',
+            'keterangan_blokir'    => 'Jam kegiatan sekolah',
         ]);
     }
 }

@@ -55,8 +55,9 @@
                         <tr>
                             <th>No</th>
                             <th>Kode Transaksi</th>
-                            <th>Tgl Bayar</th>
+                            <th>Tgl Dibuat</th>
                             <th>Pemesan</th>
+                            <th>Jenis</th>
                             <th>Metode Pembayaran</th>
                             <th>Total Bayar</th>
                             <th>Status</th>
@@ -67,15 +68,41 @@
                             <tr>
                                 <td>{{ $laporan->firstItem() + $key }}</td>
                                 <td>{{ $item->kode_pembayaran }}</td>
-                                <td>{{ $item->tgl_bayar ? \Carbon\Carbon::parse($item->tgl_bayar)->format('d M Y H:i') : '-' }}</td>
-                                <td>{{ $item->bookingFutsal->nama_pemesan ?? ($item->bookingFutsal->user->name ?? '-') }}</td>
+                                <td>{{ \Carbon\Carbon::parse($item->created_at)->format('d M Y H:i') }}</td>
+                                <td>
+                                    @if($item->jenis_transaksi === 'membership')
+                                        {{ $item->membershipUser->user->nama_lengkap ?? ($item->membershipUser->user->name ?? '-') }}
+                                    @else
+                                        {{ $item->bookingFutsal->nama_pemesan ?? ($item->bookingFutsal->user->name ?? '-') }}
+                                    @endif
+                                </td>
+                                <td>
+                                    @php
+                                        $jenisTransaksi = $item->jenis_transaksi ?? ($item->bookingFutsal->jenis_pembayaran ?? 'reguler');
+                                        $labelJenis = match($jenisTransaksi) {
+                                            'event'      => 'Booking Event',
+                                            'paket'      => 'Paket',
+                                            'membership' => 'Pembelian Paket',
+                                            default      => 'Reguler',
+                                        };
+                                        $badgeJenis = match($jenisTransaksi) {
+                                            'event'      => 'badge-warning',
+                                            'paket'      => 'badge-info',
+                                            'membership' => 'badge-info',
+                                            default      => 'badge-primary',
+                                        };
+                                    @endphp
+                                    <span class="badge {{ $badgeJenis }}">{{ $labelJenis }}</span>
+                                </td>
                                 <td>{{ $item->tipePembayaran->nama ?? '-' }}</td>
                                 <td>Rp {{ number_format($item->jumlah_bayar, 0, ',', '.') }}</td>
                                 <td>
                                     @if ($item->status == \App\Models\PembayaranFutsal::STATUS_VERIFIKASI)
                                         <span class="badge badge-success">Lunas</span>
                                     @elseif ($item->status == \App\Models\PembayaranFutsal::STATUS_MENUNGGU)
-                                        <span class="badge badge-warning">Belum Lunas</span>
+                                        <span class="badge badge-warning">
+                                            <i class="fas fa-clock mr-1"></i>Belum Diproses
+                                        </span>
                                     @else
                                         <span class="badge badge-danger">Batal</span>
                                     @endif
@@ -83,7 +110,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="text-center">Tidak ada transaksi pada tanggal ini.</td>
+                                <td colspan="8" class="text-center">Tidak ada transaksi pada tanggal ini.</td>
                             </tr>
                         @endforelse
                     </tbody>

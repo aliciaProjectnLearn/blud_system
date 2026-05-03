@@ -344,18 +344,16 @@
     </div>
 </div>
 
-{{-- ══════════════════════════════════════════════ --}}
 {{-- INFO PAKET USER                              --}}
-{{-- ══════════════════════════════════════════════ --}}
 <div x-data="membershipChecker()" x-init="init()">
     {{-- Paket Banner (Dynamic via Alpine) --}}
     <template x-if="hasMembership && membershipData">
-        <div class="membership-active-banner animate-in">
-            <div class="quota-ring">
+        <div class="membership-active-banner animate-in flex-column flex-md-row text-center text-md-left">
+            <div class="quota-ring mx-auto mx-md-0 mb-3 mb-md-0">
                 <span class="num" x-text="membershipKuota"></span>
                 <span class="lbl">Kuota</span>
             </div>
-            <div style="flex:1">
+            <div style="flex:1" class="mb-3 mb-md-0">
                 <div class="font-weight-bold" style="font-size:1rem;">
                     <i class="fas fa-check-circle mr-1" style="opacity:0.85;"></i>
                     Paket Aktif — <span x-text="membershipData?.paket?.nama_paket"></span>
@@ -366,12 +364,12 @@
                     Gunakan kuota Anda saat booking untuk kemudahan pembayaran.
                 </div>
             </div>
-            <div class="d-flex flex-column gap-2" style="gap:5px;">
+            <div class="d-flex flex-column align-items-center align-items-md-end gap-2" style="gap:5px;">
                 <a href="{{ route('user.futsal.booking.form') }}"
-                   class="btn btn-light text-success font-weight-bold btn-sm flex-shrink-0" style="white-space:nowrap;">
+                   class="btn btn-light text-success font-weight-bold btn-sm flex-shrink-0 w-100 w-md-auto" style="white-space:nowrap;">
                     <i class="fas fa-bolt mr-1"></i> Booking Sekarang
                 </a>
-                <button @click="logout()" class="btn btn-link text-white btn-sm p-0" style="font-size:0.7rem; opacity:0.8;">Bukan saya? Keluar</button>
+                <button @click="logout()" class="btn btn-link text-white btn-sm p-0" style="font-size:0.8rem; opacity:0.9;">Bukan saya? Keluar</button>
             </div>
         </div>
     </template>
@@ -402,9 +400,7 @@
     </template>
 </div>
 
-{{-- ══════════════════════════════════════════════ --}}
-{{-- DAFTAR LAPANGAN                                --}}
-{{-- ══════════════════════════════════════════════ --}}
+{{-- DAFTAR LAPANGAN --}}
 <div class="mb-2 d-flex align-items-center">
     <div>
         <div class="section-title">
@@ -478,9 +474,7 @@
 </div>
 @endif
 
-{{-- ══════════════════════════════════════════════ --}}
-{{-- PAKET MEMBERSHIP                               --}}
-{{-- ══════════════════════════════════════════════ --}}
+{{-- PAKET MEMBERSHIP --}}
 <div class="mb-2" id="paket-membership-section">
     <div class="section-title">
         <i class="fas fa-id-card text-primary"></i>
@@ -548,9 +542,7 @@
 </div>
 @endif
 
-{{-- ══════════════════════════════════════════════ --}}
-{{-- CARA BOOKING (HOW IT WORKS)                    --}}
-{{-- ══════════════════════════════════════════════ --}}
+{{-- CARA BOOKING (HOW IT WORKS) --}}
 <div class="card shadow-sm border-0 mb-4" style="border-radius:14px; overflow:hidden;">
     <div class="card-header py-3" style="background: linear-gradient(90deg, #4e73df, #224abe); border:none;">
         <h6 class="m-0 font-weight-bold text-white">
