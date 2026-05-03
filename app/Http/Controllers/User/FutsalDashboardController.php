@@ -27,21 +27,18 @@ class FutsalDashboardController extends Controller
 
         // 1. Ringkasan Data
         $summary = [
-            'total' => BookingFutsal::where('user_id', $userId)->whereHas('booking')->count(),
-            'aktif' => BookingFutsal::where('user_id', $userId)
-                ->whereHas('booking', function ($query) {
-                    $query->whereIn('status', ['menunggu', 'dikonfirmasi']);
+            'total' => BookingFutsal::whereHas('booking', fn($q) => $q->where('user_id', $userId))->count(),
+            'aktif' => BookingFutsal::whereHas('booking', function ($query) use ($userId) {
+                    $query->where('user_id', $userId)->whereIn('status', ['menunggu', 'dikonfirmasi']);
                 })->count(),
-            'history' => BookingFutsal::where('user_id', $userId)
-                ->whereHas('booking', function ($query) {
-                    $query->whereIn('status', ['selesai', 'dibatalkan']);
+            'history' => BookingFutsal::whereHas('booking', function ($query) use ($userId) {
+                    $query->where('user_id', $userId)->whereIn('status', ['selesai', 'dibatalkan']);
                 })->count(),
         ];
 
         // 2. Aktivitas Terbaru (5 records)
         $recent = BookingFutsal::with(['booking', 'lapangan'])
-            ->where('user_id', $userId)
-            ->whereHas('booking')
+            ->whereHas('booking', fn($q) => $q->where('user_id', $userId))
             ->orderBy('created_at', 'desc')
             ->take(5)
             ->get();
@@ -57,8 +54,7 @@ class FutsalDashboardController extends Controller
         $userId = Auth::id();
         
         $query = BookingFutsal::with(['booking', 'lapangan'])
-            ->where('user_id', $userId)
-            ->whereHas('booking');
+            ->whereHas('booking', fn($q) => $q->where('user_id', $userId));
 
         // Apply Filters
         if ($request->status && $request->status !== 'all') {
@@ -83,8 +79,7 @@ class FutsalDashboardController extends Controller
     {
         $userId = Auth::id();
         $booking = BookingFutsal::with(['booking', 'lapangan', 'booking.pembayaranFutsal.tipePembayaran'])
-            ->where('user_id', $userId)
-            ->whereHas('booking')
+            ->whereHas('booking', fn($q) => $q->where('user_id', $userId))
             ->findOrFail($id);
 
         $pay = $booking->booking->pembayaranFutsal->first();
@@ -127,9 +122,8 @@ class FutsalDashboardController extends Controller
     public function showInvoice($id)
     {
         $userId = Auth::id();
-        $booking = BookingFutsal::with(['booking', 'lapangan', 'booking.pembayaranFutsal.tipePembayaran', 'user'])
-            ->where('user_id', $userId)
-            ->whereHas('booking')
+        $booking = BookingFutsal::with(['booking', 'lapangan', 'booking.pembayaranFutsal.tipePembayaran', 'booking.user'])
+            ->whereHas('booking', fn($q) => $q->where('user_id', $userId))
             ->findOrFail($id);
 
         $pembayaran = $booking->booking->pembayaranFutsal->first();
@@ -144,9 +138,8 @@ class FutsalDashboardController extends Controller
     public function downloadInvoice($id)
     {
         $userId = Auth::id();
-        $booking = BookingFutsal::with(['booking', 'lapangan', 'booking.pembayaranFutsal.tipePembayaran', 'user'])
-            ->where('user_id', $userId)
-            ->whereHas('booking')
+        $booking = BookingFutsal::with(['booking', 'lapangan', 'booking.pembayaranFutsal.tipePembayaran', 'booking.user'])
+            ->whereHas('booking', fn($q) => $q->where('user_id', $userId))
             ->findOrFail($id);
 
         $pembayaran = $booking->booking->pembayaranFutsal->first();
@@ -460,7 +453,6 @@ class FutsalDashboardController extends Controller
 
                 BookingFutsal::create([
                     'booking_id'       => $booking->id,
-                    'user_id'          => $userId,
                     'lapangan_id'      => $validated['lapangan_id'],
                     'start_datetime'   => $startDatetime,
                     'end_datetime'     => $endDatetime,
@@ -552,7 +544,6 @@ class FutsalDashboardController extends Controller
 
                 BookingFutsal::create([
                     'booking_id'       => $booking->id,
-                    'user_id'          => $userId,
                     'lapangan_id'      => $validated['lapangan_id'],
                     'start_datetime'   => $startDatetime,
                     'end_datetime'     => $endDatetime,

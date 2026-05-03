@@ -63,6 +63,32 @@
 @section('content')
 <div class="booking-container">
     <div class="container">
+        @if(session('error') && 
+            !str_contains(session('error'), 'NIK') && 
+            !str_contains(session('error'), 'HP') &&
+            !str_contains(session('error'), 'Nomor'))
+        <div class="alert alert-danger alert-dismissible fade show mb-4 border-0 shadow-sm" role="alert">
+            <i class="fas fa-exclamation-triangle mr-2"></i>
+            <strong>Booking Ditolak:</strong> {{ session('error') }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        @endif
+
+        {{-- Alert untuk Error Real-time (AJAX) --}}
+        <div id="ajaxErrorAlert" class="alert alert-danger alert-dismissible fade show mb-4 border-0 shadow-sm" role="alert" style="display:none;">
+            <div class="d-flex">
+                <i class="fas fa-exclamation-triangle mr-2 mt-1"></i>
+                <div>
+                    <strong id="ajaxErrorTitle">Peringatan Booking:</strong>
+                    <ul id="ajaxErrorList" class="mb-0 pl-3 mt-1 small" style="list-style-type: disc;"></ul>
+                </div>
+            </div>
+            <button type="button" class="close" onclick="$('#ajaxErrorAlert').hide();" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
         <div class="row">
             {{-- KOLOM KIRI: FORM DATA (col-lg-7) --}}
             <div class="col-lg-7 order-mobile-1">
@@ -85,7 +111,13 @@
                                 </div>
                                 <div class="col-md-6 form-group">
                                     <label>Nomor WhatsApp*</label>
-                                    <input type="text" name="no_hp" id="no_hp" class="form-control" required placeholder="08xxxxxxxx" maxlength="13" value="{{ $penyewa->no_hp ?? old('no_hp') }}">
+                                    <input type="text" name="no_hp" id="no_hp" 
+                                           class="form-control" 
+                                           placeholder="08xxxxxxxxx"
+                                           value="{{ $penyewa->no_hp ?? old('no_hp') }}">
+
+                                    {{-- Feedback realtime --}}
+                                    <div id="hp-feedback" class="mt-1 small" style="min-height:18px"></div>
                                     <div id="hp-error" class="text-danger small mt-1" style="display:none;">Gunakan 10-13 digit angka.</div>
                                 </div>
                                 <div class="col-md-6 form-group">
@@ -461,24 +493,204 @@ $(document).ready(function() {
         }
     });
 
-    // Validasi NIK & HP (Only digits)
-    $('#nik, #no_hp').on('input', function() {
+    // Validasi Real-time (NIK & HP)
+    const nikInput = document.getElementById('nik');
+    const ajaxAlert = $('#ajaxErrorAlert');
+    const ajaxErrorList = $('#ajaxErrorList');
+    
+    let nikTimer = null;
+    let ajaxErrors = {
+        nik: '',
+        hp: ''
+    };
+
+    function renderAjaxErrors() {
+        ajaxErrorList.empty();
+        let hasError = false;
+        
+        if (ajaxErrors.nik) {
+            ajaxErrorList.append('<li>' + ajaxErrors.nik + '</li>');
+            hasError = true;
+        }
+        if (ajaxErrors.hp) {
+            ajaxErrorList.append('<li>' + ajaxErrors.hp + '</li>');
+            hasError = true;
+        }
+
+        if (hasError) {
+            if (ajaxAlert.is(':hidden')) {
+                ajaxAlert.fadeIn();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        } else {
+            ajaxAlert.fadeOut();
+        }
+        
+        // Update submit button state
+        const submitBtn = document.querySelector('button[type="submit"]');
+        if (submitBtn) submitBtn.disabled = hasError;
+    }
+
+    function checkNikAvailability() {
+        const val = nikInput.value.trim();
+        if (val.length !== 16) {
+            return;
+        }
+
+        fetch("{{ route('user.kantin.check-nik') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: JSON.stringify({ nik: val })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.available) {
+                ajaxErrors.nik = '';
+            } else {
+                ajaxErrors.nik = data.message;
+            }
+            renderAjaxErrors();
+        })
+        .catch(() => {});
+    }
+
+    $('#nik').on('input', function() {
         this.value = this.value.replace(/[^0-9]/g, '');
-        if(this.id === 'nik') {
-            if(this.value.length === 16) $('#nik-error').hide();
-            else $('#nik-error').show();
-        }
-        if(this.id === 'no_hp') {
-            if(this.value.length >= 10 && this.value.length <= 13) $('#hp-error').hide();
-            else $('#hp-error').show();
-        }
+        
+        if(this.value.length === 16) $('#nik-error').hide();
+        else $('#nik-error').show();
+
+        clearTimeout(nikTimer);
+        ajaxErrors.nik = ''; // Reset while typing
+        renderAjaxErrors();
+        nikTimer = setTimeout(checkNikAvailability, 600);
     });
 
-    // Tgl Selesai minimal tgl mulai + 1 month (asumsi)
+    $('#nik').on('blur', function() {
+        checkNikAvailability();
+    });
+
+    // Event: Tanggal Selesai minimal tgl mulai + 1 month (asumsi)
     $('#tgl_mulai').on('change', function() {
         $('#tgl_selesai').attr('min', this.value);
     });
 
+    // Event: Preview Foto KTP
+    $('#foto_ktp').on('change', function() {
+        const file = this.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                $('#ktp-preview').attr('src', e.target.result);
+                $('#ktp-preview-container').show();
+            }
+            reader.readAsDataURL(file);
+        } else {
+            $('#ktp-preview-container').hide();
+        }
+    });
+
+    // TASK: Validasi Realtime Nomor HP
+    (function() {
+        const inputHp   = document.getElementById('no_hp');
+        const feedback  = document.getElementById('hp-feedback');
+        
+        let hpTimer = null;
+        let hpValid = true; 
+
+        if (!inputHp) return;
+
+        inputHp.addEventListener('input', function() {
+            // Hanya angka
+            this.value = this.value.replace(/[^0-9]/g, '');
+
+            clearTimeout(hpTimer);
+            const val = this.value.trim();
+
+            // Reset state
+            feedback.innerHTML = '';
+            inputHp.classList.remove('is-valid', 'is-invalid');
+            
+            // Reset error state for HP while typing
+            ajaxErrors.hp = '';
+            renderAjaxErrors();
+
+            if (val.length < 10) {
+                hpValid = true; 
+                return;
+            }
+
+            // Debounce 600ms
+            feedback.innerHTML = '<span class="text-muted"><i class="fas fa-spinner fa-spin mr-1"></i>Memeriksa...</span>';
+            
+            hpTimer = setTimeout(() => cekHp(val), 600);
+        });
+
+        inputHp.addEventListener('blur', function() {
+            const val = this.value.trim();
+            if (val.length >= 10) {
+                clearTimeout(hpTimer);
+                cekHp(val);
+            }
+        });
+
+        function cekHp(noHp) {
+            fetch(`{{ route('user.kantin.cek.hp') }}?no_hp=${noHp}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'tersedia') {
+                        feedback.innerHTML = 
+                            '<span class="text-success">' +
+                            '<i class="fas fa-check-circle mr-1"></i>' +
+                            data.pesan + '</span>';
+                        inputHp.classList.remove('is-invalid');
+                        inputHp.classList.add('is-valid');
+                        hpValid = true;
+                        ajaxErrors.hp = '';
+
+                    } else if (data.status === 'aktif') {
+                        feedback.innerHTML = ''; // Kosongkan feedback inline
+                        inputHp.classList.remove('is-valid');
+                        inputHp.classList.add('is-invalid');
+                        hpValid = false;
+                        ajaxErrors.hp = data.pesan;
+
+                    } else {
+                        feedback.innerHTML = '';
+                        hpValid = true;
+                        ajaxErrors.hp = '';
+                    }
+                    renderAjaxErrors();
+                })
+                .catch(() => {
+                    feedback.innerHTML = '';
+                    hpValid = true;
+                    ajaxErrors.hp = '';
+                    renderAjaxErrors();
+                });
+        }
+
+        // Block submit jika HP tidak valid
+        const form = inputHp.closest('form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                if (!hpValid) {
+                    e.preventDefault();
+                    inputHp.focus();
+                    inputHp.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Nomor HP Tidak Dapat Digunakan',
+                        text: 'Nomor HP ini masih memiliki sewa aktif. Silakan gunakan nomor lain.',
+                        confirmButtonColor: '#3d5af1',
+                    });
+                }
+            });
+        }
+    })();
     // Initial load
     updateEstimasi();
 });

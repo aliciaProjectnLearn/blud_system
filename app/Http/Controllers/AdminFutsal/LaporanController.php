@@ -19,7 +19,9 @@ class LaporanController extends Controller
         $query = PembayaranFutsal::with([
             'booking.user',
             'booking.bookingFutsal',
-            'tipePembayaran'
+            'tipePembayaran',
+            'membership.user',
+            'membership.paket'
         ]);
 
         // Filter berdasarkan Range Tanggal

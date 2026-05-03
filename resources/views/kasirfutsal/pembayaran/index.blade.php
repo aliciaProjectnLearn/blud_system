@@ -27,6 +27,7 @@
                         <option value="">Semua</option>
                         <option value="lunas" {{ request('status') == 'lunas' ? 'selected' : '' }}>Lunas</option>
                         <option value="belum lunas" {{ request('status') == 'belum lunas' ? 'selected' : '' }}>Belum Lunas</option>
+                        <option value="batal" {{ request('status') == 'batal' ? 'selected' : '' }}>Ditolak/Batal</option>
                     </select>
                 </div>
                 <button type="submit" class="btn btn-primary mb-2">Filter</button>
@@ -46,9 +47,9 @@
                         <tr>
                             <th>No</th>
                             <th>Kode Transaksi</th>
-                            <th>Tgl Bayar</th>
+                            <th>Tgl Diproses</th>
                             <th>Pemesan</th>
-                            <th>Jenis Transaksi</th>
+                            <th>Tipe & Metode Bayar</th>
                             <th>Total Bayar</th>
                             <th>Status</th>
                             <th>Aksi</th>
@@ -59,9 +60,36 @@
                             <tr>
                                 <td>{{ $pembayarans->firstItem() + $key }}</td>
                                 <td>{{ $item->kode_pembayaran }}</td>
-                                <td>{{ $item->tgl_bayar ? \Carbon\Carbon::parse($item->tgl_bayar)->format('d M Y') : '-' }}</td>
-                                <td>{{ $item->bookingFutsal->nama_pemesan ?? ($item->bookingFutsal->user->name ?? '-') }}</td>
-                                <td><span class="badge badge-info">{{ ucfirst($item->jenis_transaksi) }}</span></td>
+                                <td>{{ $item->tgl_bayar ? \Carbon\Carbon::parse($item->tgl_bayar)->format('d M Y H:i') : '-' }}</td>
+                                <td>
+                                    @if($item->jenis_transaksi === 'membership')
+                                        {{ $item->membershipUser->user->nama_lengkap ?? ($item->membershipUser->user->name ?? '-') }}
+                                    @else
+                                        {{ $item->bookingFutsal->nama_pemesan ?? ($item->bookingFutsal->user->name ?? ($item->booking->user->name ?? '-')) }}
+                                    @endif
+                                </td>
+                                <td>
+                                    @php
+                                        $labelTrx = match($item->jenis_transaksi) {
+                                            'event'      => 'Booking Event',
+                                            'booking'    => 'Reguler',
+                                            'paket'      => 'Paket',
+                                            'membership' => 'Pembelian Paket',
+                                            default      => ucfirst($item->jenis_transaksi ?? '-'),
+                                        };
+                                        $badgeTrx = match($item->jenis_transaksi) {
+                                            'event'      => 'badge-warning',
+                                            'membership' => 'badge-info',
+                                            'paket'      => 'badge-info',
+                                            default      => 'badge-primary',
+                                        };
+                                        $namaMetodeBayar = $item->tipePembayaran->nama ?? null;
+                                    @endphp
+                                    <span class="badge {{ $badgeTrx }}">{{ $labelTrx }}</span>
+                                    @if($namaMetodeBayar)
+                                        <div class="small text-muted mt-1">{{ $namaMetodeBayar }}</div>
+                                    @endif
+                                </td>
                                 <td>Rp {{ number_format($item->jumlah_bayar, 0, ',', '.') }}</td>
                                 <td>
                                     @if ($item->status == \App\Models\PembayaranFutsal::STATUS_VERIFIKASI)
@@ -69,7 +97,7 @@
                                     @elseif ($item->status == \App\Models\PembayaranFutsal::STATUS_MENUNGGU)
                                         <span class="badge badge-warning">Belum Lunas</span>
                                     @else
-                                        <span class="badge badge-danger">Batal</span>
+                                        <span class="badge badge-danger">Ditolak</span>
                                     @endif
                                 </td>
                                 <td>

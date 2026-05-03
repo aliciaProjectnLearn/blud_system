@@ -182,20 +182,20 @@
 
         {{-- Jadwal Lapangan --}}
         <li
-            class="nav-item {{ request()->routeIs('admin.futsal.jadwal-lapangan.*') || request()->routeIs('admin.futsal.pengaturan.*') ? 'active' : '' }}">
-            <a class="nav-link {{ request()->routeIs('admin.futsal.jadwal-lapangan.*') || request()->routeIs('admin.futsal.pengaturan.*') ? '' : 'collapsed' }}"
+            class="nav-item {{ request()->routeIs('admin.futsal.jadwal-lapangan.*') || request()->routeIs('admin.futsal.pengaturan.*') || request()->routeIs('admin.futsal.lapangan.*') ? 'active' : '' }}">
+            <a class="nav-link {{ request()->routeIs('admin.futsal.jadwal-lapangan.*') || request()->routeIs('admin.futsal.pengaturan.*') || request()->routeIs('admin.futsal.lapangan.*') ? '' : 'collapsed' }}"
                 href="#" data-toggle="collapse" data-target="#collapseJadwal">
                 <i class="fas fa-fw fa-calendar-alt"></i>
                 <span>Manajemen Lapangan</span>
             </a>
 
             <div id="collapseJadwal"
-                class="collapse {{ request()->routeIs('admin.futsal.jadwal-lapangan.*') || request()->routeIs('admin.futsal.pengaturan.*') ? 'show' : '' }}">
+                class="collapse {{ request()->routeIs('admin.futsal.jadwal-lapangan.*') || request()->routeIs('admin.futsal.pengaturan.*') || request()->routeIs('admin.futsal.lapangan.*') ? 'show' : '' }}">
 
                 <div class="bg-white py-2 collapse-inner rounded">
-                    <a class="collapse-item" href="{{ route('admin.futsal.jadwal-lapangan.index') }}">Jadwal Lapangan</a>
-                    <a class="collapse-item" href="{{ route('admin.futsal.pengaturan.index') }}">Pengaturan Dasar</a>
-                    <a class="collapse-item" href="{{ route('admin.futsal.pengaturan.jam_operasional.index') }}">Jam Operasional</a>
+                    <a class="collapse-item {{ request()->routeIs('admin.futsal.lapangan.*') ? 'active' : '' }}" href="{{ route('admin.futsal.lapangan.index') }}">Daftar Lapangan</a>
+                    <a class="collapse-item {{ request()->routeIs('admin.futsal.jadwal-lapangan.*') ? 'active' : '' }}" href="{{ route('admin.futsal.jadwal-lapangan.index') }}">Jadwal Lapangan</a>
+                    <a class="collapse-item {{ request()->routeIs('admin.futsal.pengaturan.*') ? 'active' : '' }}" href="{{ route('admin.futsal.pengaturan.index') }}">Pengaturan Dasar</a>
                 </div>
             </div>
         </li>
@@ -316,6 +316,14 @@
             <a class="nav-link" href="{{ route('admin.kantin.keuangan.index') }}">
                 <i class="fas fa-fw fa-wallet"></i>
                 <span>Manajemen Keuangan</span>
+            </a>
+        </li>
+
+        {{-- Audit Log --}}
+        <li class="nav-item {{ request()->routeIs('admin.kantin.audit.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('admin.kantin.audit.index') }}">
+                <i class="fas fa-fw fa-history"></i>
+                <span>Audit Log</span>
             </a>
         </li>
     @endif
