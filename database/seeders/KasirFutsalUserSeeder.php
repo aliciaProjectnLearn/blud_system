@@ -17,7 +17,7 @@ class KasirFutsalUserSeeder extends Seeder
                 'name'              => 'Kasir Futsal',
                 'username'          => 'kasir_futsal',
                 'nama_lengkap'      => 'Kasir Futsal',
-                'no_hp'             => '081234567800',
+                'no_hp'             => '081234567802',
                 'email_verified_at' => now(),
                 'password'          => Hash::make('password'),
             ]

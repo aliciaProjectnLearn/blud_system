@@ -73,12 +73,14 @@
                         </table>
                     </div>
 
-                    <div class="d-flex justify-content-between mt-4">
-                        <a href="{{ route('user.token.riwayat', $token) }}" class="btn btn-info text-white"><i class="fas fa-history"></i> Lihat Riwayat</a>
-                        @if($bookingFutsal->status == 'menunggu' && \Carbon\Carbon::parse($bookingFutsal->start_datetime)->gt(now()->addHours(2)))
-                            <a href="{{ route('user.token.batalkan', $token) }}" class="btn btn-danger"><i class="fas fa-times-circle"></i> Batalkan Booking</a>
-                        @endif
-                    </div>
+                    {{-- REVISI 2: Tombol Lihat Riwayat dihapus (route dinonaktifkan) --}}
+                    @if($bookingFutsal->status == 'menunggu' && \Carbon\Carbon::parse($bookingFutsal->start_datetime)->gt(now()->addHours(2)))
+                        <div class="mt-4 text-right">
+                            <a href="{{ route('user.token.batalkan', $token) }}" class="btn btn-danger">
+                                <i class="fas fa-times-circle"></i> Batalkan Booking
+                            </a>
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>

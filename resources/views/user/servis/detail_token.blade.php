@@ -150,7 +150,7 @@
 
                         @if(strtolower($booking->status) === 'menunggu')
                             <div class="mt-4 pt-3 border-top text-center">
-                                <a href="#" 
+                                <a href="#"
                                    onclick="konfirmasiBatal(event)"
                                    class="btn btn-outline-danger btn-sm">
                                     <i class="fas fa-times-circle mr-1"></i> Batalkan Booking
@@ -159,7 +159,7 @@
                         @elseif(in_array(strtolower($booking->status), ['diproses','siap_bayar','selesai']))
                             <div class="mt-4 pt-3 border-top text-center">
                                 <button class="btn btn-outline-secondary btn-sm" disabled>
-                                    <i class="fas fa-lock mr-1"></i> 
+                                    <i class="fas fa-lock mr-1"></i>
                                     Tidak dapat dibatalkan — Kendaraan sedang dalam proses pengerjaan
                                 </button>
                             </div>
@@ -240,35 +240,7 @@
                     </div>
                 </div>
 
-                {{-- KARTU RIWAYAT SERVIS --}}
-                <div class="card detail-card">
-                    <div class="card-header bg-white py-3">
-                        <h6 class="m-0 font-weight-bold text-gray-800"><i class="fas fa-history mr-2 text-primary"></i>Riwayat Servis Anda ({{ $booking->no_hp }})</h6>
-                    </div>
-                    <div class="card-body p-0">
-                        @if($riwayat->count() > 0)
-                            <div class="list-group list-group-flush">
-                                @foreach($riwayat as $item)
-                                    <a href="{{ route('user.token.show', $item->access_token) }}" class="list-group-item list-group-item-action p-3">
-                                        <div class="d-flex w-100 justify-content-between">
-                                            <h6 class="mb-1 font-weight-bold text-primary">{{ $item->kode_booking }}</h6>
-                                            <small class="text-muted">{{ \Carbon\Carbon::parse($item->tanggal_booking)->format('d M Y') }}</small>
-                                        </div>
-                                        <p class="mb-1 text-sm">{{ $item->layananServis->nama_layanan ?? 'Layanan' }} - {{ $item->merek_kendaraan }}</p>
-                                        <small>
-                                            Status: <span class="badge badge-{{ $item->status === 'selesai' ? 'success' : 'secondary' }}">{{ strtoupper($item->status) }}</span>
-                                        </small>
-                                    </a>
-                                @endforeach
-                            </div>
-                        @else
-                            <div class="p-4 text-center text-muted">
-                                <i class="fas fa-box-open fa-2x mb-3 text-gray-300"></i>
-                                <p class="mb-0">Belum ada riwayat servis lain untuk nomor HP ini.</p>
-                            </div>
-                        @endif
-                    </div>
-                </div>
+
 
             </div>
         </div>
@@ -290,7 +262,8 @@ function konfirmasiBatal(e) {
         cancelButtonText: 'Tidak'
     }).then((result) => {
         if (result.isConfirmed) {
-            window.location.href = "{{ route('user.token.batalkan', $booking->access_token) }}";
+            {{-- REVISI 3: Gunakan route servis yang benar --}}
+            window.location.href = "{{ route('user.servis.token.batalkan', $booking->access_token) }}";
         }
     });
 }

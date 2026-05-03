@@ -37,9 +37,9 @@ Route::get('/', [LandingController::class, 'index'])->name('home');
 Route::prefix('user')->name('user.')->group(function () {
     Route::get('/', [LandingController::class, 'index'])->name('gateway');
     
-    // Token-Based Access (Detail, Riwayat, Pembatalan)
+    // Token-Based Access Futsal (Detail & Pembatalan — Riwayat dihapus per REVISI 2)
     Route::get('/access/{token}', [App\Http\Controllers\User\TokenAccessController::class, 'show'])->name('token.show');
-    Route::get('/access/{token}/history', [App\Http\Controllers\User\TokenAccessController::class, 'riwayat'])->name('token.riwayat');
+    // Route::get('/access/{token}/history', ...) // REVISI 2: Dihapus
     Route::get('/access/{token}/cancel', [App\Http\Controllers\User\TokenAccessController::class, 'batalkan'])->name('token.batalkan');
     Route::post('/access/{token}/cancel', [App\Http\Controllers\User\TokenAccessController::class, 'prosesBatalkan'])->name('token.batalkan.proses');
 
@@ -85,6 +85,18 @@ Route::prefix('user')->name('user.')->group(function () {
         Route::post('/store', [App\Http\Controllers\User\UserServisController::class, 'store'])->name('store');
         Route::get('/slots', [App\Http\Controllers\User\UserServisController::class, 'getSlot'])->name('slots');
         Route::get('/sukses/{token}', [App\Http\Controllers\User\UserServisController::class, 'sukses'])->name('sukses');
+        Route::get('/kendaraan/model/{merek_id}', [App\Http\Controllers\User\UserServisController::class, 'getModelByMerek'])->name('kendaraan.model');
+
+
+        // REVISI 3: OTP System — Entry point dan verifikasi token servis
+        Route::get('/token/{token}', [App\Http\Controllers\User\UserServisController::class, 'showToken'])->name('token.show');
+        Route::post('/token/{token}/verify', [App\Http\Controllers\User\UserServisController::class, 'verifyOtp'])->name('token.verify');
+        Route::post('/token/{token}/resend', [App\Http\Controllers\User\UserServisController::class, 'resendOtp'])->name('token.resend');
+        Route::get('/token/{token}/detail', [App\Http\Controllers\User\UserServisController::class, 'detailToken'])->name('token.detail');
+
+        // Batalkan booking servis via token (terpisah dari futsal)
+        Route::get('/token/{token}/batalkan', [App\Http\Controllers\User\UserServisController::class, 'batalkanToken'])->name('token.batalkan');
+        Route::post('/token/{token}/batalkan', [App\Http\Controllers\User\UserServisController::class, 'prosesBatalkanToken'])->name('token.batalkan.proses');
     });
 });
 
@@ -223,8 +235,18 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Superadmin|Adm
         Route::get('/keuangan/unpaid-pekerjaan/{teknisi_id}', [\App\Http\Controllers\AdminServis\KeuanganController::class, 'getUnpaidPekerjaan'])->name('keuangan.unpaid');
         Route::resource('teknisi', \App\Http\Controllers\AdminServis\TeknisiController::class);
         Route::patch('/teknisi/{id}/toggle-status', [\App\Http\Controllers\AdminServis\TeknisiController::class, 'toggleStatus'])->name('teknisi.toggle-status');
+
+        Route::resource('merek-kendaraan', \App\Http\Controllers\AdminServis\MerekKendaraanController::class)
+            ->parameters(['merek-kendaraan' => 'id'])
+            ->names('merek');
+        Route::resource('model-kendaraan', \App\Http\Controllers\AdminServis\ModelKendaraanController::class)
+            ->parameters(['model-kendaraan' => 'id'])
+            ->names('model');
+        Route::get('kendaraan/model/{merek_id}', [\App\Http\Controllers\User\UserServisController::class, 'getModelByMerek'])->name('kendaraan.model');
     });
+
 });
+
 
 // Profile Common (Semua Role yang Login)
 Route::middleware(['auth'])->group(function () {
