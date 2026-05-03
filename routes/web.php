@@ -31,6 +31,8 @@ use App\Http\Controllers\KasirServis\DashboardController as KasirDashboardContro
 use App\Http\Controllers\User\DashboardUserController;
 use App\Http\Controllers\KasirServis\BookingKasirController;
 use App\Http\Controllers\User\UserServisController;
+use App\Http\Controllers\User\CekBookingController;
+use App\Http\Controllers\User\OtpController;
 
 Route::get('/', [LandingController::class, 'index'])->name('home');
 
@@ -66,8 +68,17 @@ Route::prefix('user')->name('user.')->group(function () {
         Route::get('/katalog', [\App\Http\Controllers\User\KantinController::class, 'katalog'])->name('katalog');
         Route::get('/booking/{ruko_id}', [\App\Http\Controllers\User\KantinController::class, 'formBooking'])->name('booking');
         Route::post('/booking', [\App\Http\Controllers\User\KantinController::class, 'simpanBooking'])->name('booking.store');
+        Route::post('/check-phone', [\App\Http\Controllers\User\KantinController::class, 'checkPhone'])->name('check-phone');
+        Route::get('/cek-hp', [\App\Http\Controllers\User\KantinController::class, 'cekHp'])->name('cek.hp');
+        Route::post('/check-nik', [\App\Http\Controllers\User\KantinController::class, 'checkNik'])->name('check-nik');
         Route::get('/unit/{id}/detail', [\App\Http\Controllers\User\KantinController::class, 'unitDetail'])->name('unit.detail');
 
+        // OTP & Session flow
+        Route::prefix('otp')->name('otp.')->group(function () {
+            Route::get('/{token}', [OtpController::class, 'form'])->name('form');
+            Route::post('/{token}/verifikasi', [OtpController::class, 'verifikasi'])->name('verifikasi');
+            Route::get('/{token}/kirim-ulang', [OtpController::class, 'kirimUlang'])->name('kirim-ulang');
+        });
         Route::get('/sewa/{token}', [\App\Http\Controllers\User\SewaTokenController::class, 'detail'])->name('sewa.detail');
         Route::get('/sewa/{token}/riwayat', [\App\Http\Controllers\User\SewaTokenController::class, 'riwayat'])->name('sewa.riwayat');
         Route::get('/sewa/{token}/pembayaran', [\App\Http\Controllers\User\SewaTokenController::class, 'pembayaran'])->name('sewa.pembayaran');
@@ -184,7 +195,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Superadmin|Adm
         Route::get('laporan/export-excel', [\App\Http\Controllers\AdminKantin\LaporanController::class, 'exportExcel'])->name('laporan.export.excel');
         Route::get('keuangan', [\App\Http\Controllers\AdminKantin\KeuanganController::class, 'index'])->name('keuangan.index');
         Route::post('keuangan', [\App\Http\Controllers\AdminKantin\KeuanganController::class, 'store'])->name('keuangan.store');
-        
+
+        // Audit Log
+        Route::get('audit', [\App\Http\Controllers\AdminKantin\AuditLogController::class, 'index'])->name('audit.index');
+        Route::get('audit/{id}', [\App\Http\Controllers\AdminKantin\AuditLogController::class, 'show'])->name('audit.show');
     });
 
     // Admin AC

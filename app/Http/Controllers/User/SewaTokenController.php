@@ -15,7 +15,28 @@ class SewaTokenController extends Controller
 {
     public function detail($token)
     {
-        $sewa = SewaRuko::with(['ruko', 'user', 'pembayaran'])->where('access_token', $token)->firstOrFail();
+        $sewa = SewaRuko::where('access_token', $token)->first();
+
+        // Token tidak ditemukan
+        if (!$sewa) {
+            return view('user.kantin.token.invalid', [
+                'pesan' => 'Link tidak valid atau tidak ditemukan.'
+            ]);
+        }
+
+        // Token sudah expired (waktu)
+        if ($sewa->token_expired_at && now()->isAfter($sewa->token_expired_at)) {
+            return view('user.kantin.token.invalid', [
+                'pesan' => 'Link akses ini sudah kadaluarsa.'
+            ]);
+        }
+
+        // Lanjut ke verifikasi OTP
+        if (!session('sewa_verified_' . $token)) {
+            return redirect()->route('user.kantin.otp.form', $token);
+        }
+
+        $sewa->load(['ruko', 'ruko.kategori', 'user', 'pembayaran', 'dokumen']);
         return view('user.kantin.token.detail', compact('sewa'));
     }
 
