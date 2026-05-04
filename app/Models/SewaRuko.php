@@ -23,6 +23,7 @@ class SewaRuko extends Model
         'catatan',
         'booking_id', // legacy
         'penyewa_id',
+        'token_expired_at',
     ];
 
     public function ruko()

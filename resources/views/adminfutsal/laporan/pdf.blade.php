@@ -50,23 +50,56 @@
             @forelse ($laporan as $index => $item)
                 <tr>
                     <td class="text-center">{{ $index + 1 }}</td>
-                    <td>{{ $item->booking->user->name ?? '-' }}</td>
                     <td>
-                        @php $bf = $item->booking->bookingFutsal; @endphp
-                        @if($bf)
-                            @if($bf->type === 'event')
-                                {{ \Carbon\Carbon::parse($bf->start_datetime)->format('d-m-Y') }}<br>s/d<br>{{ \Carbon\Carbon::parse($bf->end_datetime)->format('d-m-Y') }}
-                            @else
-                                {{ \Carbon\Carbon::parse($bf->start_datetime)->format('d-m-Y H:i') }}
-                            @endif
+                        @if($item->jenis_transaksi === 'membership')
+                            {{ $item->membership->user->nama_lengkap ?? ($item->membership->user->name ?? '-') }}
                         @else
-                            -
+                            {{ $item->booking->user->name ?? '-' }}
                         @endif
                     </td>
-                    <td>{{ \Carbon\Carbon::parse($item->tgl_bayar)->format('d-m-Y H:i') }}</td>
-                    <td>{{ $item->booking->bookingFutsal->jenis_pembayaran ?? ($item->tipePembayaran->nama_tipe ?? '-') }}</td>
+                    <td>
+                        @if($item->jenis_transaksi === 'membership')
+                            {{ \Carbon\Carbon::parse($item->created_at)->format('d-m-Y H:i') }}<br>(Pembelian Paket)
+                        @else
+                            @php $bf = $item->booking->bookingFutsal ?? null; @endphp
+                            @if($bf)
+                                @if($bf->jenis_pembayaran === 'event')
+                                    {{ \Carbon\Carbon::parse($bf->start_datetime)->format('d-m-Y') }}<br>s/d<br>{{ \Carbon\Carbon::parse($bf->end_datetime)->format('d-m-Y') }}
+                                @else
+                                    {{ \Carbon\Carbon::parse($bf->start_datetime)->format('d-m-Y H:i') }}
+                                @endif
+                            @else
+                                -
+                            @endif
+                        @endif
+                    </td>
+                    <td>{{ $item->tgl_bayar ? \Carbon\Carbon::parse($item->tgl_bayar)->format('d-m-Y H:i') : '-' }}</td>
+                    <td>
+                        @php
+                            $namaMetode = $item->tipePembayaran->nama ?? '-';
+                            if($item->jenis_transaksi === 'membership') {
+                                $labelJenisPdf = 'Membership';
+                            } else {
+                                $bf2 = $item->booking->bookingFutsal ?? null;
+                                $labelJenisPdf = match($bf2->jenis_pembayaran ?? 'reguler') {
+                                    'event' => 'Booking Event',
+                                    'paket' => 'Paket Membership',
+                                    default => 'Reguler',
+                                };
+                            }
+                        @endphp
+                        {{ $labelJenisPdf }} / {{ $namaMetode }}
+                    </td>
                     <td class="text-right">Rp {{ number_format($item->jumlah_bayar, 0, ',', '.') }}</td>
-                    <td class="text-center">{{ $item->status }}</td>
+                    <td class="text-center">
+                        @if($item->status === \App\Models\PembayaranFutsal::STATUS_VERIFIKASI)
+                            Lunas
+                        @elseif($item->status === \App\Models\PembayaranFutsal::STATUS_MENUNGGU)
+                            Belum Lunas
+                        @else
+                            Batal
+                        @endif
+                    </td>
                 </tr>
             @empty
                 <tr>

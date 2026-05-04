@@ -10,7 +10,7 @@
     </div>
 
     <div class="row">
-        <div class="col-xl-4 col-md-6 mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
             <div class="card border-left-primary shadow h-100 py-2">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
@@ -26,12 +26,28 @@
             </div>
         </div>
 
-        <div class="col-xl-4 col-md-6 mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Event Aktif (Pending)</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $totalEventAktif }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-star fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
             <div class="card border-left-info shadow h-100 py-2">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Transaksi Selesai</div>
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Transaksi Lunas Hari Ini</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $jumlahTransaksiSelesai }}</div>
                         </div>
                         <div class="col-auto">
@@ -42,13 +58,14 @@
             </div>
         </div>
 
-        <div class="col-xl-4 col-md-6 mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
             <div class="card border-left-success shadow h-100 py-2">
                 <div class="card-body">
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Pemasukan Hari Ini</div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800">Rp {{ number_format($totalPemasukanHariIni, 0, ',', '.') }}</div>
+                            <div class="text-xs text-muted mt-1">Diperbarui setelah kasir proses pembayaran</div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-money-bill-wave fa-2x text-gray-300"></i>

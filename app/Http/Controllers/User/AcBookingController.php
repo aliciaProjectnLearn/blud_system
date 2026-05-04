@@ -77,6 +77,21 @@ class AcBookingController extends Controller
             'detail_keluhan'  => 'nullable|string',
         ]);
 
+        // [1] PEMBATASAN BOOKING AKTIF
+        $activeBooking = BookingAc::where('no_hp', $validated['no_hp'])
+            ->whereIn('status', ['menunggu', 'proses'])
+            ->exists();
+
+        if ($activeBooking) {
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda masih memiliki booking yang sedang aktif. Selesaikan atau batalkan terlebih dahulu sebelum membuat booking baru.',
+                ], 422);
+            }
+            return back()->withInput()->with('error', 'Anda masih memiliki booking yang sedang aktif. Selesaikan atau batalkan terlebih dahulu sebelum membuat booking baru.');
+        }
+
         $accessToken = Str::random(40);
 
         DB::beginTransaction();

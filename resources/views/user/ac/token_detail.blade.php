@@ -156,9 +156,7 @@
                     @endif
 
                     <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-4 border-top pt-4" style="gap: 15px;">
-                        <a href="{{ route('user.ac.token.riwayat', $token) }}" class="btn btn-outline-primary px-4 py-2 rounded-pill font-weight-bold order-2 order-md-1">
-                            <i class="fas fa-history mr-2"></i>Riwayat Booking Saya
-                        </a>
+                        <div></div> {{-- Spacer to keep the other buttons aligned --}}
                         <div class="d-flex order-1 order-md-2" style="gap: 10px;">
                             <a href="https://wa.me/628123456789" target="_blank" class="btn btn-success px-4 py-2 rounded-pill font-weight-bold shadow-sm">
                                 <i class="fab fa-whatsapp mr-2"></i>Hubungi Customer Service

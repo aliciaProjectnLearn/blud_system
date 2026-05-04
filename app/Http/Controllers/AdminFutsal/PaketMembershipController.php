@@ -31,7 +31,7 @@ class PaketMembershipController extends Controller
 
         PaketMembership::create($request->only('nama_paket', 'jumlah_kuota', 'harga', 'status'));
 
-        return redirect()->route('adminfutsal.paket-membership.index')
+        return redirect()->route('admin.futsal.paket-membership.index')
             ->with('success', 'Paket membership berhasil ditambahkan.');
     }
 
@@ -46,7 +46,7 @@ class PaketMembershipController extends Controller
 
         $paketMembership->update($request->only('nama_paket', 'jumlah_kuota', 'harga', 'status'));
 
-        return redirect()->route('adminfutsal.paket-membership.index')
+        return redirect()->route('admin.futsal.paket-membership.index')
             ->with('success', 'Paket membership berhasil diupdate.');
     }
 
@@ -54,13 +54,13 @@ class PaketMembershipController extends Controller
     {
         // Cegah hapus paket yang masih dipakai
         if ($paketMembership->memberships()->exists()) {
-            return redirect()->route('adminfutsal.paket-membership.index')
+            return redirect()->route('admin.futsal.paket-membership.index')
                 ->with('error', 'Paket tidak bisa dihapus karena masih digunakan.');
         }
 
         $paketMembership->delete();
 
-        return redirect()->route('adminfutsal.paket-membership.index')
+        return redirect()->route('admin.futsal.paket-membership.index')
             ->with('success', 'Paket membership berhasil dihapus.');
     }
 }

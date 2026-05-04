@@ -25,10 +25,11 @@
                     <thead class="bg-primary text-white">
                         <tr>
                             <th>No</th>
+                            <th>Kode Transaksi</th>
                             <th>Tgl & Jam Main</th>
                             <th>Lapangan</th>
                             <th>Pemesan</th>
-                            <th>Jenis</th>
+                            <th>Tipe & Metode</th>
                             <th>Status</th>
                             <th>Aksi</th>
                         </tr>
@@ -37,16 +38,36 @@
                         @foreach ($bookings as $key => $item)
                             <tr>
                                 <td>{{ $bookings->firstItem() + $key }}</td>
+                                <td>{{ $item->booking->pembayaranFutsal->first()?->kode_pembayaran ?? '-' }}</td>
                                 <td>{{ \Carbon\Carbon::parse($item->start_datetime)->format('d M Y, H:i') }}</td>
                                 <td>{{ $item->lapangan->nama ?? '-' }}</td>
                                 <td>{{ $item->nama_pemesan ?? ($item->user->name ?? '-') }}</td>
-                                <td>
-                                    @if($item->jenis_pembayaran == 'paket')
-                                        <span class="badge badge-info">Paket</span>
-                                    @else
-                                        <span class="badge badge-primary">Reguler</span>
-                                    @endif
-                                </td>
+                                 <td>
+                                    @php
+                                        $tipeBooking = $item->jenis_pembayaran ?? 'reguler';
+                                        $labelTipe = match($tipeBooking) {
+                                            'event'  => 'Event',
+                                            'paket'  => 'Paket',
+                                            default  => 'Reguler',
+                                        };
+                                        $badgeTipe = match($tipeBooking) {
+                                            'event'  => 'badge-warning',
+                                            'paket'  => 'badge-info',
+                                            default  => 'badge-secondary',
+                                        };
+                                        $namaMetode = $item->booking->pembayaranFutsal->first()?->tipePembayaran?->nama ?? null;
+                                    @endphp
+                                    {{-- Baris 1: Tipe Booking --}}
+                                    <span class="badge {{ $badgeTipe }} badge-sm">{{ $labelTipe }}</span>
+                                    {{-- Baris 2: Metode Pembayaran yang dipilih user --}}
+                                    <div class="mt-1 small text-gray-700">
+                                        @if($namaMetode)
+                                            <i class="fas fa-money-bill-alt mr-1 text-success"></i>{{ $namaMetode }}
+                                        @else
+                                            <span class="text-muted"><i class="fas fa-clock mr-1"></i>Belum dipilih</span>
+                                        @endif
+                                    </div>
+                                 </td>
                                 <td>
                                     @if ($item->status == 'menunggu')
                                         <span class="badge badge-warning">Menunggu</span>

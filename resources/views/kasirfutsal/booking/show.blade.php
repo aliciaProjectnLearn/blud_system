@@ -18,6 +18,12 @@
         <div class="alert alert-danger d-none" id="flash-error">{{ session('error') }}</div>
     @endif
 
+    @php
+        // Akses pembayaran lewat jalur: BookingFutsal -> Booking -> PembayaranFutsal (hasMany, ambil first)
+        $pembayaran = $booking->booking->pembayaranFutsal->first() ?? null;
+        $namaMetode = $pembayaran?->tipePembayaran?->nama ?? null;
+    @endphp
+
     <div class="row">
         <div class="col-lg-8">
             <div class="card shadow mb-4">
@@ -32,14 +38,26 @@
                             <td>{{ $booking->lapangan->nama ?? '-' }}</td>
                         </tr>
                         <tr>
-                            <td><strong>Mulai</strong></td>
+                            <td><strong>Waktu Main</strong></td>
                             <td>:</td>
-                            <td>{{ \Carbon\Carbon::parse($booking->start_datetime)->format('d M Y H:i') }}</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Selesai</strong></td>
-                            <td>:</td>
-                            <td>{{ \Carbon\Carbon::parse($booking->end_datetime)->format('d M Y H:i') }}</td>
+                            <td>
+                                @if($booking->jenis_pembayaran === 'event')
+                                    <span class="font-weight-bold">
+                                        {{ \Carbon\Carbon::parse($booking->start_datetime)->locale('id')->translatedFormat('d F Y') }}
+                                    </span>
+                                    <span class="text-muted mx-1">s/d</span>
+                                    <span class="font-weight-bold">
+                                        {{ \Carbon\Carbon::parse($booking->end_datetime)->locale('id')->translatedFormat('d F Y') }}
+                                    </span>
+                                @else
+                                    {{ \Carbon\Carbon::parse($booking->start_datetime)->locale('id')->translatedFormat('l, d F Y') }}
+                                    <span class="text-muted ml-1">
+                                        {{ \Carbon\Carbon::parse($booking->start_datetime)->format('H:i') }}
+                                        –
+                                        {{ \Carbon\Carbon::parse($booking->end_datetime)->format('H:i') }}
+                                    </span>
+                                @endif
+                            </td>
                         </tr>
                         <tr>
                             <td><strong>Pemesan</strong></td>
@@ -52,10 +70,81 @@
                             <td>{{ $booking->no_hp ?? '-' }}</td>
                         </tr>
                         <tr>
-                            <td><strong>Jenis Pembayaran</strong></td>
+                            <td><strong>Tipe Booking</strong></td>
                             <td>:</td>
-                            <td><span class="badge badge-info">{{ ucfirst($booking->jenis_pembayaran) }}</span></td>
+                            <td>
+                                @php
+                                    $labelTipe = match($booking->jenis_pembayaran) {
+                                        'event'  => 'Booking Event',
+                                        'paket'  => 'Paket Membership',
+                                        default  => 'Reguler',
+                                    };
+                                    $badgeTipe = match($booking->jenis_pembayaran) {
+                                        'event'  => 'badge-warning',
+                                        'paket'  => 'badge-info',
+                                        default  => 'badge-primary',
+                                    };
+                                @endphp
+                                <span class="badge {{ $badgeTipe }}">{{ $labelTipe }}</span>
+                            </td>
                         </tr>
+                        <tr>
+                            <td><strong>Metode Pembayaran</strong></td>
+                            <td>:</td>
+                            <td>
+                                @if($namaMetode)
+                                    @php
+                                        // Normalisasi nama metode: ganti "Paket/Membership" → "Paket Membership"
+                                        $namaMetodeBersih = str_replace('/', ' ', $namaMetode);
+                                        // Override khusus untuk jenis paket
+                                        if ($booking->jenis_pembayaran === 'paket') {
+                                            $namaMetodeBersih = 'Paket Membership';
+                                        }
+                                    @endphp
+                                    <strong>{{ $namaMetodeBersih }}</strong>
+                                @else
+                                    <span class="text-muted small"><i class="fas fa-clock mr-1"></i>Belum diproses kasir</span>
+                                @endif
+                            </td>
+                        </tr>
+                        @if($pembayaran)
+                        <tr>
+                            <td><strong>Total Tagihan</strong></td>
+                            <td>:</td>
+                            <td class="text-danger font-weight-bold">
+                                Rp {{ number_format($pembayaran->jumlah_bayar, 0, ',', '.') }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Status Pembayaran</strong></td>
+                            <td>:</td>
+                            <td>
+                                @if($pembayaran->status == \App\Models\PembayaranFutsal::STATUS_VERIFIKASI)
+                                    <span class="badge badge-success">Lunas</span>
+                                @elseif($pembayaran->status == \App\Models\PembayaranFutsal::STATUS_MENUNGGU)
+                                    <span class="badge badge-warning">Belum Lunas</span>
+                                @else
+                                    <span class="badge badge-danger">Batal</span>
+                                @endif
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Tanggal Bayar</strong></td>
+                            <td>:</td>
+                            <td>{{ $pembayaran->tgl_bayar ? \Carbon\Carbon::parse($pembayaran->tgl_bayar)->format('d M Y H:i') : '-' }}</td>
+                        </tr>
+                        @if($pembayaran->bukti)
+                        <tr>
+                            <td><strong>Bukti Bayar</strong></td>
+                            <td>:</td>
+                            <td>
+                                <a href="{{ asset('storage/' . $pembayaran->bukti) }}" target="_blank" class="btn btn-sm btn-info">
+                                    <i class="fas fa-file-image"></i> Lihat Bukti
+                                </a>
+                            </td>
+                        </tr>
+                        @endif
+                        @endif
                         <tr>
                             <td><strong>Status Booking</strong></td>
                             <td>:</td>
@@ -97,9 +186,16 @@
                         </form>
                     @elseif ($booking->status == 'dikonfirmasi')
                         <p class="text-success"><i class="fas fa-check-circle"></i> Booking sudah dikonfirmasi.</p>
-                        @if ($booking->pembayaranFutsal)
-                            <a href="{{ route('kasirfutsal.pembayaran.show', $booking->pembayaranFutsal->id) }}" class="btn btn-success btn-block mt-3">
+                        @if ($pembayaran)
+                            <a href="{{ route('kasirfutsal.pembayaran.show', $pembayaran->id) }}" class="btn btn-success btn-block mt-3">
                                 <i class="fas fa-cash-register"></i> Lihat Pembayaran
+                            </a>
+                        @endif
+                    @elseif ($booking->status == 'selesai')
+                        <p class="text-success"><i class="fas fa-check-circle fa-2x mb-2"></i><br>Booking selesai &amp; lunas.</p>
+                        @if ($pembayaran)
+                            <a href="{{ route('kasirfutsal.pembayaran.show', $pembayaran->id) }}" class="btn btn-primary btn-block mt-3">
+                                <i class="fas fa-print"></i> Lihat / Cetak Invoice
                             </a>
                         @endif
                     @else

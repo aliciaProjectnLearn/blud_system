@@ -31,17 +31,40 @@ use App\Http\Controllers\KasirServis\DashboardController as KasirDashboardContro
 use App\Http\Controllers\User\DashboardUserController;
 use App\Http\Controllers\KasirServis\BookingKasirController;
 use App\Http\Controllers\User\UserServisController;
+use App\Http\Controllers\User\CekBookingController;
+use App\Http\Controllers\User\OtpController;
 
 Route::get('/', [LandingController::class, 'index'])->name('home');
 
 Route::prefix('user')->name('user.')->group(function () {
     Route::get('/', [LandingController::class, 'index'])->name('gateway');
+
+    // Fitur Cek Booking via Nomor HP (Poin 2)
+    Route::post('/cek-booking/otp', [CekBookingController::class, 'requestOtp'])->name('cek-booking.otp')->middleware('throttle:10,1');
+    Route::post('/cek-booking/verify', [CekBookingController::class, 'verifyOtp'])->name('cek-booking.verify')->middleware('throttle:10,1');
     
-    // Token-Based Access Futsal (Detail & Pembatalan — Riwayat dihapus per REVISI 2)
+    // Revised Cek Booking Routes (Modal Flow) - Hardened with Throttle
+    Route::middleware(['throttle:5,1'])->group(function () {
+        Route::post('/cek-booking/kirim-otp', [CekBookingController::class, 'kirimOtp'])->name('cek.booking.kirim-otp');
+    });
+
+    Route::middleware(['throttle:10,1'])->group(function () {
+        Route::post('/cek-booking/verifikasi', [CekBookingController::class, 'verifikasi'])->name('cek.booking.verifikasi');
+    });
+    
+    Route::get('/cek-booking/riwayat', [CekBookingController::class, 'riwayat'])->name('cek.booking.riwayat');
+    
+    // Token-Based Access (Detail, Pembatalan) — Riwayat dihapus (Poin 2)
     Route::get('/access/{token}', [App\Http\Controllers\User\TokenAccessController::class, 'show'])->name('token.show');
-    // Route::get('/access/{token}/history', ...) // REVISI 2: Dihapus
+    // Route::get('/access/{token}/history', ...) — Dihapus per Poin 2
     Route::get('/access/{token}/cancel', [App\Http\Controllers\User\TokenAccessController::class, 'batalkan'])->name('token.batalkan');
     Route::post('/access/{token}/cancel', [App\Http\Controllers\User\TokenAccessController::class, 'prosesBatalkan'])->name('token.batalkan.proses');
+
+    // OTP verification routes (Poin 6 & 7)
+    Route::post('/access/{token}/verify-otp', [App\Http\Controllers\User\TokenAccessController::class, 'verifyOtp'])
+         ->name('token.otp.verify')->middleware('throttle:10,1');
+    Route::post('/access/{token}/resend-otp', [App\Http\Controllers\User\TokenAccessController::class, 'resendOtp'])
+         ->name('token.otp.resend');
 
     // Futsal
     Route::prefix('futsal')->name('futsal.')->group(function () {
@@ -52,6 +75,7 @@ Route::prefix('user')->name('user.')->group(function () {
         Route::post('/beli-paket', [App\Http\Controllers\User\FutsalBookingController::class, 'paketStore'])->name('paket.store');
         Route::get('/check-availability', [App\Http\Controllers\User\FutsalBookingController::class, 'checkAvailability'])->name('booking.check');
         Route::get('/api/check-membership', [App\Http\Controllers\User\FutsalBookingController::class, 'checkMembership'])->name('api.check.membership');
+        Route::post('/check-booking-aktif', [App\Http\Controllers\User\FutsalBookingController::class, 'checkBookingAktif'])->name('check.booking.aktif');
     });
 
     Route::prefix('kantin')->name('kantin.')->group(function () {
@@ -59,8 +83,17 @@ Route::prefix('user')->name('user.')->group(function () {
         Route::get('/katalog', [\App\Http\Controllers\User\KantinController::class, 'katalog'])->name('katalog');
         Route::get('/booking/{ruko_id}', [\App\Http\Controllers\User\KantinController::class, 'formBooking'])->name('booking');
         Route::post('/booking', [\App\Http\Controllers\User\KantinController::class, 'simpanBooking'])->name('booking.store');
+        Route::post('/check-phone', [\App\Http\Controllers\User\KantinController::class, 'checkPhone'])->name('check-phone');
+        Route::get('/cek-hp', [\App\Http\Controllers\User\KantinController::class, 'cekHp'])->name('cek.hp');
+        Route::post('/check-nik', [\App\Http\Controllers\User\KantinController::class, 'checkNik'])->name('check-nik');
         Route::get('/unit/{id}/detail', [\App\Http\Controllers\User\KantinController::class, 'unitDetail'])->name('unit.detail');
 
+        // OTP & Session flow
+        Route::prefix('otp')->name('otp.')->group(function () {
+            Route::get('/{token}', [OtpController::class, 'form'])->name('form');
+            Route::post('/{token}/verifikasi', [OtpController::class, 'verifikasi'])->name('verifikasi');
+            Route::get('/{token}/kirim-ulang', [OtpController::class, 'kirimUlang'])->name('kirim-ulang');
+        });
         Route::get('/sewa/{token}', [\App\Http\Controllers\User\SewaTokenController::class, 'detail'])->name('sewa.detail');
         Route::get('/sewa/{token}/riwayat', [\App\Http\Controllers\User\SewaTokenController::class, 'riwayat'])->name('sewa.riwayat');
         Route::get('/sewa/{token}/pembayaran', [\App\Http\Controllers\User\SewaTokenController::class, 'pembayaran'])->name('sewa.pembayaran');
@@ -76,7 +109,14 @@ Route::prefix('user')->name('user.')->group(function () {
         
         // Token Based Access
         Route::get('/booking/{token}', [App\Http\Controllers\User\AcTokenController::class, 'show'])->name('token.show');
+        Route::get('/booking/{token}/otp', [App\Http\Controllers\User\AcTokenController::class, 'otpForm'])->name('token.otp');
+        Route::post('/booking/{token}/otp', [App\Http\Controllers\User\AcTokenController::class, 'verifyOtp'])->name('token.otp.verify');
+        Route::post('/booking/{token}/resend', [App\Http\Controllers\User\AcTokenController::class, 'resendOtp'])->name('token.otp.resend');
+      
+        // Token Based Access
+        Route::get('/booking/{token}', [App\Http\Controllers\User\AcTokenController::class, 'show'])->name('token.show');
         Route::get('/booking/{token}/history', [App\Http\Controllers\User\AcTokenController::class, 'riwayat'])->name('token.riwayat');
+
     });
 
     Route::prefix('servis')->name('servis.')->group(function () {
@@ -154,11 +194,19 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Superadmin|Adm
         Route::get('laporan/export-pdf', [LaporanController::class, 'exportPdf'])->name('laporan.export.pdf');
         Route::get('laporan/export-excel', [LaporanController::class, 'exportExcel'])->name('laporan.export.excel');
         Route::get('pengaturan', [\App\Http\Controllers\AdminFutsal\PengaturanController::class, 'index'])->name('pengaturan.index');
-        Route::get('pengaturan/jam-operasional', [\App\Http\Controllers\AdminFutsal\PengaturanController::class, 'indexJamOperasional'])->name('pengaturan.jam_operasional.index');
-        Route::post('pengaturan/jam-operasional', [\App\Http\Controllers\AdminFutsal\PengaturanController::class, 'storeJamOperasional'])->name('pengaturan.jam_operasional.store');
+        // Route jam-operasional dihapus, fitur sudah dipindah ke Pengaturan Dasar (jam blokir)
+        // Route::get('pengaturan/jam-operasional', [\App\Http\Controllers\AdminFutsal\PengaturanController::class, 'indexJamOperasional'])->name('pengaturan.jam_operasional.index');
+        // Route::post('pengaturan/jam-operasional', [\App\Http\Controllers\AdminFutsal\PengaturanController::class, 'storeJamOperasional'])->name('pengaturan.jam_operasional.store');
         Route::put('pengaturan/{id}', [\App\Http\Controllers\AdminFutsal\PengaturanController::class, 'update'])->name('pengaturan.update');
         Route::get('keuangan', [KeuanganController::class, 'index'])->name('keuangan.index');
         Route::post('keuangan/tambah-pengeluaran', [KeuanganController::class, 'storePengeluaran'])->name('keuangan.store');
+        // Manajemen Lapangan
+        Route::get('lapangan', [\App\Http\Controllers\AdminFutsal\LapanganController::class, 'index'])->name('lapangan.index');
+        Route::get('lapangan/create', [\App\Http\Controllers\AdminFutsal\LapanganController::class, 'create'])->name('lapangan.create');
+        Route::post('lapangan', [\App\Http\Controllers\AdminFutsal\LapanganController::class, 'store'])->name('lapangan.store');
+        Route::get('lapangan/{id}/edit', [\App\Http\Controllers\AdminFutsal\LapanganController::class, 'edit'])->name('lapangan.edit');
+        Route::put('lapangan/{id}', [\App\Http\Controllers\AdminFutsal\LapanganController::class, 'update'])->name('lapangan.update');
+        Route::delete('lapangan/{id}', [\App\Http\Controllers\AdminFutsal\LapanganController::class, 'destroy'])->name('lapangan.destroy');
     });
 
     // Admin Kantin
@@ -181,6 +229,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Superadmin|Adm
         Route::get('laporan/export-excel', [\App\Http\Controllers\AdminKantin\LaporanController::class, 'exportExcel'])->name('laporan.export.excel');
         Route::get('keuangan', [\App\Http\Controllers\AdminKantin\KeuanganController::class, 'index'])->name('keuangan.index');
         Route::post('keuangan', [\App\Http\Controllers\AdminKantin\KeuanganController::class, 'store'])->name('keuangan.store');
+
+        // Audit Log
+        Route::get('audit', [\App\Http\Controllers\AdminKantin\AuditLogController::class, 'index'])->name('audit.index');
+        Route::get('audit/{id}', [\App\Http\Controllers\AdminKantin\AuditLogController::class, 'show'])->name('audit.show');
     });
 
     // Admin AC
@@ -310,6 +362,7 @@ Route::middleware(['auth', 'checkRole:kasirfutsal'])->prefix('kasir-futsal')->na
     Route::get('/pembayaran', [KasirFutsal\PembayaranKasirFutsalController::class, 'index'])->name('pembayaran.index');
     Route::get('/pembayaran/{id}', [KasirFutsal\PembayaranKasirFutsalController::class, 'show'])->name('pembayaran.show');
     Route::post('/pembayaran/{id}/proses', [KasirFutsal\PembayaranKasirFutsalController::class, 'prosesPembayaran'])->name('pembayaran.proses');
+    Route::post('/pembayaran/{id}/tolak', [KasirFutsal\PembayaranKasirFutsalController::class, 'tolakPembayaran'])->name('pembayaran.tolak');
 
     Route::get('/laporan', [KasirFutsal\LaporanKasirFutsalController::class, 'index'])->name('laporan.index');
     Route::get('/laporan/pdf', [KasirFutsal\LaporanKasirFutsalController::class, 'exportPdf'])->name('laporan.pdf');

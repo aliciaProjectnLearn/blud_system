@@ -1,5 +1,7 @@
 @extends('layouts.publik')
 
+@section('title', 'Detail Booking Futsal')
+
 @section('content')
 <div class="container py-5 mt-5">
     <div class="row justify-content-center">
@@ -15,6 +17,26 @@
                             <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                                 <span aria-hidden="true">&times;</span>
                             </button>
+                        </div>
+                    @endif
+
+                    @if(session('success'))
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            {{ session('success') }}
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    @endif
+
+                    {{-- POIN 12: Keterangan menunggu konfirmasi admin --}}
+                    @if($bookingFutsal->status === 'menunggu')
+                        <div class="alert alert-warning d-flex align-items-start">
+                            <i class="fas fa-clock fa-lg mr-3 mt-1"></i>
+                            <div>
+                                <strong>Menunggu Konfirmasi Admin/Kasir</strong><br>
+                                Booking Anda masih menunggu konfirmasi admin/kasir sebelum dianggap sah. Anda akan mendapat notifikasi WhatsApp setelah dikonfirmasi.
+                            </div>
                         </div>
                     @endif
 
@@ -50,7 +72,41 @@
                             </tr>
                             <tr>
                                 <th class="bg-light">Waktu Main</th>
-                                <td>{{ \Carbon\Carbon::parse($bookingFutsal->start_datetime)->locale('id')->translatedFormat('l, d F Y') }} | {{ \Carbon\Carbon::parse($bookingFutsal->start_datetime)->format('H:i') }} - {{ \Carbon\Carbon::parse($bookingFutsal->end_datetime)->format('H:i') }}</td>
+                                <td>
+                                    @if($bookingFutsal->jenis_pembayaran === 'event')
+                                        {{-- Event: tampilkan range tanggal lengkap --}}
+                                        {{ \Carbon\Carbon::parse($bookingFutsal->start_datetime)->locale('id')->translatedFormat('l, d F Y') }}
+                                        <span class="text-muted">s/d</span>
+                                        {{ \Carbon\Carbon::parse($bookingFutsal->end_datetime)->locale('id')->translatedFormat('l, d F Y') }}
+                                        <div class="small text-muted mt-1">
+                                            <i class="fas fa-clock mr-1"></i>
+                                            {{ \Carbon\Carbon::parse($bookingFutsal->start_datetime)->format('H:i') }}
+                                            –
+                                            {{ \Carbon\Carbon::parse($bookingFutsal->end_datetime)->format('H:i') }}
+                                        </div>
+                                    @else
+                                        {{-- Reguler / Paket: tampilan normal satu hari --}}
+                                        {{ \Carbon\Carbon::parse($bookingFutsal->start_datetime)->locale('id')->translatedFormat('l, d F Y') }} | {{ \Carbon\Carbon::parse($bookingFutsal->start_datetime)->format('H:i') }} - {{ \Carbon\Carbon::parse($bookingFutsal->end_datetime)->format('H:i') }}
+                                    @endif
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="bg-light">Jenis Booking</th>
+                                <td>
+                                    @php
+                                        $labelJenisBooking = match($bookingFutsal->jenis_pembayaran) {
+                                            'event'  => 'Booking Event',
+                                            'paket'  => 'Paket Membership',
+                                            default  => 'Reguler',
+                                        };
+                                        $badgeJenisBooking = match($bookingFutsal->jenis_pembayaran) {
+                                            'event'  => 'badge-warning',
+                                            'paket'  => 'badge-info',
+                                            default  => 'badge-primary',
+                                        };
+                                    @endphp
+                                    <span class="badge {{ $badgeJenisBooking }} p-2">{{ $labelJenisBooking }}</span>
+                                </td>
                             </tr>
                             <tr>
                                 <th class="bg-light">Nama Pemesan</th>
@@ -61,26 +117,48 @@
                                 <td>{{ $bookingFutsal->no_hp }}</td>
                             </tr>
                             <tr>
-                                <th class="bg-light">Jenis Pembayaran</th>
+                                <th class="bg-light">Metode Pembayaran</th>
                                 <td>
-                                    @php 
-                                        $pembayaran = $bookingFutsal->booking->pembayaranFutsal->first();
-                                        $tipe = $pembayaran->tipePembayaran->nama ?? ($bookingFutsal->jenis_pembayaran === 'membership' ? 'Paket' : 'Reguler');
+                                    @php
+                                        $pembayaranFutsal = $bookingFutsal->booking->pembayaranFutsal->first();
+                                        $namaMetodeBayar = $pembayaranFutsal?->tipePembayaran?->nama ?? null;
                                     @endphp
-                                    {{ $tipe }}
+                                    @if($namaMetodeBayar)
+                                        <strong>{{ $namaMetodeBayar }}</strong>
+                                    @else
+                                        <span class="text-muted small">
+                                            <i class="fas fa-clock mr-1"></i>Menunggu proses kasir
+                                        </span>
+                                    @endif
                                 </td>
                             </tr>
                         </table>
                     </div>
 
-                    {{-- REVISI 2: Tombol Lihat Riwayat dihapus (route dinonaktifkan) --}}
-                    @if($bookingFutsal->status == 'menunggu' && \Carbon\Carbon::parse($bookingFutsal->start_datetime)->gt(now()->addHours(2)))
-                        <div class="mt-4 text-right">
-                            <a href="{{ route('user.token.batalkan', $token) }}" class="btn btn-danger">
-                                <i class="fas fa-times-circle"></i> Batalkan Booking
-                            </a>
-                        </div>
-                    @endif
+                    <div class="d-flex justify-content-end mt-4">
+                        @if($bookingFutsal->status == 'menunggu')
+                            @php
+                                $bisaBatal = \Carbon\Carbon::parse($bookingFutsal->start_datetime)->gt(now()->addHours(2));
+                            @endphp
+                            @if($bisaBatal)
+                                <a href="{{ route('user.token.batalkan', $token) }}" class="btn btn-danger">
+                                    <i class="fas fa-times-circle"></i> Batalkan Booking
+                                </a>
+                            @else
+                                <div class="text-right">
+                                    <button class="btn btn-secondary" disabled>
+                                        <i class="fas fa-times-circle"></i> Batalkan Booking
+                                    </button>
+                                    <div class="small text-muted mt-1">
+                                        <i class="fas fa-info-circle mr-1"></i>
+                                        Pembatalan tidak tersedia kurang dari 2 jam sebelum waktu main.
+                                    </div>
+                                </div>
+                            @endif
+                        @elseif($bookingFutsal->status == 'dibatalkan')
+                            <span class="text-muted small"><i class="fas fa-ban mr-1"></i>Booking ini sudah dibatalkan.</span>
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>
