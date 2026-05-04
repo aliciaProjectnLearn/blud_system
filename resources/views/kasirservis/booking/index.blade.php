@@ -7,6 +7,9 @@
     <!-- Page Heading -->
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
         <h1 class="h3 mb-0 text-gray-800">Manajemen Booking Servis</h1>
+        <a href="{{ route('kasir.booking.create') }}" class="btn btn-primary shadow-sm font-weight-bold">
+            <i class="fas fa-plus fa-sm text-white-50 mr-1"></i> Buat Booking Baru
+        </a>
     </div>
 
     <!-- Alert Success/Error -->

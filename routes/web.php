@@ -334,6 +334,10 @@ Route::prefix('kasir')->name('kasir.')->middleware(['auth', 'role:Kasir'])
     ->group(function () {
     Route::get('/dashboard', [KasirDashboardController::class, 'index'])->name('dashboard');
     Route::get('/booking', [BookingKasirController::class, 'index'])->name('booking.index');
+    Route::get('/booking/create', [BookingKasirController::class, 'create'])->name('booking.create');
+    Route::post('/booking/store', [BookingKasirController::class, 'storeBooking'])->name('booking.store');
+    Route::get('/slots', [BookingKasirController::class, 'getSlots'])->name('booking.slots');
+    Route::get('/kendaraan/model/{merek_id}', [BookingKasirController::class, 'getModelByMerek'])->name('booking.kendaraan.model');
     Route::get('/booking/{id}', [BookingKasirController::class, 'show'])->name('booking.show');
     Route::put('/booking/{id}', [BookingKasirController::class, 'update'])->name('booking.update');
     Route::post('/booking/{id}/assign', [BookingKasirController::class, 'assignTeknisi'])->name('booking.assign');

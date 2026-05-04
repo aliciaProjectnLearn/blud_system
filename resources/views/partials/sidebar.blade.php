@@ -533,12 +533,18 @@
         {{-- Manajemen Booking --}}
         <div class="sidebar-heading">Menu Pekerjaan</div>
 
-        <li
-            class="nav-item {{ request()->routeIs('kasir.booking.*') || request()->routeIs('kasir.dashboard*') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('kasir.booking.index') }}">
+        <li class="nav-item {{ request()->routeIs('kasir.booking.*') ? 'active' : '' }}">
+            <a class="nav-link {{ request()->routeIs('kasir.booking.*') ? '' : 'collapsed' }}" href="#"
+                data-toggle="collapse" data-target="#collapseBookingKasir">
                 <i class="fas fa-fw fa-calendar-check"></i>
                 <span>Manajemen Booking</span>
             </a>
+            <div id="collapseBookingKasir" class="collapse {{ request()->routeIs('kasir.booking.*') ? 'show' : '' }}">
+                <div class="bg-white py-2 collapse-inner rounded">
+                    <a class="collapse-item {{ request()->routeIs('kasir.booking.index') ? 'active' : '' }}" href="{{ route('kasir.booking.index') }}">Daftar Booking</a>
+                    <a class="collapse-item {{ request()->routeIs('kasir.booking.create') ? 'active' : '' }}" href="{{ route('kasir.booking.create') }}">Buat Booking</a>
+                </div>
+            </div>
         </li>
 
         <li class="nav-item {{ request()->routeIs('kasir.pembayaran.*') ? 'active' : '' }}">

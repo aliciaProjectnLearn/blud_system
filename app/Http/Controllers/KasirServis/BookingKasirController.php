@@ -392,4 +392,197 @@ class BookingKasirController extends Controller
             return back()->with('error', 'Gagal memproses pembayaran: ' . $e->getMessage());
         }
     }
+
+    public function create()
+    {
+        $layanans = \App\Models\LayananServis::where('is_active', true)->get();
+        $mereks = \App\Models\MerekKendaraan::where('is_active', true)->orderBy('nama')->get();
+
+        return view('kasirservis.booking.create', compact('layanans', 'mereks'));
+    }
+
+    public function getSlots(Request $request)
+    {
+        $request->validate([
+            'tanggal' => 'required|date|after_or_equal:today',
+        ]);
+
+        $tanggal    = $request->tanggal;
+        $jamTersedia = $this->generateJamSlot();
+        $sekarang   = \Carbon\Carbon::now('Asia/Jakarta');
+        $isHariIni  = ($tanggal === $sekarang->toDateString());
+
+        $bookingPerJam = BookingServis::where('tanggal_booking', $tanggal)
+            ->whereNotIn('status', ['batal', 'selesai'])
+            ->selectRaw('jam_booking, COUNT(*) as total')
+            ->groupBy('jam_booking')
+            ->pluck('total', 'jam_booking')
+            ->toArray();
+
+        $slots = [];
+        foreach ($jamTersedia as $jam) {
+            $total          = $bookingPerJam[$jam] ?? 0;
+            $kapasitasPenuh = $total >= 3;
+
+            $sudahLewat = false;
+            if ($isHariIni) {
+                $jamInt     = (int) substr($jam, 0, 2);
+                $sudahLewat = $sekarang->hour >= $jamInt;
+            }
+
+            $slots[] = [
+                'jam'         => $jam,
+                'terisi'      => (int) $total,
+                'kapasitas'   => 3,
+                'tersedia'    => !$kapasitasPenuh && !$sudahLewat,
+                'sudah_lewat' => $sudahLewat,
+            ];
+        }
+
+        $adaYangTersedia = collect($slots)->where('tersedia', true)->count() > 0;
+
+        return response()->json([
+            'slots'             => $slots,
+            'ada_yang_tersedia' => $adaYangTersedia,
+            'tanggal'           => $tanggal,
+            'is_hari_ini'       => $isHariIni,
+        ]);
+    }
+
+    public function getModelByMerek($merek_id)
+    {
+        $models = \App\Models\ModelKendaraan::where('merek_kendaraan_id', $merek_id)
+            ->where('is_active', true)
+            ->orderBy('nama_model')
+            ->get(['id', 'nama_model']);
+
+        return response()->json($models);
+    }
+
+    private function generateJamSlot(): array
+    {
+        $slots = [];
+        for ($jam = 8; $jam <= 16; $jam++) {
+            $slots[] = sprintf('%02d:00', $jam);
+        }
+        return $slots;
+    }
+
+    public function storeBooking(Request $request)
+    {
+        $request->validate([
+            'nama'               => 'required|string|max:255',
+            'no_hp'              => 'required|string|max:20',
+            'layanan_servis_id'  => 'required|exists:layanan_servis,id',
+            'merek_kendaraan_id' => 'required|exists:merek_kendaraan,id',
+            'model_kendaraan_id' => 'required|exists:model_kendaraan,id',
+            'nomor_plat'         => 'required|string|max:20',
+            'tahun_kendaraan'    => 'required|digits:4|integer|min:1990|max:' . date('Y'),
+            'keluhan'            => 'nullable|string|max:500',
+            'tanggal_booking'    => 'required|date|after_or_equal:today',
+            'jam_booking'        => 'required|in:' . implode(',', $this->generateJamSlot()),
+        ]);
+
+        $modelExists = \App\Models\ModelKendaraan::where('id', $request->model_kendaraan_id)
+            ->where('merek_kendaraan_id', $request->merek_kendaraan_id)
+            ->exists();
+        if (!$modelExists) {
+            return back()->withErrors(['model_kendaraan_id' => 'Model kendaraan tidak sesuai dengan merek yang dipilih.'])->withInput();
+        }
+
+        $bookingAktif = BookingServis::where('no_hp', $request->no_hp)
+            ->whereIn('status', ['menunggu', 'diproses', 'siap_bayar'])
+            ->first();
+
+        if ($bookingAktif) {
+            return back()->withErrors([
+                'no_hp' => 'Pelanggan masih memiliki booking servis yang sedang diproses (Kode: ' . $bookingAktif->kode_booking . ', Status: ' . strtoupper($bookingAktif->status) . '). Selesaikan booking tersebut terlebih dahulu.',
+            ])->withInput();
+        }
+
+        $waktuBooking = \Carbon\Carbon::parse($request->tanggal_booking . ' ' . $request->jam_booking);
+        if ($waktuBooking->isPast()) {
+            return back()->withErrors(['jam_booking' => 'Waktu yang dipilih sudah lewat.'])->withInput();
+        }
+
+        if (!BookingServis::isSlotAvailable($request->tanggal_booking, $request->jam_booking)) {
+            return back()->withErrors(['jam_booking' => 'Slot pada jam ini sudah penuh (Maks. 3).'])->withInput();
+        }
+
+        $layanan = \App\Models\LayananServis::findOrFail($request->layanan_servis_id);
+
+        $user = User::where('no_hp', $request->no_hp)->first();
+        if (!$user) {
+            $user = User::create([
+                'name'     => $request->nama,
+                'username' => $request->nama,
+                'no_hp'    => $request->no_hp,
+                'password' => bcrypt(\Illuminate\Support\Str::random(16)),
+            ]);
+
+            $role = \App\Models\Role::where('nama', 'pelanggan')->first();
+            if ($role) {
+                $user->roles()->attach($role->id);
+            }
+        }
+
+        do {
+            $accessToken = \Illuminate\Support\Str::random(64);
+        } while (BookingServis::where('access_token', $accessToken)->exists());
+
+        $kodeBooking = strtoupper(substr($layanan->tipe_kendaraan ?? 'SRV', 0, 3)) . '-' . strtoupper(\Illuminate\Support\Str::random(6));
+
+        $merek = \App\Models\MerekKendaraan::findOrFail($request->merek_kendaraan_id);
+        $model = \App\Models\ModelKendaraan::findOrFail($request->model_kendaraan_id);
+
+        $booking = BookingServis::create([
+            'kode_booking'      => $kodeBooking,
+            'user_id'           => $user->id,
+            'nama_pemesan'      => $request->nama,
+            'no_hp'             => $request->no_hp,
+            'layanan_servis_id' => $request->layanan_servis_id,
+            'merek_kendaraan'   => $merek->nama . ' ' . $model->nama_model,
+            'nomor_plat'        => strtoupper($request->nomor_plat),
+            'tahun_kendaraan'   => $request->tahun_kendaraan,
+            'keluhan'           => $request->keluhan,
+            'tanggal_booking'   => $request->tanggal_booking,
+            'jam_booking'       => $request->jam_booking,
+            'status'            => 'menunggu',
+            'access_token'      => $accessToken,
+        ]);
+
+        // Kirim WhatsApp
+        try {
+            $linkAkses = route('user.servis.token.show', $accessToken);
+            $fonnteToken = env('FONNTE_TOKEN');
+
+            if ($fonnteToken) {
+                $tanggalFormat = \Carbon\Carbon::parse($request->tanggal_booking)->translatedFormat('d F Y');
+
+                $pesanWa = "Yth. Bapak/Ibu {$request->nama},\n\n"
+                    . "Terima kasih telah menggunakan layanan Sistem Servis Kendaraan di BLUD SMKN 1 Cirebon. Booking servis Anda telah berhasil dicatat dengan rincian sebagai berikut:\n\n"
+                    . "Kode Booking: *{$kodeBooking}*\n"
+                    . "Kendaraan: {$merek->nama} {$model->nama_model} ({$request->tahun_kendaraan})\n"
+                    . "Layanan: {$layanan->nama_layanan}\n"
+                    . "Jadwal: {$tanggalFormat} pukul {$request->jam_booking} WIB\n\n"
+                    . "Untuk memantau status pengerjaan kendaraan dan detail riwayat servis Anda, silakan akses tautan resmi berikut:\n"
+                    . "{$linkAkses}\n\n"
+                    . "Harap simpan tautan di atas dengan baik. Tautan tersebut bersifat rahasia dan merupakan kunci akses Anda ke dalam sistem kami.\n\n"
+                    . "Hormat kami,\n"
+                    . "*Sistem Servis - BLUD SMKN 1 Cirebon*";
+
+                \Illuminate\Support\Facades\Http::withHeaders([
+                    'Authorization' => $fonnteToken,
+                ])->post('https://api.fonnte.com/send', [
+                    'target'      => $request->no_hp,
+                    'message'     => $pesanWa,
+                    'countryCode' => '62',
+                ]);
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Fonnte send error in kasir store: ' . $e->getMessage());
+        }
+
+        return redirect()->route('kasir.booking.index')->with('success', 'Booking berhasil dibuat oleh Kasir.');
+    }
 }
