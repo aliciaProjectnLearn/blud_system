@@ -659,13 +659,21 @@ function cekBookingModal() {
             this.alertHp = '';
 
             try {
+                // Normalize HP: remove leading 0 if present, then ensure 62 prefix
+                let normalizedHp = hp;
+                if (normalizedHp.startsWith('0')) {
+                    normalizedHp = '62' + normalizedHp.substring(1);
+                } else if (!normalizedHp.startsWith('62')) {
+                    normalizedHp = '62' + normalizedHp;
+                }
+
                 const res = await fetch('{{ route("user.cek.booking.kirim-otp") }}', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
                     },
-                    body: JSON.stringify({ no_hp: '62' + hp })
+                    body: JSON.stringify({ no_hp: normalizedHp })
                 });
                 const data = await res.json();
 
@@ -695,13 +703,21 @@ function cekBookingModal() {
             this.alertOtp = '';
 
             try {
+                let hp = this.noHp.replace(/\D/g,'');
+                let normalizedHp = hp;
+                if (normalizedHp.startsWith('0')) {
+                    normalizedHp = '62' + normalizedHp.substring(1);
+                } else if (!normalizedHp.startsWith('62')) {
+                    normalizedHp = '62' + normalizedHp;
+                }
+
                 const res = await fetch('{{ route("user.cek.booking.verifikasi") }}', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
                     },
-                    body: JSON.stringify({ no_hp: '62' + this.noHp.replace(/\D/g,''), otp: otp })
+                    body: JSON.stringify({ no_hp: normalizedHp, otp: otp })
                 });
                 const data = await res.json();
 
@@ -723,6 +739,14 @@ function cekBookingModal() {
             if (this.resendSisa > 0) return;
             clearInterval(this.resendTimer);
 
+            let hp = this.noHp.replace(/\D/g,'');
+            let normalizedHp = hp;
+            if (normalizedHp.startsWith('0')) {
+                normalizedHp = '62' + normalizedHp.substring(1);
+            } else if (!normalizedHp.startsWith('62')) {
+                normalizedHp = '62' + normalizedHp;
+            }
+
             try {
                 await fetch('{{ route("user.cek.booking.kirim-otp") }}', {
                     method: 'POST',
@@ -730,7 +754,7 @@ function cekBookingModal() {
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
                     },
-                    body: JSON.stringify({ no_hp: '62' + this.noHp.replace(/\D/g,'') })
+                    body: JSON.stringify({ no_hp: normalizedHp })
                 });
                 this.alertOtp = 'OTP baru telah dikirim.';
                 this.alertOtpType = 'success';

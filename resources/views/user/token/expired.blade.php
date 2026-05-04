@@ -13,14 +13,13 @@
                     </div>
                     <h4 class="font-weight-bold text-gray-800 mb-2">Link Sudah Tidak Aktif</h4>
                     <p class="text-muted mb-4">
-                        Booking ini sudah berstatus <strong>{{ ucfirst($status) }}</strong>.<br>
-                        Link akses tidak bisa digunakan lagi setelah booking selesai.
+                        Akses ini sudah tidak aktif karena status booking sudah <strong>{{ ucfirst($status) }}</strong>.
                     </p>
                     <div class="alert alert-light border text-left">
                         <small class="text-muted">
                             <i class="fas fa-info-circle mr-1 text-info"></i>
-                            Data booking tetap tersimpan di sistem kami.
-                            Jika ada pertanyaan, hubungi kasir atau admin BLUD Futsal.
+                            Data tetap tersimpan di sistem kami.
+                            Jika ada pertanyaan, silakan hubungi Admin BLUD melalui WhatsApp atau datang langsung ke lokasi.
                         </small>
                     </div>
                     <a href="{{ url('/') }}" class="btn btn-primary mt-2">

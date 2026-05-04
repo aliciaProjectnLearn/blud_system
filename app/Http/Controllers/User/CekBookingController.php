@@ -17,164 +17,12 @@ use Illuminate\Support\Facades\Log;
 
 class CekBookingController extends Controller
 {
-    /**
-     * Kirim OTP ke WhatsApp via Fonnte.
-     */
-    public function requestOtp(Request $request)
-    {
-        $request->validate([
-            'phone' => 'required|string',
-        ]);
-
-        $phone = $request->phone;
-        
-        // Clean phone number: remove non-digits
-        $target = preg_replace('/[^0-9]/', '', $phone);
-        
-        // Consistent Normalization Pattern (as used in working controllers)
-        if (str_starts_with($target, '0')) {
-            $target = '62' . substr($target, 1);
-        } elseif (!str_starts_with($target, '62')) {
-            $target = '62' . $target;
-        }
-
-        // Validate format (628... length 11-14)
-        if (!preg_match('/^628[0-9]{8,11}$/', $target)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Format nomor WhatsApp tidak valid. Gunakan format 08... atau 628...'
-            ], 422);
-        }
-
-        $blockedKey = "cek_otp_blocked:{$target}";
-        $cooldownKey = "cek_otp_cooldown:{$target}";
-        $otpKey = "cek_otp:{$target}";
-
-        // Check if blocked
-        if (Cache::has($blockedKey)) {
-            $seconds = Cache::remainingSeconds($blockedKey);
-            $minutes = ceil($seconds / 60);
-            return response()->json([
-                'success' => false,
-                'message' => "Nomor Anda diblokir sementara karena terlalu banyak percobaan. Coba lagi dalam {$minutes} menit."
-            ], 429);
-        }
-
-        // Check cooldown
-        if (Cache::has($cooldownKey)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Harap tunggu sebelum meminta OTP baru.'
-            ], 429);
-        }
-
-        // Generate or retrieve OTP
-        $otpData = Cache::get($otpKey);
-        if ($otpData) {
-            $otp = $otpData['otp_raw'];
-        } else {
-            $otp = rand(100000, 999999);
-            Cache::put($otpKey, [
-                'hashed' => Hash::make($otp),
-                'otp_raw' => $otp, // Raw stored for resend as per requirement
-            ], now()->addMinutes(3));
-        }
-
-        // Set cooldown
-        Cache::put($cooldownKey, true, now()->addSeconds(60));
-
-        // Send via Fonnte
-        $this->sendOtpToWhatsapp($target, $otp);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'OTP telah dikirim ke WhatsApp Anda.'
-        ]);
-    }
+    // requestOtp and verifyOtp removed (redundant)
 
     /**
      * Verifikasi OTP dan kirim link booking jika ditemukan.
      */
-    public function verifyOtp(Request $request)
-    {
-        $request->validate([
-            'phone' => 'required|string',
-            'otp' => 'required|digits:6',
-        ]);
-
-        $phone = preg_replace('/[^0-9]/', '', $request->phone);
-        if (str_starts_with($phone, '0')) {
-            $phone = '62' . substr($phone, 1);
-        } elseif (!str_starts_with($phone, '62')) {
-            $phone = '62' . $phone;
-        }
-
-        $blockedKey = "cek_otp_blocked:{$phone}";
-        $attemptsKey = "cek_otp_attempts:{$phone}";
-        $otpKey = "cek_otp:{$phone}";
-
-        if (Cache::has($blockedKey)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Terlalu banyak percobaan. Silakan coba lagi nanti.'
-            ], 429);
-        }
-
-        $otpData = Cache::get($otpKey);
-        if (!$otpData) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Kode OTP sudah kedaluwarsa. Silakan minta OTP baru.'
-            ], 422);
-        }
-
-        if (Hash::check($request->otp, $otpData['hashed'])) {
-            // Success: Invalidate OTP & Reset attempts
-            Cache::forget($otpKey);
-            Cache::forget($attemptsKey);
-            Cache::forget("cek_otp_cooldown:{$phone}");
-
-            // Find bookings
-            $bookings = $this->findAllBookingsByPhone($phone);
-
-            if ($bookings->isEmpty()) {
-                return response()->json([
-                    'success' => true,
-                    'found' => false,
-                    'message' => 'Tidak ditemukan data booking aktif untuk nomor ini.'
-                ]);
-            }
-
-            // Send Links
-            $this->sendBookingLinksToWhatsapp($phone, $bookings);
-
-            return response()->json([
-                'success' => true,
-                'found' => true,
-                'message' => 'Link booking telah dikirim ke WhatsApp Anda.'
-            ]);
-        } else {
-            // Wrong OTP
-            $attempts = (int) Cache::get($attemptsKey, 0) + 1;
-            Cache::put($attemptsKey, $attempts, now()->addMinutes(3));
-
-            if ($attempts >= 3) {
-                Cache::put($blockedKey, true, now()->addMinutes(3));
-                Cache::forget($attemptsKey);
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Terlalu banyak percobaan yang salah. Nomor Anda diblokir selama 3 menit.'
-                ], 429);
-            }
-
-            $remaining = 3 - $attempts;
-            return response()->json([
-                'success' => false,
-                'message' => "Kode OTP salah. Kesempatan tersisa: {$remaining} dari 3.",
-                'remaining_attempts' => $remaining
-            ], 422);
-        }
-    }
+    // verifyOtp removed (redundant)
 
     /**
      * Send OTP via Fonnte.
@@ -353,17 +201,28 @@ class CekBookingController extends Controller
         // Delay buatan 0.8 - 1.5 detik agar response time konsisten (Anti-Timing Attack)
         usleep(rand(800000, 1500000));
 
-        $noHp = preg_replace('/[^0-9]/', '', $request->no_hp);
+        // 1. Normalisasi Nomor HP
+        $rawNoHp = preg_replace('/[^0-9]/', '', $request->no_hp);
+        
+        // Fix common mistakes (e.g. 6208... -> 628...)
+        if (str_starts_with($rawNoHp, '620')) {
+            $noHp = '62' . substr($rawNoHp, 3);
+        } elseif (str_starts_with($rawNoHp, '0')) {
+            $noHp = '62' . substr($rawNoHp, 1);
+        } elseif (!str_starts_with($rawNoHp, '62')) {
+            $noHp = '62' . $rawNoHp;
+        } else {
+            $noHp = $rawNoHp;
+        }
 
-        // 1. Rate Limit per Nomor HP (Maks 3 request per 2 menit)
+        // 2. Rate Limit per Nomor HP (Maks 3 request per 2 menit)
         $keyHpLimit = 'otp_limit_hp_' . $noHp;
         $countHp = Cache::get($keyHpLimit, 0);
         if ($countHp >= 3) {
-            // Tetap return sukses agar tidak membocorkan info (Anti-Enumeration)
             return response()->json(['success' => true], 200);
         }
 
-        // 2. Rate Limit per IP Address (Maks 10 request per menit)
+        // 3. Rate Limit per IP Address (Maks 10 request per menit)
         $keyIpLimit = 'otp_limit_ip_' . $request->ip();
         $countIp = Cache::get($keyIpLimit, 0);
         if ($countIp >= 10) {
@@ -374,13 +233,10 @@ class CekBookingController extends Controller
         Cache::put($keyHpLimit, $countHp + 1, now()->addMinutes(2));
         Cache::put($keyIpLimit, $countIp + 1, now()->addMinutes(1));
 
-        // Cari booking (Hanya untuk validasi keberadaan nomor)
-        $booking = BookingFutsal::where('no_hp', 'like', '%' . substr($noHp, -9))
-            ->whereNotIn('status', ['dibatalkan'])
-            ->latest()
-            ->first();
+        // 4. Cari booking di SEMUA kategori (Kantin, Futsal, AC, Servis)
+        $bookings = $this->findAllBookingsByPhone($noHp);
 
-        if ($booking) {
+        if ($bookings->isNotEmpty()) {
             // Cek Cooldown (Jarak antar pengiriman minimal 2 menit)
             $keyCooldown = 'otp_cooldown_' . $noHp;
             if (!Cache::has($keyCooldown)) {
@@ -398,7 +254,7 @@ class CekBookingController extends Controller
                 $this->logAktivitas($noHp, 'otp_dikirim', $request->ip());
             }
         } else {
-            // Nomor tidak ditemukan di sistem, tetap log untuk deteksi enumerasi massal
+            // Nomor tidak ditemukan di sistem
             $this->logAktivitas($noHp, 'nomor_tidak_ada', $request->ip());
         }
 
@@ -485,8 +341,56 @@ class CekBookingController extends Controller
 
         $noHp = $sessionData['no_hp'];
         
-        // Find all bookings for this phone (Menggunakan method existing)
-        $bookings = $this->findAllBookingsByPhone($noHp);
+        // Find all bookings for this phone
+        $bookingsRaw = $this->findAllBookingsByPhone($noHp);
+
+        // Enrich bookings for the table
+        $bookings = $bookingsRaw->map(function($b) {
+            $status = 'unknown';
+            $category = 'Umum';
+            $date = null;
+            $time = null;
+
+            $detailUrl = '#';
+            if ($b instanceof BookingFutsal) {
+                $status = $b->booking->status ?? 'N/A';
+                $category = 'Futsal';
+                $date = $b->booking->tanggal_booking ?? null;
+                $time = ($b->jam_mulai ?? '') . ' - ' . ($b->jam_selesai ?? '');
+                $detailUrl = route('user.token.show', ['token' => $b->access_token]);
+            } elseif ($b instanceof BookingAc) {
+                $status = $b->booking->status ?? 'N/A';
+                $category = 'Servis AC';
+                $date = $b->booking->tanggal_booking ?? null;
+                $time = $b->jam_booking ?? null;
+                $detailUrl = route('user.ac.token.show', ['token' => $b->access_token]);
+            } elseif ($b instanceof BookingServis) {
+                $status = $b->status;
+                $category = 'Servis Kendaraan';
+                $date = $b->tanggal_servis;
+                $time = $b->jam_servis;
+                $detailUrl = route('user.servis.sukses', ['token' => $b->access_token]);
+            } elseif ($b instanceof SewaRuko) {
+                $status = $b->status_sewa;
+                $category = 'Kantin';
+                $date = $b->tanggal_mulai_sewa;
+                $time = '-';
+                $detailUrl = route('user.kantin.sewa.detail', ['token' => $b->access_token]);
+            }
+
+            return (object) [
+                'id' => $b->id,
+                'kode_booking' => $b->kode_booking ?? ($b->booking->kode_booking ?? 'BKG-'.$b->id),
+                'category' => $category,
+                'unit_name' => $this->getUnitName($b),
+                'status' => $status,
+                'date' => $date,
+                'time' => $time,
+                'access_token' => $b->access_token,
+                'detail_url' => $detailUrl,
+                'raw_model' => $b
+            ];
+        });
         
         $this->logAktivitas($noHp, 'akses_riwayat', $request->ip());
 
@@ -514,6 +418,11 @@ class CekBookingController extends Controller
     private function kirimWhatsapp(string $noHp, string $otp): void
     {
         $apiToken = config('services.fonnte.token');
+        if (!$apiToken) {
+            Log::warning('Fonnte API Token tidak ditemukan untuk Cek Booking');
+            return;
+        }
+
         $pesan = "🔍 *Cek Booking BLUD Portal*\n\n" .
                  "Kode OTP Anda: *{$otp}*\n\n" .
                  "Berlaku selama *5 menit*.\n" .
@@ -521,7 +430,6 @@ class CekBookingController extends Controller
 
         try {
             Http::withHeaders(['Authorization' => $apiToken])
-                ->asForm()
                 ->post('https://api.fonnte.com/send', [
                     'target'      => $noHp,
                     'message'     => $pesan,

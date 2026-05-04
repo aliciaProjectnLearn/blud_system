@@ -177,8 +177,11 @@
                         @if($sewa->ruko->kategori && $sewa->ruko->kategori->qris_path)
                             <img src="{{ asset('storage/' . $sewa->ruko->kategori->qris_path) }}" alt="QR Code Pembayaran" 
                                  class="img-fluid mb-3" style="max-width:250px">
+                        @elseif(file_exists(public_path('assets/img/qris_blud.png')))
+                            <img src="{{ asset('assets/img/qris_blud.png') }}" alt="QR Code Pembayaran" 
+                                 class="img-fluid mb-3" style="max-width:250px">
                         @else
-                            {{-- Generate QR menggunakan Google Charts API --}}
+                            {{-- Generate QR menggunakan Google Charts API sebagai opsi terakhir --}}
                             @php
                                 $qrData = 'BLUD-PAYMENT-' . $sewa->access_token . '-TERMIN' . $pembayaran->termin_ke . '-' . $pembayaran->jumlah_tagihan;
                                 $qrUrl = 'https://chart.googleapis.com/chart?chs=250x250&cht=qr&chl=' . urlencode($qrData) . '&choe=UTF-8';
