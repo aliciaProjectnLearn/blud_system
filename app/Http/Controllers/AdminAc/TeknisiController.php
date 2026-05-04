@@ -97,7 +97,7 @@ class TeknisiController extends Controller
             $user->roles()->attach($role->id);
         }
 
-        return redirect()->route('adminac.teknisi.index')
+        return redirect()->route('admin.ac.teknisi.index')
             ->with('success', 'Teknisi berhasil ditambahkan.');
     }
 
@@ -139,7 +139,7 @@ class TeknisiController extends Controller
 
         $teknisi->update($data);
 
-        return redirect()->route('adminac.teknisi.index')
+        return redirect()->route('admin.ac.teknisi.index')
             ->with('success', 'Data teknisi berhasil diperbarui.');
     }
 
@@ -156,14 +156,14 @@ class TeknisiController extends Controller
             ->exists();
 
         if ($adaBookingAktif) {
-            return redirect()->route('adminac.teknisi.index')
+            return redirect()->route('admin.ac.teknisi.index')
                 ->with('error', 'Teknisi tidak dapat dihapus karena sedang menangani booking.');
         }
 
         $teknisi->roles()->detach();
         $teknisi->delete();
 
-        return redirect()->route('adminac.teknisi.index')
+        return redirect()->route('admin.ac.teknisi.index')
             ->with('success', 'Teknisi berhasil dihapus.');
     }
 

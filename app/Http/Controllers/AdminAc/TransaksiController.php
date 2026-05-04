@@ -63,7 +63,7 @@ class TransaksiController extends Controller
         // Cek jika transaksi sudah ada
         $existing = PembayaranAc::where('booking_id', $booking->id)->first();
         if ($existing) {
-            return redirect()->route('adminac.transaksi.show', $existing->id)
+            return redirect()->route('admin.ac.transaksi.show', $existing->id)
                 ->with('info', 'Invoice sudah tersedia untuk booking ini.');
         }
 
@@ -83,7 +83,7 @@ class TransaksiController extends Controller
             'status'             => 'pending',
         ]);
 
-        return redirect()->route('adminac.transaksi.show', $transaksi->id)
+        return redirect()->route('admin.ac.transaksi.show', $transaksi->id)
             ->with('success', 'Invoice berhasil dibuat secara otomatis.');
     }
 
