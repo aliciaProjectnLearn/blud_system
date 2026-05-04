@@ -56,7 +56,7 @@ class ProdukController extends Controller
 
         Produk::create($validated);
 
-        return redirect()->route('adminac.produk.index')->with('success', 'Produk berhasil ditambahkan.');
+        return redirect()->route('admin.ac.produk.index')->with('success', 'Produk berhasil ditambahkan.');
     }
 
     public function update(Request $request, Produk $produk)
@@ -72,14 +72,14 @@ class ProdukController extends Controller
 
         $produk->update($validated);
 
-        return redirect()->route('adminac.produk.index')->with('success', 'Produk berhasil diperbarui.');
+        return redirect()->route('admin.ac.produk.index')->with('success', 'Produk berhasil diperbarui.');
     }
 
     public function destroy(Produk $produk)
     {
         $produk->delete();
 
-        return redirect()->route('adminac.produk.index')->with('success', 'Produk berhasil dihapus.');
+        return redirect()->route('admin.ac.produk.index')->with('success', 'Produk berhasil dihapus.');
     }
 
     public function updateStok(Request $request, Produk $produk)
@@ -90,6 +90,6 @@ class ProdukController extends Controller
 
         $produk->update(['stok' => $validated['stok']]);
 
-        return redirect()->route('adminac.produk.index')->with('success', 'Stok produk berhasil diperbarui.');
+        return redirect()->route('admin.ac.produk.index')->with('success', 'Stok produk berhasil diperbarui.');
     }
 }

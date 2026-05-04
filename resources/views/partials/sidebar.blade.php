@@ -467,21 +467,6 @@
             </a>
         </li>
 
-        {{-- Manajemen Transaksi --}}
-        <li class="nav-item {{ request()->routeIs('admin.ac.transaksi.*') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('admin.ac.transaksi.index') }}">
-                <i class="fas fa-fw fa-file-invoice-dollar"></i>
-                <span>Manajemen Transaksi</span>
-            </a>
-        </li>
-
-        {{-- Laporan Transaksi --}}
-        <li class="nav-item {{ request()->routeIs('admin.ac.laporan.*') ? 'active' : '' }}">
-            <a class="nav-link" href="{{ route('admin.ac.laporan.index') }}">
-                <i class="fas fa-fw fa-file-pdf"></i>
-                <span>Laporan Transaksi</span>
-            </a>
-        </li>
     @endif
 
     {{-- ================================= --}}

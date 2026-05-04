@@ -60,7 +60,7 @@ class LayananController extends Controller
 
         LayananAc::create($request->all());
 
-        return redirect()->route('adminac.layanan.index')->with('success', 'Layanan berhasil ditambahkan.');
+        return redirect()->route('admin.ac.layanan.index')->with('success', 'Layanan berhasil ditambahkan.');
     }
 
     public function edit($id)
@@ -82,7 +82,7 @@ class LayananController extends Controller
         $layanan = LayananAc::findOrFail($id);
         $layanan->update($request->all());
 
-        return redirect()->route('adminac.layanan.index')->with('success', 'Layanan berhasil diperbarui.');
+        return redirect()->route('admin.ac.layanan.index')->with('success', 'Layanan berhasil diperbarui.');
     }
 
     public function destroy($id)
