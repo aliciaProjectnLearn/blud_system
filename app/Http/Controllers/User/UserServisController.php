@@ -231,14 +231,14 @@ class UserServisController extends Controller
         }
 
         if ($booking->status === 'selesai') {
-            return redirect()->route('user.servis.katalog')
-                ->with('error', 'Link detail servis tidak dapat diakses saat status booking sudah selesai.');
+            return response()->view('user.servis.selesai_token', [], 403);
         }
 
         // Jika session masih valid, langsung ke detail
         if ($this->otpService->isSessionValid($token)) {
             return $this->renderDetail($booking, $token);
         }
+
 
         // Ambil status OTP saat ini
         $otpStatus = $this->otpService->getOtpStatus($booking);
@@ -354,8 +354,7 @@ class UserServisController extends Controller
         }
 
         if ($booking->status === 'selesai') {
-            return redirect()->route('user.servis.katalog')
-                ->with('error', 'Link detail servis tidak dapat diakses saat status booking sudah selesai.');
+            return response()->view('user.servis.selesai_token', [], 403);
         }
 
         // Guard: pastikan sudah OTP atau session valid

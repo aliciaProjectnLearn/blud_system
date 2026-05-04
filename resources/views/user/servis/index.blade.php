@@ -96,13 +96,13 @@
                                 </td>
                                 <td class="px-4 py-3 align-middle text-center">
                                     @if($booking->access_token)
-                                        <a href="{{ route('user.token.show', $booking->access_token) }}" class="btn btn-info btn-sm shadow-sm">
+                                        <a href="{{ route('user.servis.token.show', $booking->access_token) }}" class="btn btn-info btn-sm shadow-sm">
                                             <i class="fas fa-eye fa-sm"></i> Detail
                                         </a>
                                     @else
-                                        <a href="#" class="btn btn-info btn-sm shadow-sm disabled">
+                                        <span class="btn btn-secondary btn-sm disabled">
                                             <i class="fas fa-eye fa-sm"></i> Detail
-                                        </a>
+                                        </span>
                                     @endif
                                 </td>
                             </tr>
