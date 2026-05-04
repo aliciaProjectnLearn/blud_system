@@ -162,34 +162,38 @@ class UserServisController extends Controller
 
         // ── Kirim Notifikasi WhatsApp via Fonnte ──────────────────────────────────
         // BUGFIX: gunakan route servis, bukan futsal
-        $linkAkses = route('user.servis.token.show', $accessToken);
-        $fonnteToken = env('FONNTE_TOKEN');
-
-        if ($fonnteToken) {
+        try {
             $linkAkses = route('user.servis.token.show', $accessToken);
-            $tanggalFormat = Carbon::parse($request->tanggal_booking)->translatedFormat('d F Y');
+            $fonnteToken = env('FONNTE_TOKEN');
 
-            $pesanWa = "Yth. Bapak/Ibu {$request->nama},\n\n"
-                . "Terima kasih telah menggunakan layanan Sistem Servis Kendaraan di BLUD SMKN 1 Cirebon. Booking servis Anda telah berhasil dicatat dengan rincian sebagai berikut:\n\n"
-                . "Kode Booking: *{$kodeBooking}*\n"
-                . "Kendaraan: {$merek->nama} {$model->nama_model} ({$request->tahun_kendaraan})\n"
-                . "Layanan: {$layanan->nama_layanan}\n"
-                . "Jadwal: {$tanggalFormat} pukul {$request->jam_booking} WIB\n\n"
-                . "Untuk memantau status pengerjaan kendaraan dan detail riwayat servis Anda, silakan akses tautan resmi berikut:\n"
-                . "{$linkAkses}\n\n"
-                . "Harap simpan tautan di atas dengan baik. Tautan tersebut bersifat rahasia dan merupakan kunci akses Anda ke dalam sistem kami.\n\n"
-                . "Hormat kami,\n"
-                . "*Sistem Servis - BLUD SMKN 1 Cirebon*";
+            if ($fonnteToken) {
+                $linkAkses = route('user.servis.token.show', $accessToken);
+                $tanggalFormat = Carbon::parse($request->tanggal_booking)->translatedFormat('d F Y');
 
-            $response = Http::withHeaders([
-                'Authorization' => $fonnteToken,
-            ])->post('https://api.fonnte.com/send', [
-                'target'      => $request->no_hp,
-                'message'     => $pesanWa,
-                'countryCode' => '62',
-            ]);
+                $pesanWa = "Yth. Bapak/Ibu {$request->nama},\n\n"
+                    . "Terima kasih telah menggunakan layanan Sistem Servis Kendaraan di BLUD SMKN 1 Cirebon. Booking servis Anda telah berhasil dicatat dengan rincian sebagai berikut:\n\n"
+                    . "Kode Booking: *{$kodeBooking}*\n"
+                    . "Kendaraan: {$merek->nama} {$model->nama_model} ({$request->tahun_kendaraan})\n"
+                    . "Layanan: {$layanan->nama_layanan}\n"
+                    . "Jadwal: {$tanggalFormat} pukul {$request->jam_booking} WIB\n\n"
+                    . "Untuk memantau status pengerjaan kendaraan dan detail riwayat servis Anda, silakan akses tautan resmi berikut:\n"
+                    . "{$linkAkses}\n\n"
+                    . "Harap simpan tautan di atas dengan baik. Tautan tersebut bersifat rahasia dan merupakan kunci akses Anda ke dalam sistem kami.\n\n"
+                    . "Hormat kami,\n"
+                    . "*Sistem Servis - BLUD SMKN 1 Cirebon*";
 
-            Log::info('Fonnte Response: ' . $response->body());
+                $response = Http::withHeaders([
+                    'Authorization' => $fonnteToken,
+                ])->post('https://api.fonnte.com/send', [
+                    'target'      => $request->no_hp,
+                    'message'     => $pesanWa,
+                    'countryCode' => '62',
+                ]);
+
+                Log::info('Fonnte Response: ' . $response->body());
+            }
+        } catch (\Exception $e) {
+            Log::error('Fonnte send error in store: ' . $e->getMessage());
         }
         // ─────────────────────────────────────────────────────────────────────────
 
@@ -231,8 +235,8 @@ class UserServisController extends Controller
             return response()->view('user.servis.error_token', [], 404);
         }
 
-        if ($booking->status === 'selesai') {
-            return response()->view('user.servis.selesai_token', [], 403);
+        if (in_array($booking->status, ['selesai', 'batal'])) {
+            return redirect()->route('user.servis.token.detail', $token);
         }
 
         // Jika session masih valid, langsung ke detail
@@ -276,6 +280,10 @@ class UserServisController extends Controller
 
         if (!$booking) {
             return response()->view('user.servis.error_token', [], 404);
+        }
+
+        if (in_array($booking->status, ['selesai', 'batal'])) {
+            return view('user.servis.detail_token', compact('booking'));
         }
 
         // Cek session dengan expiry time
