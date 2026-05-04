@@ -7,13 +7,23 @@ use App\Models\LayananServis;
 use App\Models\BookingServis;
 use App\Models\User;
 use App\Models\Role;
+use App\Services\OtpService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
 
 class UserServisController extends Controller
 {
+    protected OtpService $otpService;
+
+    public function __construct(OtpService $otpService)
+    {
+        $this->otpService = $otpService;
+    }
+
     /**
      * Redirect to Katalog Layanan.
      */
@@ -31,9 +41,6 @@ class UserServisController extends Controller
         return view('user.servis.katalog', compact('layanans'));
     }
 
-    /**
-     * Tampilkan Form Booking.
-     */
     public function booking(Request $request)
     {
         if (!$request->has('layanan_id')) {
@@ -41,27 +48,63 @@ class UserServisController extends Controller
         }
 
         $layananTerpilih = LayananServis::where('is_active', true)->findOrFail($request->layanan_id);
+        $mereks = \App\Models\MerekKendaraan::where('is_active', true)
+            ->when($layananTerpilih->tipe_kendaraan, function($query, $tipe) {
+                return $query->where('tipe', $tipe);
+            })
+            ->orderBy('nama')
+            ->get();
 
-        return view('user.servis.booking', compact('layananTerpilih'));
+        // Cek apakah ada booking aktif (berdasarkan no_hp jika dikirim via query param)
+        $bookingAktif = null;
+        if ($request->filled('no_hp')) {
+            $bookingAktif = BookingServis::where('no_hp', $request->no_hp)
+                ->whereIn('status', ['menunggu', 'diproses', 'siap_bayar'])
+                ->first();
+        }
+
+        return view('user.servis.booking', compact('layananTerpilih', 'bookingAktif', 'mereks'));
     }
+
 
     /**
      * Simpan booking servis baru.
+     * REVISI 1: Cek booking ganda sebelum menyimpan.
      */
     public function store(Request $request)
     {
         $request->validate([
-            'nama'              => 'required|string|max:255',
-            'no_hp'             => 'required|string|max:20',
-            'layanan_servis_id' => 'required|exists:layanan_servis,id',
-            'merek_kendaraan'   => 'required|string|max:100',
-            'model_kendaraan'   => 'required|string|max:100',
-            'nomor_plat'        => 'required|string|max:20',
-            'tahun_kendaraan'   => 'required|digits:4|integer|min:1990|max:' . date('Y'),
-            'keluhan'           => 'nullable|string|max:500',
-            'tanggal_booking'   => 'required|date|after_or_equal:today',
-            'jam_booking'       => 'required|in:' . implode(',', $this->generateJamSlot()),
+            'nama'               => 'required|string|max:255',
+            'no_hp'              => 'required|string|max:20',
+            'layanan_servis_id'  => 'required|exists:layanan_servis,id',
+            'merek_kendaraan_id' => 'required|exists:merek_kendaraan,id',
+            'model_kendaraan_id' => 'required|exists:model_kendaraan,id',
+            'nomor_plat'         => 'required|string|max:20',
+            'tahun_kendaraan'    => 'required|digits:4|integer|min:1990|max:' . date('Y'),
+            'keluhan'            => 'nullable|string|max:500',
+            'tanggal_booking'    => 'required|date|after_or_equal:today',
+            'jam_booking'        => 'required|in:' . implode(',', $this->generateJamSlot()),
         ]);
+
+        // Cek apakah model milik merek yang dipilih
+        $modelExists = \App\Models\ModelKendaraan::where('id', $request->model_kendaraan_id)
+            ->where('merek_kendaraan_id', $request->merek_kendaraan_id)
+            ->exists();
+        if (!$modelExists) {
+            return back()->withErrors(['model_kendaraan_id' => 'Model kendaraan tidak sesuai dengan merek yang dipilih.'])->withInput();
+        }
+
+        // ── REVISI 1: Cek booking ganda ──────────────────────────────────────────
+        $bookingAktif = BookingServis::where('no_hp', $request->no_hp)
+            ->whereIn('status', ['menunggu', 'diproses', 'siap_bayar'])
+            ->first();
+
+        if ($bookingAktif) {
+            return back()->withErrors([
+                'no_hp' => 'Kamu masih memiliki booking servis yang sedang diproses (Kode: ' . $bookingAktif->kode_booking . ', Status: ' . strtoupper($bookingAktif->status) . '). Selesaikan booking tersebut terlebih dahulu.',
+            ])->withInput();
+        }
+        // ─────────────────────────────────────────────────────────────────────────
 
         $waktuBooking = Carbon::parse($request->tanggal_booking . ' ' . $request->jam_booking);
         if ($waktuBooking->isPast()) {
@@ -78,13 +121,12 @@ class UserServisController extends Controller
         $user = User::where('no_hp', $request->no_hp)->first();
         if (!$user) {
             $user = User::create([
-                'name' => $request->nama,
+                'name'     => $request->nama,
                 'username' => $request->nama,
-                'no_hp' => $request->no_hp,
-                // Kolom esensial lain dibiarkan nullable sesuai DB terbaru
+                'no_hp'    => $request->no_hp,
                 'password' => bcrypt(Str::random(16)),
             ]);
-            
+
             $role = Role::where('nama', 'pelanggan')->first();
             if ($role) {
                 $user->roles()->attach($role->id);
@@ -97,7 +139,10 @@ class UserServisController extends Controller
         } while (BookingServis::where('access_token', $accessToken)->exists());
 
         // Buat Kode Booking
-        $kodeBooking = strtoupper(substr($layanan->tipe_kendaraan, 0, 3)) . '-' . strtoupper(Str::random(6));
+        $kodeBooking = strtoupper(substr($layanan->tipe_kendaraan ?? 'SRV', 0, 3)) . '-' . strtoupper(Str::random(6));
+
+        $merek = \App\Models\MerekKendaraan::findOrFail($request->merek_kendaraan_id);
+        $model = \App\Models\ModelKendaraan::findOrFail($request->model_kendaraan_id);
 
         $booking = BookingServis::create([
             'kode_booking'      => $kodeBooking,
@@ -105,7 +150,7 @@ class UserServisController extends Controller
             'nama_pemesan'      => $request->nama,
             'no_hp'             => $request->no_hp,
             'layanan_servis_id' => $request->layanan_servis_id,
-            'merek_kendaraan'   => $request->merek_kendaraan . ' ' . $request->model_kendaraan, // Gabung karena di DB tidak ada kolom model
+            'merek_kendaraan'   => $merek->nama . ' ' . $model->nama_model,
             'nomor_plat'        => strtoupper($request->nomor_plat),
             'tahun_kendaraan'   => $request->tahun_kendaraan,
             'keluhan'           => $request->keluhan,
@@ -115,16 +160,18 @@ class UserServisController extends Controller
             'access_token'      => $accessToken,
         ]);
 
-        // Kirim Notifikasi WhatsApp via Fonnte
+        // ── Kirim Notifikasi WhatsApp via Fonnte ──────────────────────────────────
+        // BUGFIX: gunakan route servis, bukan futsal
+        $linkAkses = route('user.servis.token.show', $accessToken);
         $fonnteToken = env('FONNTE_TOKEN');
+
         if ($fonnteToken) {
-            $linkAkses = route('user.token.show', $accessToken);
             $tanggalFormat = Carbon::parse($request->tanggal_booking)->translatedFormat('d F Y');
-            
+
             $pesanWa = "Yth. Bapak/Ibu {$request->nama},\n\n"
                 . "Terima kasih telah menggunakan layanan Sistem Servis Kendaraan di BLUD SMKN 1 Cirebon. Booking servis Anda telah berhasil dicatat dengan rincian sebagai berikut:\n\n"
                 . "Kode Booking: *{$kodeBooking}*\n"
-                . "Kendaraan: {$request->merek_kendaraan} {$request->model_kendaraan} ({$request->tahun_kendaraan})\n"
+                . "Kendaraan: {$merek->nama} {$model->nama_model} ({$request->tahun_kendaraan})\n"
                 . "Layanan: {$layanan->nama_layanan}\n"
                 . "Jadwal: {$tanggalFormat} pukul {$request->jam_booking} WIB\n\n"
                 . "Untuk memantau status pengerjaan kendaraan dan detail riwayat servis Anda, silakan akses tautan resmi berikut:\n"
@@ -133,38 +180,168 @@ class UserServisController extends Controller
                 . "Hormat kami,\n"
                 . "*Sistem Servis - BLUD SMKN 1 Cirebon*";
 
-            $response = \Illuminate\Support\Facades\Http::withHeaders([
-                'Authorization' => $fonnteToken
+            $response = Http::withHeaders([
+                'Authorization' => $fonnteToken,
             ])->post('https://api.fonnte.com/send', [
-                'target' => $request->no_hp,
-                'message' => $pesanWa,
+                'target'      => $request->no_hp,
+                'message'     => $pesanWa,
                 'countryCode' => '62',
             ]);
 
-            \Illuminate\Support\Facades\Log::info('Fonnte Response: ' . $response->body());
+            Log::info('Fonnte Response: ' . $response->body());
         }
+        // ─────────────────────────────────────────────────────────────────────────
 
         return redirect()->route('home')->with([
             'booking_success' => true,
-            'no_hp' => $request->no_hp
+            'no_hp'           => $request->no_hp,
         ]);
     }
 
+    /**
+     * Halaman sukses setelah booking.
+     */
     public function sukses($token)
     {
         $booking = BookingServis::where('access_token', $token)->firstOrFail();
-        
-        $linkAkses = route('user.token.show', $token);
-        
-        // Buat URL wa.me
+
+        // Link mengarah ke entry point OTP (bukan detail langsung)
+        $linkAkses = route('user.servis.token.show', $token);
+
         $pesanWa = "Halo, ini adalah link akses untuk melihat status servis kendaraan saya di BLUD SMK:\n" . $linkAkses . "\nMohon bantuannya ya, terima kasih!";
-        $urlWa = "https://wa.me/?text=" . urlencode($pesanWa);
+        $urlWa   = "https://wa.me/?text=" . urlencode($pesanWa);
 
         return view('user.servis.sukses', compact('booking', 'linkAkses', 'urlWa'));
     }
 
+    // ═══════════════════════════════════════════════════════════════════════════
+    // REVISI 3 — OTP SYSTEM
+    // ═══════════════════════════════════════════════════════════════════════════
+
     /**
-     * Tampilkan halaman detail booking publik.
+     * Entry point akses token servis.
+     * Cek session → kirim OTP → tampilkan form verifikasi.
+     */
+    public function showToken($token)
+    {
+        $booking = BookingServis::where('access_token', $token)->first();
+
+        if (!$booking) {
+            return response()->view('user.servis.error_token', [], 404);
+        }
+
+        if ($booking->status === 'selesai') {
+            return response()->view('user.servis.selesai_token', [], 403);
+        }
+
+        // Jika session masih valid, langsung ke detail
+        if ($this->otpService->isSessionValid($token)) {
+            return $this->renderDetail($booking, $token);
+        }
+
+
+        // Ambil status OTP saat ini
+        $otpStatus = $this->otpService->getOtpStatus($booking);
+
+        // Jika tidak diblokir dan boleh kirim (belum pernah kirim atau expired),
+        // auto-kirim OTP
+        if (!$otpStatus['blocked'] && (!$otpStatus['has_otp'] || $otpStatus['otp_expired'])) {
+            $resendCheck = $this->otpService->canResend($booking);
+            if ($resendCheck['can_resend']) {
+                $otpCode = $this->otpService->generateAndSave($booking);
+                $this->otpService->sendViaWhatsapp($booking, $otpCode);
+                $booking->refresh();
+                $otpStatus = $this->otpService->getOtpStatus($booking);
+            }
+        }
+
+        $maskedPhone = $this->otpService->maskPhone($booking->no_hp ?? '');
+
+        return view('user.servis.otp_verify', compact('booking', 'token', 'otpStatus', 'maskedPhone'));
+    }
+
+    /**
+     * Proses verifikasi OTP yang disubmit user.
+     */
+    public function verifyOtp(Request $request, $token)
+    {
+        $request->validate([
+            'otp' => 'required|string|size:6',
+        ]);
+
+        $booking = BookingServis::where('access_token', $token)->first();
+
+        if (!$booking) {
+            return redirect()->route('user.servis.katalog')->with('error', 'Token tidak valid.');
+        }
+
+        $result = $this->otpService->verify($booking, $request->otp);
+
+        if ($result['success']) {
+            $this->otpService->setSession($token);
+            return redirect()->route('user.servis.token.show', $token)
+                ->with('otp_success', 'Verifikasi berhasil!');
+        }
+
+        return back()->withErrors(['otp' => $result['message']])->withInput();
+    }
+
+    /**
+     * Kirim ulang OTP (AJAX atau redirect).
+     */
+    public function resendOtp(Request $request, $token)
+    {
+        $booking = BookingServis::where('access_token', $token)->first();
+
+        if (!$booking) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Token tidak valid.'], 404);
+            }
+            return redirect()->route('user.servis.katalog')->with('error', 'Token tidak valid.');
+        }
+
+        $resendCheck = $this->otpService->canResend($booking);
+
+        if (!$resendCheck['can_resend']) {
+            $msg = $resendCheck['reason'] === 'blocked'
+                ? "Akun masih diblokir. Tunggu {$resendCheck['cooldown_seconds']} detik."
+                : "Harap tunggu {$resendCheck['cooldown_seconds']} detik sebelum mengirim ulang.";
+
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success'          => false,
+                    'message'          => $msg,
+                    'cooldown_seconds' => $resendCheck['cooldown_seconds'],
+                ]);
+            }
+            return back()->with('error', $msg);
+        }
+
+        $otpCode = $this->otpService->generateAndSave($booking);
+        $sent    = $this->otpService->sendViaWhatsapp($booking, $otpCode);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success'          => true,
+                'message'          => $sent
+                    ? 'OTP telah dikirim ulang ke WhatsApp Anda.'
+                    : 'OTP di-generate tapi gagal dikirim. Hubungi admin jika berlanjut.',
+                'cooldown_seconds' => \App\Services\OtpService::RESEND_COOLDOWN_SECONDS,
+            ]);
+        }
+
+        return back()->with('info', $sent
+            ? 'OTP telah dikirim ulang ke WhatsApp Anda.'
+            : 'Gagal mengirim OTP. Silakan coba lagi.');
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // HALAMAN DETAIL TOKEN SERVIS (setelah OTP berhasil)
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /**
+     * Tampilkan halaman detail booking publik (dipanggil internal setelah OTP).
+     * Juga bisa diakses langsung jika session masih valid.
      */
     public function detailToken($token)
     {
@@ -176,20 +353,87 @@ class UserServisController extends Controller
             return response()->view('user.servis.error_token', [], 404);
         }
 
-        // Jika booking sudah selesai, ditolak, atau dibatalkan, link tidak aktif lagi
-        if (in_array($booking->status, ['selesai', 'ditolak', 'dibatalkan'])) {
-            return view('user.token.expired', ['status' => $booking->status]);
+        if ($booking->status === 'selesai') {
+            return response()->view('user.servis.selesai_token', [], 403);
         }
 
-        // Ambil riwayat booking berdasarkan no_hp
-        $riwayat = BookingServis::with('layananServis')
-            ->where('no_hp', $booking->no_hp)
-            ->where('id', '!=', $booking->id)
-            ->orderBy('created_at', 'desc')
-            ->get();
+        // Guard: pastikan sudah OTP atau session valid
+        if (!$this->otpService->isSessionValid($token)) {
+            return redirect()->route('user.servis.token.show', $token);
+        }
 
-        return view('user.servis.detail_token', compact('booking', 'riwayat'));
+        return $this->renderDetail($booking, $token);
     }
+
+    /**
+     * Internal render detail (dipakai oleh showToken dan detailToken).
+     */
+    protected function renderDetail(BookingServis $booking, string $token)
+    {
+        // Eager load jika belum
+        $booking->loadMissing(['layananServis', 'rincianServis', 'pembayaranServis', 'fotoServis']);
+
+        return view('user.servis.detail_token', compact('booking', 'token'));
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // BATALKAN BOOKING SERVIS (via token)
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /**
+     * Halaman konfirmasi batalkan booking servis.
+     */
+    public function batalkanToken($token)
+    {
+        $booking = BookingServis::where('access_token', $token)->first();
+
+        if (!$booking) {
+            return response()->view('user.servis.error_token', [], 404);
+        }
+
+        // Guard session OTP
+        if (!$this->otpService->isSessionValid($token)) {
+            return redirect()->route('user.servis.token.show', $token);
+        }
+
+        if ($booking->status !== 'menunggu') {
+            return redirect()->route('user.servis.token.detail', $token)
+                ->with('error', 'Booking tidak dapat dibatalkan karena sudah diproses atau selesai.');
+        }
+
+        return view('user.servis.batalkan_token', compact('booking', 'token'));
+    }
+
+    /**
+     * Proses pembatalan booking servis.
+     */
+    public function prosesBatalkanToken(Request $request, $token)
+    {
+        $booking = BookingServis::where('access_token', $token)->first();
+
+        if (!$booking) {
+            return response()->view('user.servis.error_token', [], 404);
+        }
+
+        // Guard session OTP
+        if (!$this->otpService->isSessionValid($token)) {
+            return redirect()->route('user.servis.token.show', $token);
+        }
+
+        if ($booking->status !== 'menunggu') {
+            return redirect()->route('user.servis.token.detail', $token)
+                ->with('error', 'Booking tidak memenuhi syarat untuk dibatalkan.');
+        }
+
+        $booking->update(['status' => 'batal']);
+
+        return redirect()->route('user.servis.token.detail', $token)
+            ->with('success', 'Booking berhasil dibatalkan.');
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // SLOT API & HELPERS
+    // ═══════════════════════════════════════════════════════════════════════════
 
     /**
      * Endpoint AJAX untuk cek ketersediaan slot jam per tanggal.
@@ -200,10 +444,10 @@ class UserServisController extends Controller
             'tanggal' => 'required|date|after_or_equal:today',
         ]);
 
-        $tanggal = $request->tanggal;
+        $tanggal    = $request->tanggal;
         $jamTersedia = $this->generateJamSlot();
-        $sekarang = \Carbon\Carbon::now('Asia/Jakarta');
-        $isHariIni = ($tanggal === $sekarang->toDateString());
+        $sekarang   = Carbon::now('Asia/Jakarta');
+        $isHariIni  = ($tanggal === $sekarang->toDateString());
 
         $bookingPerJam = BookingServis::where('tanggal_booking', $tanggal)
             ->whereNotIn('status', ['batal', 'selesai'])
@@ -214,28 +458,24 @@ class UserServisController extends Controller
 
         $slots = [];
         foreach ($jamTersedia as $jam) {
-            $total = $bookingPerJam[$jam] ?? 0;
+            $total          = $bookingPerJam[$jam] ?? 0;
             $kapasitasPenuh = $total >= 3;
 
-            // Cek apakah jam sudah lewat (hanya untuk hari ini)
             $sudahLewat = false;
             if ($isHariIni) {
-                $jamInt = (int) substr($jam, 0, 2);
-                // Jam dianggap tidak bisa dipilih jika jam sekarang
-                // sudah sama atau melewati jam slot tersebut
+                $jamInt     = (int) substr($jam, 0, 2);
                 $sudahLewat = $sekarang->hour >= $jamInt;
             }
 
             $slots[] = [
-                'jam'        => $jam,
-                'terisi'     => (int) $total,
-                'kapasitas'  => 3,
-                'tersedia'   => !$kapasitasPenuh && !$sudahLewat,
-                'sudah_lewat'=> $sudahLewat,
+                'jam'         => $jam,
+                'terisi'      => (int) $total,
+                'kapasitas'   => 3,
+                'tersedia'    => !$kapasitasPenuh && !$sudahLewat,
+                'sudah_lewat' => $sudahLewat,
             ];
         }
 
-        // Cek apakah semua slot hari ini sudah lewat atau penuh
         $adaYangTersedia = collect($slots)->where('tersedia', true)->count() > 0;
 
         return response()->json([
@@ -244,6 +484,16 @@ class UserServisController extends Controller
             'tanggal'           => $tanggal,
             'is_hari_ini'       => $isHariIni,
         ]);
+    }
+
+    public function getModelByMerek($merek_id)
+    {
+        $models = \App\Models\ModelKendaraan::where('merek_kendaraan_id', $merek_id)
+            ->where('is_active', true)
+            ->orderBy('nama_model')
+            ->get(['id', 'nama_model']);
+
+        return response()->json($models);
     }
 
     private function generateJamSlot(): array
@@ -255,3 +505,4 @@ class UserServisController extends Controller
         return $slots;
     }
 }
+

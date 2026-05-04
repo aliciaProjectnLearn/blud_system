@@ -436,12 +436,34 @@
                 <span>Monitoring Transaksi</span>
             </a>
         </li>
-        
+        {{-- Data Kendaraan --}}
+        @php
+            $kendaraanActive = request()->routeIs('admin.servis.merek.*') || request()->routeIs('admin.servis.model.*');
+        @endphp
+        <li class="nav-item {{ $kendaraanActive ? 'active' : '' }}">
+            <a class="nav-link {{ $kendaraanActive ? '' : 'collapsed' }}" href="#" data-toggle="collapse" data-target="#collapseKendaraan">
+                <i class="fas fa-fw fa-car"></i>
+                <span>Data Kendaraan</span>
+            </a>
+            <div id="collapseKendaraan" class="collapse {{ $kendaraanActive ? 'show' : '' }}">
+                <div class="bg-white py-2 collapse-inner rounded">
+                    <a class="collapse-item {{ request()->routeIs('admin.servis.merek.*') ? 'active' : '' }}" href="{{ route('admin.servis.merek.index') }}">
+                        Merek Kendaraan
+                    </a>
+                    <a class="collapse-item {{ request()->routeIs('admin.servis.model.*') ? 'active' : '' }}" href="{{ route('admin.servis.model.index') }}">
+                        Model Kendaraan
+                    </a>
+                </div>
+            </div>
+        </li>
+
         {{-- Manajemen Keuangan --}}
         <li class="nav-item {{ request()->routeIs('admin.servis.keuangan.*') ? 'active' : '' }}">
             <a class="nav-link" href="{{ route('admin.servis.keuangan.index') }}">
                 <i class="fas fa-fw fa-wallet"></i>
                 <span>Manajemen Keuangan</span>
+            </a>
+        </li>
                 
         {{-- Laporan Transaksi --}}
         <li class="nav-item {{ request()->routeIs('admin.servis.laporan.*') ? 'active' : '' }}">

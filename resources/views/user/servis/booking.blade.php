@@ -81,7 +81,36 @@
                         <p class="mb-0 opacity-75 small">Lengkapi data kendaraan dan pilih jadwal kedatangan Anda.</p>
                     </div>
                     <div class="card-body p-4">
+
+                        {{-- REVISI 1: Alert jika user sudah punya booking aktif --}}
+                        @if($errors->has('no_hp'))
+                            <div class="alert alert-danger d-flex align-items-start mb-4" style="border-radius: 12px;" role="alert">
+                                <i class="fas fa-times-circle fa-lg mr-3 mt-1 flex-shrink-0"></i>
+                                <div>
+                                    <strong>Booking Ditolak!</strong><br>
+                                    {{ $errors->first('no_hp') }}
+                                </div>
+                            </div>
+                        @elseif($bookingAktif ?? null)
+                            <div class="alert alert-warning d-flex align-items-start mb-4" style="border-radius: 12px;" role="alert">
+                                <i class="fas fa-exclamation-triangle fa-lg mr-3 mt-1 flex-shrink-0"></i>
+                                <div>
+                                    <strong>Booking Aktif Terdeteksi!</strong><br>
+                                    Kamu masih memiliki booking servis aktif dengan kode
+                                    <strong>{{ $bookingAktif->kode_booking }}</strong>
+                                    (Status: <span class="badge badge-warning">{{ strtoupper($bookingAktif->status) }}</span>).
+                                    Selesaikan booking tersebut sebelum membuat booking baru.
+                                    @if($bookingAktif->access_token)
+                                        <br><a href="{{ route('user.servis.token.show', $bookingAktif->access_token) }}" class="font-weight-bold">
+                                            <i class="fas fa-external-link-alt mr-1"></i>Lihat Detail Booking
+                                        </a>
+                                    @endif
+                                </div>
+                            </div>
+                        @endif
+
                         <div class="alert alert-light border d-flex align-items-center mb-4" style="border-radius: 12px;">
+
                             <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mr-3"
                                 style="width:50px; height:50px; flex-shrink:0;">
                                 <i class="fas fa-wrench"></i>
@@ -113,11 +142,20 @@
                             <div class="row">
                                 <div class="col-md-4 mb-3">
                                     <label class="small font-weight-bold">Merek Kendaraan</label>
-                                    <input type="text" name="merek_kendaraan" class="form-control" placeholder="Honda" required>
+                                    <select name="merek_kendaraan_id" id="merek_kendaraan_id" class="form-control" required>
+                                        <option value="">-- Pilih Merek --</option>
+                                        @foreach($mereks as $m)
+                                            <option value="{{ $m->id }}" {{ old('merek_kendaraan_id') == $m->id ? 'selected' : '' }}>
+                                                {{ $m->nama }} ({{ ucfirst($m->tipe) }})
+                                            </option>
+                                        @endforeach
+                                    </select>
                                 </div>
                                 <div class="col-md-4 mb-3">
                                     <label class="small font-weight-bold">Model/Nama Kendaraan</label>
-                                    <input type="text" name="model_kendaraan" class="form-control" placeholder="Contoh: Vario 150" required>
+                                    <select name="model_kendaraan_id" id="model_kendaraan_id" class="form-control" required disabled>
+                                        <option value="">-- Pilih Model --</option>
+                                    </select>
                                 </div>
                                 <div class="col-md-4 mb-3">
                                     <label class="small font-weight-bold">Nomor Plat</label>
@@ -260,6 +298,35 @@
                 $(this).addClass('active');
                 $('#selected_jam').val($(this).data('jam'));
             });
+
+            $('#merek_kendaraan_id').on('change', function() {
+                let merekId = $(this).val();
+                let modelSelect = $('#model_kendaraan_id');
+                modelSelect.empty().append('<option value="">-- Pilih Model --</option>').prop('disabled', true);
+
+                if (merekId) {
+                    modelSelect.append('<option value="">Memuat model...</option>');
+                    $.ajax({
+                        url: "{{ route('user.servis.kendaraan.model', ':id') }}".replace(':id', merekId),
+                        success: function(models) {
+                            modelSelect.empty().append('<option value="">-- Pilih Model --</option>');
+                            if (models && models.length > 0) {
+                                models.forEach(function(m) {
+                                    modelSelect.append('<option value="' + m.id + '">' + m.nama_model + '</option>');
+                                });
+                                modelSelect.prop('disabled', false);
+                            } else {
+                                modelSelect.append('<option value="">Tidak ada model tersedia</option>');
+                            }
+                        },
+                        error: function() {
+                            modelSelect.empty().append('<option value="">-- Pilih Model --</option>');
+                            alert('Gagal memuat model kendaraan. Silakan coba lagi.');
+                        }
+                    });
+                }
+            });
         </script>
     @endpush
 @endsection
+
