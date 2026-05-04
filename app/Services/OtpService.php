@@ -82,7 +82,7 @@ class OtpService
 
         // Cek blokir
         if ($booking->otp_blocked_until && $now->isBefore(Carbon::parse($booking->otp_blocked_until))) {
-            $secondsLeft = $now->diffInSeconds(Carbon::parse($booking->otp_blocked_until));
+            $secondsLeft = (int) round($now->diffInSeconds(Carbon::parse($booking->otp_blocked_until)));
             return [
                 'blocked'          => true,
                 'block_seconds'    => $secondsLeft,
@@ -103,16 +103,16 @@ class OtpService
         $resendCooldown = 0;
         if ($booking->otp_sent_at) {
             $sentAt = Carbon::parse($booking->otp_sent_at);
-            $elapsedSeconds = $sentAt->diffInSeconds($now);
+            $elapsedSeconds = (int) round($sentAt->diffInSeconds($now));
             if ($elapsedSeconds < self::RESEND_COOLDOWN_SECONDS) {
                 $canResend = $otpExpired; // Jika expired, bisa resend meski dalam cooldown
-                $resendCooldown = self::RESEND_COOLDOWN_SECONDS - $elapsedSeconds;
+                $resendCooldown = (int) (self::RESEND_COOLDOWN_SECONDS - $elapsedSeconds);
             }
         }
 
         $otpSecondsLeft = 0;
         if (!$otpExpired && $booking->otp_expires_at) {
-            $otpSecondsLeft = $now->diffInSeconds(Carbon::parse($booking->otp_expires_at));
+            $otpSecondsLeft = (int) round($now->diffInSeconds(Carbon::parse($booking->otp_expires_at)));
         }
 
         return [
@@ -120,9 +120,9 @@ class OtpService
             'block_seconds'   => 0,
             'otp_expired'     => $otpExpired,
             'can_resend'      => $canResend,
-            'resend_cooldown' => $resendCooldown,
+            'resend_cooldown' => (int) $resendCooldown,
             'has_otp'         => !empty($booking->otp_code),
-            'otp_seconds'     => $otpSecondsLeft,
+            'otp_seconds'     => (int) $otpSecondsLeft,
         ];
     }
 

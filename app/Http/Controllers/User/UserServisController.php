@@ -237,9 +237,8 @@ class UserServisController extends Controller
 
         // Jika session masih valid, langsung ke detail
         if ($this->otpService->isSessionValid($token)) {
-            return $this->renderDetail($booking, $token);
+            return redirect()->route('user.servis.token.detail', $token);
         }
-
 
         // Ambil status OTP saat ini
         $otpStatus = $this->otpService->getOtpStatus($booking);
@@ -280,35 +279,11 @@ class UserServisController extends Controller
         }
 
         // Cek session dengan expiry time
-        $verifiedUntil = session('otp_verified_until_' . $token);
-        if ($verifiedUntil && now()->lt(\Carbon\Carbon::parse($verifiedUntil))) {
+        if ($this->otpService->isSessionValid($token)) {
             return view('user.servis.detail_token', compact('booking'));
         }
 
-        // Cek apakah OTP masih diblokir
-        $blockedUntil = \Illuminate\Support\Facades\Cache::get('booking_servis_otp_blocked_' . $token);
-        if ($blockedUntil && now()->lt(\Carbon\Carbon::parse($blockedUntil))) {
-            return view('user.servis.otp', compact('booking', 'token'));
-        }
-
-        // Cek apakah OTP masih berlaku
-        $otpCode = \Illuminate\Support\Facades\Cache::get('booking_servis_otp_' . $token);
-        $otpExpiredAt = \Illuminate\Support\Facades\Cache::get('booking_servis_otp_expired_' . $token);
-
-        if (!$otpCode || !$otpExpiredAt || now()->gt(\Carbon\Carbon::parse($otpExpiredAt))) {
-            // Generate OTP baru
-            $otpCode = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-            $otpExpiredAt = now()->addMinutes(3)->toDateTimeString();
-
-            \Illuminate\Support\Facades\Cache::put('booking_servis_otp_' . $token, $otpCode, now()->addMinutes(3));
-            \Illuminate\Support\Facades\Cache::put('booking_servis_otp_expired_' . $token, $otpExpiredAt, now()->addMinutes(3));
-            \Illuminate\Support\Facades\Cache::put('booking_servis_otp_attempt_' . $token, 0, now()->addMinutes(3));
-            \Illuminate\Support\Facades\Cache::put('booking_servis_otp_sent_at_' . $token, now()->toDateTimeString(), now()->addMinutes(3));
-
-            $this->sendWhatsappOtp($booking->no_hp, $otpCode);
-        }
-
-        return view('user.servis.otp', compact('booking', 'token'));
+        return redirect()->route('user.servis.token.show', $token)->with('error', 'Silakan masukkan OTP terlebih dahulu.');
     }
 
     /**
@@ -316,47 +291,22 @@ class UserServisController extends Controller
      */
     public function verifyOtp(Request $request, $token)
     {
-        $request->validate(['otp_input' => 'required|string|size:6']);
+        $request->validate([
+            'otp' => 'required|string|size:6'
+        ]);
 
         $booking = BookingServis::where('access_token', $token)->firstOrFail();
 
-        $blockedUntil = \Illuminate\Support\Facades\Cache::get('booking_servis_otp_blocked_' . $token);
-        if ($blockedUntil && now()->lt(\Carbon\Carbon::parse($blockedUntil))) {
-            $menitSisa = max(1, now()->diffInMinutes(\Carbon\Carbon::parse($blockedUntil), false));
-            return back()->with('error', "Terlalu banyak percobaan. Coba lagi dalam {$menitSisa} menit.");
+        $res = $this->otpService->verify($booking, $request->otp);
+
+        if (!$res['success']) {
+            return back()->withErrors(['otp' => $res['message']])->withInput();
         }
 
-        $otpExpiredAt = \Illuminate\Support\Facades\Cache::get('booking_servis_otp_expired_' . $token);
-        if (!$otpExpiredAt || now()->gt(\Carbon\Carbon::parse($otpExpiredAt))) {
-            return back()->with('error', "Kode OTP sudah kedaluwarsa. Klik 'Kirim Ulang'.");
-        }
+        // Set session valid
+        $this->otpService->setSession($token);
 
-        $otpCode = \Illuminate\Support\Facades\Cache::get('booking_servis_otp_' . $token);
-        if ($request->otp_input !== $otpCode) {
-            $attempt = (int)\Illuminate\Support\Facades\Cache::get('booking_servis_otp_attempt_' . $token, 0) + 1;
-            \Illuminate\Support\Facades\Cache::put('booking_servis_otp_attempt_' . $token, $attempt, now()->addMinutes(3));
-
-            if ($attempt >= 3) {
-                \Illuminate\Support\Facades\Cache::put('booking_servis_otp_blocked_' . $token, now()->addMinutes(3)->toDateTimeString(), now()->addMinutes(3));
-                return back()->with('error', 'Terlalu banyak percobaan. Akses diblokir selama 3 menit.');
-            }
-
-            $sisa = 3 - $attempt;
-            return back()->with('error', "Kode OTP salah. Sisa {$sisa} percobaan.");
-        }
-
-        // OTP Valid! Bersihkan cache dan simpan di session
-        \Illuminate\Support\Facades\Cache::forget('booking_servis_otp_' . $token);
-        \Illuminate\Support\Facades\Cache::forget('booking_servis_otp_expired_' . $token);
-        \Illuminate\Support\Facades\Cache::forget('booking_servis_otp_attempt_' . $token);
-        \Illuminate\Support\Facades\Cache::forget('booking_servis_otp_blocked_' . $token);
-
-        session([
-            'otp_verified_' . $token => true,
-            'otp_verified_until_' . $token => now()->addMinutes(60)->toDateTimeString(),
-        ]);
-
-        return redirect()->route('user.servis.token.show', $token);
+        return redirect()->route('user.servis.token.detail', $token);
     }
 
     /**
@@ -364,35 +314,30 @@ class UserServisController extends Controller
      */
     public function resendOtp(Request $request, $token)
     {
-        $booking = BookingServis::where('access_token', $token)->firstOrFail();
+        $booking = BookingServis::where('access_token', $token)->first();
 
-        $blockedUntil = \Illuminate\Support\Facades\Cache::get('booking_servis_otp_blocked_' . $token);
-        if ($blockedUntil && now()->lt(\Carbon\Carbon::parse($blockedUntil))) {
-            $menitSisa = max(1, now()->diffInMinutes(\Carbon\Carbon::parse($blockedUntil), false));
-            return back()->with('error', "Masih diblokir. Coba lagi dalam {$menitSisa} menit.");
+        if (!$booking) {
+            return response()->json(['success' => false, 'message' => 'Booking tidak ditemukan.'], 404);
         }
 
-        $otpSentAt = \Illuminate\Support\Facades\Cache::get('booking_servis_otp_sent_at_' . $token);
-        if ($otpSentAt) {
-            $detikSejak = now()->diffInSeconds(\Carbon\Carbon::parse($otpSentAt));
-            $detikTunggu = 60 - (int) $detikSejak;
-            if ($detikTunggu > 0) {
-                return back()->with('error', "Tunggu {$detikTunggu} detik sebelum mengirim ulang.");
-            }
+        $resendCheck = $this->otpService->canResend($booking);
+
+        if (!$resendCheck['can_resend']) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tunggu cooldown selesai.',
+                'cooldown_seconds' => $resendCheck['cooldown_seconds'] ?? 60
+            ]);
         }
 
-        // Generate OTP baru
-        $otpCode = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-        $otpExpiredAt = now()->addMinutes(3)->toDateTimeString();
+        $otpCode = $this->otpService->generateAndSave($booking);
+        $this->otpService->sendViaWhatsapp($booking, $otpCode);
 
-        \Illuminate\Support\Facades\Cache::put('booking_servis_otp_' . $token, $otpCode, now()->addMinutes(3));
-        \Illuminate\Support\Facades\Cache::put('booking_servis_otp_expired_' . $token, $otpExpiredAt, now()->addMinutes(3));
-        \Illuminate\Support\Facades\Cache::put('booking_servis_otp_attempt_' . $token, 0, now()->addMinutes(3));
-        \Illuminate\Support\Facades\Cache::put('booking_servis_otp_sent_at_' . $token, now()->toDateTimeString(), now()->addMinutes(3));
-
-        $this->sendWhatsappOtp($booking->no_hp, $otpCode);
-
-        return back()->with('success', 'Kode OTP baru telah dikirim ke WhatsApp Anda.');
+        return response()->json([
+            'success' => true,
+            'message' => 'Kode OTP baru telah dikirim ke WhatsApp Anda.',
+            'cooldown_seconds' => 60
+        ]);
     }
 
     /**
@@ -441,6 +386,16 @@ class UserServisController extends Controller
 
         return redirect()->route('user.servis.token.show', $token)
             ->with('success', 'Booking berhasil dibatalkan.');
+    }
+
+    public function batalkanToken($token)
+    {
+        return $this->batalkan($token);
+    }
+
+    public function prosesBatalkanToken($token)
+    {
+        return $this->batalkan($token);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
