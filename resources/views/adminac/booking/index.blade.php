@@ -119,29 +119,104 @@
 
                         {{-- Modal Detail --}}
                         <div class="modal fade" id="detailModal{{ $b->id }}" tabindex="-1" role="dialog" aria-hidden="true">
-                            <div class="modal-dialog" role="document">
-                                <div class="modal-content">
-                                    <div class="modal-header bg-info text-white">
-                                        <h5 class="modal-title"><i class="fas fa-info-circle"></i> Detail Booking</h5>
+                            <div class="modal-dialog modal-lg" role="document">
+                                <div class="modal-content border-0 shadow-lg">
+                                    <div class="modal-header border-0 bg-info text-white p-4">
+                                        <h5 class="modal-title font-weight-bold"><i class="fas fa-info-circle mr-2"></i>Detail Booking #{{ $b->id }}</h5>
                                         <button class="close text-white" type="button" data-dismiss="modal">
-                                            <span>&times;</span>
+                                            <span aria-hidden="true">&times;</span>
                                         </button>
                                     </div>
-                                    <div class="modal-body text-left">
-                                        <p><strong>Pelanggan:</strong> {{ $b->nama_pelanggan ?? ($b->user->name ?? '-') }}</p>
-                                        <p><strong>No. HP:</strong> {{ $b->no_hp ?? ($b->user->no_hp ?? '-') }}</p>
-                                        <p><strong>Layanan:</strong> {{ $b->layanan->nama ?? '-' }}</p>
-                                        <p><strong>Tgl Kunjungan:</strong> {{ \Carbon\Carbon::parse($b->tgl_kunjungan)->format('d F Y') }}</p>
-                                        <p><strong>Alamat:</strong> {{ $b->alamat }}</p>
-                                        <p><strong>Merek AC:</strong> {{ $b->merek_ac ?? '-' }}</p>
-                                        <p><strong>Keluhan:</strong> {{ $b->detail_keluhan ?? '-' }}</p>
-                                        <p><strong>Teknisi:</strong> {{ $b->teknisi->name ?? '-' }}</p>
-                                        <p><strong>Status:</strong>
-                                            <span class="badge badge-{{ $badgeColor }}">{{ ucfirst($b->status) }}</span>
-                                        </p>
+                                    <div class="modal-body p-4 bg-light">
+                                        <div class="row">
+                                            <div class="col-md-7">
+                                                <div class="card border-0 shadow-sm rounded-lg mb-4">
+                                                    <div class="card-body">
+                                                        <h6 class="text-primary font-weight-bold mb-3 border-bottom pb-2">
+                                                            <i class="fas fa-user mr-1"></i> Informasi Pelanggan
+                                                        </h6>
+                                                        <div class="row mb-2">
+                                                            <div class="col-sm-4 text-muted">Pelanggan</div>
+                                                            <div class="col-sm-8 font-weight-bold">{{ $b->nama_pelanggan ?? ($b->user->name ?? '-') }}</div>
+                                                        </div>
+                                                        <div class="row mb-2">
+                                                            <div class="col-sm-4 text-muted">No. HP</div>
+                                                            <div class="col-sm-8 font-weight-bold text-info">{{ $b->no_hp ?? ($b->user->no_hp ?? '-') }}</div>
+                                                        </div>
+                                                        <div class="row mb-2">
+                                                            <div class="col-sm-4 text-muted">Alamat</div>
+                                                            <div class="col-sm-8 small font-weight-bold">{{ $b->alamat }}</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="card border-0 shadow-sm rounded-lg">
+                                                    <div class="card-body">
+                                                        <h6 class="text-primary font-weight-bold mb-3 border-bottom pb-2">
+                                                            <i class="fas fa-tools mr-1"></i> Detail Layanan
+                                                        </h6>
+                                                        <div class="row mb-2">
+                                                            <div class="col-sm-4 text-muted">Layanan</div>
+                                                            <div class="col-sm-8 font-weight-bold"><span class="badge badge-primary">{{ $b->layanan->nama ?? '-' }}</span></div>
+                                                        </div>
+                                                        <div class="row mb-2">
+                                                            <div class="col-sm-4 text-muted">Kunjungan</div>
+                                                            <div class="col-sm-8 font-weight-bold">{{ \Carbon\Carbon::parse($b->tgl_kunjungan)->format('d F Y') }}</div>
+                                                        </div>
+                                                        <div class="row mb-2">
+                                                            <div class="col-sm-4 text-muted">Merek AC</div>
+                                                            <div class="col-sm-8 font-weight-bold">{{ $b->merek_ac ?? '-' }}</div>
+                                                        </div>
+                                                        <div class="row mb-2">
+                                                            <div class="col-sm-4 text-muted">Teknisi</div>
+                                                            <div class="col-sm-8 font-weight-bold text-dark">{{ $b->teknisi->name ?? 'Belum ditugaskan' }}</div>
+                                                        </div>
+                                                        <div class="row mb-2">
+                                                            <div class="col-sm-4 text-muted">Status</div>
+                                                            <div class="col-sm-8">
+                                                                <span class="badge badge-{{ $badgeColor }} shadow-sm">{{ ucfirst($b->status) }}</span>
+                                                            </div>
+                                                        </div>
+                                                        <hr>
+                                                        <p class="mb-1 text-muted small font-weight-bold">Keluhan:</p>
+                                                        <div class="p-2 bg-white border rounded small">
+                                                            {{ $b->detail_keluhan ?? 'Tidak ada keluhan detail' }}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-5">
+                                                @if($b->status === 'selesai' && $b->foto_hasil)
+                                                    <div class="card border-0 shadow-sm rounded-lg h-100">
+                                                        <div class="card-body text-center d-flex flex-column">
+                                                            <h6 class="text-success font-weight-bold mb-3 border-bottom pb-2 text-left">
+                                                                <i class="fas fa-camera mr-1"></i> Dokumentasi Hasil
+                                                            </h6>
+                                                            <div class="flex-grow-1 d-flex align-items-center justify-content-center bg-dark rounded overflow-hidden shadow-sm" style="min-height: 200px;">
+                                                                <a href="{{ asset('uploads/ac/hasil/' . $b->foto_hasil) }}" target="_blank">
+                                                                    <img src="{{ asset('uploads/ac/hasil/' . $b->foto_hasil) }}" 
+                                                                         class="img-fluid rounded hover-zoom" 
+                                                                         alt="Hasil Pengerjaan" 
+                                                                         style="max-height: 350px; transition: transform .3s ease;">
+                                                                </a>
+                                                            </div>
+                                                            <p class="mt-2 text-muted small italic">Klik gambar untuk memperbesar</p>
+                                                        </div>
+                                                    </div>
+                                                @else
+                                                    <div class="card border-0 shadow-sm rounded-lg h-100 bg-white d-flex align-items-center justify-content-center p-5">
+                                                        <div class="text-center opacity-50">
+                                                            <i class="fas fa-images fa-3x text-light mb-3"></i>
+                                                            <p class="text-muted small">Belum ada dokumentasi foto</p>
+                                                        </div>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="modal-footer">
-                                        <button class="btn btn-secondary" type="button" data-dismiss="modal">Tutup</button>
+                                    <div class="modal-footer border-0 p-4">
+                                        <button class="btn btn-secondary shadow-sm px-4 rounded-pill" type="button" data-dismiss="modal">Tutup</button>
                                     </div>
                                 </div>
                             </div>
