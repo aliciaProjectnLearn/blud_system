@@ -22,6 +22,31 @@
     @endif
 
     <div class="row">
+        @if($data->status_sewa === 'pending')
+        <div class="col-12 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Verifikasi Pengajuan</div>
+                            <div class="h6 mb-0 font-weight-bold text-gray-800">
+                                Harap periksa kelengkapan data dan foto KTP sebelum menyetujui penyewaan ini.
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <button onclick="setujui({{ $data->id }})" class="btn btn-success btn-sm px-4 shadow-sm mr-2 font-weight-bold">
+                                <i class="fas fa-check fa-sm mr-1"></i> Setujui
+                            </button>
+                            <button onclick="tolak({{ $data->id }})" class="btn btn-danger btn-sm px-4 shadow-sm font-weight-bold">
+                                <i class="fas fa-times fa-sm mr-1"></i> Tolak
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @endif
         {{-- Kolom Data Penyewa --}}
         <div class="col-lg-6">
             <div class="card shadow mb-4">
@@ -36,13 +61,47 @@
                         </tr>
                         <tr>
                             <td>NIK</td>
-                            <td>: {{ $data->nik_penyewa ? substr($data->nik_penyewa, 0, 4) . '****' . substr($data->nik_penyewa, -4) : '-' }}</td>
+                            <td>: {{ $data->nik_penyewa ?? '-' }}</td>
                         </tr>
                         <tr>
                             <td>No HP</td>
-                            <td>: {{ $data->no_hp_snapshot ? substr($data->no_hp_snapshot, 0, 4) . '****' . substr($data->no_hp_snapshot, -4) : '-' }}</td>
+                            <td>: {{ $data->no_hp_snapshot ?? '-' }}</td>
                         </tr>
                     </table>
+
+                    @php
+                        $ktpDokumen = $data->dokumen->where('tipe_dokumen', 'ktp')->first();
+                    @endphp
+
+                    @if($ktpDokumen)
+                        <div class="mt-3 pt-3 border-top">
+                            <label class="small font-weight-bold text-primary mb-2 d-block">
+                                <i class="fas fa-id-card mr-1"></i> Dokumen KTP Penyewa
+                            </label>
+                            <div class="position-relative">
+                                <a href="{{ asset('storage/' . $ktpDokumen->path_file) }}" target="_blank" class="d-block group">
+                                    <img src="{{ asset('storage/' . $ktpDokumen->path_file) }}" 
+                                         alt="Foto KTP" 
+                                         class="img-fluid rounded border shadow-sm w-100" 
+                                         style="max-height: 250px; object-fit: contain; background: #f8f9fc;">
+                                    <div class="position-absolute" style="top: 10px; right: 10px;">
+                                        <span class="badge badge-light shadow-sm py-1 px-2"><i class="fas fa-search-plus mr-1"></i>Perbesar</span>
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="mt-2 text-center">
+                                <a href="{{ asset('storage/' . $ktpDokumen->path_file) }}" download class="btn btn-sm btn-light border btn-block">
+                                    <i class="fas fa-download mr-1 text-primary"></i> Unduh Foto KTP
+                                </a>
+                            </div>
+                        </div>
+                    @else
+                        <div class="mt-3 pt-3 border-top">
+                            <div class="alert alert-warning small mb-0 py-2">
+                                <i class="fas fa-exclamation-triangle mr-1"></i> Foto KTP tidak ditemukan.
+                            </div>
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>
