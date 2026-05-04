@@ -282,7 +282,7 @@
                         <div class="text-center mb-3">
                             <span class="timer-badge" id="otp-timer-badge">
                                 <i class="fas fa-clock"></i>
-                                OTP berlaku: <strong id="otp-countdown">{{ $otpStatus['otp_seconds'] ?? 180 }}</strong> detik
+                                OTP berlaku: <strong id="otp-countdown">{{ (int) round($otpStatus['otp_seconds'] ?? 180) }}</strong> detik
                             </span>
                         </div>
                     @endif
@@ -347,7 +347,7 @@ const HAS_ERROR   = {{ $errors->has('otp') ? 'true' : 'false' }};
 
 // ─── Countdown OTP (sisa waktu berlaku) ───────────────────────────────
 @if(!$otpStatus['blocked'] && !$otpStatus['otp_expired'])
-let otpSecondsLeft = {{ $otpStatus['otp_seconds'] ?? 180 }};
+let otpSecondsLeft = {{ (int) round($otpStatus['otp_seconds'] ?? 180) }};
 const otpTimerEl   = document.getElementById('otp-countdown');
 const otpBadge     = document.getElementById('otp-timer-badge');
 const submitBtn    = document.getElementById('submit-btn');
@@ -376,7 +376,7 @@ const otpTimer = setInterval(function () {
 
 // ─── Countdown Blokir ─────────────────────────────────────────────────
 @if($otpStatus['blocked'])
-let blockSecondsLeft = {{ $otpStatus['block_seconds'] }};
+let blockSecondsLeft = {{ (int) round($otpStatus['block_seconds'] ?? 0) }};
 const blockEl = document.getElementById('block-countdown');
 
 const blockTimer = setInterval(function () {
@@ -395,7 +395,7 @@ if (blockEl) blockEl.textContent = blockSecondsLeft;
 
 // ─── Countdown Resend Cooldown ─────────────────────────────────────────
 @if(!$otpStatus['blocked'] && $otpStatus['resend_cooldown'] > 0)
-let resendSecondsLeft = {{ $otpStatus['resend_cooldown'] }};
+let resendSecondsLeft = {{ (int) round($otpStatus['resend_cooldown'] ?? 0) }};
 const resendCountdownEl = document.getElementById('resend-countdown');
 const resendBtn         = document.getElementById('resend-btn');
 
