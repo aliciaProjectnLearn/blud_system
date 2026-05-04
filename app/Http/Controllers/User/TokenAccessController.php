@@ -18,8 +18,8 @@ class TokenAccessController extends Controller
         $bookingFutsal = BookingFutsal::with(['booking.pembayaranFutsal.tipePembayaran', 'lapangan'])
             ->where('access_token', $token)->firstOrFail();
 
-        // Jika booking sudah selesai atau dibatalkan, link tidak aktif lagi
-        if (in_array($bookingFutsal->status, ['selesai', 'dibatalkan'])) {
+        // Jika booking sudah selesai, ditolak, atau dibatalkan, link tidak aktif lagi
+        if (in_array($bookingFutsal->status, ['selesai', 'ditolak', 'dibatalkan'])) {
             return view('user.token.expired', ['status' => $bookingFutsal->status]);
         }
 

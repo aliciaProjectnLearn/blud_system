@@ -31,18 +31,18 @@ class PenyewaanController extends Controller
                 $item->update(['status_sewa' => 'selesai']);
             }
 
-            // UPDATE STATUS RUKO
+            // UPDATE STATUS RUKO (Source of truth is 'status' column)
             if ($item->status_sewa === 'aktif') {
-                $item->ruko->update(['status_unit' => 'terisi']);
+                $item->ruko->update(['status' => 'disewa']);
             } else {
                 // Cek apakah ada penyewaan aktif lain untuk ruko ini
                 $masihDisewa = SewaRuko::where('ruko_id', $item->ruko_id)
-                    ->where('status_sewa', 'aktif')
+                    ->whereIn('status_sewa', ['aktif', 'pending', 'proses', 'disetujui'])
                     ->where('id', '!=', $item->id)
                     ->exists();
 
                 if (!$masihDisewa) {
-                    $item->ruko->update(['status_unit' => 'kosong']);
+                    $item->ruko->update(['status' => 'tersedia']);
                 }
             }
         }
@@ -196,7 +196,7 @@ class PenyewaanController extends Controller
 
         $sewa->delete();
 
-        return redirect()->route('adminkantin.penyewaan.index')->with('success', 'Data penyewaan berhasil dihapus.');
+        return redirect()->route('admin.kantin.penyewaan.index')->with('success', 'Data penyewaan berhasil dihapus.');
     }
 
     /**
@@ -213,15 +213,15 @@ class PenyewaanController extends Controller
             }
 
             if ($item->status_sewa === 'aktif') {
-                $item->ruko->update(['status_unit' => 'terisi']);
+                $item->ruko->update(['status' => 'disewa']);
             } else {
                 $masihDisewa = SewaRuko::where('ruko_id', $item->ruko_id)
-                    ->where('status_sewa', 'aktif')
+                    ->whereIn('status_sewa', ['aktif', 'pending', 'proses', 'disetujui'])
                     ->where('id', '!=', $item->id)
                     ->exists();
 
                 if (!$masihDisewa) {
-                    $item->ruko->update(['status_unit' => 'kosong']);
+                    $item->ruko->update(['status' => 'tersedia']);
                 }
             }
         }

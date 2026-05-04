@@ -17,6 +17,12 @@ class AcTokenController extends Controller
         $booking = BookingAc::with(['layanan', 'booking', 'pembayaran', 'teknisi', 'detailServis'])
             ->where('access_token', $token)->firstOrFail();
 
+        // Jika booking sudah selesai, ditolak, atau dibatalkan, link tidak aktif lagi
+        $status = $booking->booking->status ?? 'N/A';
+        if (in_array($status, ['selesai', 'ditolak', 'dibatalkan'])) {
+            return view('user.token.expired', ['status' => $status]);
+        }
+
         // [6] Check session (60 minutes)
         if ($request->session()->has('otp_verified_' . $token)) {
             $verifiedAt = $request->session()->get('otp_verified_' . $token);

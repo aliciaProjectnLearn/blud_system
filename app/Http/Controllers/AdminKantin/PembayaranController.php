@@ -105,7 +105,7 @@ class PembayaranController extends Controller
             // Auto-generate PDF Kwitansi after Lunas
             $this->generateKwitansiFile($pembayaran);
 
-            return redirect()->route('adminkantin.pembayaran.show', $pembayaran)
+            return redirect()->route('admin.kantin.pembayaran.show', $pembayaran)
                 ->with('success', "Pembayaran berhasil dikonfirmasi sebagai Lunas. No. Kwitansi: {$noKwitansi}");
 
         } catch (\Exception $e) {
