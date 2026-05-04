@@ -176,6 +176,11 @@ class UserServisController extends Controller
             return response()->view('user.servis.error_token', [], 404);
         }
 
+        // Jika booking sudah selesai, ditolak, atau dibatalkan, link tidak aktif lagi
+        if (in_array($booking->status, ['selesai', 'ditolak', 'dibatalkan'])) {
+            return view('user.token.expired', ['status' => $booking->status]);
+        }
+
         // Ambil riwayat booking berdasarkan no_hp
         $riwayat = BookingServis::with('layananServis')
             ->where('no_hp', $booking->no_hp)

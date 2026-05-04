@@ -79,17 +79,20 @@
                         </a>
                         
 
-                        @if(!isset($hideNavbarBack) || !$hideNavbarBack)
                         <div class="d-flex align-items-center" style="gap: 8px;">
-                            <button type="button" class="btn btn-sm btn-primary shadow-sm px-3" 
-                                    data-toggle="modal" data-target="#modalCekBooking">
-                                <i class="fas fa-search mr-1"></i> Cek Booking
-                            </button>
-                            <a href="{{ route('user.gateway') }}" class="btn btn-sm btn-light btn-kembali text-primary shadow-sm px-3">
-                                <i class="fas fa-arrow-left mr-2"></i> Kembali
-                            </a>
+                            @if(Route::is('user.gateway') || Route::is('home'))
+                                <button type="button" class="btn btn-sm btn-primary shadow-sm px-3" 
+                                        data-toggle="modal" data-target="#modalCekBooking">
+                                    <i class="fas fa-search mr-1"></i> Cek Booking
+                                </button>
+                            @else
+                                @if(!isset($hideNavbarBack) || !$hideNavbarBack)
+                                    <a href="{{ route('user.gateway') }}" class="btn btn-sm btn-light btn-kembali text-primary shadow-sm px-3">
+                                        <i class="fas fa-arrow-left mr-2"></i> Kembali
+                                    </a>
+                                @endif
+                            @endif
                         </div>
-                        @endif
                     </div>
                 </nav>
 
@@ -137,6 +140,7 @@
     
     @stack('scripts')
 
+    @if(Route::is('user.gateway') || Route::is('home'))
     <!-- Modal Cek Booking -->
     <div class="modal fade" id="modalCekBooking" tabindex="-1" 
          role="dialog" aria-labelledby="modalCekBookingLabel" 
@@ -494,5 +498,6 @@
         }
     })();
     </script>
+    @endif
 </body>
 </html>

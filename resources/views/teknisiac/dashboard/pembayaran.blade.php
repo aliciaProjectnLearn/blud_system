@@ -162,7 +162,11 @@
                     <div class="col-md-12 text-center">
                         <div class="border rounded p-4 shadow-sm bg-light">
                             <h5 class="font-weight-bold mb-3 text-primary">Scan QRIS Berikut:</h5>
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/d/d0/QR_code_for_mobile_English_Wikipedia.svg" alt="QRIS Placeholder" class="img-fluid mb-3 shadow-sm rounded bg-white p-2" style="max-height: 200px;">
+                            @if(file_exists(public_path('assets/img/qris_blud.png')))
+                                <img src="{{ asset('assets/img/qris_blud.png') }}" alt="QRIS" class="img-fluid mb-3 shadow-sm rounded bg-white p-2" style="max-height: 200px;">
+                            @else
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/d/d0/QR_code_for_mobile_English_Wikipedia.svg" alt="QRIS Placeholder" class="img-fluid mb-3 shadow-sm rounded bg-white p-2" style="max-height: 200px;">
+                            @endif
                             <p class="text-dark mb-0">Minta pelanggan menscan kode ini untuk melunasi tagihan sebesar <strong>Rp {{ number_format($totalTagihan, 0, ',', '.') }}</strong></p>
                         </div>
                     </div>
