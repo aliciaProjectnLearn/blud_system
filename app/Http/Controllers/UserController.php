@@ -62,10 +62,14 @@ class UserController extends Controller
         $request->validate([
             'username'     => 'required|string|max:255|unique:users,username',
             'nama_lengkap' => 'required|string|max:255',
-            'no_hp'        => 'required|string|max:20',
+            'no_hp'        => 'required|string|max:20|unique:users,no_hp',
             'email'        => 'required|email|unique:users,email',
             'password'     => 'required|min:6|confirmed',
             'role'         => 'required|exists:roles,id',
+        ], [
+            'username.unique' => 'Username sudah digunakan.',
+            'email.unique'    => 'Email sudah terdaftar.',
+            'no_hp.unique'    => 'No. HP sudah terdaftar.',
         ]);
 
         try {
@@ -104,10 +108,14 @@ class UserController extends Controller
         $request->validate([
             'username'     => 'required|string|max:255|unique:users,username,' . $id,
             'nama_lengkap' => 'required|string|max:255',
-            'no_hp'        => 'required|string|max:20',
+            'no_hp'        => 'required|string|max:20|unique:users,no_hp,' . $id,
             'email'        => 'required|email|unique:users,email,' . $id,
             'password'     => 'nullable|min:6|confirmed',
             'role'         => 'required|exists:roles,id',
+        ], [
+            'username.unique' => 'Username sudah digunakan akun lain.',
+            'email.unique'    => 'Email sudah digunakan akun lain.',
+            'no_hp.unique'    => 'No. HP sudah digunakan akun lain.',
         ]);
 
         try {

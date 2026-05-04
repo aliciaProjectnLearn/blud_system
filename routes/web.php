@@ -125,6 +125,12 @@ Route::prefix('user')->name('user.')->group(function () {
         Route::post('/store', [App\Http\Controllers\User\UserServisController::class, 'store'])->name('store');
         Route::get('/slots', [App\Http\Controllers\User\UserServisController::class, 'getSlot'])->name('slots');
         Route::get('/sukses/{token}', [App\Http\Controllers\User\UserServisController::class, 'sukses'])->name('sukses');
+        
+        // Token Based Access for Vehicle Service
+        Route::get('/access/{token}', [App\Http\Controllers\User\UserServisController::class, 'detailToken'])->name('token.show');
+        Route::get('/access/{token}/cancel', [App\Http\Controllers\User\UserServisController::class, 'batalkan'])->name('token.batalkan');
+        Route::post('/access/{token}/otp/verify', [App\Http\Controllers\User\UserServisController::class, 'verifyOtp'])->name('token.otp.verify');
+        Route::post('/access/{token}/otp/resend', [App\Http\Controllers\User\UserServisController::class, 'resendOtp'])->name('token.otp.resend');
     });
 });
 
@@ -275,6 +281,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Superadmin|Adm
         Route::get('/keuangan/unpaid-pekerjaan/{teknisi_id}', [\App\Http\Controllers\AdminServis\KeuanganController::class, 'getUnpaidPekerjaan'])->name('keuangan.unpaid');
         Route::resource('teknisi', \App\Http\Controllers\AdminServis\TeknisiController::class);
         Route::patch('/teknisi/{id}/toggle-status', [\App\Http\Controllers\AdminServis\TeknisiController::class, 'toggleStatus'])->name('teknisi.toggle-status');
+
+        Route::get('/audit', [\App\Http\Controllers\AdminServis\AuditLogController::class, 'index'])->name('audit.index');
+        Route::get('/audit/{id}', [\App\Http\Controllers\AdminServis\AuditLogController::class, 'show'])->name('audit.show');
     });
 });
 

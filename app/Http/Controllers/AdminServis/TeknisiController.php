@@ -90,7 +90,7 @@ class TeknisiController extends Controller
             'name'         => 'required|string|max:255',
             'username'     => 'required|string|max:255|unique:users,username',
             'email'        => 'required|email|unique:users,email',
-            'no_hp'        => 'required|string|max:20',
+            'no_hp'        => 'required|string|max:20|unique:users,no_hp',
             'password'     => 'required|string|min:8|confirmed',
             'role_id'      => ['required', Rule::exists('roles', 'id')->where(function ($query) {
                 $query->whereIn('nama', ['Teknisi Motor', 'Teknisi Mobil']);
@@ -103,6 +103,7 @@ class TeknisiController extends Controller
             'email.required'        => 'Email wajib diisi.',
             'email.unique'          => 'Email sudah terdaftar.',
             'no_hp.required'        => 'No. HP wajib diisi.',
+            'no_hp.unique'          => 'No. HP sudah terdaftar.',
             'password.required'     => 'Password wajib diisi.',
             'password.min'          => 'Password minimal 8 karakter.',
             'password.confirmed'    => 'Konfirmasi password tidak cocok.',
@@ -129,7 +130,7 @@ class TeknisiController extends Controller
             return back()->withInput()->with('error', 'Gagal menambahkan teknisi: ' . $e->getMessage());
         }
 
-        return redirect()->route('adminservis.teknisi.index')
+        return redirect()->route('admin.servis.teknisi.index')
             ->with('success', 'Teknisi berhasil ditambahkan.');
     }
 
@@ -192,7 +193,7 @@ class TeknisiController extends Controller
             'name'         => 'required|string|max:255',
             'username'     => ['required', 'string', 'max:255', Rule::unique('users', 'username')->ignore($teknisi->id)],
             'email'        => ['required', 'email', Rule::unique('users', 'email')->ignore($teknisi->id)],
-            'no_hp'        => 'required|string|max:20',
+            'no_hp'        => ['required', 'string', 'max:20', Rule::unique('users', 'no_hp')->ignore($teknisi->id)],
             'password'     => 'nullable|string|min:8|confirmed',
             'role_id'      => ['required', Rule::exists('roles', 'id')->where(function ($query) {
                 $query->whereIn('nama', ['Teknisi Motor', 'Teknisi Mobil']);
@@ -201,6 +202,7 @@ class TeknisiController extends Controller
             'nama_lengkap.required' => 'Nama lengkap wajib diisi.',
             'email.unique'          => 'Email sudah digunakan akun lain.',
             'username.unique'       => 'Username sudah digunakan akun lain.',
+            'no_hp.unique'          => 'No. HP sudah digunakan akun lain.',
             'password.min'          => 'Password minimal 8 karakter.',
             'password.confirmed'    => 'Konfirmasi password tidak cocok.',
             'role_id.required'      => 'Tipe teknisi wajib dipilih.',
@@ -233,7 +235,7 @@ class TeknisiController extends Controller
             return back()->withInput()->with('error', 'Gagal memperbarui data: ' . $e->getMessage());
         }
 
-        return redirect()->route('adminservis.teknisi.index')
+        return redirect()->route('admin.servis.teknisi.index')
             ->with('success', 'Data teknisi berhasil diperbarui.');
     }
 
@@ -286,7 +288,7 @@ class TeknisiController extends Controller
             return back()->with('error', 'Gagal menghapus teknisi: ' . $e->getMessage());
         }
 
-        return redirect()->route('adminservis.teknisi.index')
+        return redirect()->route('admin.servis.teknisi.index')
             ->with('success', 'Teknisi berhasil dihapus.');
     }
 }

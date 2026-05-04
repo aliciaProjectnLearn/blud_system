@@ -91,7 +91,7 @@
                                     </div>
                                 </td>
                                 <td class="px-4 py-3 align-middle text-center">
-                                    <a href="{{ $booking->access_token ? route('user.token.show', $booking->access_token) : '#' }}" class="btn btn-info btn-sm shadow-sm">
+                                    <a href="{{ $booking->access_token ? route('user.servis.token.show', $booking->access_token) : '#' }}" class="btn btn-info btn-sm shadow-sm">
                                         <i class="fas fa-eye fa-sm"></i> Detail
                                     </a>
                                 </td>

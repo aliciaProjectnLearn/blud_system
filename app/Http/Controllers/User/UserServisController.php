@@ -118,7 +118,7 @@ class UserServisController extends Controller
         // Kirim Notifikasi WhatsApp via Fonnte
         $fonnteToken = env('FONNTE_TOKEN');
         if ($fonnteToken) {
-            $linkAkses = route('user.token.show', $accessToken);
+            $linkAkses = route('user.servis.token.show', $accessToken);
             $tanggalFormat = Carbon::parse($request->tanggal_booking)->translatedFormat('d F Y');
             
             $pesanWa = "Yth. Bapak/Ibu {$request->nama},\n\n"
@@ -154,7 +154,7 @@ class UserServisController extends Controller
     {
         $booking = BookingServis::where('access_token', $token)->firstOrFail();
         
-        $linkAkses = route('user.token.show', $token);
+        $linkAkses = route('user.servis.token.show', $token);
         
         // Buat URL wa.me
         $pesanWa = "Halo, ini adalah link akses untuk melihat status servis kendaraan saya di BLUD SMK:\n" . $linkAkses . "\nMohon bantuannya ya, terima kasih!";
@@ -176,14 +176,168 @@ class UserServisController extends Controller
             return response()->view('user.servis.error_token', [], 404);
         }
 
-        // Ambil riwayat booking berdasarkan no_hp
-        $riwayat = BookingServis::with('layananServis')
-            ->where('no_hp', $booking->no_hp)
-            ->where('id', '!=', $booking->id)
-            ->orderBy('created_at', 'desc')
-            ->get();
+        // Cek session dengan expiry time
+        $verifiedUntil = session('otp_verified_until_' . $token);
+        if ($verifiedUntil && now()->lt(\Carbon\Carbon::parse($verifiedUntil))) {
+            return view('user.servis.detail_token', compact('booking'));
+        }
 
-        return view('user.servis.detail_token', compact('booking', 'riwayat'));
+        // Cek apakah OTP masih diblokir
+        $blockedUntil = \Illuminate\Support\Facades\Cache::get('booking_servis_otp_blocked_' . $token);
+        if ($blockedUntil && now()->lt(\Carbon\Carbon::parse($blockedUntil))) {
+            return view('user.servis.otp', compact('booking', 'token'));
+        }
+
+        // Cek apakah OTP masih berlaku
+        $otpCode = \Illuminate\Support\Facades\Cache::get('booking_servis_otp_' . $token);
+        $otpExpiredAt = \Illuminate\Support\Facades\Cache::get('booking_servis_otp_expired_' . $token);
+
+        if (!$otpCode || !$otpExpiredAt || now()->gt(\Carbon\Carbon::parse($otpExpiredAt))) {
+            // Generate OTP baru
+            $otpCode = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+            $otpExpiredAt = now()->addMinutes(3)->toDateTimeString();
+
+            \Illuminate\Support\Facades\Cache::put('booking_servis_otp_' . $token, $otpCode, now()->addMinutes(3));
+            \Illuminate\Support\Facades\Cache::put('booking_servis_otp_expired_' . $token, $otpExpiredAt, now()->addMinutes(3));
+            \Illuminate\Support\Facades\Cache::put('booking_servis_otp_attempt_' . $token, 0, now()->addMinutes(3));
+            \Illuminate\Support\Facades\Cache::put('booking_servis_otp_sent_at_' . $token, now()->toDateTimeString(), now()->addMinutes(3));
+
+            $this->sendWhatsappOtp($booking->no_hp, $otpCode);
+        }
+
+        return view('user.servis.otp', compact('booking', 'token'));
+    }
+
+    /**
+     * Verifikasi OTP untuk servis kendaraan.
+     */
+    public function verifyOtp(Request $request, $token)
+    {
+        $request->validate(['otp_input' => 'required|string|size:6']);
+
+        $booking = BookingServis::where('access_token', $token)->firstOrFail();
+
+        $blockedUntil = \Illuminate\Support\Facades\Cache::get('booking_servis_otp_blocked_' . $token);
+        if ($blockedUntil && now()->lt(\Carbon\Carbon::parse($blockedUntil))) {
+            $menitSisa = max(1, now()->diffInMinutes(\Carbon\Carbon::parse($blockedUntil), false));
+            return back()->with('error', "Terlalu banyak percobaan. Coba lagi dalam {$menitSisa} menit.");
+        }
+
+        $otpExpiredAt = \Illuminate\Support\Facades\Cache::get('booking_servis_otp_expired_' . $token);
+        if (!$otpExpiredAt || now()->gt(\Carbon\Carbon::parse($otpExpiredAt))) {
+            return back()->with('error', "Kode OTP sudah kedaluwarsa. Klik 'Kirim Ulang'.");
+        }
+
+        $otpCode = \Illuminate\Support\Facades\Cache::get('booking_servis_otp_' . $token);
+        if ($request->otp_input !== $otpCode) {
+            $attempt = (int)\Illuminate\Support\Facades\Cache::get('booking_servis_otp_attempt_' . $token, 0) + 1;
+            \Illuminate\Support\Facades\Cache::put('booking_servis_otp_attempt_' . $token, $attempt, now()->addMinutes(3));
+
+            if ($attempt >= 3) {
+                \Illuminate\Support\Facades\Cache::put('booking_servis_otp_blocked_' . $token, now()->addMinutes(3)->toDateTimeString(), now()->addMinutes(3));
+                return back()->with('error', 'Terlalu banyak percobaan. Akses diblokir selama 3 menit.');
+            }
+
+            $sisa = 3 - $attempt;
+            return back()->with('error', "Kode OTP salah. Sisa {$sisa} percobaan.");
+        }
+
+        // OTP Valid! Bersihkan cache dan simpan di session
+        \Illuminate\Support\Facades\Cache::forget('booking_servis_otp_' . $token);
+        \Illuminate\Support\Facades\Cache::forget('booking_servis_otp_expired_' . $token);
+        \Illuminate\Support\Facades\Cache::forget('booking_servis_otp_attempt_' . $token);
+        \Illuminate\Support\Facades\Cache::forget('booking_servis_otp_blocked_' . $token);
+
+        session([
+            'otp_verified_' . $token => true,
+            'otp_verified_until_' . $token => now()->addMinutes(60)->toDateTimeString(),
+        ]);
+
+        return redirect()->route('user.servis.token.show', $token);
+    }
+
+    /**
+     * Kirim ulang OTP untuk servis kendaraan.
+     */
+    public function resendOtp(Request $request, $token)
+    {
+        $booking = BookingServis::where('access_token', $token)->firstOrFail();
+
+        $blockedUntil = \Illuminate\Support\Facades\Cache::get('booking_servis_otp_blocked_' . $token);
+        if ($blockedUntil && now()->lt(\Carbon\Carbon::parse($blockedUntil))) {
+            $menitSisa = max(1, now()->diffInMinutes(\Carbon\Carbon::parse($blockedUntil), false));
+            return back()->with('error', "Masih diblokir. Coba lagi dalam {$menitSisa} menit.");
+        }
+
+        $otpSentAt = \Illuminate\Support\Facades\Cache::get('booking_servis_otp_sent_at_' . $token);
+        if ($otpSentAt) {
+            $detikSejak = now()->diffInSeconds(\Carbon\Carbon::parse($otpSentAt));
+            $detikTunggu = 60 - (int) $detikSejak;
+            if ($detikTunggu > 0) {
+                return back()->with('error', "Tunggu {$detikTunggu} detik sebelum mengirim ulang.");
+            }
+        }
+
+        // Generate OTP baru
+        $otpCode = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        $otpExpiredAt = now()->addMinutes(3)->toDateTimeString();
+
+        \Illuminate\Support\Facades\Cache::put('booking_servis_otp_' . $token, $otpCode, now()->addMinutes(3));
+        \Illuminate\Support\Facades\Cache::put('booking_servis_otp_expired_' . $token, $otpExpiredAt, now()->addMinutes(3));
+        \Illuminate\Support\Facades\Cache::put('booking_servis_otp_attempt_' . $token, 0, now()->addMinutes(3));
+        \Illuminate\Support\Facades\Cache::put('booking_servis_otp_sent_at_' . $token, now()->toDateTimeString(), now()->addMinutes(3));
+
+        $this->sendWhatsappOtp($booking->no_hp, $otpCode);
+
+        return back()->with('success', 'Kode OTP baru telah dikirim ke WhatsApp Anda.');
+    }
+
+    /**
+     * Helper untuk mengirim OTP ke WhatsApp (Fonnte).
+     */
+    private function sendWhatsappOtp(string $noHp, string $otpCode): void
+    {
+        $apiToken = env('FONNTE_TOKEN');
+        if (!$apiToken) {
+            $apiToken = config('services.fonnte.token');
+        }
+        $noHpBersih = preg_replace('/[^0-9]/', '', $noHp);
+
+        $pesan  = "🔐 *Kode OTP Booking Servis BLUD*\n\n";
+        $pesan .= "Kode verifikasi Anda: *{$otpCode}*\n\n";
+        $pesan .= "Kode ini berlaku selama *3 menit*.\n";
+        $pesan .= "Jangan bagikan kode ini kepada siapapun.\n\n";
+        $pesan .= "_Jika Anda tidak merasa melakukan booking, abaikan pesan ini._";
+
+        try {
+            \Illuminate\Support\Facades\Http::withHeaders(['Authorization' => $apiToken])
+                ->asForm()
+                ->post('https://api.fonnte.com/send', [
+                    'target'      => $noHpBersih,
+                    'message'     => $pesan,
+                    'countryCode' => '62',
+                ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::warning("Gagal kirim OTP WA ke {$noHpBersih}: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Batalkan booking servis (hanya status menunggu).
+     */
+    public function batalkan($token)
+    {
+        $booking = BookingServis::where('access_token', $token)->firstOrFail();
+
+        if (strtolower($booking->status) !== 'menunggu') {
+            return redirect()->route('user.servis.token.show', $token)
+                ->with('error', 'Booking tidak bisa dibatalkan karena status sudah bukan menunggu.');
+        }
+
+        $booking->update(['status' => 'batal']);
+
+        return redirect()->route('user.servis.token.show', $token)
+            ->with('success', 'Booking berhasil dibatalkan.');
     }
 
     /**

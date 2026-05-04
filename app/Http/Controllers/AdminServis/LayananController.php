@@ -51,7 +51,7 @@ class LayananController extends Controller
             'is_active'      => $request->has('is_active') ? true : false,
         ]);
 
-        return redirect()->route('adminservis.layanan.index')
+        return redirect()->route('admin.servis.layanan.index')
             ->with('success', 'Layanan berhasil ditambahkan.');
     }
 
@@ -78,7 +78,7 @@ class LayananController extends Controller
             'is_active'      => $request->has('is_active') ? true : false,
         ]);
 
-        return redirect()->route('adminservis.layanan.index')
+        return redirect()->route('admin.servis.layanan.index')
             ->with('success', 'Layanan berhasil diperbarui.');
     }
 
@@ -92,7 +92,7 @@ class LayananController extends Controller
 
         $layanan->delete();
 
-        return redirect()->route('adminservis.layanan.index')
+        return redirect()->route('admin.servis.layanan.index')
             ->with('success', 'Layanan berhasil dihapus.');
     }
 }

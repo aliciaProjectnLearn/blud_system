@@ -78,9 +78,13 @@ class TeknisiController extends Controller
             'name'         => 'required|string|max:255',
             'nama_lengkap' => 'required|string|max:255',
             'username'     => 'required|string|max:255|unique:users,username',
-            'no_hp'        => 'required|string|max:20',
+            'no_hp'        => 'required|string|max:20|unique:users,no_hp',
             'email'        => 'required|email|unique:users,email',
             'password'     => 'required|string|min:6',
+        ], [
+            'username.unique' => 'Username sudah digunakan.',
+            'email.unique'    => 'Email sudah terdaftar.',
+            'no_hp.unique'    => 'No. HP sudah terdaftar.',
         ]);
 
         $user = User::create([
@@ -120,9 +124,13 @@ class TeknisiController extends Controller
             'name'         => 'required|string|max:255',
             'nama_lengkap' => 'required|string|max:255',
             'username'     => 'required|string|max:255|unique:users,username,' . $id,
-            'no_hp'        => 'required|string|max:20',
+            'no_hp'        => 'required|string|max:20|unique:users,no_hp,' . $id,
             'email'        => 'required|email|unique:users,email,' . $id,
             'password'     => 'nullable|string|min:6',
+        ], [
+            'username.unique' => 'Username sudah digunakan akun lain.',
+            'email.unique'    => 'Email sudah digunakan akun lain.',
+            'no_hp.unique'    => 'No. HP sudah digunakan akun lain.',
         ]);
 
         $data = [
