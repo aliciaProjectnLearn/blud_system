@@ -99,7 +99,33 @@
     <div class="container-fluid py-4">
         <div class="row justify-content-center">
             <div class="col-lg-8">
-                
+
+                {{-- NOTIFIKASI STATUS SELESAI --}}
+                @if(session('warning') || isset($warning))
+                    <div class="alert alert-warning border-left-warning shadow-sm py-3 px-4 mb-4">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-lock fa-lg mr-3 text-warning"></i>
+                            <div>
+                                <strong>Servis Selesai</strong><br>
+                                <span class="small">{{ session('warning') ?? $warning }}</span>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
+
+                @if(session('success'))
+                    <div class="alert alert-success border-left-success shadow-sm py-3 px-4 mb-4">
+                        <i class="fas fa-check-circle mr-2"></i> {{ session('success') }}
+                    </div>
+                @endif
+
+                @if(session('error'))
+                    <div class="alert alert-danger border-left-danger shadow-sm py-3 px-4 mb-4">
+                        <i class="fas fa-exclamation-circle mr-2"></i> {{ session('error') }}
+                    </div>
+                @endif
+
                 {{-- KARTU DETAIL UTAMA --}}
                 <div class="card detail-card">
                     <div class="detail-header d-flex justify-content-between align-items-center">
@@ -150,7 +176,7 @@
 
                         @if(strtolower($booking->status) === 'menunggu')
                             <div class="mt-4 pt-3 border-top text-center">
-                                <a href="#" 
+                                <a href="#"
                                    onclick="konfirmasiBatal(event)"
                                    class="btn btn-outline-danger btn-sm">
                                     <i class="fas fa-times-circle mr-1"></i> Batalkan Booking
@@ -159,7 +185,7 @@
                         @elseif(in_array(strtolower($booking->status), ['diproses','siap_bayar','selesai']))
                             <div class="mt-4 pt-3 border-top text-center">
                                 <button class="btn btn-outline-secondary btn-sm" disabled>
-                                    <i class="fas fa-lock mr-1"></i> 
+                                    <i class="fas fa-lock mr-1"></i>
                                     Tidak dapat dibatalkan — Kendaraan sedang dalam proses pengerjaan
                                 </button>
                             </div>

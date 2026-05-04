@@ -31,6 +31,11 @@ class SewaTokenController extends Controller
             ]);
         }
 
+        // Jika booking sudah selesai, ditolak, atau dibatalkan, link tidak aktif lagi
+        if (in_array($sewa->status_sewa, ['selesai', 'ditolak', 'dibatalkan'])) {
+            return view('user.token.expired', ['status' => $sewa->status_sewa]);
+        }
+
         // Lanjut ke verifikasi OTP
         if (!session('sewa_verified_' . $token)) {
             return redirect()->route('user.kantin.otp.form', $token);

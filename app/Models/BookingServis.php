@@ -26,11 +26,23 @@ class BookingServis extends Model
         'teknisi_id',
         'access_token',
         'nama_pemesan',
-        'no_hp'
+        'no_hp',
+        // OTP fields
+        'otp_code',
+        'otp_expires_at',
+        'otp_used',
+        'otp_attempt_count',
+        'otp_blocked_until',
+        'otp_sent_at',
     ];
 
     protected $casts = [
-        'tanggal_booking' => 'date',
+        'tanggal_booking'   => 'date',
+        'otp_expires_at'    => 'datetime',
+        'otp_blocked_until' => 'datetime',
+        'otp_sent_at'       => 'datetime',
+        'otp_used'          => 'boolean',
+        'otp_attempt_count' => 'integer',
     ];
 
     protected static function boot()
