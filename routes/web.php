@@ -125,6 +125,14 @@ Route::prefix('user')->name('user.')->group(function () {
         Route::post('/store', [App\Http\Controllers\User\UserServisController::class, 'store'])->name('store');
         Route::get('/slots', [App\Http\Controllers\User\UserServisController::class, 'getSlot'])->name('slots');
         Route::get('/sukses/{token}', [App\Http\Controllers\User\UserServisController::class, 'sukses'])->name('sukses');
+<<<<<<< HEAD
+        
+        // Token Based Access for Vehicle Service
+        Route::get('/access/{token}', [App\Http\Controllers\User\UserServisController::class, 'detailToken'])->name('token.show');
+        Route::get('/access/{token}/cancel', [App\Http\Controllers\User\UserServisController::class, 'batalkan'])->name('token.batalkan');
+        Route::post('/access/{token}/otp/verify', [App\Http\Controllers\User\UserServisController::class, 'verifyOtp'])->name('token.otp.verify');
+        Route::post('/access/{token}/otp/resend', [App\Http\Controllers\User\UserServisController::class, 'resendOtp'])->name('token.otp.resend');
+=======
         Route::get('/kendaraan/model/{merek_id}', [App\Http\Controllers\User\UserServisController::class, 'getModelByMerek'])->name('kendaraan.model');
 
 
@@ -137,6 +145,7 @@ Route::prefix('user')->name('user.')->group(function () {
         // Batalkan booking servis via token (terpisah dari futsal)
         Route::get('/token/{token}/batalkan', [App\Http\Controllers\User\UserServisController::class, 'batalkanToken'])->name('token.batalkan');
         Route::post('/token/{token}/batalkan', [App\Http\Controllers\User\UserServisController::class, 'prosesBatalkanToken'])->name('token.batalkan.proses');
+>>>>>>> 12879c00947451b734cf293a954cd2386f9cf1ec
     });
 });
 
@@ -288,6 +297,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Superadmin|Adm
         Route::resource('teknisi', \App\Http\Controllers\AdminServis\TeknisiController::class);
         Route::patch('/teknisi/{id}/toggle-status', [\App\Http\Controllers\AdminServis\TeknisiController::class, 'toggleStatus'])->name('teknisi.toggle-status');
 
+<<<<<<< HEAD
+        Route::get('/audit', [\App\Http\Controllers\AdminServis\AuditLogController::class, 'index'])->name('audit.index');
+        Route::get('/audit/{id}', [\App\Http\Controllers\AdminServis\AuditLogController::class, 'show'])->name('audit.show');
+=======
         Route::resource('merek-kendaraan', \App\Http\Controllers\AdminServis\MerekKendaraanController::class)
             ->parameters(['merek-kendaraan' => 'id'])
             ->names('merek');
@@ -295,6 +308,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Superadmin|Adm
             ->parameters(['model-kendaraan' => 'id'])
             ->names('model');
         Route::get('kendaraan/model/{merek_id}', [\App\Http\Controllers\User\UserServisController::class, 'getModelByMerek'])->name('kendaraan.model');
+>>>>>>> 12879c00947451b734cf293a954cd2386f9cf1ec
     });
 
 });

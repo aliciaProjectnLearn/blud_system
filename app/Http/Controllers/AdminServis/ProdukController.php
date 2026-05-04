@@ -44,7 +44,7 @@ class ProdukController extends Controller
 
         ProdukServis::create($validated);
 
-        return redirect()->route('adminservis.produk.index')->with('success', 'Produk berhasil ditambahkan.');
+        return redirect()->route('admin.servis.produk.index')->with('success', 'Produk berhasil ditambahkan.');
     }
 
     public function update(Request $request, ProdukServis $produk)
@@ -66,17 +66,17 @@ class ProdukController extends Controller
 
         $produk->update($validated);
 
-        return redirect()->route('adminservis.produk.index')->with('success', 'Produk berhasil diperbarui.');
+        return redirect()->route('admin.servis.produk.index')->with('success', 'Produk berhasil diperbarui.');
     }
 
     public function destroy(ProdukServis $produk)
     {
         if ($produk->rincianServis()->exists()) {
-            return redirect()->route('adminservis.produk.index')->with('error', 'Produk tidak dapat dihapus karena sudah digunakan dalam rincian servis.');
+            return redirect()->route('admin.servis.produk.index')->with('error', 'Produk tidak dapat dihapus karena sudah digunakan dalam rincian servis.');
         }
 
         $produk->delete();
 
-        return redirect()->route('adminservis.produk.index')->with('success', 'Produk berhasil dihapus.');
+        return redirect()->route('admin.servis.produk.index')->with('success', 'Produk berhasil dihapus.');
     }
 }

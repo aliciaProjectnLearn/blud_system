@@ -286,7 +286,6 @@ function konfirmasiBatal(e) {
         cancelButtonText: 'Tidak'
     }).then((result) => {
         if (result.isConfirmed) {
-            {{-- REVISI 3: Gunakan route servis yang benar --}}
             window.location.href = "{{ route('user.servis.token.batalkan', $booking->access_token) }}";
         }
     });

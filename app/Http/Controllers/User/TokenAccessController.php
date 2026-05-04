@@ -15,6 +15,11 @@ class TokenAccessController extends Controller
     // POIN 3, 10, 11 — Tampilkan detail booking atau form OTP
     public function show($token)
     {
+        $bookingServis = \App\Models\BookingServis::where('access_token', $token)->first();
+        if ($bookingServis) {
+            return redirect()->route('user.servis.token.show', $token);
+        }
+
         $bookingFutsal = BookingFutsal::with(['booking.pembayaranFutsal.tipePembayaran', 'lapangan'])
             ->where('access_token', $token)->firstOrFail();
 
@@ -150,6 +155,11 @@ class TokenAccessController extends Controller
     // =========================================================================
     public function batalkan($token)
     {
+        $bookingServis = \App\Models\BookingServis::where('access_token', $token)->first();
+        if ($bookingServis) {
+            return redirect()->route('user.servis.token.batalkan', $token);
+        }
+
         $bookingFutsal = BookingFutsal::with(['booking', 'lapangan'])
             ->where('access_token', $token)->firstOrFail();
 

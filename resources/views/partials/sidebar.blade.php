@@ -472,6 +472,14 @@
                 <span>Laporan Transaksi</span>
             </a>
         </li>
+
+        {{-- Audit Log --}}
+        <li class="nav-item {{ request()->routeIs('admin.servis.audit.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('admin.servis.audit.index') }}">
+                <i class="fas fa-fw fa-history"></i>
+                <span>Audit Log</span>
+            </a>
+        </li>
     @endif
 
     {{-- ================================= --}}

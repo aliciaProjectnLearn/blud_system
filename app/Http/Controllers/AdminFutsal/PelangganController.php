@@ -72,11 +72,14 @@ class PelangganController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name'         => 'required|string|max:100',
-            'email'        => 'required|email|unique:users,email',
-            'password'     => 'required|min:8',
-            'no_hp'        => 'nullable|string|max:20',
+            'name'          => 'required|string|max:100',
+            'email'         => 'required|email|unique:users,email',
+            'password'      => 'required|min:8',
+            'no_hp'         => 'nullable|string|max:20|unique:users,no_hp',
             'status_futsal' => 'required|in:active,inactive',
+        ], [
+            'email.unique'  => 'Email sudah terdaftar.',
+            'no_hp.unique'  => 'No. HP sudah terdaftar.',
         ]);
 
         User::create([
@@ -96,8 +99,11 @@ class PelangganController extends Controller
         $request->validate([
             'name'          => 'required|string|max:100',
             'email'         => 'required|email|unique:users,email,' . $user->id,
-            'no_hp'         => 'nullable|string|max:20',
+            'no_hp'         => 'nullable|string|max:20|unique:users,no_hp,' . $user->id,
             'status_futsal' => 'required|in:active,inactive',
+        ], [
+            'email.unique'  => 'Email sudah digunakan akun lain.',
+            'no_hp.unique'  => 'No. HP sudah digunakan akun lain.',
         ]);
 
         $user->update([
