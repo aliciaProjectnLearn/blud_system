@@ -118,6 +118,26 @@
                     </table>
                 </div>
             </div>
+
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Bukti Pembayaran / Dokumentasi</h6>
+                </div>
+                <div class="card-body text-center">
+                    @php $bukti_img = $detail->bukti ?? $detail->bukti_pembayaran ?? null; @endphp
+                    @if($bukti_img)
+                        <img src="{{ asset('storage/' . $bukti_img) }}" alt="Bukti Pembayaran" class="img-fluid rounded border mb-3" style="max-height: 250px; object-fit: contain; width: 100%;">
+                        <div>
+                            <a href="{{ asset('storage/' . $bukti_img) }}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fas fa-external-link-alt"></i> Lihat Gambar Penuh</a>
+                        </div>
+                    @else
+                        <div class="py-4 text-muted">
+                            <i class="fas fa-image fa-3x mb-2 text-gray-300"></i>
+                            <p class="mb-0 small">Belum ada bukti pembayaran yang diunggah atau tidak tersedia untuk sistem ini.</p>
+                        </div>
+                    @endif
+                </div>
+            </div>
         </div>
     </div>
 
