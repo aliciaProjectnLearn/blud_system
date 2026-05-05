@@ -136,6 +136,12 @@
                                     <i class="fas fa-info-circle"></i>
                                 </button>
 
+                                @if($item->booking && $item->booking->pembayaranFutsal->first())
+                                <a href="{{ route('admin.futsal.transaksi.show', $item->booking->pembayaranFutsal->first()->id) }}" class="btn btn-secondary btn-circle btn-sm" title="Lihat Transaksi/Pembayaran">
+                                    <i class="fas fa-file-invoice-dollar"></i>
+                                </a>
+                                @endif
+
                                 @if($item->booking && $item->booking->status != 'dibatalkan')
                                     @if($item->booking->status != 'selesai')
                                         <!-- Edit Reschedule -->
@@ -180,6 +186,18 @@
                                         @endif
                                         <p><strong>Metode Pembayaran:</strong> {{ $namaMetode ?? 'Belum dipilih' }}</p>
                                         <p><strong>Status:</strong> {{ ucfirst($item->booking->status ?? '-') }}</p>
+                                        
+                                        @php $pembayaran = $item->booking ? $item->booking->pembayaranFutsal->first() : null; @endphp
+                                        @if($pembayaran && $pembayaran->bukti)
+                                            <hr>
+                                            <p class="mb-2"><strong>Bukti Pembayaran / Dokumentasi:</strong></p>
+                                            <div class="text-center">
+                                                <img src="{{ asset('storage/' . $pembayaran->bukti) }}" alt="Bukti Pembayaran" class="img-fluid rounded border" style="max-height: 250px; object-fit: contain;">
+                                                <div class="mt-2">
+                                                    <a href="{{ asset('storage/' . $pembayaran->bukti) }}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fas fa-external-link-alt"></i> Lihat Gambar Penuh</a>
+                                                </div>
+                                            </div>
+                                        @endif
                                     </div>
                                     <div class="modal-footer">
                                         <button class="btn btn-secondary" type="button" data-dismiss="modal">Tutup</button>

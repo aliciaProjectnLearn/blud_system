@@ -95,6 +95,7 @@
                                 <th>Sisa Kuota</th>
                                 <th>Status</th>
                                 <th>Tanggal Beli</th>
+                                <th>Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -120,10 +121,19 @@
                                         @endif
                                     </td>
                                     <td>{{ $m->created_at->format('d M Y') }}</td>
+                                    <td>
+                                        @if($m->transaksi)
+                                            <a href="{{ route('admin.futsal.transaksi.show', $m->transaksi->id) }}" class="btn btn-info btn-sm btn-circle" title="Lihat Transaksi/Pembayaran">
+                                                <i class="fas fa-file-invoice-dollar"></i>
+                                            </a>
+                                        @else
+                                            <span class="text-muted">-</span>
+                                        @endif
+                                    </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="text-center">Belum ada data paket terjual.</td>
+                                    <td colspan="8" class="text-center">Belum ada data paket terjual.</td>
                                 </tr>
                             @endforelse
                         </tbody>
