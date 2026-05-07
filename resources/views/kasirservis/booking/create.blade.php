@@ -139,7 +139,7 @@
                                 </div>
                                 <div class="col-md-3 mb-3">
                                     <label class="small font-weight-bold">Nomor Plat</label>
-                                    <input type="text" name="nomor_plat" class="form-control" placeholder="B 1234 ABC" required value="{{ old('nomor_plat') }}">
+                                    <input type="text" name="nomor_plat" class="form-control" placeholder="B 1234 ABC" required value="{{ old('nomor_plat') }}" style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()">
                                 </div>
                                 <div class="col-md-3 mb-3">
                                     <label class="small font-weight-bold">Tahun Keluaran</label>
