@@ -68,6 +68,10 @@
             cursor: not-allowed;
             background: #f8f9fc;
         }
+        select.form-control {
+            max-width: 100%;
+            text-overflow: ellipsis;
+        }
     </style>
 @endpush
 
