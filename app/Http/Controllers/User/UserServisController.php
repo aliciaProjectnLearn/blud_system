@@ -176,6 +176,7 @@ class UserServisController extends Controller
                     . "Kendaraan: {$merek->nama} {$model->nama_model} ({$request->tahun_kendaraan})\n"
                     . "Layanan: {$layanan->nama_layanan}\n"
                     . "Jadwal: {$tanggalFormat} pukul {$request->jam_booking} WIB\n\n"
+                    . "*Harap tiba 30 menit sebelum jadwal agar proses servis dapat berjalan tepat waktu.\n\n"
                     . "Untuk memantau status pengerjaan kendaraan dan detail riwayat servis Anda, silakan akses tautan resmi berikut:\n"
                     . "{$linkAkses}\n\n"
                     . "Harap simpan tautan di atas dengan baik. Tautan tersebut bersifat rahasia dan merupakan kunci akses Anda ke dalam sistem kami.\n\n"

@@ -68,6 +68,7 @@
             cursor: not-allowed;
             background: #f8f9fc;
         }
+
         select.form-control {
             max-width: 100%;
             text-overflow: ellipsis;
@@ -86,7 +87,6 @@
                     </div>
                     <div class="card-body p-4">
 
-                        {{-- REVISI 1: Alert jika user sudah punya booking aktif --}}
                         @if($errors->has('no_hp'))
                             <div class="alert alert-danger d-flex align-items-start mb-4" style="border-radius: 12px;" role="alert">
                                 <i class="fas fa-times-circle fa-lg mr-3 mt-1 flex-shrink-0"></i>
@@ -114,15 +114,13 @@
                         @endif
 
                         <div class="alert alert-light border d-flex align-items-center mb-4" style="border-radius: 12px;">
-
                             <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mr-3"
                                 style="width:50px; height:50px; flex-shrink:0;">
                                 <i class="fas fa-wrench"></i>
                             </div>
                             <div>
                                 <div class="text-xs text-uppercase font-weight-bold text-muted">Layanan Dipilih</div>
-                                <div class="h6 mb-0 font-weight-bold text-gray-800">{{ $layananTerpilih->nama_layanan }}
-                                </div>
+                                <div class="h6 mb-0 font-weight-bold text-gray-800">{{ $layananTerpilih->nama_layanan }}</div>
                             </div>
                         </div>
 
@@ -163,7 +161,8 @@
                                 </div>
                                 <div class="col-md-4 mb-3">
                                     <label class="small font-weight-bold">Nomor Plat</label>
-                                    <input type="text" name="nomor_plat" class="form-control" placeholder="B 1234 ABC" required style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()">
+                                    <input type="text" name="nomor_plat" class="form-control" placeholder="B 1234 ABC" required
+                                        oninput="this.value = this.value.toUpperCase()">
                                 </div>
                                 <div class="col-md-4 mb-3">
                                     <label class="small font-weight-bold">Tahun Keluaran</label>
@@ -212,12 +211,8 @@
 
     @push('scripts')
         <script>
-            // Set min date: jika jam sekarang >= 16 (jam terakhir slot),
-            // maka min date adalah besok karena semua slot hari ini sudah lewat
             (function() {
                 let now = new Date();
-                // Jam operasional terakhir adalah 16:00
-                // Jika sudah >= jam 16, paksa pilih besok
                 let minDate;
                 if (now.getHours() >= 16) {
                     let besok = new Date(now);
@@ -247,13 +242,10 @@
                         let slots = res.slots;
 
                         if (slots.length === 0) {
-                            container.html(
-                                '<div class="text-muted small">Tidak ada slot tersedia.</div>'
-                            );
+                            container.html('<div class="text-muted small">Tidak ada slot tersedia.</div>');
                             return;
                         }
 
-                        // Jika hari ini dan tidak ada slot tersedia sama sekali
                         if (res.is_hari_ini && !res.ada_yang_tersedia) {
                             container.html(
                                 '<div class="alert alert-warning py-2 px-3 small">' +
@@ -274,7 +266,7 @@
                             } else if (!s.tersedia) {
                                 info = '<small class="d-block text-xs text-danger">Penuh</small>';
                             } else {
-                                info = '<small class="d-block text-xs text-success">' + 
+                                info = '<small class="d-block text-xs text-success">' +
                                        (3 - s.terisi) + ' slot</small>';
                             }
 
@@ -333,4 +325,3 @@
         </script>
     @endpush
 @endsection
-
