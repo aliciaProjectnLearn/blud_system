@@ -511,6 +511,7 @@ class FutsalBookingController extends Controller
             $pesan .= "📍 Status: *" . ($isMembership ? 'Dikonfirmasi (Lunas)' : 'Menunggu Verifikasi') . "*\n\n";
             $pesan .= "Silahkan akses link di bawah ini untuk melihat detail, status, dan bukti booking Anda:\n";
             $pesan .= "🔗 {$linkAccess}\n\n";
+            $pesan .= "Saat membuka link, Anda akan diminta verifikasi OTP yang dikirim otomatis ke WhatsApp ini.\n\n";
             $pesan .= "Terima kasih telah berolahraga di BLUD Futsal! 🙏";
 
             try {
@@ -527,8 +528,8 @@ class FutsalBookingController extends Controller
             }
 
             // 9. Return redirect
-            return redirect()->route('user.token.show', ['token' => $token])
-                ->with('success', 'Booking berhasil! Simpan link ini untuk mengakses informasi booking Anda.');
+            return redirect()->route('user.futsal.landing')
+                ->with('success', 'Booking berhasil dibuat! 🎉 Kami telah mengirimkan link detail booking ke WhatsApp Anda. Klik link tersebut untuk mengakses informasi booking Anda.');
 
         } catch (\Exception $e) {
             DB::rollBack();

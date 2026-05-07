@@ -25,6 +25,7 @@
             #home h1 { font-size: 1.8rem; }
             #home p { font-size: 0.95rem; }
             .p-8 { padding: 1rem !important; }
+            .p-10 { padding: 1.25rem !important; }
             .text-5xl { font-size: 2rem; }
             .text-4xl { font-size: 1.5rem; }
         }
@@ -34,11 +35,23 @@
         }
         .grid-layanan {
             display: grid;
-            grid-template-columns: repeat(1, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 1.5rem;
         }
-        @media (min-width: 768px) { .grid-layanan { grid-template-columns: repeat(2, 1fr); } }
-        @media (min-width: 1024px) { .grid-layanan { grid-template-columns: repeat(4, 1fr); } }
+        @media (max-width: 768px) {
+            .grid-layanan {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.75rem;
+            }
+            .grid-layanan .card-hover {
+                padding: 1.25rem !important;
+            }
+            .grid-layanan h3 { font-size: 0.95rem !important; margin-bottom: 0.5rem !important; }
+            .grid-layanan p { display: none; } /* Hide description to keep it clean */
+            .grid-layanan span { display: block !important; padding: 0.5rem !important; font-size: 0.75rem !important; } 
+            .grid-layanan .w-16 { width: 40px !important; height: 40px !important; margin-bottom: 1rem !important; }
+            .grid-layanan svg { width: 20px !important; height: 20px !important; }
+        }
 
         /* Premium Modal Styling */
         .modal-content-premium {
@@ -161,6 +174,265 @@
             border-radius: 12px;
             padding: 0.75rem 1rem;
         }
+
+        /* New Hero Premium Style - BLUE THEME */
+        .hero-premium {
+            background: linear-gradient(135deg, #1A73E8 0%, #0D47A1 100%);
+            position: relative;
+            padding: 80px 0 160px;
+            color: white;
+            overflow: hidden;
+        }
+        .hero-premium .container-custom {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        .hero-text {
+            flex: 1;
+            max-width: 600px;
+            z-index: 2;
+            text-align: left;
+        }
+        .hero-eyebrow {
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 2px;
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+            opacity: 0.95;
+        }
+        .hero-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            line-height: 1.5;
+            margin-bottom: 20px;
+            text-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .hero-description {
+            font-size: 1.15rem;
+            margin-bottom: 40px;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+        .btn-hero {
+            background: white;
+            color: #1A73E8;
+            padding: 16px 45px;
+            border-radius: 50px;
+            font-weight: 700;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            font-size: 1.1rem;
+        }
+        .btn-hero:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.25);
+            color: #0D47A1;
+            text-decoration: none;
+            background-color: #f8f9fc;
+        }
+        .btn-outline-bottom {
+            color: white;
+            padding: 10px 0;
+            font-weight: 600;
+            text-decoration: none;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.6);
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+        }
+        .btn-outline-bottom:hover {
+            color: white;
+            border-bottom-color: white;
+            text-decoration: none;
+            padding-left: 5px;
+        }
+        .hero-image {
+            flex: 1;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            z-index: 2;
+            perspective: 1000px;
+        }
+        .master-hub {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 40px;
+            padding: 40px;
+            width: 450px;
+            box-shadow: 0 40px 100px rgba(0,0,0,0.3);
+            transform: rotateY(-15deg) rotateX(10deg);
+            animation: floatMaster 8s ease-in-out infinite;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+        }
+        .hub-item {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 20px;
+            text-align: center;
+            color: white;
+            transition: all 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .hub-item:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateZ(20px);
+        }
+        .hub-item i {
+            font-size: 2rem;
+            margin-bottom: 12px;
+            display: block;
+        }
+        .hub-item span {
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        @keyframes floatMaster {
+            0%, 100% { transform: rotateY(-15deg) rotateX(10deg) translateY(0); }
+            50% { transform: rotateY(-10deg) rotateX(5deg) translateY(-30px); }
+        }
+
+        @media (max-width: 991px) {
+            .hero-image {
+                display: none;
+            }
+            .hero-premium .container-custom {
+                flex-direction: column;
+                text-align: right;
+                padding: 60px 20px;
+            }
+            .hero-text {
+                text-align: right;
+                margin-bottom: 0;
+                max-width: 100%;
+            }
+            .hero-title {
+                font-size: 2.2rem;
+            }
+        }
+
+        /* Responsive Grids */
+        .grid-keunggulan, .grid-statistik {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .grid-keunggulan {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.75rem;
+            }
+            .grid-statistik {
+                grid-template-columns: 1fr;
+                gap: 1.25rem;
+                max-width: 450px;
+                margin: 0 auto;
+            }
+            /* Specific overrides for Keunggulan cards */
+            .grid-keunggulan .bg-white {
+                padding: 1.25rem 0.75rem !important;
+            }
+            .grid-keunggulan h3 {
+                font-size: 0.9rem !important;
+                margin-bottom: 0.5rem !important;
+            }
+            .grid-keunggulan .w-20 {
+                width: 3rem !important;
+                height: 3rem !important;
+                margin-bottom: 0.75rem !important;
+            }
+            .grid-keunggulan svg {
+                width: 20px !important;
+                height: 20px !important;
+            }
+            .grid-keunggulan p {
+                display: none; 
+            }
+
+            /* Specific overrides for Statistik cards - Stacking for better readability */
+            .grid-statistik .bg-white {
+                padding: 2rem 1.5rem !important;
+            }
+            .grid-statistik .text-5xl {
+                font-size: 2.25rem !important;
+                margin-bottom: 0.5rem !important;
+            }
+            .grid-statistik p {
+                font-size: 0.95rem !important;
+            }
+
+            /* Center last item if odd (for keunggulan) */
+            .grid-keunggulan > div:last-child:nth-child(odd) {
+                grid-column: 1 / span 2;
+                justify-self: center;
+                width: 100%;
+                max-width: 100%;
+            }
+            .grid-keunggulan .text-left { text-align: center !important; }
+        }
+        @media (min-width: 769px) {
+            .grid-keunggulan { grid-template-columns: repeat(3, 1fr); }
+            .grid-statistik { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        @media (max-width: 991px) {
+            .hero-image {
+                height: 250px;
+                width: 100%;
+            }
+            .floating-element i { font-size: 2.2rem; }
+            .el-5, .el-6, .el-7 { display: none; } /* Hide extra icons on mobile to avoid clutter */
+            .hero-premium .container-custom {
+                flex-direction: column;
+                text-align: center;
+                padding: 40px 20px 80px;
+            }
+            .hero-text {
+                text-align: left;
+                margin-bottom: 20px;
+                max-width: 100%;
+            }
+            .hero-title {
+                font-size: 2rem;
+            }
+        }
+        .wave-bottom {
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            line-height: 0;
+            z-index: 5;
+        }
+        .wave-bottom svg {
+            display: block;
+            width: 100%;
+            height: 140px;
+            /* Force overlap and scaling to eliminate subpixel gap */
+            transform: translateY(2px) scale(1.02);
+            transform-origin: bottom center;
+        }
+        .wave-bottom .shape-fill {
+            fill: #f8f9fc;
+        }
+        #layanan {
+            position: relative;
+            z-index: 6;
+            margin-top: -1px; /* Pull up to cover any potential gap */
+        }
     </style>
 </head>
 <body class="min-h-screen">
@@ -174,7 +446,7 @@
                         <path d="M12 2v20M2 12h20"/><path d="m6 6 12 12M18 6 6 18"/>
                     </svg>
                 </div>
-                <span class="font-bold text-xl" style="color:#4e73df;">BLUD PORTAL</span>
+                <span class="font-bold text-xl" style="color:#4e73df;">OneBLUD</span>
             </div>
 
             {{-- Jalur Publik: Tidak ada tombol login/dashboard di sini --}}
@@ -191,16 +463,47 @@
         </nav>
     </header>
 
-    {{-- Hero --}}
-    <section id="home" class="relative py-24 overflow-hidden" style="background-color:#EEEEEE;">
-        <div class="absolute inset-0 opacity-10">
-            <img src="{{ asset('img/depan_smk (1).JPG') }}" alt="SMK" class="w-full h-full object-cover"/>
+    {{-- Hero Premium --}}
+    <section id="home" class="hero-premium">
+        <div class="container-custom">
+            <div class="hero-text">
+                <div class="hero-eyebrow">SATU TEMPAT UNTUK SEMUA KEBUTUHAN</div>
+                <h1 class="hero-title">Booking Layanan Kapan Saja, Dari Mana Saja.</h1>
+                <p class="hero-description">
+                    Nikmati Kemudahan Dalam Melakukan Booking Online di Berbagai Layanan.
+                </p>
+                <div class="flex flex-wrap gap-4 items-center">
+                    <a href="#layanan" class="btn-hero">
+                        Jelajahi Layanan <i class="fas fa-arrow-right ml-2 text-xs"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="hero-image">
+                <div class="master-hub">
+                    <div class="hub-item">
+                        <i class="fas fa-futbol"></i>
+                        <span>Futsal</span>
+                    </div>
+                    <div class="hub-item">
+                        <i class="fas fa-store"></i>
+                        <span>Kantin</span>
+                    </div>
+                    <div class="hub-item">
+                        <i class="fas fa-tools"></i>
+                        <span>Bengkel</span>
+                    </div>
+                    <div class="hub-item">
+                        <i class="fas fa-snowflake"></i>
+                        <span>Servis AC</span>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="relative max-w-7xl mx-auto px-6 text-center">
-            <h1 class="text-5xl font-bold mb-6" style="color:#4e73df;">Satu Portal, Berbagai Layanan Publik</h1>
-            <p class="text-xl max-w-3xl mx-auto leading-relaxed" style="color:#4e73df;">
-                Akses mudah dan cepat untuk sewa lapangan futsal, penyewaan ruko/kantin, layanan servis AC, hingga servis kendaraan profesional dalam satu tempat.
-            </p>
+
+        <div class="wave-bottom">
+            <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+                <path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113,-1.11,1200,0V120H0Z" class="shape-fill"></path>
+            </svg>
         </div>
     </section>
 
@@ -270,13 +573,13 @@
     </section>
 
     {{-- Keunggulan --}}
-    <section id="tentang" class="py-24" style="background-color:#EEEEEE;">
+    <section id="tentang" class="py-24">
         <div class="max-w-7xl mx-auto px-6">
             <div class="text-center mb-16">
                 <h2 class="text-4xl font-bold mb-6" style="color:#4e73df;">Mengapa Memilih Kami?</h2>
                 <p class="text-lg text-gray-600 max-w-2xl mx-auto">Kami berkomitmen memberikan layanan cepat, terintegrasi, dan transparan.</p>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-24">
+            <div class="grid-keunggulan mb-24">
                 @foreach([
                     ['path' => 'M13 2 3 14h9l-1 8 10-12h-9l1-8z', 'title' => 'Cepat & Sigap', 'desc' => 'Proses booking dan pengajuan yang efisien menghemat waktu Anda tanpa perlu antre panjang.'],
                     ['path' => 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10', 'title' => 'Transparan', 'desc' => 'Informasi harga, ketersediaan, dan status 100% jelas, terbuka, dan dapat dipantau.'],
@@ -294,12 +597,12 @@
                 @endforeach
             </div>
 
-            <div class="border-t border-gray-300 pt-16">
+            <div class="pt-16">
                 <div class="text-center mb-12">
                     <h3 class="text-3xl font-bold mb-4" style="color:#4e73df;">Statistik Kredibilitas</h3>
                     <p class="text-gray-600">Telah dipercaya oleh ratusan orang dengan ribuan testimoni positif.</p>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="grid-statistik">
                     @foreach([['500+','Masyarakat Terdaftar'],['1.500+','Transaksi Booking Berhasil'],['200+','Unit Ruko & Kantin Aktif']] as $s)
                     <div class="bg-white p-10 rounded-2xl shadow-sm border-l-4 border-[#4e73df] hover:shadow-md hover:-translate-y-1 transition-all text-center">
                         <div class="text-5xl font-black mb-4" style="color:#4e73df;">{{ $s[0] }}</div>
@@ -383,31 +686,6 @@
             </div>
             <div class="border-t border-blue-400 pt-8 text-center">
                 <p class="text-gray-300 text-sm">© {{ date('Y') }} BLUD SMKN 1 Cirebon. Semua hak dilindungi undang-undang.</p>
-            </div>
-        </div>
-    </footer>
-
-    {{-- Footer --}}
-    <footer class="bg-white border-t border-gray-200 py-12">
-        <div class="max-w-7xl mx-auto px-6">
-            <div class="flex flex-col md:flex-row justify-between items-center gap-6">
-                <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 rounded flex items-center justify-center" style="background-color:#4e73df;">
-                        <svg class="text-white" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                            <path d="M12 2v20M2 12h20"/><path d="m6 6 12 12M18 6 6 18"/>
-                        </svg>
-                    </div>
-                    <span class="font-bold text-gray-800">BLUD PORTAL</span>
-                </div>
-                
-                <div class="flex gap-8 text-sm text-gray-500">
-                    <a href="#" class="hover:text-[#4e73df]">Tentang Kami</a>
-                    <a href="#" class="hover:text-[#4e73df]">Syarat & Ketentuan</a>
-                </div>
-                
-                <div class="text-sm text-gray-400">
-                    &copy; {{ date('Y') }} BLUD SMKN 1 CIREBON. All rights reserved.
-                </div>
             </div>
         </div>
     </footer>

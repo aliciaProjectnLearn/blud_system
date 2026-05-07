@@ -89,7 +89,7 @@
                                 </div>
                                 <div class="mt-auto d-flex justify-content-between align-items-center">
                                     <button class="btn btn-primary btn-sm btn-book px-4" data-id="{{ $layanan->id }}" data-name="{{ $layanan->nama ?? $layanan->nama_layanan }}">Booking</button>
-                                    <span class="badge badge-light border text-muted">Garansi 14 Hari</span>
+
                                 </div>
                             </div>
                         </div>

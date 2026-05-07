@@ -92,7 +92,7 @@
         <div class="row">
             {{-- KOLOM KIRI: FORM DATA (col-lg-7) --}}
             <div class="col-lg-7 order-mobile-1">
-                <form action="{{ route('user.kantin.booking.store') }}" method="POST" id="bookingForm">
+                <form action="{{ route('user.kantin.booking.store') }}" method="POST" id="bookingForm" enctype="multipart/form-data">
                     @csrf
                     
                     {{-- 1. Data Pribadi --}}
@@ -108,6 +108,17 @@
                                     <label>NIK (16 Digit)*</label>
                                     <input type="text" name="nik" id="nik" class="form-control" required placeholder="16 Digit NIK" maxlength="16" value="{{ $penyewa->nik ?? old('nik') }}">
                                     <div id="nik-error" class="text-danger small mt-1" style="display:none;">Harus tepat 16 digit angka.</div>
+                                </div>
+                                <div class="col-md-12 form-group">
+                                    <label>Upload Foto KTP*</label>
+                                    <div class="custom-file">
+                                        <input type="file" name="foto_ktp" class="custom-file-input" id="foto_ktp" accept="image/*" required>
+                                        <label class="custom-file-label" for="foto_ktp">Pilih file foto KTP...</label>
+                                    </div>
+                                    <small class="text-muted">Format: JPG, PNG, JPEG. Max: 2MB</small>
+                                    <div id="ktp-preview-container" class="mt-2" style="display:none;">
+                                        <img id="ktp-preview" src="#" alt="Preview KTP" style="max-height: 150px; border-radius: 8px; border: 1px solid #ddd;">
+                                    </div>
                                 </div>
                                 <div class="col-md-6 form-group">
                                     <label>Nomor WhatsApp*</label>
@@ -582,6 +593,9 @@ $(document).ready(function() {
     $('#foto_ktp').on('change', function() {
         const file = this.files[0];
         if (file) {
+            // Update label text
+            $(this).next('.custom-file-label').html(file.name);
+            
             const reader = new FileReader();
             reader.onload = function(e) {
                 $('#ktp-preview').attr('src', e.target.result);
@@ -589,6 +603,7 @@ $(document).ready(function() {
             }
             reader.readAsDataURL(file);
         } else {
+            $(this).next('.custom-file-label').html('Pilih file foto KTP...');
             $('#ktp-preview-container').hide();
         }
     });

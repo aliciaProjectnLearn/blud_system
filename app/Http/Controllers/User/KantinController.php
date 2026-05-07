@@ -8,6 +8,7 @@ use App\Models\SewaRuko;
 use App\Models\PembayaranRuko;
 use App\Models\User;
 use App\Models\Penyewa;
+use App\Models\DokumenSewa;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -61,6 +62,7 @@ class KantinController extends Controller
             'ruko_id' => 'required|exists:ruko,id',
             'tanggal_mulai_sewa' => 'required|date|after_or_equal:today',
             'tipe_pembayaran' => 'required|in:1_termin,2_termin',
+            'foto_ktp' => 'required|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
         // Cek no_hp: apakah masih punya sewa aktif?
@@ -135,6 +137,22 @@ class KantinController extends Controller
                 'tanggal_selesai_sewa' => $tgl_selesai,
                 'tipe_pembayaran' => $request->tipe_pembayaran,
             ]);
+            
+            // 3.1. Simpan Foto KTP
+            if ($request->hasFile('foto_ktp')) {
+                $file = $request->file('foto_ktp');
+                $filename = 'KTP-' . $sewa->nik_penyewa . '-' . time() . '.' . $file->getClientOriginalExtension();
+                $path = $file->storeAs('dokumen-sewa/ktp', $filename, 'public');
+
+                DokumenSewa::create([
+                    'sewa_ruko_id' => $sewa->id,
+                    'tipe_dokumen' => 'ktp',
+                    'nama_dokumen' => 'Foto KTP Penyewa',
+                    'path_file'    => $path,
+                    'diunggah_oleh' => 'sistem',
+                    'keterangan'   => 'Diunggah saat pendaftaran booking'
+                ]);
+            }
 
             // 4. Buat Pembayaran
             $total_harga = $ruko->harga;
