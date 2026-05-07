@@ -139,7 +139,7 @@ class UsersTableSeeder extends Seeder
                 'name'              => 'Teknisi 2',
                 'username'          => 'teknisi2',
                 'nama_lengkap'      => 'Teknisi Dua',
-                'no_hp'             => '085703361480',
+                'no_hp'             => '085703361488',
                 'email'             => 'teknisi2@example.com',
                 'email_verified_at' => now(),
                 'password'          => Hash::make('password'),
