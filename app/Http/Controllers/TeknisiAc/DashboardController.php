@@ -138,9 +138,10 @@ class DashboardController extends Controller
                 }
             }
 
-            // Update status pekerjaan menjadi selesai
+            // Update status pekerjaan dan layanan utama jika berubah
             $pekerjaan->update([
-                'status' => 'selesai'
+                'status'     => 'selesai',
+                'layanan_id' => $request->detail_layanan[0] ?? $pekerjaan->layanan_id
             ]);
 
             DB::commit();
