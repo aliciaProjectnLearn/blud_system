@@ -140,8 +140,28 @@
                         <i class="fas fa-info-circle mr-1"></i>
                         @if($sewa->status_sewa === 'pending')
                             Status sewamu masih menunggu persetujuan admin.
+                            @if($termin1)
+                                <div class="mt-2 pt-2 border-top border-info text-dark" style="font-size: 0.85rem;">
+                                    <i class="fas fa-clock mr-1 text-primary"></i> 
+                                    <strong>Batas Waktu Pembayaran:</strong> <br class="d-md-none">
+                                    Unggah bukti bayar termin 1 paling lambat 
+                                    <span class="text-danger font-weight-bold">{{ \Carbon\Carbon::parse($termin1->tgl_jatuh_tempo)->translatedFormat('d F Y, H:i') }}</span>
+                                    <br>
+                                    <span class="x-small text-muted font-italic">*Booking akan dibatalkan otomatis jika melewati batas waktu tersebut.</span>
+                                </div>
+                            @endif
                         @elseif($sewa->status_sewa === 'disetujui')
                             Pengajuan telah disetujui. Silakan lakukan pembayaran.
+                            @if($termin1 && $termin1->status_pembayaran === 'pending')
+                                <div class="mt-2 pt-2 border-top border-info text-dark" style="font-size: 0.85rem;">
+                                    <i class="fas fa-clock mr-1 text-primary"></i> 
+                                    <strong>Batas Waktu Pembayaran:</strong> <br class="d-md-none">
+                                    Unggah bukti bayar termin 1 paling lambat 
+                                    <span class="text-danger font-weight-bold">{{ \Carbon\Carbon::parse($termin1->tgl_jatuh_tempo)->translatedFormat('d F Y, H:i') }}</span>
+                                    <br>
+                                    <span class="x-small text-muted font-italic">*Booking akan dibatalkan otomatis jika melewati batas waktu tersebut.</span>
+                                </div>
+                            @endif
                         @elseif($sewa->status_sewa === 'aktif')
                             Sewa sedang berjalan.
                         @elseif($sewa->status_sewa === 'selesai')

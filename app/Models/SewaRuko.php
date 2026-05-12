@@ -24,6 +24,8 @@ class SewaRuko extends Model
         'booking_id', // legacy
         'penyewa_id',
         'token_expired_at',
+        'notifikasi_termin2_sent',
+        'notifikasi_expiry_sent',
     ];
 
     public function ruko()

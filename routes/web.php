@@ -213,6 +213,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Superadmin|Adm
         Route::get('/dashboard', [AdminKantinDashboardController::class, 'index'])->name('dashboard');
         Route::post('kirim-wa/{id}', [AdminKantinDashboardController::class, 'kirimWaManual'])->name('kirim-wa');
         Route::resource('unit', AdminKantinUnitController::class);
+        Route::get('get-new-kode', [AdminKantinUnitController::class, 'getNewKode'])->name('unit.getNewKode');
         Route::patch('dokumentasi/{dokumen}/detail', [AdminKantinUnitController::class, 'updateDokumenDetail'])->name('unit.dokumen.updateDetail');
         Route::resource('penyewa', \App\Http\Controllers\AdminKantin\PenyewaController::class)->except(['create', 'store']);
         Route::resource('penyewaan', \App\Http\Controllers\AdminKantin\PenyewaanController::class);

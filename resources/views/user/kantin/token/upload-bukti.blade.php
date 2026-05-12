@@ -43,10 +43,11 @@
                         </div>
                     </div>
                     <hr class="my-2">
-                    <small class="text-muted">
-                        <i class="fas fa-calendar mr-1"></i>
-                        Jatuh tempo: {{ \Carbon\Carbon::parse($pembayaran->tgl_jatuh_tempo)->format('d M Y') }}
-                    </small>
+                    <div class="alert alert-warning border-0 small mb-0 mt-2 py-2">
+                        <i class="fas fa-clock mr-1"></i>
+                        <strong>Batas Waktu Pembayaran:</strong> <br class="d-md-none">
+                        Paling lambat <strong>{{ \Carbon\Carbon::parse($pembayaran->tgl_jatuh_tempo)->translatedFormat('d F Y, H:i') }}</strong>
+                    </div>
                 </div>
             </div>
 
