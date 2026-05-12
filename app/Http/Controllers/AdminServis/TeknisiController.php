@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\BookingServis;
 use App\Models\Role;
 use App\Models\User;
+use App\Traits\Loggable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -13,6 +14,8 @@ use Illuminate\Validation\Rule;
 
 class TeknisiController extends Controller
 {
+    use Loggable;
+
     /**
      * Tampilkan daftar teknisi servis (Teknisi Motor & Teknisi Mobil).
      */
@@ -125,6 +128,9 @@ class TeknisiController extends Controller
             $user->roles()->attach($request->role_id);
 
             DB::commit();
+
+            $this->function_log('Servis', 'create', 'Admin Servis menambahkan teknisi baru: ' . $request->nama_lengkap);
+
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->withInput()->with('error', 'Gagal menambahkan teknisi: ' . $e->getMessage());
@@ -153,10 +159,10 @@ class TeknisiController extends Controller
         $riwayatPekerjaan = $query->latest()->paginate(10)->withQueryString();
 
         $statistik = [
-            'total_selesai'  => BookingServis::where('teknisi_id', $id)->where('status', 'selesai')->count(),
-            'total_aktif'    => BookingServis::where('teknisi_id', $id)->whereIn('status', ['dikonfirmasi', 'diproses'])->count(),
-            'total_all'      => BookingServis::where('teknisi_id', $id)->count(),
-            'bulan_ini'      => BookingServis::where('teknisi_id', $id)
+            'total_selesai' => BookingServis::where('teknisi_id', $id)->where('status', 'selesai')->count(),
+            'total_aktif'   => BookingServis::where('teknisi_id', $id)->whereIn('status', ['dikonfirmasi', 'diproses'])->count(),
+            'total_all'     => BookingServis::where('teknisi_id', $id)->count(),
+            'bulan_ini'     => BookingServis::where('teknisi_id', $id)
                 ->where('status', 'selesai')
                 ->whereMonth('tanggal_booking', now()->month)
                 ->whereYear('tanggal_booking', now()->year)
@@ -230,6 +236,9 @@ class TeknisiController extends Controller
             $teknisi->roles()->attach($request->role_id);
 
             DB::commit();
+
+            $this->function_log('Servis', 'update', 'Admin Servis mengubah data teknisi: ' . $teknisi->name);
+
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->withInput()->with('error', 'Gagal memperbarui data: ' . $e->getMessage());
@@ -258,7 +267,11 @@ class TeknisiController extends Controller
 
         $teknisi->update(['status_aktif' => !$teknisi->status_aktif]);
 
-        $pesan = $teknisi->status_aktif ? 'diaktifkan' : 'dinonaktifkan';
+        $pesan  = $teknisi->status_aktif ? 'diaktifkan' : 'dinonaktifkan';
+        $status = $teknisi->status_aktif ? 'aktif' : 'nonaktif';
+
+        $this->function_log('Servis', 'update', 'Admin Servis ' . $pesan . ' teknisi: ' . $teknisi->name . ' (status: ' . $status . ')');
+
         return back()->with('success', "Teknisi berhasil {$pesan}.");
     }
 
@@ -278,11 +291,16 @@ class TeknisiController extends Controller
             return back()->with('error', 'Teknisi tidak dapat dihapus karena masih memiliki booking yang sedang berjalan.');
         }
 
+        $namaTeknisi = $teknisi->name;
+
         DB::beginTransaction();
         try {
             $teknisi->roles()->detach();
             $teknisi->delete();
             DB::commit();
+
+            $this->function_log('Servis', 'delete', 'Admin Servis menghapus teknisi: ' . $namaTeknisi);
+
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Gagal menghapus teknisi: ' . $e->getMessage());

@@ -4,11 +4,14 @@ namespace App\Http\Controllers\AdminFutsal;
 
 use App\Http\Controllers\Controller;
 use App\Models\Lapangan;
+use App\Traits\Loggable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class LapanganController extends Controller
 {
+    use Loggable;
+
     public function index()
     {
         $lapangans = Lapangan::withCount('jamOperasional')->orderBy('id')->get();
@@ -45,6 +48,8 @@ class LapanganController extends Controller
             'foto'        => $fotoPath,
         ]);
 
+        $this->function_log('Futsal', 'create', 'Admin Futsal menambahkan lapangan baru: ' . $request->nama);
+
         return redirect()->route('admin.futsal.lapangan.index')
             ->with('success', 'Lapangan berhasil ditambahkan.');
     }
@@ -70,7 +75,6 @@ class LapanganController extends Controller
 
         $fotoPath = $lapangan->foto;
         if ($request->hasFile('foto')) {
-            // Hapus foto lama jika ada
             if ($lapangan->foto) {
                 Storage::disk('public')->delete($lapangan->foto);
             }
@@ -86,6 +90,8 @@ class LapanganController extends Controller
             'foto'        => $fotoPath,
         ]);
 
+        $this->function_log('Futsal', 'update', 'Admin Futsal mengubah lapangan: ' . $lapangan->nama);
+
         return redirect()->route('admin.futsal.lapangan.index')
             ->with('success', 'Lapangan berhasil diperbarui.');
     }
@@ -94,7 +100,6 @@ class LapanganController extends Controller
     {
         $lapangan = Lapangan::findOrFail($id);
 
-        // Cek apakah masih ada booking aktif
         $hasBooking = \App\Models\BookingFutsal::where('lapangan_id', $id)
             ->whereIn('status', ['menunggu', 'dikonfirmasi'])
             ->exists();
@@ -107,7 +112,10 @@ class LapanganController extends Controller
             Storage::disk('public')->delete($lapangan->foto);
         }
 
+        $namaLapangan = $lapangan->nama;
         $lapangan->delete();
+
+        $this->function_log('Futsal', 'delete', 'Admin Futsal menghapus lapangan: ' . $namaLapangan);
 
         return redirect()->route('admin.futsal.lapangan.index')
             ->with('success', 'Lapangan berhasil dihapus.');

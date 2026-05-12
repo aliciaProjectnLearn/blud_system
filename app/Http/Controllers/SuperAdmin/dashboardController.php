@@ -39,9 +39,12 @@ class DashboardController extends Controller
         // ── Booking pending (fallback 0 jika tabel kosong) ────────
         $totalBookingPending = 0;
         try {
-            $totalBookingPending = (int) DB::table('booking')->where('status', 'menunggu')->count();
+            $pendingAc     = DB::table('booking')->where('status', 'menunggu')->count();
+            $pendingServis = DB::table('booking_servis')->where('status', 'menunggu')->count();
+            $pendingFutsal = DB::table('booking_futsal')->where('status', 'menunggu')->count();
+            $totalBookingPending = $pendingAc + $pendingServis + $pendingFutsal;
         } catch (\Throwable $e) {
-            // Tabel belum ada atau kosong — abaikan
+            $totalBookingPending = 0;
         }
 
         // ── 5 Transaksi terbaru (gabungan semua sistem) ───────────

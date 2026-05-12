@@ -192,6 +192,35 @@ class UserServisController extends Controller
                 ]);
 
                 Log::info('Fonnte Response: ' . $response->body());
+
+                // Kirim Notifikasi ke Admin Servis dan Kasir Bengkel
+                $usersToNotify = \App\Models\User::whereHas('roles', function($q) {
+                    $q->whereIn('nama', ['Adminservis', 'kasir']);
+                })->get();
+
+                $adminPhones = $usersToNotify->pluck('no_hp')->filter()->implode(',');
+
+                if (!empty($adminPhones)) {
+                    $pesanAdmin = "Halo, ada booking servis baru yang masuk!\n\n"
+                        . "Kode Booking: *{$kodeBooking}*\n"
+                        . "Nama Pemesan: {$request->nama}\n"
+                        . "No. HP: {$request->no_hp}\n"
+                        . "Kendaraan: {$merek->nama} {$model->nama_model} ({$request->tahun_kendaraan})\n"
+                        . "Layanan: {$layanan->nama_layanan}\n"
+                        . "Jadwal: {$tanggalFormat} pukul {$request->jam_booking} WIB\n\n"
+                        . "Silakan cek sistem untuk info lebih detail.\n\n"
+                        . "*Sistem Servis - BLUD SMKN 1 CIREBON*";
+
+                    $responseAdmin = Http::withHeaders([
+                        'Authorization' => $fonnteToken,
+                    ])->post('https://api.fonnte.com/send', [
+                        'target'      => $adminPhones,
+                        'message'     => $pesanAdmin,
+                        'countryCode' => '62',
+                    ]);
+
+                    Log::info('Fonnte Response Admin/Kasir: ' . $responseAdmin->body());
+                }
             }
         } catch (\Exception $e) {
             Log::error('Fonnte send error in store: ' . $e->getMessage());

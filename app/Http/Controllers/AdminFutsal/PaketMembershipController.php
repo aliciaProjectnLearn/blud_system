@@ -4,10 +4,13 @@ namespace App\Http\Controllers\AdminFutsal;
 
 use App\Http\Controllers\Controller;
 use App\Models\PaketMembership;
+use App\Traits\Loggable;
 use Illuminate\Http\Request;
 
 class PaketMembershipController extends Controller
 {
+    use Loggable;
+
     public function index()
     {
         $pakets = PaketMembership::withCount('memberships')->get();
@@ -31,6 +34,8 @@ class PaketMembershipController extends Controller
 
         PaketMembership::create($request->only('nama_paket', 'jumlah_kuota', 'harga', 'status'));
 
+        $this->function_log('Futsal', 'create', 'Admin Futsal menambahkan paket membership baru: ' . $request->nama_paket);
+
         return redirect()->route('admin.futsal.paket-membership.index')
             ->with('success', 'Paket membership berhasil ditambahkan.');
     }
@@ -46,19 +51,23 @@ class PaketMembershipController extends Controller
 
         $paketMembership->update($request->only('nama_paket', 'jumlah_kuota', 'harga', 'status'));
 
+        $this->function_log('Futsal', 'update', 'Admin Futsal mengubah paket membership: ' . $paketMembership->nama_paket);
+
         return redirect()->route('admin.futsal.paket-membership.index')
             ->with('success', 'Paket membership berhasil diupdate.');
     }
 
     public function destroy(PaketMembership $paketMembership)
     {
-        // Cegah hapus paket yang masih dipakai
         if ($paketMembership->memberships()->exists()) {
             return redirect()->route('admin.futsal.paket-membership.index')
                 ->with('error', 'Paket tidak bisa dihapus karena masih digunakan.');
         }
 
+        $namaPaket = $paketMembership->nama_paket;
         $paketMembership->delete();
+
+        $this->function_log('Futsal', 'delete', 'Admin Futsal menghapus paket membership: ' . $namaPaket);
 
         return redirect()->route('admin.futsal.paket-membership.index')
             ->with('success', 'Paket membership berhasil dihapus.');
