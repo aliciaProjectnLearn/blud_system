@@ -18,30 +18,36 @@
                         <label for="sistem">Sistem</label>
                         <select name="sistem" id="sistem" class="form-control">
                             <option value="">Semua Sistem</option>
+                            <option value="Auth"   {{ request('sistem') == 'Auth'   ? 'selected' : '' }}>Auth</option>
+                            <option value="User"   {{ request('sistem') == 'User'   ? 'selected' : '' }}>User</option>
                             <option value="Futsal" {{ request('sistem') == 'Futsal' ? 'selected' : '' }}>Futsal</option>
-                            <option value="AC" {{ request('sistem') == 'AC' ? 'selected' : '' }}>AC</option>
-                            <option value="Ruko" {{ request('sistem') == 'Ruko' ? 'selected' : '' }}>Ruko</option>
-                            <option value="Auth" {{ request('sistem') == 'Auth' ? 'selected' : '' }}>Auth</option>
+                            <option value="AC"     {{ request('sistem') == 'AC'     ? 'selected' : '' }}>AC</option>
+                            <option value="Ruko"   {{ request('sistem') == 'Ruko'   ? 'selected' : '' }}>Ruko</option>
+                            <option value="Servis" {{ request('sistem') == 'Servis' ? 'selected' : '' }}>Servis</option>
                         </select>
                     </div>
                     <div class="col-md-3 mb-3">
                         <label for="start_date">Tanggal Mulai</label>
-                        <input type="date" name="start_date" id="start_date" class="form-control" value="{{ request('start_date') }}">
+                        <input type="date" name="start_date" id="start_date" class="form-control"
+                               value="{{ request('start_date') }}">
                     </div>
                     <div class="col-md-3 mb-3">
                         <label for="end_date">Tanggal Akhir</label>
-                        <input type="date" name="end_date" id="end_date" class="form-control" value="{{ request('end_date') }}">
+                        <input type="date" name="end_date" id="end_date" class="form-control"
+                               value="{{ request('end_date') }}">
                     </div>
                     <div class="col-md-3 mb-3">
                         <label for="search">Pencarian</label>
-                        <input type="text" name="search" id="search" class="form-control" placeholder="Nama user / deskripsi" value="{{ request('search') }}">
+                        <input type="text" name="search" id="search" class="form-control"
+                               placeholder="Nama user / deskripsi"
+                               value="{{ request('search') }}">
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-md-3 mb-3">
                         <label for="per_page">Tampilkan</label>
                         <select name="per_page" id="per_page" class="form-control">
-                            <option value="5" {{ request('per_page') == 5 ? 'selected' : '' }}>5</option>
+                            <option value="5"  {{ request('per_page') == 5  ? 'selected' : '' }}>5</option>
                             <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
                             <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
                             <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50</option>
@@ -80,7 +86,24 @@
                             <tr>
                                 <td>{{ $logs->firstItem() + $index }}</td>
                                 <td>{{ $log->nama_user }}</td>
-                                <td>{{ $log->sistem }}</td>
+                                <td>
+                                    @php $s = strtolower($log->sistem ?? ''); @endphp
+                                    @if($s === 'auth')
+                                        <span class="badge badge-secondary">Auth</span>
+                                    @elseif($s === 'user')
+                                        <span class="badge badge-primary">User</span>
+                                    @elseif($s === 'futsal')
+                                        <span class="badge badge-success">Futsal</span>
+                                    @elseif($s === 'ac')
+                                        <span class="badge badge-info">AC</span>
+                                    @elseif($s === 'ruko')
+                                        <span class="badge badge-warning">Ruko</span>
+                                    @elseif($s === 'servis')
+                                        <span class="badge badge-danger">Servis</span>
+                                    @else
+                                        <span class="badge badge-light">{{ $log->sistem }}</span>
+                                    @endif
+                                </td>
                                 <td>{{ $log->aktivitas }}</td>
                                 <td>{{ $log->deskripsi_aktivitas }}</td>
                                 <td>{{ $log->created_at->format('d/m/Y H:i:s') }}</td>
@@ -89,9 +112,11 @@
                         </tbody>
                     </table>
                 </div>
-                <!-- Pagination -->
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>Menampilkan {{ $logs->firstItem() }} - {{ $logs->lastItem() }} dari {{ $logs->total() }} data</div>
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div>
+                        Menampilkan {{ $logs->firstItem() }} - {{ $logs->lastItem() }}
+                        dari {{ $logs->total() }} data
+                    </div>
                     <div>{{ $logs->appends(request()->query())->links() }}</div>
                 </div>
             @else

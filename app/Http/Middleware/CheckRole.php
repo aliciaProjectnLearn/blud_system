@@ -13,9 +13,11 @@ class CheckRole
         $user = $request->user();
 
         if (!$user) {
-            \Log::info('CheckRole: no user, redirect login');
             return redirect()->route('login');
         }
+
+        // ✅ Refresh user dari DB agar tidak pakai cache object lama
+        $user = $user->fresh();
 
         $allowedRoles = explode('|', $role);
 
@@ -24,14 +26,6 @@ class CheckRole
             ->where('roles_users.user_id', $user->id)
             ->whereIn('roles.nama', $allowedRoles)
             ->exists();
-
-        \Log::info('CheckRole debug', [
-            'user_id'      => $user->id,
-            'email'        => $user->email,
-            'allowedRoles' => $allowedRoles,
-            'hasRole'      => $hasRole,
-            'url'          => $request->url(),
-        ]);
 
         if (!$hasRole) {
             abort(403, 'Akses ditolak.');

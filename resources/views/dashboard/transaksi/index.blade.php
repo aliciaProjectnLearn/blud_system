@@ -6,7 +6,7 @@
 <div class="container-fluid">
 
     <h1 class="h3 mb-2 text-gray-800">Monitoring Transaksi</h1>
-    <p class="mb-4">Super Admin dapat melihat semua transaksi dari sistem AC, Futsal, dan Ruko.</p>
+    <p class="mb-4">Super Admin dapat melihat semua transaksi dari sistem AC, Futsal, Servis dan Ruko.</p>
 
     <div class="card shadow mb-4">
         <div class="card-header py-3 d-flex justify-content-between align-items-center flex-wrap">
@@ -28,16 +28,20 @@
 
                 <select name="sistem" class="form-control form-control-sm mr-2 mb-2">
                     <option value="">Semua Sistem</option>
-                    <option value="AC" {{ request('sistem') == 'AC' ? 'selected' : '' }}>AC</option>
-                    <option value="Futsal" {{ request('sistem') == 'Futsal' ? 'selected' : '' }}>Futsal</option>
-                    <option value="Ruko" {{ request('sistem') == 'Ruko' ? 'selected' : '' }}>Ruko</option>
+                    <option value="AC"               {{ request('sistem') == 'AC'               ? 'selected' : '' }}>AC</option>
+                    <option value="Futsal"           {{ request('sistem') == 'Futsal'           ? 'selected' : '' }}>Futsal</option>
+                    <option value="Ruko"             {{ request('sistem') == 'Ruko'             ? 'selected' : '' }}>Ruko</option>
+                    <option value="Servis Kendaraan" {{ request('sistem') == 'Servis Kendaraan' ? 'selected' : '' }}>Servis Kendaraan</option>
                 </select>
 
                 <select name="status" class="form-control form-control-sm mr-2 mb-2">
                     <option value="">Semua Status</option>
-                    <option value="menunggu" {{ request('status') == 'menunggu' ? 'selected' : '' }}>Menunggu</option>
-                    <option value="verifikasi" {{ request('status') == 'verifikasi' ? 'selected' : '' }}>Verifikasi</option>
-                    <option value="dibatalkan" {{ request('status') == 'dibatalkan' ? 'selected' : '' }}>Dibatalkan</option>
+                    <option value="menunggu"    {{ request('status') == 'menunggu'    ? 'selected' : '' }}>Menunggu</option>
+                    <option value="verifikasi"  {{ request('status') == 'verifikasi'  ? 'selected' : '' }}>Verifikasi</option>
+                    <option value="dibayar"     {{ request('status') == 'dibayar'     ? 'selected' : '' }}>Dibayar</option>
+                    <option value="lunas"       {{ request('status') == 'lunas'       ? 'selected' : '' }}>Lunas</option>
+                    <option value="belum_bayar" {{ request('status') == 'belum_bayar' ? 'selected' : '' }}>Belum Bayar</option>
+                    <option value="dibatalkan"  {{ request('status') == 'dibatalkan'  ? 'selected' : '' }}>Dibatalkan</option>
                 </select>
 
                 <button class="btn btn-primary btn-sm mr-2 mb-2">
@@ -78,6 +82,8 @@
                                         <span class="badge badge-primary">AC</span>
                                     @elseif($t->sistem == 'Futsal')
                                         <span class="badge badge-success">Futsal</span>
+                                    @elseif($t->sistem == 'Servis Kendaraan')
+                                        <span class="badge badge-danger">Servis Kendaraan</span>
                                     @else
                                         <span class="badge badge-warning">Ruko</span>
                                     @endif
@@ -90,12 +96,20 @@
                                 </td>
 
                                 <td>
-                                    @if ($t->status == 'menunggu' || $t->status == 'pending')
+                                    @php
+                                        $statusLower = strtolower($t->status ?? '');
+                                    @endphp
+
+                                    @if (in_array($statusLower, ['menunggu', 'pending']))
                                         <span class="badge badge-secondary">Menunggu</span>
-                                    @elseif($t->status == 'verifikasi' || $t->status == 'dibayar')
+                                    @elseif (in_array($statusLower, ['verifikasi', 'dibayar', 'lunas']))
                                         <span class="badge badge-success">Lunas</span>
-                                    @else
+                                    @elseif (in_array($statusLower, ['belum_bayar', 'belum bayar']))
+                                        <span class="badge badge-warning">Belum Bayar</span>
+                                    @elseif (in_array($statusLower, ['dibatalkan', 'batal', 'ditolak']))
                                         <span class="badge badge-danger">Dibatalkan</span>
+                                    @else
+                                        <span class="badge badge-light">{{ $t->status }}</span>
                                     @endif
                                 </td>
 

@@ -8,10 +8,13 @@ use App\Models\DokumentasiUnit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use App\Traits\Loggable;
 use Exception;
 
 class UnitController extends Controller
 {
+    use Loggable;
+
     // ────────────────────────────────────────────────────────────────
     //  HELPER: Auto-generate kode_unit  →  UNT001, UNT002, dst.
     // ────────────────────────────────────────────────────────────────
@@ -171,6 +174,8 @@ class UnitController extends Controller
                     Storage::disk('public')->delete($path);
                 }
             }
+
+            $this->function_log('Kantin', 'create', 'Admin Kantin menambahkan unit baru: ' . $request->kode_unit);
 
             return back()
                 ->with('error', 'Terjadi kesalahan sistem saat menyimpan data: ' . $e->getMessage())

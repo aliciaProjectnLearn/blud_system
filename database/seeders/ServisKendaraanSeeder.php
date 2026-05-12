@@ -100,7 +100,11 @@ class ServisKendaraanSeeder extends Seeder
             // ===============================================
             $layanans = [
                 ['nama_layanan' => 'Servis & Ganti Oli Motor', 'harga_estimasi' => 50000, 'tipe_kendaraan' => 'motor'],
+                ['nama_layanan' => 'Servis Ringan Motor', 'harga_estimasi' => 75000, 'tipe_kendaraan' => 'motor'],
+                ['nama_layanan' => 'Servis Berat / Turun Mesin Motor', 'harga_estimasi' => 500000, 'tipe_kendaraan' => 'motor'],
                 ['nama_layanan' => 'Tune Up Injeksi Mobil', 'harga_estimasi' => 350000, 'tipe_kendaraan' => 'mobil'],
+                ['nama_layanan' => 'Ganti Kampas Rem Mobil', 'harga_estimasi' => 200000, 'tipe_kendaraan' => 'mobil'],
+                ['nama_layanan' => 'Servis Radiator Mobil', 'harga_estimasi' => 250000, 'tipe_kendaraan' => 'mobil'],
             ];
 
             $layananIds = [];

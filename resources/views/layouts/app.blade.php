@@ -340,17 +340,19 @@
     });
     </script>
 
+    {{-- SweetAlert --}}
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     {{-- Custom JS tambahan per halaman --}}
     @stack('scripts')
 
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
+    {{-- Flash SweetAlert --}}
     @if (session('success'))
         <script>
             Swal.fire({
                 icon: 'success',
                 title: 'Berhasil',
-                text: '{{ session('success') }}',
+                text: {{ Illuminate\Support\Js::from(session('success')) }},
                 timer: 2000,
                 showConfirmButton: false
             })

@@ -4,10 +4,13 @@ namespace App\Http\Controllers\AdminServis;
 
 use App\Http\Controllers\Controller;
 use App\Models\MerekKendaraan;
+use App\Traits\Loggable;
 use Illuminate\Http\Request;
 
 class MerekKendaraanController extends Controller
 {
+    use Loggable;
+
     public function index(Request $request)
     {
         $query = MerekKendaraan::withCount('modelKendaraan');
@@ -24,16 +27,18 @@ class MerekKendaraanController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nama' => 'required|string|max:255',
-            'tipe' => 'required|in:motor,mobil',
+            'nama'      => 'required|string|max:255',
+            'tipe'      => 'required|in:motor,mobil',
             'is_active' => 'boolean',
         ]);
 
         MerekKendaraan::create([
-            'nama' => $request->nama,
-            'tipe' => $request->tipe,
+            'nama'      => $request->nama,
+            'tipe'      => $request->tipe,
             'is_active' => $request->has('is_active') ? true : false,
         ]);
+
+        $this->function_log('Servis', 'create', 'Admin Servis menambahkan merek kendaraan: ' . $request->nama);
 
         return redirect()->route('admin.servis.merek.index')
             ->with('success', 'Merek kendaraan berhasil ditambahkan.');
@@ -44,16 +49,18 @@ class MerekKendaraanController extends Controller
         $merek = MerekKendaraan::findOrFail($id);
 
         $request->validate([
-            'nama' => 'required|string|max:255',
-            'tipe' => 'required|in:motor,mobil',
+            'nama'      => 'required|string|max:255',
+            'tipe'      => 'required|in:motor,mobil',
             'is_active' => 'boolean',
         ]);
 
         $merek->update([
-            'nama' => $request->nama,
-            'tipe' => $request->tipe,
+            'nama'      => $request->nama,
+            'tipe'      => $request->tipe,
             'is_active' => $request->has('is_active') ? true : false,
         ]);
+
+        $this->function_log('Servis', 'update', 'Admin Servis mengubah merek kendaraan: ' . $merek->nama);
 
         return redirect()->route('admin.servis.merek.index')
             ->with('success', 'Merek kendaraan berhasil diperbarui.');
@@ -68,7 +75,10 @@ class MerekKendaraanController extends Controller
                 ->with('error', 'Merek tidak dapat dihapus karena masih ada model yang terhubung.');
         }
 
+        $namaMerek = $merek->nama;
         $merek->delete();
+
+        $this->function_log('Servis', 'delete', 'Admin Servis menghapus merek kendaraan: ' . $namaMerek);
 
         return redirect()->route('admin.servis.merek.index')
             ->with('success', 'Merek kendaraan berhasil dihapus.');

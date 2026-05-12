@@ -357,7 +357,7 @@ Route::prefix('kasir')->name('kasir.')->middleware(['auth', 'role:Kasir'])
 // 4. KASIR FUTSAL
 use App\Http\Controllers\KasirFutsal;
 
-Route::middleware(['auth', 'checkRole:kasirfutsal'])->prefix('kasir-futsal')->name('kasirfutsal.')->group(function () {
+Route::middleware(['auth', 'role:kasirfutsal'])->prefix('kasir-futsal')->name('kasirfutsal.')->group(function () {
     Route::get('/', [KasirFutsal\DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/booking', [KasirFutsal\BookingKasirFutsalController::class, 'index'])->name('booking.index');

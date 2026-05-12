@@ -169,7 +169,7 @@
         <li class="nav-item {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
             <a class="nav-link" href="{{ route('admin.dashboard.monitoring') }}">
                 <i class="fas fa-clipboard-list"></i>
-                <span>Log Activities</span>
+                <span>Log Aktivitas</span>
             </a>
         </li>
     @endif

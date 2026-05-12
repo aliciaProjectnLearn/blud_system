@@ -5,15 +5,18 @@ namespace App\Http\Controllers\AdminAc;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Role;
+use App\Traits\Loggable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 
 class TeknisiController extends Controller
 {
+    use Loggable;
+
     public function index(Request $request)
     {
-        $search = $request->search;
+        $search       = $request->search;
         $filterStatus = $request->status;
 
         $teknisis = User::whereHas('roles', function ($q) {
@@ -38,7 +41,6 @@ class TeknisiController extends Controller
             return $user;
         });
 
-        // Filter status dilakukan setelah paginate via collection
         if ($filterStatus) {
             $teknisis->setCollection(
                 $teknisis->getCollection()->filter(function ($user) use ($filterStatus) {
@@ -47,19 +49,18 @@ class TeknisiController extends Controller
             );
         }
 
-        // ── Data Kinerja Teknisi ────────────────────────────
-        $today = \Carbon\Carbon::today();
+        $today       = \Carbon\Carbon::today();
         $filterBulan = $request->get('bulan_filter', $today->month);
 
-        $dataTeknisi = User::whereHas('roles', function($q) {
+        $dataTeknisi = User::whereHas('roles', function ($q) {
                 $q->where('nama', 'Teknisi');
             })
-            ->withCount(['pekerjaanTeknisi as total_selesai_bulan_ini' => function($q) use ($filterBulan, $today) {
+            ->withCount(['pekerjaanTeknisi as total_selesai_bulan_ini' => function ($q) use ($filterBulan, $today) {
                 $q->where('status', 'selesai')
                   ->whereMonth('updated_at', $filterBulan)
                   ->whereYear('updated_at', $today->year);
             }])
-            ->withCount(['pekerjaanTeknisi as total_aktif' => function($q) {
+            ->withCount(['pekerjaanTeknisi as total_aktif' => function ($q) {
                 $q->where('status', 'proses');
             }])
             ->get();
@@ -100,6 +101,8 @@ class TeknisiController extends Controller
         if ($role) {
             $user->roles()->attach($role->id);
         }
+
+        $this->function_log('AC', 'create', 'Admin AC menambahkan teknisi baru: ' . $request->name);
 
         return redirect()->route('admin.ac.teknisi.index')
             ->with('success', 'Teknisi berhasil ditambahkan.');
@@ -147,6 +150,8 @@ class TeknisiController extends Controller
 
         $teknisi->update($data);
 
+        $this->function_log('AC', 'update', 'Admin AC mengubah data teknisi: ' . $teknisi->name);
+
         return redirect()->route('admin.ac.teknisi.index')
             ->with('success', 'Data teknisi berhasil diperbarui.');
     }
@@ -157,7 +162,6 @@ class TeknisiController extends Controller
             $q->where('nama', 'Teknisi');
         })->findOrFail($id);
 
-        // Cek apakah teknisi sedang punya booking aktif
         $adaBookingAktif = DB::table('booking_ac')
             ->where('teknisi_id', $teknisi->id)
             ->where('status', 'proses')
@@ -168,8 +172,12 @@ class TeknisiController extends Controller
                 ->with('error', 'Teknisi tidak dapat dihapus karena sedang menangani booking.');
         }
 
+        $namaTeknisi = $teknisi->name;
+
         $teknisi->roles()->detach();
         $teknisi->delete();
+
+        $this->function_log('AC', 'delete', 'Admin AC menghapus teknisi: ' . $namaTeknisi);
 
         return redirect()->route('admin.ac.teknisi.index')
             ->with('success', 'Teknisi berhasil dihapus.');
