@@ -60,7 +60,7 @@ class KantinController extends Controller
             'no_hp' => 'required|numeric|digits_between:10,13',
             'nik' => 'required|numeric|digits:16',
             'ruko_id' => 'required|exists:ruko,id',
-            'tanggal_mulai_sewa' => 'required|date|after_or_equal:today',
+            'tanggal_mulai_sewa' => 'required|date|after_or_equal:' . now()->addDays(4)->toDateString(),
             'tipe_pembayaran' => 'required|in:1_termin,2_termin',
             'foto_ktp' => 'required|image|mimes:jpeg,png,jpg|max:2048',
         ]);
@@ -100,6 +100,14 @@ class KantinController extends Controller
             return back()->with('error', 'Unit sudah tidak tersedia.');
         }
 
+        // VALIDASI ATURAN PEMBAYARAN UNIT
+        if ($ruko->metode_pembayaran_unit === '1_termin' && $request->tipe_pembayaran !== '1_termin') {
+            return back()->withInput()->with('error', 'Unit ini hanya mendukung pembayaran 1 termin (Lunas).');
+        }
+        if ($ruko->metode_pembayaran_unit === '2_termin' && $request->tipe_pembayaran !== '2_termin') {
+            return back()->withInput()->with('error', 'Unit ini mewajibkan pembayaran 2 termin (Cicilan).');
+        }
+
         DB::beginTransaction();
         try {
             // 1. Cek/Buat User (Revision: No Login Required)
@@ -122,7 +130,7 @@ class KantinController extends Controller
 
             // 3. Simpan SewaRuko
             $tgl_mulai = Carbon::parse($request->tanggal_mulai_sewa);
-            $tgl_selesai = $tgl_mulai->copy()->addYear();
+            $tgl_selesai = $tgl_mulai->copy()->addYear()->subDay();
 
             $sewa = SewaRuko::create([
                 'user_id' => $user->id,
@@ -162,7 +170,7 @@ class KantinController extends Controller
                     'termin_ke' => 1,
                     'jumlah_tagihan' => $total_harga,
                     'status_pembayaran' => 'pending',
-                    'tgl_jatuh_tempo' => $tgl_mulai,
+                    'tgl_jatuh_tempo' => now()->addDays(3),
                 ]);
             } else {
                 $setengah = $total_harga / 2;
@@ -171,7 +179,7 @@ class KantinController extends Controller
                     'termin_ke' => 1,
                     'jumlah_tagihan' => $setengah,
                     'status_pembayaran' => 'pending',
-                    'tgl_jatuh_tempo' => $tgl_mulai,
+                    'tgl_jatuh_tempo' => now()->addDays(3),
                 ]);
                 PembayaranRuko::create([
                     'sewa_ruko_id' => $sewa->id,
@@ -188,6 +196,7 @@ class KantinController extends Controller
             // 6. Kirim Notifikasi WhatsApp
             $sewa->load('ruko');
             $this->sendWhatsAppNotification($sewa);
+            $this->sendAdminWhatsAppNotification($sewa);
 
             DB::commit();
 
@@ -215,6 +224,7 @@ class KantinController extends Controller
                 ->with('booking_token', $token)
                 ->with('booking_pesan', 
                     'Pengajuan sewa telah berhasil dikirim. '.
+                    'Silakan lakukan pembayaran termin pertama maksimal dalam 3x24 jam. '.
                     'Periksa status sewa Anda dengan klik link '.
                     'yang kami kirimkan melalui WhatsApp.'
                 );
@@ -324,6 +334,7 @@ class KantinController extends Controller
         $pesan .= "Booking unit *{$nama_ruko}* ({$sewa->ruko->kode_unit}) berhasil dilakukan.\n\n";
         $pesan .= "Silakan akses detail penyewaan dan unggah bukti pembayaran melalui link berikut:\n";
         $pesan .= "🔗 {$link}\n\n";
+        $pesan .= "⚠️ *PENTING:* Mohon lakukan pembayaran termin pertama dan unggah bukti bayar maksimal *3x24 jam* dari sekarang. Jika melewati batas waktu tersebut, booking akan dibatalkan otomatis oleh sistem.\n\n";
         $pesan .= "Mohon simpan link ini sebagai akses ke sistem Sewa Kantin BLUD SMK.\n";
         $pesan .= "— Admin Kantin BLUD";
 
@@ -356,6 +367,56 @@ class KantinController extends Controller
             }
         } catch (\Exception $e) {
             Log::error('Gagal Kirim WA Fonnte: ' . $e->getMessage());
+        }
+    }
+    
+    private function sendAdminWhatsAppNotification($sewa)
+    {
+        $apiToken = config('services.fonnte.token');
+        $adminHp = config('blud.admin_kantin.no_hp');
+
+        if (!$apiToken || !$adminHp) {
+            Log::warning('Fonnte API Token atau Admin HP tidak ditemukan untuk notifikasi admin.');
+            return;
+        }
+
+        $nama_ruko = $sewa->ruko->nama_ruko ?? 'Kantin / Ruko';
+        $waktu_pengajuan = Carbon::parse($sewa->created_at)->translatedFormat('d F Y, H:i');
+        $tgl_mulai = Carbon::parse($sewa->tanggal_mulai_sewa)->translatedFormat('d F Y');
+        $tgl_selesai = Carbon::parse($sewa->tanggal_selesai_sewa)->translatedFormat('d F Y');
+
+        $pesan = "📢 *Notifikasi Permohonan Sewa Baru* 📢\n\n";
+        $pesan .= "Halo Admin, ada permohonan sewa baru yang masuk:\n\n";
+        $pesan .= "👤 *Nama Penyewa:* {$sewa->nama_penyewa}\n";
+        $pesan .= "🏪 *Unit Disewa:* {$nama_ruko} ({$sewa->ruko->kode_unit})\n";
+        $pesan .= "📅 *Periode:* {$tgl_mulai} s/d {$tgl_selesai}\n";
+        $pesan .= "📞 *No. HP:* {$sewa->no_hp_snapshot}\n";
+        $pesan .= "⏰ *Waktu Pengajuan:* {$waktu_pengajuan}\n\n";
+        $pesan .= "Silakan login ke dashboard admin untuk melakukan verifikasi.\n";
+        $pesan .= "— Sistem BLUD Kantin";
+
+        $target = preg_replace('/[^0-9]/', '', $adminHp);
+        if (str_starts_with($target, '0')) {
+            $target = '62' . substr($target, 1);
+        }
+
+        try {
+            $response = Http::withHeaders([
+                'Authorization' => $apiToken,
+            ])->post('https://api.fonnte.com/send', [
+                'target'      => $target,
+                'message'     => $pesan,
+                'countryCode' => '62',
+            ]);
+
+            $resBody = $response->json();
+            if ($response->failed() || ($resBody['status'] ?? false) == false) {
+                Log::error('Gagal Kirim WA Admin: ' . ($resBody['reason'] ?? $response->body()));
+            } else {
+                Log::info('WhatsApp Admin Berhasil Dikirim: ' . $target);
+            }
+        } catch (\Exception $e) {
+            Log::error('Error Kirim WA Admin: ' . $e->getMessage());
         }
     }
 }

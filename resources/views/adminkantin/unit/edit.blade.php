@@ -149,6 +149,49 @@
                             </div>
                         </div>
 
+                        {{-- ── Aturan Pembayaran Unit ── --}}
+                        <div class="form-group row">
+                            <label class="col-sm-3 col-form-label font-weight-bold">
+                                Aturan Pembayaran <span class="text-danger">*</span>
+                            </label>
+                            <div class="col-sm-9">
+                                <div class="card bg-light border-0">
+                                    <div class="card-body p-3">
+                                        <div class="custom-control custom-radio mb-2">
+                                            <input type="radio" id="pay_1_termin" name="metode_pembayaran_unit"
+                                                   value="1_termin" class="custom-control-input"
+                                                   {{ old('metode_pembayaran_unit', $unit->metode_pembayaran_unit) === '1_termin' ? 'checked' : '' }}>
+                                            <label class="custom-control-label font-weight-bold text-dark" for="pay_1_termin">
+                                                1 Termin Saja
+                                            </label>
+                                            <p class="small text-muted mb-0">Penyewa wajib melunasi seluruh biaya sewa di awal.</p>
+                                        </div>
+                                        <div class="custom-control custom-radio mb-2">
+                                            <input type="radio" id="pay_2_termin" name="metode_pembayaran_unit"
+                                                   value="2_termin" class="custom-control-input"
+                                                   {{ old('metode_pembayaran_unit', $unit->metode_pembayaran_unit) === '2_termin' ? 'checked' : '' }}>
+                                            <label class="custom-control-label font-weight-bold text-dark" for="pay_2_termin">
+                                                2 Termin Saja
+                                            </label>
+                                            <p class="small text-muted mb-0">Penyewa wajib membayar dalam 2 tahap (50% awal, 50% bulan ke-6).</p>
+                                        </div>
+                                        <div class="custom-control custom-radio">
+                                            <input type="radio" id="pay_fleksibel" name="metode_pembayaran_unit"
+                                                   value="fleksibel" class="custom-control-input"
+                                                   {{ old('metode_pembayaran_unit', $unit->metode_pembayaran_unit) === 'fleksibel' ? 'checked' : '' }}>
+                                            <label class="custom-control-label font-weight-bold text-dark" for="pay_fleksibel">
+                                                Fleksibel (1 & 2 Termin)
+                                            </label>
+                                            <p class="small text-muted mb-0">Penyewa bebas memilih antara 1 atau 2 termin saat booking.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                @error('metode_pembayaran_unit')
+                                    <div class="text-danger small mt-1">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+
                         {{-- ── Status Unit ── --}}
                         <div class="form-group row">
                             <label class="col-sm-3 col-form-label font-weight-bold">

@@ -19,6 +19,7 @@ class Ruko extends Model
         'posisi_x',
         'posisi_y',
         'status',
+        'metode_pembayaran_unit',
         'status_unit', // legacy
     ];
 

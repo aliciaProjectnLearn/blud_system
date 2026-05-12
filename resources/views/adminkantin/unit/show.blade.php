@@ -70,6 +70,33 @@
                                 </td>
                             </tr>
                             <tr>
+                                <td class="font-weight-bold text-gray-600">Aturan Pembayaran</td>
+                                <td>
+                                    @if($unit->metode_pembayaran_unit === '1_termin')
+                                        <div class="d-flex align-items-center">
+                                            <span class="badge badge-info px-2 py-1 mr-2">
+                                                <i class="fas fa-money-bill-wave mr-1"></i>1 Termin
+                                            </span>
+                                            <small class="text-muted">Hanya pembayaran penuh (100%)</small>
+                                        </div>
+                                    @elseif($unit->metode_pembayaran_unit === '2_termin')
+                                        <div class="d-flex align-items-center">
+                                            <span class="badge badge-primary px-2 py-1 mr-2">
+                                                <i class="fas fa-divide mr-1"></i>2 Termin
+                                            </span>
+                                            <small class="text-muted">Wajib cicilan (50% x 2)</small>
+                                        </div>
+                                    @else
+                                        <div class="d-flex align-items-center">
+                                            <span class="badge badge-success px-2 py-1 mr-2">
+                                                <i class="fas fa-check-circle mr-1"></i>Fleksibel
+                                            </span>
+                                            <small class="text-muted">Bebas pilih 1 atau 2 termin</small>
+                                        </div>
+                                    @endif
+                                </td>
+                            </tr>
+                            <tr>
                                 <td class="font-weight-bold text-gray-600">Status</td>
                                 <td>
                                     @if ($unit->status_unit === 'terisi')

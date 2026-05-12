@@ -189,11 +189,12 @@
                             <div class="row">
                                 <div class="col-md-6 form-group">
                                     <label>Tanggal Mulai Sewa*</label>
-                                    <input type="date" name="tanggal_mulai_sewa" id="tgl_mulai" class="form-control" required min="{{ date('Y-m-d', strtotime('+1 day')) }}" value="{{ old('tanggal_mulai_sewa') }}">
+                                    <input type="date" name="tanggal_mulai_sewa" id="tgl_mulai" class="form-control" required min="{{ date('Y-m-d', strtotime('+4 days')) }}" value="{{ old('tanggal_mulai_sewa') }}">
                                 </div>
                                 <div class="col-md-6 form-group">
-                                    <label>Tanggal Selesai Sewa*</label>
-                                    <input type="date" name="tanggal_selesai_sewa" id="tgl_selesai" class="form-control" required value="{{ old('tanggal_selesai_sewa') }}">
+                                    <label>Tanggal Selesai Sewa (Otomatis)*</label>
+                                    <input type="date" name="tanggal_selesai_sewa" id="tgl_selesai" class="form-control bg-light" readonly required value="{{ old('tanggal_selesai_sewa') }}">
+                                    <small class="text-muted">Dihitung otomatis 1 tahun kurang 1 hari.</small>
                                 </div>
                                 <div class="col-12 form-group mb-0">
                                     <label>Catatan Tambahan (Opsional)</label>
@@ -206,27 +207,57 @@
                     {{-- 4. Skema Pembayaran --}}
                     <div class="card">
                         <div class="card-body">
-                            <h5 class="section-title"><i class="fas fa-credit-card"></i> 4. Skema & Metode Pembayaran</h5>
+                            <h5 class="section-title"><i class="fas fa-credit-card"></i> 4. Aturan & Skema Pembayaran</h5>
                             
                             <label class="mb-2">Pilih Skema Termin*</label>
-                            <div class="row mb-4">
-                                <div class="col-md-6 mb-2">
-                                    <input type="radio" name="tipe_pembayaran" value="1_termin" id="termin1" class="d-none" checked>
-                                    <label for="termin1" class="termin-option w-100 mb-0">
-                                        <div class="font-weight-bold text-dark">1 Termin</div>
-                                        <div class="small text-muted">Lunas di awal (100%)</div>
-                                    </label>
+                            @if($ruko->metode_pembayaran_unit === 'fleksibel')
+                                <div class="row mb-4">
+                                    <div class="col-md-6 mb-2">
+                                        <input type="radio" name="tipe_pembayaran" value="1_termin" id="termin1" class="d-none" checked>
+                                        <label for="termin1" class="termin-option w-100 mb-0">
+                                            <div class="font-weight-bold text-dark">1 Termin</div>
+                                            <div class="small text-muted">Lunas di awal (100%)</div>
+                                        </label>
+                                    </div>
+                                    <div class="col-md-6 mb-2">
+                                        <input type="radio" name="tipe_pembayaran" value="2_termin" id="termin2" class="d-none">
+                                        <label for="termin2" class="termin-option w-100 mb-0">
+                                            <div class="font-weight-bold text-dark">2 Termin</div>
+                                            <div class="small text-muted">Cicilan 2x (50% per termin)</div>
+                                        </label>
+                                    </div>
                                 </div>
-                                <div class="col-md-6 mb-2">
-                                    <input type="radio" name="tipe_pembayaran" value="2_termin" id="termin2" class="d-none">
-                                    <label for="termin2" class="termin-option w-100 mb-0">
-                                        <div class="font-weight-bold text-dark">2 Termin</div>
-                                        <div class="small text-muted">Cicilan 2x (50% per termin)</div>
-                                    </label>
+                            @elseif($ruko->metode_pembayaran_unit === '1_termin')
+                                <div class="alert alert-info border-0 shadow-sm mb-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="mr-3">
+                                            <i class="fas fa-info-circle fa-2x text-info"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="font-weight-bold mb-1">Aturan Unit: 1 Termin</h6>
+                                            <p class="small mb-0">Unit ini hanya mendukung pembayaran **Lunas di awal (1 Termin)**.</p>
+                                        </div>
+                                    </div>
+                                    <input type="hidden" name="tipe_pembayaran" value="1_termin">
                                 </div>
+                            @elseif($ruko->metode_pembayaran_unit === '2_termin')
+                                <div class="alert alert-primary border-0 shadow-sm mb-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="mr-3">
+                                            <i class="fas fa-info-circle fa-2x text-primary"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="font-weight-bold mb-1">Aturan Unit: 2 Termin</h6>
+                                            <p class="small mb-0">Unit ini diwajibkan menggunakan pembayaran **Cicilan (2 Termin)**.</p>
+                                        </div>
+                                    </div>
+                                    <input type="hidden" name="tipe_pembayaran" value="2_termin">
+                                </div>
+                            @endif
 
+                            <div class="row mb-2">
                                 {{-- Info Box Termin 1 --}}
-                                <div class="col-12 mt-2 info-termin" id="info-termin1">
+                                <div class="col-12 mt-2 info-termin {{ $ruko->metode_pembayaran_unit === '1_termin' || $ruko->metode_pembayaran_unit === 'fleksibel' ? 'active' : '' }}" id="info-termin1" style="{{ $ruko->metode_pembayaran_unit === '2_termin' ? 'display:none;' : '' }}">
                                     <div class="bg-light p-3 rounded border-left-success">
                                         <div class="font-weight-bold text-success small mb-2"><i class="fas fa-check-circle mr-1"></i> Pembayaran Lunas di Awal</div>
                                         <div class="small text-muted mb-1">Total yang harus dibayar:</div>
@@ -237,7 +268,7 @@
                                 </div>
 
                                 {{-- Info Box Termin 2 --}}
-                                <div class="col-12 mt-2 info-termin" id="info-termin2">
+                                <div class="col-12 mt-2 info-termin {{ $ruko->metode_pembayaran_unit === '2_termin' ? 'active' : '' }}" id="info-termin2" style="{{ $ruko->metode_pembayaran_unit === '1_termin' || $ruko->metode_pembayaran_unit === 'fleksibel' ? 'display:none;' : '' }}">
                                     <div class="bg-light p-3 rounded border-left-primary">
                                         <div class="font-weight-bold text-primary small mb-2"><i class="fas fa-calendar-check mr-1"></i> Pembayaran Dibagi 2 Tahap</div>
                                         <div class="row">
@@ -473,16 +504,23 @@ $(document).ready(function() {
         }
     });
 
-    // Event: Tanggal Mulai berubah -> Auto-fill Tanggal Selesai (+1 Tahun)
+    // Event: Tanggal Mulai berubah -> Auto-fill Tanggal Selesai (+1 Tahun - 1 Hari)
     $('#tgl_mulai').on('change', function() {
         const mulaiVal = $(this).val();
         if (mulaiVal) {
             const mulai = new Date(mulaiVal);
             const selesai = new Date(mulai);
-            selesai.setFullYear(selesai.getFullYear() + 1);
             
-            // Format ke yyyy-mm-dd
-            const formatted = selesai.toISOString().split('T')[0];
+            // Logika: +1 Tahun, kemudian -1 Hari
+            selesai.setFullYear(selesai.getFullYear() + 1);
+            selesai.setDate(selesai.getDate() - 1);
+            
+            // Format ke yyyy-mm-dd menggunakan local date parts agar aman dari timezone offset
+            const year = selesai.getFullYear();
+            const month = String(selesai.getMonth() + 1).padStart(2, '0');
+            const day = String(selesai.getDate()).padStart(2, '0');
+            const formatted = `${year}-${month}-${day}`;
+            
             $('#tgl_selesai').val(formatted);
             $('#tgl_selesai').attr('min', mulaiVal);
             

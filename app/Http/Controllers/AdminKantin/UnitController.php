@@ -16,22 +16,39 @@ class UnitController extends Controller
     use Loggable;
 
     // ────────────────────────────────────────────────────────────────
-    //  HELPER: Auto-generate kode_unit  →  UNT001, UNT002, dst.
+    //  HELPER: Auto-generate kode_unit berdasarkan kategori
     // ────────────────────────────────────────────────────────────────
-    private function generateKodeUnit(): string
+    public function getNewKode(Request $request)
     {
-        $last = Ruko::whereNotNull('kode_unit')
-            ->orderByRaw("CAST(SUBSTRING(kode_unit, 4) AS UNSIGNED) DESC")
+        $kategori_id = $request->kategori_id;
+        if (!$kategori_id) {
+            return response()->json(['kode' => $this->generateKodeUnit()]);
+        }
+
+        return response()->json(['kode' => $this->generateKodeUnit($kategori_id)]);
+    }
+
+    private function generateKodeUnit($kategori_id = null): string
+    {
+        if ($kategori_id) {
+            $kategori = \App\Models\Kategori::find($kategori_id);
+            $prefix = ($kategori && $kategori->prefix) ? $kategori->prefix : 'UNT';
+        } else {
+            $prefix = 'UNT';
+        }
+
+        $last = Ruko::where('kode_unit', 'LIKE', $prefix . '%')
+            ->orderByRaw("CAST(SUBSTRING(kode_unit, " . (strlen($prefix) + 1) . ") AS UNSIGNED) DESC")
             ->value('kode_unit');
 
         if ($last) {
-            $lastNumber = (int) substr($last, 3);
+            $lastNumber = (int) substr($last, strlen($prefix));
             $nextNumber = $lastNumber + 1;
         } else {
             $nextNumber = 1;
         }
 
-        return 'UNT' . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
+        return $prefix . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
     }
 
     // ────────────────────────────────────────────────────────────────
@@ -115,7 +132,7 @@ class UnitController extends Controller
     // ────────────────────────────────────────────────────────────────
     public function create()
     {
-        $kodeUnit  = $this->generateKodeUnit();
+        $kodeUnit  = null;
         $kategoris = \App\Models\Kategori::where('tipe', 'kantin')->orderBy('nama')->get();
 
         return view('adminkantin.unit.create', compact('kodeUnit', 'kategoris'));
@@ -132,6 +149,7 @@ class UnitController extends Controller
             'harga'        => 'required|numeric|min:0',
             'ukuran_ruko'  => 'nullable|string|max:100',
             'deskripsi'    => 'nullable|string',
+            'metode_pembayaran_unit' => 'required|in:1_termin,2_termin,fleksibel',
             'dokumen'      => 'nullable|array|max:10',
             'dokumen.*'    => 'file|mimes:jpg,jpeg,png,pdf|max:5120',
         ], [
@@ -151,6 +169,7 @@ class UnitController extends Controller
                 'harga'       => $validated['harga'],
                 'ukuran_ruko' => $validated['ukuran_ruko'],
                 'deskripsi'   => $validated['deskripsi'],
+                'metode_pembayaran_unit' => $validated['metode_pembayaran_unit'],
                 'status_unit' => 'kosong',
             ]);
 
@@ -213,6 +232,7 @@ class UnitController extends Controller
             'harga'             => 'required|numeric|min:0',
             'ukuran_ruko'       => 'nullable|string|max:100',
             'deskripsi'         => 'nullable|string',
+            'metode_pembayaran_unit' => 'required|in:1_termin,2_termin,fleksibel',
             'status_unit'       => 'required|in:terisi,kosong',
             'dokumen'           => 'nullable|array|max:10',
             'dokumen.*'         => 'file|mimes:jpg,jpeg,png,pdf|max:5120',
@@ -233,6 +253,7 @@ class UnitController extends Controller
                 'harga'       => $validated['harga'],
                 'ukuran_ruko' => $validated['ukuran_ruko'],
                 'deskripsi'   => $validated['deskripsi'],
+                'metode_pembayaran_unit' => $validated['metode_pembayaran_unit'],
                 'status_unit' => $validated['status_unit'],
             ]);
 
