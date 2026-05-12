@@ -65,7 +65,7 @@
                         </div>
                         <div>
                             <h6 class="mb-0 font-weight-bold">{{ $pekerjaan->layanan->nama ?? '-' }}</h6>
-                            <small class="text-muted">Layanan Dasar Terpilih</small>
+                            <small class="text-muted">Layanan yang Di-booking</small>
                         </div>
                     </div>
                 </div>
@@ -91,7 +91,7 @@
                                     <span class="badge badge-primary rounded-circle mr-2 d-flex align-items-center justify-content-center" style="width: 24px; height: 24px;">1</span>
                                     <i class="fas fa-wrench text-primary mr-2"></i> Layanan yang Dilakukan
                                 </label>
-                                <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm" data-toggle="modal" data-target="#modalLayanan">
+                                <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm" @click="editingIndex = null" data-toggle="modal" data-target="#modalLayanan">
                                     <i class="fas fa-plus-circle mr-1"></i> Tambah
                                 </button>
                             </div>
@@ -102,8 +102,12 @@
                                         <div class="card-body p-3">
                                             <div class="d-flex justify-content-between align-items-start mb-3">
                                                 <div class="flex-grow-1 mr-2">
-                                                    <div class="p-2 bg-white border rounded font-weight-bold text-dark d-flex justify-content-between align-items-center">
-                                                        <span x-text="row.displayText"></span>
+                                                    <div class="p-2 bg-white border rounded font-weight-bold text-dark d-flex justify-content-between align-items-center cursor-pointer hover-bg-light" 
+                                                         @click="editLayanan(index)" title="Klik untuk mengubah layanan">
+                                                        <div>
+                                                            <span x-text="row.displayText"></span>
+                                                            <i class="fas fa-edit ml-2 text-muted small"></i>
+                                                        </div>
                                                         <input type="hidden" :name="'detail_layanan[' + index + ']'" :value="row.val">
                                                         <span class="badge badge-primary-light" x-show="row.harga" x-text="'Rp ' + Number(row.harga).toLocaleString('id-ID')"></span>
                                                     </div>
@@ -111,7 +115,7 @@
                                                 <button type="button" class="btn btn-outline-danger btn-sm border-0 rounded-circle" @click="removeLayanan(index)" x-show="!row.locked">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
-                                                <span class="badge badge-light text-muted p-2" x-show="row.locked" title="Layanan Utama tidak bisa dihapus">
+                                                <span class="badge badge-light text-muted p-2" x-show="row.locked" title="Layanan Utama tidak bisa dihapus, tapi bisa diubah">
                                                     <i class="fas fa-lock"></i>
                                                 </span>
                                             </div>
@@ -348,27 +352,42 @@
             sparepartRows: [],
             searchLayanan: '',
             searchSparepart: '',
+            editingIndex: null,
+
+            editLayanan(index) {
+                this.editingIndex = index;
+                this.searchLayanan = '';
+                $('#modalLayanan').modal('show');
+            },
 
             selectLayanan(id, name, price) {
                 // Check duplicate
-                const isDuplicate = this.layananRows.some(row => row.val == id);
+                const isDuplicate = this.layananRows.some((row, i) => row.val == id && i !== this.editingIndex);
                 if (isDuplicate) {
-                    alert("Layanan ini sudah ditambahkan!");
+                    alert("Layanan ini sudah ada!");
                     return;
                 }
 
-                this.layananRows.push({ 
-                    id: Date.now(), 
-                    val: id, 
-                    locked: false, 
-                    catatan: "", 
-                    error: "", 
-                    displayText: name, 
-                    harga: price 
-                });
+                if (this.editingIndex !== null) {
+                    // Update existing row
+                    this.layananRows[this.editingIndex].val = id;
+                    this.layananRows[this.editingIndex].displayText = name;
+                    this.layananRows[this.editingIndex].harga = price;
+                    this.editingIndex = null;
+                } else {
+                    // Add new row
+                    this.layananRows.push({ 
+                        id: Date.now(), 
+                        val: id, 
+                        locked: false, 
+                        catatan: "", 
+                        error: "", 
+                        displayText: name, 
+                        harga: price 
+                    });
+                }
                 
                 $('#modalLayanan').modal('hide');
-                this.searchLayanan = '';
             },
 
             selectSparepart(id, name, stok) {
@@ -475,6 +494,12 @@
         transform: translateX(5px);
         color: var(--primary);
         border-left: 4px solid var(--primary) !important;
+    }
+
+    .hover-bg-light:hover {
+        background-color: #f8f9fc !important;
+        border-color: var(--primary) !important;
+        color: var(--primary) !important;
     }
 </style>
 @endpush
