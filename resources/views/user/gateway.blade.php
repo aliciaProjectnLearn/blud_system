@@ -34,23 +34,59 @@
             .text-5xl { font-size: 1.5rem; }
         }
         .grid-layanan {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: stretch;
             gap: 1.5rem;
+        }
+        .grid-layanan > a {
+            flex: 0 1 340px;
+            display: flex;
+            flex-direction: column;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        @media (min-width: 769px) {
+            .grid-layanan > a {
+                min-height: 330px; /* Untuk alignment tombol di desktop */
+            }
+        }
+        @media (max-width: 1024px) {
+            .grid-layanan > a {
+                flex: 0 1 300px;
+            }
         }
         @media (max-width: 768px) {
             .grid-layanan {
-                grid-template-columns: repeat(2, 1fr);
                 gap: 0.75rem;
             }
-            .grid-layanan .card-hover {
-                padding: 1.25rem !important;
+            .grid-layanan > a {
+                flex: 0 1 calc(50% - 0.5rem);
+                min-width: 140px;
+                padding: 1.25rem 0.75rem !important;
             }
-            .grid-layanan h3 { font-size: 0.95rem !important; margin-bottom: 0.5rem !important; }
-            .grid-layanan p { display: none; } /* Hide description to keep it clean */
-            .grid-layanan span { display: block !important; padding: 0.5rem !important; font-size: 0.75rem !important; } 
-            .grid-layanan .w-16 { width: 40px !important; height: 40px !important; margin-bottom: 1rem !important; }
+            .grid-layanan h3 { font-size: 0.9rem !important; margin-bottom: 0.4rem !important; }
+            .grid-layanan p { display: none; } 
+            .grid-layanan span { 
+                display: block !important; 
+                padding: 0.4rem !important; 
+                font-size: 0.7rem !important; 
+                border-radius: 6px !important;
+            } 
+            .grid-layanan .w-16 { width: 40px !important; height: 40px !important; margin-bottom: 0.75rem !important; }
             .grid-layanan svg { width: 20px !important; height: 20px !important; }
+            .grid-layanan > a { min-height: 180px !important; } /* Tinggi seragam di mobile */
+        }
+        @media (max-width: 480px) {
+            .grid-layanan {
+                gap: 0.5rem;
+            }
+            .grid-layanan > a {
+                flex: 0 1 calc(50% - 0.3rem);
+                padding: 1rem 0.5rem !important;
+            }
+            .grid-layanan h3 { font-size: 0.8rem !important; }
         }
 
         /* Premium Modal Styling */
@@ -267,18 +303,21 @@
             border: 1px solid rgba(255, 255, 255, 0.3);
             border-radius: 40px;
             padding: 40px;
-            width: 450px;
+            width: 500px;
             box-shadow: 0 40px 100px rgba(0,0,0,0.3);
             transform: rotateY(-15deg) rotateX(10deg);
             animation: floatMaster 8s ease-in-out infinite;
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 25px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
         }
         .hub-item {
             background: rgba(255, 255, 255, 0.1);
             border-radius: 24px;
-            padding: 20px;
+            padding: 15px;
+            width: calc(33.33% - 14px);
+            min-width: 100px;
             text-align: center;
             color: white;
             transition: all 0.3s;
@@ -494,7 +533,11 @@
                     </div>
                     <div class="hub-item">
                         <i class="fas fa-snowflake"></i>
-                        <span>Servis AC</span>
+                        <span>AC</span>
+                    </div>
+                    <div class="hub-item">
+                        <i class="fas fa-code"></i>
+                        <span>Apps</span>
                     </div>
                 </div>
             </div>
@@ -563,6 +606,19 @@
                     </div>
                     <h3 class="text-xl font-bold mb-3" style="color:#4e73df;">Servis Motor & Mobil</h3>
                     <p class="text-gray-600 mb-6 leading-relaxed text-sm flex-grow">Layanan servis kendaraan berkala dengan peralatan modern dan mekanik ahli.</p>
+                    <span class="mt-auto w-full py-2 rounded-lg text-white font-medium text-sm text-center block" style="background-color:#4e73df;">
+                        Lihat Layanan
+                    </span>
+                </a>
+
+                <a href="#" class="card-hover block bg-white p-6 rounded-2xl shadow-sm border-t-4 border-[#4e73df] text-center flex flex-col h-full no-underline">
+                    <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm" style="background-color:#4e73df;">
+                        <svg class="text-white" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M16 18l6-6-6-6M8 6l-6 6 6 6M12 4v16"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3" style="color:#4e73df;">Pembuatan Aplikasi Web & Mobile</h3>
+                    <p class="text-gray-600 mb-6 leading-relaxed text-sm flex-grow">Layanan pengembangan aplikasi berbasis web & mobile sesuai kebutuhan Anda</p>
                     <span class="mt-auto w-full py-2 rounded-lg text-white font-medium text-sm text-center block" style="background-color:#4e73df;">
                         Lihat Layanan
                     </span>
