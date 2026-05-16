@@ -4,10 +4,13 @@ namespace App\Http\Controllers\AdminServis;
 
 use App\Http\Controllers\Controller;
 use App\Models\LayananServis;
+use App\Traits\Loggable;
 use Illuminate\Http\Request;
 
 class LayananController extends Controller
 {
+    use Loggable;
+
     public function index(Request $request)
     {
         $query = LayananServis::query();
@@ -51,7 +54,9 @@ class LayananController extends Controller
             'is_active'      => $request->has('is_active') ? true : false,
         ]);
 
-        return redirect()->route('adminservis.layanan.index')
+        $this->function_log('Servis', 'create', 'Admin Servis menambahkan layanan baru: ' . $request->nama_layanan);
+
+        return redirect()->route('admin.servis.layanan.index')
             ->with('success', 'Layanan berhasil ditambahkan.');
     }
 
@@ -78,7 +83,9 @@ class LayananController extends Controller
             'is_active'      => $request->has('is_active') ? true : false,
         ]);
 
-        return redirect()->route('adminservis.layanan.index')
+        $this->function_log('Servis', 'update', 'Admin Servis mengubah layanan: ' . $layanan->nama_layanan);
+
+        return redirect()->route('admin.servis.layanan.index')
             ->with('success', 'Layanan berhasil diperbarui.');
     }
 
@@ -90,9 +97,12 @@ class LayananController extends Controller
                     digunakan dalam transaksi servis.');
         }
 
+        $namaLayanan = $layanan->nama_layanan;
         $layanan->delete();
 
-        return redirect()->route('adminservis.layanan.index')
+        $this->function_log('Servis', 'delete', 'Admin Servis menghapus layanan: ' . $namaLayanan);
+
+        return redirect()->route('admin.servis.layanan.index')
             ->with('success', 'Layanan berhasil dihapus.');
     }
 }

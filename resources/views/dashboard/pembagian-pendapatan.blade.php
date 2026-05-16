@@ -151,10 +151,18 @@
             <div class="card-body">
                 <div class="saldo-highlight d-flex justify-content-between align-items-center">
                     <span class="text-muted small font-weight-bold text-uppercase">Saldo Bersih</span>
-                    <span class="font-weight-bold" style="font-size:1.1rem; color:var(--{{ $meta['color'] }}-color)">
-                        Rp {{ number_format($data['saldo_bersih'], 0, ',', '.') }}
+                    <span class="font-weight-bold" style="font-size:1.1rem; color: {{ $data['saldo_bersih'] < 0 ? '#e74a3b' : 'var(--'.$meta['color'].'-color)' }}">
+                        @if($data['saldo_bersih'] < 0)
+                            <i class="fas fa-arrow-down fa-xs mr-1"></i>
+                        @endif
+                        Rp {{ number_format(abs($data['saldo_bersih']), 0, ',', '.') }}
                     </span>
                 </div>
+                @if($data['saldo_bersih'] == 0)
+                    <div class="alert alert-warning py-1 px-2 mb-2" style="font-size:0.75rem">
+                        <i class="fas fa-exclamation-triangle mr-1"></i>Belum ada pemasukan tercatat atau pengeluaran = pemasukan.
+                    </div>
+                @endif
 
                 <div class="mb-3">
                     @foreach($data['detail'] as $penerima => $info)
@@ -183,7 +191,7 @@
                         <p class="text-xs text-muted font-weight-bold text-uppercase mb-2">
                             <i class="fas fa-sliders-h mr-1"></i>Atur Persentase
                         </p>
-                        <form method="POST" action="{{ route('dashboard.pembagian-pendapatan.update') }}"
+                        <form method="POST" action="{{ route('admin.dashboard.pembagian-pendapatan.update') }}"
                               id="form-{{ $sistem }}">
                             @csrf
                             @method('PUT')

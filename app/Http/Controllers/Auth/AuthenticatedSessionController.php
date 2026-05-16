@@ -46,11 +46,12 @@ class AuthenticatedSessionController extends Controller
         
         $dashboardRoute = match($roleName) {
             'superadmin'   => route('dashboard'),
-            'adminfutsal'  => route('adminfutsal.dashboard'),
-            'adminkantin'  => route('adminkantin.dashboard'),
-            'adminac'      => route('adminac.dashboard'),
-            'adminservis'  => route('adminservis.dashboard'),
+            'adminfutsal'  => route('admin.futsal.dashboard'),
+            'adminkantin'  => route('admin.kantin.dashboard'),
+            'adminac'      => route('admin.ac.dashboard'),
+            'adminservis'  => route('admin.servis.dashboard'),
             'kasirservis'  => route('kasir.dashboard'),
+            'kasirfutsal'  => route('kasirfutsal.dashboard'),
             'teknisiac'    => route('teknisi.dashboard'),
             'teknisiservis' => route('teknisi.dashboard'),
             default        => route('gateway'),

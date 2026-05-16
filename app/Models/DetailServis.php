@@ -10,6 +10,9 @@ class DetailServis extends Model
 
     protected $fillable = [
         'booking_id',
+        'tipe',
+        'layanan_id',
+        'produk_id',
         'item',
         'satuan',
         'quantity',
@@ -17,6 +20,16 @@ class DetailServis extends Model
         'subtotal',
         'catatan',
     ];
+
+    public function layanan()
+    {
+        return $this->belongsTo(LayananAc::class, 'layanan_id');
+    }
+
+    public function produk()
+    {
+        return $this->belongsTo(Produk::class, 'produk_id');
+    }
 
     public function bookingAc()
     {

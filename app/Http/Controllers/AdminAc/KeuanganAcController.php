@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\PengeluaranAc;
+use App\Models\BookingAc;
+use App\Models\User;
+use App\Models\PenggajianTeknisi;
 use Carbon\Carbon;
 
 class KeuanganAcController extends Controller
@@ -32,19 +35,22 @@ class KeuanganAcController extends Controller
             ->select(
                 'tanggal',
                 DB::raw("'pengeluaran' as tipe"),
-                'deskripsi',
+                DB::raw("CONCAT('[', COALESCE(kategori, 'Umum'), '] ', deskripsi) as deskripsi"),
                 'nominal',
-                DB::raw("'dibayar' as status"),
-                'kategori'
+                DB::raw("'dibayar' as status")
             );
 
-        // 3. Filter Tanggal
+        // 3. Filter Tanggal & Kategori
         if ($request->filled('start_date') && $request->filled('end_date')) {
             $startDate = $request->start_date;
             $endDate = $request->end_date;
             
             $pemasukan->whereBetween(DB::raw('DATE(COALESCE(tgl_bayar, created_at))'), [$startDate, $endDate]);
             $pengeluaran->whereBetween('tanggal', [$startDate, $endDate]);
+        }
+
+        if ($request->filled('kategori')) {
+            $pengeluaran->where('kategori', $request->kategori);
         }
 
         // 4. Proses Union
@@ -90,7 +96,7 @@ class KeuanganAcController extends Controller
             'deskripsi' => 'required|string|max:255',
             'nominal' => 'required|numeric|min:0',
             'tanggal' => 'required|date',
-            'kategori' => 'required|in:sparepart,gaji,lainnya'
+            'kategori' => 'required|string'
         ]);
 
         PengeluaranAc::create([
@@ -103,38 +109,68 @@ class KeuanganAcController extends Controller
         return redirect()->back()->with('success', 'Data pengeluaran berhasil ditambahkan.');
     }
 
-    public function bayarGaji(Request $request, $booking_id)
+    /**
+     * Halaman Penggajian Teknisi (Daftar Pekerjaan Belum Dibayar)
+     */
+    public function payrollIndex(Request $request)
+    {
+        $teknisiId = $request->teknisi_id;
+        $teknisis = User::whereHas('roles', fn($q) => $q->where('nama', 'Teknisi'))->get();
+
+        $pekerjaanUnpaid = BookingAc::with(['layanan', 'pembayaran', 'teknisi'])
+            ->where('status', 'selesai')
+            ->whereHas('pembayaran', fn($q) => $q->where('status', 'dibayar'))
+            ->whereDoesntHave('penggajian')
+            ->when($teknisiId, fn($q) => $q->where('teknisi_id', $teknisiId))
+            ->get();
+
+        return view('adminac.keuangan.payroll', compact('pekerjaanUnpaid', 'teknisis', 'teknisiId'));
+    }
+
+    /**
+     * Proses Pembayaran Gaji Teknisi
+     */
+    public function storePayroll(Request $request)
     {
         $request->validate([
-            'nominal_gaji' => 'required|numeric|min:1',
+            'booking_id' => 'required|array',
+            'booking_id.*' => 'exists:booking_ac,id',
+            'nominal' => 'required|array',
+            'nominal.*' => 'numeric|min:0',
         ]);
 
-        $booking = \App\Models\BookingAc::findOrFail($booking_id);
-
-        if ($booking->status !== 'selesai' || $booking->status_gaji === 'dibayar') {
-            return back()->with('error', 'Pekerjaan ini belum selesai atau gajinya sudah dibayar.');
-        }
-
-        DB::beginTransaction();
         try {
-            // Update status gaji
-            $booking->update([
-                'status_gaji' => 'dibayar'
-            ]);
+            DB::beginTransaction();
 
-            // Catat sebagai pengeluaran AC
-            PengeluaranAc::create([
-                'deskripsi' => 'Pembayaran Gaji Teknisi (' . ($booking->teknisi->name ?? 'Unknown') . ') untuk pekerjaan ' . ($booking->layanan->nama ?? '-'),
-                'nominal' => $request->nominal_gaji,
-                'tanggal' => now()->format('Y-m-d'),
-                'kategori' => 'gaji',
-            ]);
+            foreach ($request->booking_id as $key => $bookingId) {
+                $booking = BookingAc::findOrFail($bookingId);
+                $nominal = $request->nominal[$key];
+
+                if ($nominal > 0) {
+                    PenggajianTeknisi::create([
+                        'teknisi_id' => $booking->teknisi_id,
+                        'booking_ac_id' => $booking->id,
+                        'nominal' => $nominal,
+                        'status_bayar' => 'dibayar',
+                        'tanggal_bayar' => now(),
+                    ]);
+
+                    // Catat ke Pengeluaran AC agar masuk ke laporan keuangan
+                    PengeluaranAc::create([
+                        'deskripsi' => "Gaji Teknisi: {$booking->teknisi->name} (Booking #{$booking->id})",
+                        'nominal' => $nominal,
+                        'tanggal' => now(),
+                        'kategori' => 'Gaji Teknisi',
+                    ]);
+                }
+            }
 
             DB::commit();
-            return back()->with('success', 'Gaji teknisi berhasil dibayarkan dan dicatat sebagai pengeluaran.');
+            return redirect()->back()->with('success', 'Gaji teknisi berhasil diproses dan dicatat sebagai pengeluaran.');
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'Gagal membayar gaji: ' . $e->getMessage());
+            return back()->with('error', 'Gagal: ' . $e->getMessage());
+
         }
     }
 }

@@ -6,10 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Models\LayananAc;
 use App\Models\Kategori;
 use App\Models\BookingAc;
+use App\Traits\Loggable;
 use Illuminate\Http\Request;
 
 class LayananController extends Controller
 {
+    use Loggable;
+
     public function index(Request $request)
     {
         $query = LayananAc::with('kategori');
@@ -22,8 +25,7 @@ class LayananController extends Controller
             $query->where('kategori_id', $request->kategori_id);
         }
 
-        $layanans = $query->paginate(10)->withQueryString();
-        // Hanya ambil kategori bertipe 'ac'
+        $layanans  = $query->paginate(10)->withQueryString();
         $kategoris = Kategori::where('tipe', 'ac')->get();
 
         return view('adminac.layanan.index', compact('layanans', 'kategoris'));
@@ -40,6 +42,8 @@ class LayananController extends Controller
             'tipe' => 'ac',
         ]);
 
+        $this->function_log('AC', 'create', 'Admin AC menambahkan kategori layanan baru: ' . $request->nama);
+
         return redirect()->back()->with('success', 'Kategori baru berhasil ditambahkan.');
     }
 
@@ -53,19 +57,22 @@ class LayananController extends Controller
     {
         $request->validate([
             'kategori_id' => 'required|exists:kategori,id',
-            'nama' => 'required|string|max:255',
+            'nama'        => 'required|string|max:255',
             'kapasitas_ac' => 'nullable|string|max:50',
-            'harga_jasa' => 'required|numeric|min:0',
+            'harga_jasa'  => 'required|numeric|min:0',
         ]);
 
         LayananAc::create($request->all());
 
-        return redirect()->route('adminac.layanan.index')->with('success', 'Layanan berhasil ditambahkan.');
+        $this->function_log('AC', 'create', 'Admin AC menambahkan layanan baru: ' . $request->nama);
+
+        return redirect()->route('admin.ac.layanan.index')
+            ->with('success', 'Layanan berhasil ditambahkan.');
     }
 
     public function edit($id)
     {
-        $layanan = LayananAc::findOrFail($id);
+        $layanan   = LayananAc::findOrFail($id);
         $kategoris = Kategori::where('tipe', 'ac')->get();
         return view('adminac.layanan.edit', compact('layanan', 'kategoris'));
     }
@@ -73,33 +80,40 @@ class LayananController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'kategori_id' => 'required|exists:kategori,id',
-            'nama' => 'required|string|max:255',
+            'kategori_id'  => 'required|exists:kategori,id',
+            'nama'         => 'required|string|max:255',
             'kapasitas_ac' => 'nullable|string|max:50',
-            'harga_jasa' => 'required|numeric|min:0',
+            'harga_jasa'   => 'required|numeric|min:0',
         ]);
 
         $layanan = LayananAc::findOrFail($id);
         $layanan->update($request->all());
 
-        return redirect()->route('adminac.layanan.index')->with('success', 'Layanan berhasil diperbarui.');
+        $this->function_log('AC', 'update', 'Admin AC mengubah layanan: ' . $layanan->nama);
+
+        return redirect()->route('admin.ac.layanan.index')
+            ->with('success', 'Layanan berhasil diperbarui.');
     }
 
     public function destroy($id)
     {
         $layanan = LayananAc::findOrFail($id);
 
-        // Cek relasi di booking_ac yang statusnya masih aktif (bukan selesai)
         $activeBookings = BookingAc::where('layanan_id', $id)
             ->whereIn('status', ['menunggu', 'proses', 'pending'])
             ->exists();
 
         if ($activeBookings) {
-            return redirect()->back()->with('error', 'Layanan tidak dapat dihapus karena masih memiliki booking yang aktif.');
+            return redirect()->back()
+                ->with('error', 'Layanan tidak dapat dihapus karena masih memiliki booking yang aktif.');
         }
 
+        $namaLayanan = $layanan->nama;
         $layanan->delete();
 
-        return redirect()->back()->with('success', 'Layanan berhasil dihapus.');
+        $this->function_log('AC', 'delete', 'Admin AC menghapus layanan: ' . $namaLayanan);
+
+        return redirect()->back()
+            ->with('success', 'Layanan berhasil dihapus.');
     }
 }

@@ -1,43 +1,28 @@
 @extends('layouts.publik')
 
-@section('title', 'Konfirmasi Pembatalan')
-
 @section('content')
-<div class="container-fluid">
+<div class="container py-5 mt-5">
     <div class="row justify-content-center">
-        <div class="col-lg-6">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3 bg-danger text-white">
-                    <h6 class="m-0 font-weight-bold">Konfirmasi Pembatalan Booking</h6>
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0 py-2"><i class="fas fa-exclamation-triangle mr-2"></i> Batalkan Booking</h5>
                 </div>
-                <div class="card-body text-center py-5">
-                    <div class="mb-4">
-                        <i class="fas fa-exclamation-triangle fa-4x text-warning"></i>
-                    </div>
-                    <h4 class="text-gray-800 font-weight-bold">Apakah Anda yakin?</h4>
-                    <p class="text-muted">Anda akan membatalkan booking ini. Tindakan ini tidak dapat dibatalkan.</p>
+                <div class="card-body p-4 text-center">
                     
-                    <div class="alert alert-light border my-4 text-left">
-                        <p class="mb-1 small text-muted">Booking ID: <strong>#{{ $booking->id }}</strong></p>
-                        <p class="mb-1 small text-muted">Layanan: 
-                            <strong>
-                                @if($booking instanceof \App\Models\BookingFutsal) Futsal
-                                @elseif($booking instanceof \App\Models\BookingAc) Servis AC
-                                @elseif($booking instanceof \App\Models\BookingServis) Servis Kendaraan
-                                @elseif($booking instanceof \App\Models\SewaRuko) Sewa Kantin
-                                @endif
-                            </strong>
-                        </p>
+                    <h4 class="mb-3">Apakah Anda yakin ingin membatalkan booking ini?</h4>
+                    <p class="text-muted mb-4">
+                        Lapangan: <strong>{{ $bookingFutsal->lapangan->nama }}</strong><br>
+                        Waktu: <strong>{{ \Carbon\Carbon::parse($bookingFutsal->start_datetime)->locale('id')->translatedFormat('d F Y | H:i') }}</strong>
+                    </p>
+
+                    <div class="alert alert-warning">
+                        <i class="fas fa-info-circle mr-1"></i> Pembatalan hanya bisa dilakukan minimal 2 jam sebelum waktu bermain. Tindakan ini tidak dapat dikembalikan.
                     </div>
 
-                    <form action="{{ route('user.token.batalkan.proses', $token) }}" method="POST">
+                    <form action="{{ route('user.token.batalkan.proses', $token) }}" method="POST" class="mt-4">
                         @csrf
-                        <div class="form-group mb-4">
-                            <label class="small font-weight-bold text-dark d-block text-left">Alasan Pembatalan (Opsional)</label>
-                            <textarea name="alasan" class="form-control" rows="3" placeholder="Beritahu kami mengapa Anda membatalkan..."></textarea>
-                        </div>
-                        
-                        <div class="d-flex justify-content-center" style="gap:10px;">
+                        <div class="d-flex justify-content-center gap-3" style="gap: 15px;">
                             <a href="{{ route('user.token.show', $token) }}" class="btn btn-secondary px-4">Kembali</a>
                             <button type="submit" class="btn btn-danger px-4">Ya, Batalkan Booking</button>
                         </div>

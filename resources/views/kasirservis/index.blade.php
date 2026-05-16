@@ -63,14 +63,62 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-body d-flex justify-content-center gap-3">
-                    <a href="#" class="btn btn-primary btn-icon-split btn-lg mx-2">
+                    <a href="{{ route('kasir.booking.index') }}" class="btn btn-primary btn-icon-split btn-lg mx-2">
                         <span class="icon text-white-50"><i class="fas fa-calendar-check"></i></span>
                         <span class="text">Menu Booking</span>
                     </a>
-                    <a href="#" class="btn btn-success btn-icon-split btn-lg mx-2">
+                    <a href="{{ route('kasir.laporan.index') }}" class="btn btn-success btn-icon-split btn-lg mx-2">
                         <span class="icon text-white-50"><i class="fas fa-money-bill-wave"></i></span>
                         <span class="text">Menu Transaksi</span>
                     </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Daftar Booking Diproses -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Booking Sedang Diproses</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover" width="100%" cellspacing="0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th>Kode</th>
+                                    <th>Pelanggan</th>
+                                    <th>Kendaraan</th>
+                                    <th>Layanan</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($bookingDiproses as $booking)
+                                <tr>
+                                    <td class="font-weight-bold">{{ $booking->kode_booking }}</td>
+                                    <td>{{ $booking->nama_pemesan }}<br><small class="text-muted">{{ $booking->no_hp }}</small></td>
+                                    <td>{{ $booking->merek_kendaraan }}<br><small class="text-muted">{{ $booking->nomor_plat }}</small></td>
+                                    <td>{{ $booking->layananServis->nama_layanan ?? '-' }}</td>
+                                    <td>
+                                        <a href="{{ route('kasir.booking.show', $booking->id) }}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i> Detail & Rincian
+                                        </a>
+                                        <a href="{{ route('kasir.booking.print-wo', $booking->id) }}" target="_blank" class="btn btn-sm btn-secondary">
+                                            <i class="fas fa-print"></i> Cetak WO
+                                        </a>
+                                    </td>
+                                </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="5" class="text-center py-4">Tidak ada booking yang sedang diproses.</td>
+                                </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>

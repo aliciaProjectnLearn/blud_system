@@ -24,17 +24,19 @@ class LaporanKantinExport implements FromCollection, WithHeadings, WithMapping, 
             'sewaRuko.penyewa.user',
             'sewaRuko.ruko',
             'tipe'
-        ]);
+        ])->whereHas('sewaRuko', function ($q) {
+            $q->whereNotIn('status_sewa', ['dibatalkan', 'ditolak']);
+        });
 
         if ($this->request->filled('tanggal_dari') && $this->request->filled('tanggal_sampai')) {
-            $query->whereBetween('tgl_bayar', [$this->request->tanggal_dari . ' 00:00:00', $this->request->tanggal_sampai . ' 23:59:59']);
+            $query->whereBetween('tanggal_bayar', [$this->request->tanggal_dari . ' 00:00:00', $this->request->tanggal_sampai . ' 23:59:59']);
         } elseif ($this->request->filled('tanggal_dari')) {
-            $query->where('tgl_bayar', '>=', $this->request->tanggal_dari . ' 00:00:00');
+            $query->where('tanggal_bayar', '>=', $this->request->tanggal_dari . ' 00:00:00');
         } elseif ($this->request->filled('tanggal_sampai')) {
-            $query->where('tgl_bayar', '<=', $this->request->tanggal_sampai . ' 23:59:59');
+            $query->where('tanggal_bayar', '<=', $this->request->tanggal_sampai . ' 23:59:59');
         }
 
-        return $query->orderBy('tgl_bayar', 'desc')->orderBy('created_at', 'desc')->get();
+        return $query->orderBy('tanggal_bayar', 'desc')->orderBy('created_at', 'desc')->get();
     }
 
     public function headings(): array
@@ -60,7 +62,7 @@ class LaporanKantinExport implements FromCollection, WithHeadings, WithMapping, 
             $tglSewa = \Carbon\Carbon::parse($pembayaran->sewaRuko->tgl_mulai)->format('d/m/Y') . ' - ' . \Carbon\Carbon::parse($pembayaran->sewaRuko->tgl_selesai)->format('d/m/Y');
         }
         
-        $tglBayar    = $pembayaran->tgl_bayar ? \Carbon\Carbon::parse($pembayaran->tgl_bayar)->format('d/m/Y') : '-';
+        $tglBayar    = $pembayaran->tanggal_bayar ? \Carbon\Carbon::parse($pembayaran->tanggal_bayar)->format('d/m/Y') : '-';
         $jumlahBayar = $pembayaran->jumlah_tagihan;
         $status      = ucfirst($pembayaran->status);
 

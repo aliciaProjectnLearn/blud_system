@@ -25,10 +25,24 @@ class BookingServis extends Model
         'catatan_admin',
         'teknisi_id',
         'access_token',
+        'nama_pemesan',
+        'no_hp',
+        // OTP fields
+        'otp_code',
+        'otp_expires_at',
+        'otp_used',
+        'otp_attempt_count',
+        'otp_blocked_until',
+        'otp_sent_at',
     ];
 
     protected $casts = [
-        'tanggal_booking' => 'date',
+        'tanggal_booking'   => 'date',
+        'otp_expires_at'    => 'datetime',
+        'otp_blocked_until' => 'datetime',
+        'otp_sent_at'       => 'datetime',
+        'otp_used'          => 'boolean',
+        'otp_attempt_count' => 'integer',
     ];
 
     protected static function boot()
@@ -77,6 +91,16 @@ class BookingServis extends Model
     public function pembayaranServis()
     {
         return $this->hasOne(PembayaranServis::class, 'booking_servis_id');
+    }
+
+    public function fotoServis()
+    {
+        return $this->hasMany(FotoServis::class, 'booking_servis_id');
+    }
+
+    public function penggajianTeknisi()
+    {
+        return $this->hasOne(PenggajianTeknisi::class, 'booking_servis_id');
     }
 
     /**

@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
         $this->call(KategoriKomponenSeeder::class);
         $this->call(ProdukSeeder::class);
         $this->call(LapanganTableSeeder::class);
+        $this->call(JamOperasionalSeeder::class);
         $this->call(JadwalLapanganSeeder::class);
         $this->call(PengaturanTableSeeder::class);
 
@@ -36,7 +37,7 @@ class DatabaseSeeder extends Seeder
         $this->call(BookingFutsalTableSeeder::class);
         $this->call(BookingAcTableSeeder::class);
         $this->call(PenyewaSeeder::class);           // penyewa (relasi ke users yang sudah ada)
-        $this->call(SewaRukoTableSeeder::class);      // sewa_ruko (truncate lama, buat data konsisten)
+        // $this->call(SewaRukoTableSeeder::class);      // sewa_ruko (truncate lama, buat data konsisten)
 
         // Fasilitas dan detail lainnya
         $this->call(FasilitasLapanganTableSeeder::class);
@@ -46,7 +47,7 @@ class DatabaseSeeder extends Seeder
         // Pembayaran
         $this->call(PembayaranFutsalTableSeeder::class);
         $this->call(PembayaranAcTableSeeder::class);
-        $this->call(PembayaranRukoTableSeeder::class);
+        // $this->call(PembayaranRukoTableSeeder::class);
 
         //pengeluaran
         $this->call(PengeluaranFutsalsSeeder::class);
@@ -54,9 +55,13 @@ class DatabaseSeeder extends Seeder
         $this->call(PengeluaranKantinSeeder::class);
 
         // Modul Servis Motor & Mobil Terpadu
+        $this->call(MerekModelKendaraanSeeder::class);
         $this->call(ServisKendaraanSeeder::class);
 
         // Modul Teknisi Servis
         $this->call(TeknisiServisSeeder::class);
+
+        // Kasir Futsal
+        $this->call(KasirFutsalUserSeeder::class);
     }
 }

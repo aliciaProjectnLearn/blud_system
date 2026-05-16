@@ -66,7 +66,7 @@ class PenyewaController extends Controller
 
             DB::commit();
             return redirect()
-                ->route('adminkantin.penyewa.index')
+                ->route('admin.kantin.penyewa.index')
                 ->with('success', 'Data penyewa berhasil diperbarui.');
         } catch (\Exception $e) {
             DB::rollBack();
@@ -100,7 +100,7 @@ class PenyewaController extends Controller
 
             DB::commit();
             return redirect()
-                ->route('adminkantin.penyewa.index')
+                ->route('admin.kantin.penyewa.index')
                 ->with('success', 'Data penyewa berhasil dihapus.');
         } catch (\Exception $e) {
             DB::rollBack();

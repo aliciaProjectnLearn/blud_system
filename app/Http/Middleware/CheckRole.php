@@ -16,7 +16,9 @@ class CheckRole
             return redirect()->route('login');
         }
 
-        // Support multiple roles dipisah pipe: role:Superadmin|Adminfutsal|Adminkantin
+        // ✅ Refresh user dari DB agar tidak pakai cache object lama
+        $user = $user->fresh();
+
         $allowedRoles = explode('|', $role);
 
         $hasRole = DB::table('roles_users')

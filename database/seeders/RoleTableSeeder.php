@@ -22,6 +22,7 @@ class RoleTableSeeder extends Seeder
             ['nama' => 'Teknisi', 'created_at' => now(), 'updated_at' => now()], // Existing Teknisi untuk Service AC
             ['nama' => 'Teknisi Motor', 'created_at' => now(), 'updated_at' => now()],
             ['nama' => 'Teknisi Mobil', 'created_at' => now(), 'updated_at' => now()],
+            ['nama' => 'kasirfutsal', 'created_at' => now(), 'updated_at' => now()],
         ]);
     }
 }

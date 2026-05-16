@@ -85,7 +85,7 @@ class ServisKendaraanSeeder extends Seeder
                         'email' => $t['username'] . '@bengkel.com',
                         'password' => Hash::make('password'),
                         'nama_lengkap' => $t['name'],
-                        'no_hp' => '087700012345',
+                        'no_hp' => '0877000' . rand(10000, 99999),
                         'spesialisasi' => $t['spesialisasi'],
                         'created_at' => $now,
                         'updated_at' => $now
@@ -100,7 +100,11 @@ class ServisKendaraanSeeder extends Seeder
             // ===============================================
             $layanans = [
                 ['nama_layanan' => 'Servis & Ganti Oli Motor', 'harga_estimasi' => 50000, 'tipe_kendaraan' => 'motor'],
+                ['nama_layanan' => 'Servis Ringan Motor', 'harga_estimasi' => 75000, 'tipe_kendaraan' => 'motor'],
+                ['nama_layanan' => 'Servis Berat / Turun Mesin Motor', 'harga_estimasi' => 500000, 'tipe_kendaraan' => 'motor'],
                 ['nama_layanan' => 'Tune Up Injeksi Mobil', 'harga_estimasi' => 350000, 'tipe_kendaraan' => 'mobil'],
+                ['nama_layanan' => 'Ganti Kampas Rem Mobil', 'harga_estimasi' => 200000, 'tipe_kendaraan' => 'mobil'],
+                ['nama_layanan' => 'Servis Radiator Mobil', 'harga_estimasi' => 250000, 'tipe_kendaraan' => 'mobil'],
             ];
 
             $layananIds = [];
@@ -123,8 +127,9 @@ class ServisKendaraanSeeder extends Seeder
             $bkMotorId = DB::table('booking_servis')->insertGetId([
                 'kode_booking' => 'MTR-'.Str::upper(Str::random(6)),
                 'user_id' => $pelangganId,
+                'nama_pemesan' => 'Budi Pelanggan',
+                'no_hp' => '08123123123',
                 'layanan_servis_id' => $layananIds['motor'],
-                'tipe_kendaraan' => 'motor',
                 'merek_kendaraan' => 'Honda Vario 150',
                 'nomor_plat' => 'B 1111 MTR',
                 'tahun_kendaraan' => 2021,
@@ -162,8 +167,9 @@ class ServisKendaraanSeeder extends Seeder
             $bkMobilId = DB::table('booking_servis')->insertGetId([
                 'kode_booking' => 'MBL-'.Str::upper(Str::random(6)),
                 'user_id' => $pelangganId,
+                'nama_pemesan' => 'Budi Pelanggan',
+                'no_hp' => '08123123123',
                 'layanan_servis_id' => $layananIds['mobil'],
-                'tipe_kendaraan' => 'mobil',
                 'merek_kendaraan' => 'Toyota Avanza',
                 'nomor_plat' => 'B 9999 MOB',
                 'tahun_kendaraan' => 2019,
@@ -205,16 +211,16 @@ class ServisKendaraanSeeder extends Seeder
                     'tanggal' => $now->toDateString(),
                     'keterangan' => 'Pembelian kunci pas set baru',
                     'jumlah' => 150000,
-                    'kategori' => 'sparepart',
+                    'kategori' => 'sparepart_produk',
                     'created_by' => $kasirId,
                     'created_at' => $now,
                     'updated_at' => $now
                 ],
                 [
                     'tanggal' => $now->copy()->subDays(2)->toDateString(),
-                    'keterangan' => 'Uang makan teknisi lembur',
+                    'keterangan' => 'Gaji lembur teknisi',
                     'jumlah' => 50000,
-                    'kategori' => 'operasional',
+                    'kategori' => 'gaji_teknisi',
                     'created_by' => $kasirId,
                     'created_at' => $now->copy()->subDays(2),
                     'updated_at' => $now->copy()->subDays(2)

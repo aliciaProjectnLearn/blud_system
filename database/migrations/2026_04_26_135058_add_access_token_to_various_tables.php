@@ -21,8 +21,10 @@ return new class extends Migration
 
         foreach ($tables as $table) {
             if (Schema::hasTable($table)) {
-                Schema::table($table, function (Blueprint $table) {
-                    $table->string('access_token', 64)->nullable()->unique()->after('id');
+                Schema::table($table, function (Blueprint $blueprint) use ($table) {
+                    if (!Schema::hasColumn($table, 'access_token')) {
+                        $blueprint->string('access_token', 64)->nullable()->unique()->after('id');
+                    }
                 });
             }
         }

@@ -15,7 +15,7 @@ class MembershipController extends Controller
 
     public function index(Request $request)
     {
-        $query = Membership::with(['user', 'paket']);
+        $query = Membership::with(['user', 'paket', 'transaksi']);
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);

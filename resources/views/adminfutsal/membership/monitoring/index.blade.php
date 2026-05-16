@@ -5,7 +5,7 @@
     <div class="container-fluid">
 
         <div class="d-sm-flex align-items-center justify-content-between mb-4">
-            <h1 class="h3 mb-0 text-gray-800">Monitoring Membership</h1>
+            <h1 class="h3 mb-0 text-gray-800">Monitoring Paket Booking</h1>
         </div>
 
         @if (session('error'))
@@ -21,7 +21,7 @@
                     <div class="card-body">
                         <div class="row no-gutters align-items-center">
                             <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Membership</div>
+                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Paket Aktif</div>
                                 <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $stats['total'] }}</div>
                             </div>
                             <div class="col-auto"><i class="fas fa-id-card fa-2x text-gray-300"></i></div>
@@ -34,7 +34,7 @@
                     <div class="card-body">
                         <div class="row no-gutters align-items-center">
                             <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Membership Aktif</div>
+                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Status Aktif</div>
                                 <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $stats['aktif'] }}</div>
                             </div>
                             <div class="col-auto"><i class="fas fa-check-circle fa-2x text-gray-300"></i></div>
@@ -60,10 +60,10 @@
         {{-- Tabel --}}
         <div class="card shadow mb-4">
             <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                <h6 class="m-0 font-weight-bold text-primary">Daftar Membership</h6>
+                <h6 class="m-0 font-weight-bold text-primary">Daftar Pengguna Paket</h6>
 
                 {{-- Filter --}}
-                <form method="GET" action="{{ route('admin.futsal.monitoring-membership.index') }}" class="form-inline">
+                <form method="GET" action="{{ route('admin.futsal.monitoring-paket.index') }}" class="form-inline">
                     <select name="status" class="form-control form-control-sm mr-2">
                         <option value="">-- Semua Status --</option>
                         <option value="aktif" {{ request('status') === 'aktif' ? 'selected' : '' }}>Aktif</option>
@@ -79,7 +79,7 @@
                     </select>
                     <button type="submit" class="btn btn-sm btn-secondary"><i class="fas fa-filter"></i> Filter</button>
                     @if (request()->filled('status') || request()->filled('paket_id'))
-                        <a href="{{ route('admin.futsal.monitoring-membership.index') }}" class="btn btn-sm btn-light ml-1">Reset</a>
+                        <a href="{{ route('admin.futsal.monitoring-paket.index') }}" class="btn btn-sm btn-light ml-1">Reset</a>
                     @endif
                 </form>
             </div>
@@ -95,6 +95,7 @@
                                 <th>Sisa Kuota</th>
                                 <th>Status</th>
                                 <th>Tanggal Beli</th>
+                                <th>Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -120,10 +121,19 @@
                                         @endif
                                     </td>
                                     <td>{{ $m->created_at->format('d M Y') }}</td>
+                                    <td>
+                                        @if($m->transaksi)
+                                            <a href="{{ route('admin.futsal.transaksi.show', $m->transaksi->id) }}" class="btn btn-info btn-sm btn-circle" title="Lihat Transaksi/Pembayaran">
+                                                <i class="fas fa-file-invoice-dollar"></i>
+                                            </a>
+                                        @else
+                                            <span class="text-muted">-</span>
+                                        @endif
+                                    </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="text-center">Belum ada data membership.</td>
+                                    <td colspan="8" class="text-center">Belum ada data paket terjual.</td>
                                 </tr>
                             @endforelse
                         </tbody>

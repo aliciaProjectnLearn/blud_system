@@ -15,40 +15,41 @@ class PembayaranController extends Controller
 {
     public function index(Request $request)
     {
-        $query = PembayaranRuko::with(['sewaRuko.penyewa', 'sewaRuko.ruko']);
+        $query = PembayaranRuko::with(['sewaRuko.user', 'sewaRuko.ruko'])
+            ->whereHas('sewaRuko', function ($q) {
+                $q->whereNotIn('status_sewa', ['dibatalkan', 'ditolak']);
+            });
 
         // Filter status
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            $query->where('status_pembayaran', $request->status);
         }
 
         // Filter termin
         if ($request->filled('termin')) {
-            $query->where('termin', $request->termin);
+            $query->where('termin_ke', $request->termin);
         }
 
         // Search penyewa
         if ($request->filled('search')) {
-            $query->whereHas('sewaRuko.penyewa', function ($q) use ($request) {
-                $q->where('nama_usaha', 'like', '%' . $request->search . '%');
+            $query->whereHas('sewaRuko', function ($q) use ($request) {
+                $q->where('nama_penyewa', 'like', '%' . $request->search . '%');
             });
         }
 
-        $pembayarans = $query->latest()->paginate(15);
-
-        // Daftar penyewa untuk filter
-        $penyewas = Penyewa::all();
-
-        return view('adminkantin.pembayaran.index', compact('pembayarans', 'penyewas'));
+        $pembayarans = $query->orderBy('sewa_ruko_id')
+                             ->orderBy('termin_ke')
+                             ->paginate(15);
+        
+        return view('adminkantin.pembayaran.index', compact('pembayarans'));
     }
 
     public function show(PembayaranRuko $pembayaran)
     {
         $pembayaran->load([
-            'sewaRuko.penyewa.user',
+            'sewaRuko.user',
             'sewaRuko.ruko.kategori',
             'sewaRuko.dokumen',
-            'tipe',
         ]);
         return view('adminkantin.pembayaran.show', compact('pembayaran'));
     }
@@ -56,7 +57,7 @@ class PembayaranController extends Controller
     public function update(Request $request, PembayaranRuko $pembayaran)
     {
         // Cegah pembayaran ganda
-        if ($pembayaran->status === 'lunas') {
+        if ($pembayaran->status_pembayaran === 'dibayar') {
             return redirect()->back()->with('error', 'Pembayaran ini sudah lunas.');
         }
 
@@ -70,18 +71,30 @@ class PembayaranController extends Controller
 
         DB::beginTransaction();
         try {
+            $sebelum = $pembayaran->status_pembayaran;
             $pembayaran->update([
-                'tgl_bayar'          => $request->tgl_bayar,
+                'tanggal_bayar'      => $request->tgl_bayar,
                 'tipe_pembayaran_id' => $request->tipe_pembayaran_id,
-                'status'             => 'lunas',
+                'status_pembayaran'  => 'dibayar',
                 'no_kwitansi'        => $noKwitansi,
             ]);
 
+            // Catat audit
+            \App\Services\AuditService::catat(
+                'kantin',
+                'pembayaran_ruko',
+                $pembayaran->id,
+                'pembayaran_diverifikasi',
+                ['status_pembayaran' => $sebelum],
+                ['status_pembayaran' => 'dibayar', 'no_kwitansi' => $noKwitansi],
+                'Termin ' . $pembayaran->termin_ke . ' diverifikasi lunas'
+            );
+
             // Jika Termin 1 lunas, aktifkan status sewa
-            if ($pembayaran->termin == 1) {
+            if ($pembayaran->termin_ke == 1) {
                 $sewa = $pembayaran->sewaRuko;
                 if ($sewa) {
-                    $sewa->update(['status' => 'aktif']);
+                    $sewa->update(['status_sewa' => 'aktif']);
                     // Update status unit ruko
                     $sewa->ruko->update(['status_unit' => 'terisi']);
                 }
@@ -92,7 +105,7 @@ class PembayaranController extends Controller
             // Auto-generate PDF Kwitansi after Lunas
             $this->generateKwitansiFile($pembayaran);
 
-            return redirect()->route('adminkantin.pembayaran.show', $pembayaran)
+            return redirect()->route('admin.kantin.pembayaran.show', $pembayaran)
                 ->with('success', "Pembayaran berhasil dikonfirmasi sebagai Lunas. No. Kwitansi: {$noKwitansi}");
 
         } catch (\Exception $e) {
@@ -101,35 +114,58 @@ class PembayaranController extends Controller
         }
     }
 
-    private function generateKwitansiFile(PembayaranRuko $pembayaran)
+    private function generateKwitansiFile(PembayaranRuko $pembayaran): string
     {
-        $pembayaran->load([
-            'sewaRuko.penyewa.user',
+        $pembayaran->loadMissing([
+            'sewaRuko.user',
             'sewaRuko.ruko.kategori',
             'tipe',
         ]);
+
+        if (!$pembayaran->no_kwitansi) {
+            throw new \Exception("Nomor kwitansi belum tersedia. Pastikan pembayaran sudah dikonfirmasi.");
+        }
 
         $namaFile = 'kwitansi-' . str_replace('/', '-', $pembayaran->no_kwitansi) . '.pdf';
         $pdf = Pdf::loadView('adminkantin.pembayaran.kwitansi', compact('pembayaran'))
             ->setPaper('a5', 'portrait');
 
         $path = 'kwitansi/' . $namaFile;
-        Storage::disk('public')->put($path, $pdf->output());
-
-        $pembayaran->update(['path_kwitansi' => $path]);
+        
+        try {
+            Storage::disk('public')->put($path, $pdf->output());
+            $pembayaran->update(['path_kwitansi' => $path]);
+            return $path;
+        } catch (\Exception $e) {
+            \Log::error("Gagal generate kwitansi ID {$pembayaran->id}: " . $e->getMessage());
+            throw new \Exception("Gagal menyimpan file kwitansi ke storage. Silakan hubungi admin IT.");
+        }
     }
 
     public function downloadKwitansi(PembayaranRuko $pembayaran)
     {
-        if ($pembayaran->status !== 'lunas') {
+        if ($pembayaran->status_pembayaran !== 'dibayar') {
             return redirect()->back()->with('error', 'Kwitansi hanya tersedia untuk pembayaran yang sudah lunas.');
         }
 
-        if (!$pembayaran->path_kwitansi || !Storage::disk('public')->exists($pembayaran->path_kwitansi)) {
-            $this->generateKwitansiFile($pembayaran);
-        }
+        try {
+            $path = $pembayaran->path_kwitansi;
 
-        $namaFile = 'kwitansi-' . str_replace('/', '-', $pembayaran->no_kwitansi) . '.pdf';
-        return Storage::disk('public')->download($pembayaran->path_kwitansi, $namaFile);
+            // Jika path kosong di DB atau file fisik hilang, paksa generate ulang
+            if (empty($path) || !Storage::disk('public')->exists($path)) {
+                $path = $this->generateKwitansiFile($pembayaran);
+            }
+
+            // Validasi final path sebelum didownload untuk mencegah download(null)
+            if (empty($path) || !Storage::disk('public')->exists($path)) {
+                throw new \Exception("Sistem gagal menemukan atau membuat file kwitansi.");
+            }
+
+            $namaDownload = 'kwitansi-' . str_replace('/', '-', $pembayaran->no_kwitansi) . '.pdf';
+            return Storage::disk('public')->download($path, $namaDownload);
+
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal mendownload kwitansi: ' . $e->getMessage());
+        }
     }
 }

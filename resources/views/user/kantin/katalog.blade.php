@@ -134,9 +134,9 @@
         }
         .step-item {
             flex-direction: row;
-            align-items: center;
+            align-items: flex-start;
             text-align: left;
-            gap: 15px;
+            gap: 20px;
             width: 100%;
         }
         .step-item:not(:last-child)::after {
@@ -148,6 +148,10 @@
         .step-circle {
             min-width: 52px;
         }
+        .step-content {
+            display: flex;
+            flex-direction: column;
+        }
         .step-desc {
             text-align: left;
             max-width: none;
@@ -155,6 +159,7 @@
         .step-label {
             text-align: left;
             font-size: 0.85rem;
+            margin-bottom: 2px;
         }
 
         /* Landscape Mobile Modal */
@@ -372,11 +377,7 @@
             <div class="col-md-8">
                 <h1>Sewa Kantin & Ruko</h1>
                 <p class="lead">Pilih unit terbaik untuk usaha Anda. Fasilitas lengkap, lokasi strategis, dan pembayaran fleksibel 2 termin.</p>
-                <div class="mt-4">
-                    <a href="{{ route('user.gateway') }}" class="btn btn-light font-weight-bold px-4 py-2 mr-2">
-                        <i class="fas fa-chart-line mr-1"></i> Dashboard Saya
-                    </a>
-                </div>
+                
             </div>
             <div class="col-md-4 text-right d-none d-md-block">
                 <i class="fas fa-store hero-icon"></i>
@@ -393,28 +394,38 @@
             <div class="step-indicator">
                 <div class="step-item">
                     <div class="step-circle"><i class="fas fa-store"></i></div>
-                    <div class="step-label">Pilih Unit</div>
-                    <div class="step-desc">Pilih unit dari denah atau daftar</div>
+                    <div class="step-content">
+                        <div class="step-label">Pilih Unit</div>
+                        <div class="step-desc">Pilih unit dari denah atau daftar</div>
+                    </div>
                 </div>
                 <div class="step-item">
                     <div class="step-circle"><i class="fas fa-file-alt"></i></div>
-                    <div class="step-label">Isi Form</div>
-                    <div class="step-desc">Lengkapi data & tanggal mulai</div>
+                    <div class="step-content">
+                        <div class="step-label">Isi Form</div>
+                        <div class="step-desc">Lengkapi data & tanggal mulai</div>
+                    </div>
                 </div>
                 <div class="step-item">
                     <div class="step-circle"><i class="fas fa-credit-card"></i></div>
-                    <div class="step-label">Pilih Jumlah Termin</div>
-                    <div class="step-desc">Terdapat pilihan 1 atau 2 Termin</div>
+                    <div class="step-content">
+                        <div class="step-label">Pilih Jumlah Termin</div>
+                        <div class="step-desc">Terdapat pilihan 1 atau 2 Termin</div>
+                    </div>
                 </div>
                 <div class="step-item">
                     <div class="step-circle"><i class="fas fa-check"></i></div>
-                    <div class="step-label">Sewa Aktif</div>
-                    <div class="step-desc">Aktif setelah admin verifikasi</div>
+                    <div class="step-content">
+                        <div class="step-label">Sewa Aktif</div>
+                        <div class="step-desc">Aktif setelah admin verifikasi</div>
+                    </div>
                 </div>
                 <div class="step-item">
                     <div class="step-circle"><i class="fas fa-bell"></i></div>
-                    <div class="step-label">Pengingat</div>
-                    <div class="step-desc">Notif WA H-30 jatuh tempo termin 2 (jika memilih 2 termin)</div>
+                    <div class="step-content">
+                        <div class="step-label">Pengingat</div>
+                        <div class="step-desc">Notif WA H-30 jatuh tempo termin 2 (jika memilih 2 termin)</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -422,21 +433,21 @@
 
     {{-- Payment Info Bar --}}
     <div class="payment-info-bar animate__animated animate__fadeInUp">
-        <h5><i class="fas fa-info-circle mr-2"></i>Informasi Pembayaran 2 Termin</h5>
+        <h5><i class="fas fa-info-circle mr-2"></i>Pilihan Termin Pembayaran</h5>
         <div class="row">
             <div class="col-md-6">
-                <p>Kini Anda bisa menyewa unit dengan sistem cicilan 2x bayar:</p>
+                <p>Anda dapat memilih skema pembayaran yang paling sesuai:</p>
                 <div class="payment-step">
                     <i class="fas fa-check-circle"></i>
-                    <span><b>Termin 1:</b> 50% saat awal sewa (untuk mengaktifkan unit).</span>
+                    <span><b>1 Termin (Lunas):</b> Pembayaran 100% langsung di awal saat booking.</span>
                 </div>
                 <div class="payment-step">
                     <i class="fas fa-check-circle"></i>
-                    <span><b>Termin 2:</b> 50% sisa pembayaran pada bulan ke-6.</span>
+                    <span><b>2 Termin (Cicilan):</b> 50% di awal sewa, 50% sisa pada bulan ke-6.</span>
                 </div>
             </div>
             <div class="col-md-6 border-left d-none d-md-block">
-                <p class="small">Sewa akan berstatus <b>Aktif</b> segera setelah pembayaran Termin 1 diverifikasi oleh Admin. Notifikasi tagihan Termin 2 akan dikirimkan otomatis melalui WhatsApp.</p>
+                <p class="small">Sewa akan berstatus <b>Aktif</b> segera setelah pembayaran (Termin 1 atau Lunas) diverifikasi oleh Admin. Untuk pilihan 2 Termin, notifikasi tagihan Termin 2 akan dikirimkan otomatis melalui WhatsApp pada bulan ke-5.</p>
             </div>
         </div>
     </div>
@@ -491,7 +502,8 @@
                         <div class="card-body">
                             <span class="category-label">{{ $cat['nama'] }}</span>
                             <h5 class="card-title">{{ $ruko->kode_unit }}</h5>
-                            <div class="price-tag">Rp {{ number_format($ruko->harga, 0, ',', '.') }}<small>/tahun</small></div>
+                            <div class="price-tag mb-2">Rp {{ number_format($ruko->harga, 0, ',', '.') }}<small>/tahun</small></div>
+                            <div class="small text-muted mb-3"><i class="fas fa-expand-arrows-alt mr-1"></i> {{ $ruko->ukuran_ruko ?? '-' }}</div>
                             @if($ruko->status_unit == 'kosong')
                                 <button type="button" class="btn btn-primary btn-block btn-booking btn-sm" onclick="showUnitDetail({{ $ruko->id }})">
                                     <i class="fas fa-calendar-check mr-1"></i> Pilih Unit
@@ -523,7 +535,7 @@
                 </button>
             </div>
             <div class="modal-body">
-                <div class="row mb-4">
+                <div class="row mb-3">
                     <div class="col-6">
                         <span class="detail-label">Status Unit</span>
                         <div id="detail_status_badge" class="mt-1"></div>
@@ -533,6 +545,21 @@
                         <span id="detail_kategori" class="detail-value text-dark">-</span>
                     </div>
                 </div>
+
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <span class="detail-label">Ukuran Unit</span>
+                        <span id="detail_ukuran" class="detail-value text-dark" style="font-size: 0.95rem;">-</span>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <span class="detail-label">Deskripsi Unit</span>
+                    <div id="detail_deskripsi" class="small text-muted mt-1" style="line-height: 1.5;">
+                        Tidak ada deskripsi detail.
+                    </div>
+                </div>
+
                 <div class="p-3 bg-light rounded border-left-primary">
                     <span class="detail-label">Biaya Sewa</span>
                     <span id="detail_harga" class="detail-value text-primary font-weight-bold" style="font-size: 1.5rem;">Rp 0</span>
@@ -556,6 +583,8 @@
         $.get(`/user/kantin/unit/${id}/detail`, function(unit) {
             $('#detail_kode_unit').text('UNIT ' + unit.kode_unit);
             $('#detail_kategori').text(unit.kategori.nama);
+            $('#detail_ukuran').text(unit.ukuran_ruko || '-');
+            $('#detail_deskripsi').text(unit.deskripsi || 'Tidak ada deskripsi detail.');
             $('#detail_harga').text('Rp ' + new Intl.NumberFormat('id-ID').format(unit.harga));
             
             let badgeClass = 'badge-success', badgeText = 'Tersedia';
@@ -602,6 +631,20 @@
 @endsection
 
 @push('scripts')
+@if(session('booking_sukses'))
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        Swal.fire({
+            icon: 'success',
+            title: 'Pengajuan Berhasil! 🎉',
+            text: '{!! session('booking_pesan') !!}',
+            confirmButtonText: 'Oke, Mengerti',
+            confirmButtonColor: '#3d5af1',
+            allowOutsideClick: false,
+        });
+    });
+</script>
+@endif
 <script>
 $(function() {
     const rukoDataArr = {!! json_encode($rukoDataJs) !!};

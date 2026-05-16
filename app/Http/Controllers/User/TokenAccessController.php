@@ -3,146 +3,233 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
-use App\Models\Booking;
 use App\Models\BookingFutsal;
-use App\Models\BookingAc;
-use App\Models\BookingServis;
-use App\Models\SewaRuko;
-use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 class TokenAccessController extends Controller
 {
-    /**
-     * Tampilkan detail booking berdasarkan token.
-     */
+    // SHOW — Tampilkan form OTP atau detail booking (jika session masih valid)
     public function show($token)
     {
-        $booking = $this->findBookingByToken($token);
-
-        if (!$booking) {
-            return abort(404, 'Token tidak valid atau booking tidak ditemukan.');
+        // Cek apakah ini token servis
+        $bookingServis = \App\Models\BookingServis::where('access_token', $token)->first();
+        if ($bookingServis) {
+            return redirect()->route('user.servis.token.show', $token);
         }
 
-        $type = $this->getBookingType($booking);
-        $user = $booking->user ?? $booking->penyewaUser ?? null; // Adjust based on model relations
+        $bookingFutsal = BookingFutsal::with(['booking.pembayaranFutsal.tipePembayaran', 'lapangan'])
+            ->where('access_token', $token)->firstOrFail();
 
-        return view('user.token.detail', compact('booking', 'type', 'token', 'user'));
+        // Jika booking sudah selesai/ditolak/dibatalkan → link tidak aktif
+        if (in_array($bookingFutsal->status, ['selesai', 'ditolak', 'dibatalkan'])) {
+            return view('user.token.expired', ['status' => $bookingFutsal->status]);
+        }
+
+        // Cek session OTP masih valid (60 menit setelah verifikasi berhasil)
+        $verifiedUntil = session('otp_verified_until_' . $token);
+        if ($verifiedUntil && now()->lt(Carbon::parse($verifiedUntil))) {
+            // Session masih valid → langsung tampilkan detail
+            return view('user.token.detail', compact('bookingFutsal', 'token'));
+        }
+
+        // Session habis / belum pernah verifikasi → alur OTP
+        // Cek apakah OTP yang ada masih berlaku (belum expired & tidak diblokir)
+        $isBlocked  = $bookingFutsal->otp_blocked_until && now()->lt($bookingFutsal->otp_blocked_until);
+        $isOtpValid = $bookingFutsal->otp_code
+                      && $bookingFutsal->otp_expired_at
+                      && now()->lt($bookingFutsal->otp_expired_at)
+                      && !$isBlocked;
+
+        if (!$isOtpValid && !$isBlocked) {
+            // Generate OTP baru dan kirim via WA
+            // (ini yang dimaksud ketua project: OTP dikirim saat buka link, bukan saat booking)
+            $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+            $bookingFutsal->update([
+                'otp_code'          => $otp,
+                'otp_expired_at'    => now()->addMinutes(3),
+                'otp_attempt'       => 0,
+                'otp_sent_at'       => now(),
+                'otp_blocked_until' => null,
+            ]);
+            $this->sendWhatsappOtp($bookingFutsal->no_hp, $otp);
+        }
+        // Jika OTP masih berlaku → tampilkan form tanpa kirim ulang
+        // Jika diblokir → tampilkan form dengan banner blokir
+
+        $canResend = $this->checkCanResend($bookingFutsal);
+
+        return view('user.token.otp', compact('bookingFutsal', 'token', 'canResend'));
     }
 
-    /**
-     * Tampilkan riwayat semua booking berdasarkan nomor HP dari token yang diberikan.
-     */
-    public function riwayat($token)
+    // VERIFY OTP — Cek kode yang diinput user
+    public function verifyOtp(Request $request, $token)
     {
-        $currentBooking = $this->findBookingByToken($token);
+        $request->validate(['otp_input' => 'required|string|size:6']);
 
-        if (!$currentBooking) {
-            return abort(404, 'Token tidak valid.');
+        $bookingFutsal = BookingFutsal::where('access_token', $token)->firstOrFail();
+
+        // Cek blokir
+        if ($bookingFutsal->otp_blocked_until && now()->lt($bookingFutsal->otp_blocked_until)) {
+            $menitSisa = max(1, (int) now()->diffInMinutes($bookingFutsal->otp_blocked_until, false));
+            return back()->with('error', "Terlalu banyak percobaan. Coba lagi dalam {$menitSisa} menit.");
         }
 
-        $user = $currentBooking->user ?? $currentBooking->penyewaUser; // Logic to get user
-        
-        if (!$user) {
-            return back()->with('error', 'Data pengguna tidak ditemukan.');
+        // Cek kedaluwarsa
+        if (!$bookingFutsal->otp_expired_at || now()->gt($bookingFutsal->otp_expired_at)) {
+            return back()->with('error', "Kode OTP sudah kedaluwarsa. Klik 'Kirim Ulang'.");
         }
 
-        // Get all bookings for this user across all services
-        $bookings = [
-            'futsal' => BookingFutsal::where('user_id', $user->id)->with('booking')->latest()->get(),
-            'ac'     => BookingAc::where('user_id', $user->id)->latest()->get(),
-            'servis' => BookingServis::where('user_id', $user->id)->latest()->get(),
-            'kantin' => SewaRuko::where('penyewa_id', $user->id)->with('booking')->latest()->get(),
-        ];
+        // Bandingkan kode
+        if ($request->otp_input !== $bookingFutsal->otp_code) {
+            $attempt = $bookingFutsal->otp_attempt + 1;
+            if ($attempt >= 3) {
+                $bookingFutsal->update([
+                    'otp_attempt'       => $attempt,
+                    'otp_blocked_until' => now()->addMinutes(3),
+                ]);
+                return back()->with('error', 'Terlalu banyak percobaan. Akses diblokir selama 3 menit.');
+            }
+            $bookingFutsal->update(['otp_attempt' => $attempt]);
+            $sisa = 3 - $attempt;
+            return back()->with('error', "Kode OTP salah. Sisa {$sisa} percobaan.");
+        }
 
-        return view('user.token.riwayat', compact('bookings', 'user', 'token'));
+        // OTP benar → bersihkan kode & simpan session
+        $bookingFutsal->update([
+            'otp_code'          => null,
+            'otp_attempt'       => 0,
+            'otp_blocked_until' => null,
+        ]);
+
+        session([
+            'otp_verified_' . $token       => true,
+            'otp_verified_until_' . $token => now()->addMinutes(60)->toDateTimeString(),
+        ]);
+
+        return redirect()->route('user.token.show', $token);
     }
 
-    /**
-     * Tampilkan halaman konfirmasi pembatalan.
-     */
+    // RESEND OTP — Kirim ulang dengan cooldown 60 detik
+    public function resendOtp(Request $request, $token)
+    {
+        $bookingFutsal = BookingFutsal::where('access_token', $token)->firstOrFail();
+
+        // Cek masih diblokir
+        if ($bookingFutsal->otp_blocked_until && now()->lt($bookingFutsal->otp_blocked_until)) {
+            $menitSisa = max(1, (int) now()->diffInMinutes($bookingFutsal->otp_blocked_until, false));
+            return back()->with('error', "Masih diblokir. Coba lagi dalam {$menitSisa} menit.");
+        }
+
+        // Cek cooldown 60 detik
+        if ($bookingFutsal->otp_sent_at) {
+            $detikSejak  = now()->diffInSeconds($bookingFutsal->otp_sent_at);
+            $detikTunggu = 60 - (int) $detikSejak;
+            if ($detikTunggu > 0) {
+                return back()->with('error', "Tunggu {$detikTunggu} detik sebelum mengirim ulang.");
+            }
+        }
+
+        // Generate OTP baru
+        $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        $bookingFutsal->update([
+            'otp_code'          => $otp,
+            'otp_expired_at'    => now()->addMinutes(3),
+            'otp_attempt'       => 0,
+            'otp_blocked_until' => null,
+            'otp_sent_at'       => now(),
+        ]);
+        $this->sendWhatsappOtp($bookingFutsal->no_hp, $otp);
+
+        return back()->with('success', 'Kode OTP baru telah dikirim ke WhatsApp Anda.');
+    }
+
+    // BATALKAN — Konfirmasi pembatalan booking
     public function batalkan($token)
     {
-        $booking = $this->findBookingByToken($token);
-
-        if (!$booking) {
-            return abort(404, 'Token tidak valid.');
+        $bookingServis = \App\Models\BookingServis::where('access_token', $token)->first();
+        if ($bookingServis) {
+            return redirect()->route('user.servis.token.batalkan', $token);
         }
 
-        // Validasi status & waktu pembatalan
-        $canCancel = $this->checkCanCancel($booking);
+        $bookingFutsal = BookingFutsal::with(['booking', 'lapangan'])
+            ->where('access_token', $token)->firstOrFail();
 
-        if (!$canCancel['allowed']) {
-            return redirect()->route('user.token.show', $token)->with('error', $canCancel['message']);
+        $canCancel = $bookingFutsal->status === 'menunggu'
+                     && Carbon::parse($bookingFutsal->start_datetime)->gt(now()->addHours(2));
+
+        if (!$canCancel) {
+            return redirect()->route('user.token.show', $token)
+                ->with('error', 'Booking tidak bisa dibatalkan karena sudah dikonfirmasi atau waktu bermain kurang dari 2 jam.');
         }
 
-        return view('user.token.batalkan', compact('booking', 'token'));
+        return view('user.token.batalkan', compact('bookingFutsal', 'token'));
     }
 
-    /**
-     * Proses pembatalan booking.
-     */
     public function prosesBatalkan(Request $request, $token)
     {
-        $booking = $this->findBookingByToken($token);
+        $bookingFutsal = BookingFutsal::with(['booking'])
+            ->where('access_token', $token)->firstOrFail();
 
-        if (!$booking) {
-            return abort(404, 'Token tidak valid.');
+        $canCancel = $bookingFutsal->status === 'menunggu'
+                     && Carbon::parse($bookingFutsal->start_datetime)->gt(now()->addHours(2));
+
+        if (!$canCancel) {
+            return redirect()->route('user.token.show', $token)
+                ->with('error', 'Booking tidak memenuhi syarat untuk dibatalkan.');
         }
 
-        $canCancel = $this->checkCanCancel($booking);
-        if (!$canCancel['allowed']) {
-            return redirect()->route('user.token.show', $token)->with('error', $canCancel['message']);
+        $bookingFutsal->update(['status' => 'dibatalkan']);
+        if ($bookingFutsal->booking) {
+            $bookingFutsal->booking->update(['status' => 'dibatalkan']);
         }
 
-        // Update status
-        if (isset($booking->status)) {
-            $booking->status = 'dibatalkan';
-            $booking->save();
-        }
-        
-        // If it has a parent booking table record
-        if (isset($booking->booking_id) && $booking->booking) {
-            $booking->booking->status = 'dibatalkan';
-            $booking->booking->save();
-        }
-
-        return redirect()->route('user.token.show', $token)->with('success', 'Booking berhasil dibatalkan.');
+        return redirect()->route('user.token.show', $token)
+            ->with('success', 'Booking berhasil dibatalkan.');
     }
 
-    /**
-     * Helper to find booking across tables by token.
-     */
-    private function findBookingByToken($token)
+    // HELPER: Kirim OTP via WhatsApp (Fonnte)
+    private function sendWhatsappOtp(string $noHp, string $otpCode): void
     {
-        return BookingFutsal::where('access_token', $token)->first()
-            ?? BookingAc::where('access_token', $token)->first()
-            ?? BookingServis::where('access_token', $token)->first()
-            ?? SewaRuko::where('access_token', $token)->first()
-            ?? Booking::where('access_token', $token)->first();
-    }
+        $apiToken   = config('services.fonnte.token');
+        $noHpBersih = preg_replace('/[^0-9]/', '', $noHp);
 
-    private function getBookingType($booking)
-    {
-        if ($booking instanceof BookingFutsal) return 'futsal';
-        if ($booking instanceof BookingAc) return 'ac';
-        if ($booking instanceof BookingServis) return 'servis';
-        if ($booking instanceof SewaRuko) return 'kantin';
-        return 'umum';
-    }
+        $pesan  = "🔐 *Kode OTP Booking Futsal BLUD*\n\n";
+        $pesan .= "Kode verifikasi Anda: *{$otpCode}*\n\n";
+        $pesan .= "Kode ini berlaku selama *3 menit*.\n";
+        $pesan .= "Jangan bagikan kode ini kepada siapapun.\n\n";
+        $pesan .= "_Jika Anda tidak merasa melakukan booking, abaikan pesan ini._";
 
-    private function checkCanCancel($booking)
-    {
-        $status = strtolower($booking->status ?? ($booking->booking->status ?? ''));
-        
-        if (in_array($status, ['selesai', 'dibatalkan', 'proses', 'diproses'])) {
-            return ['allowed' => false, 'message' => 'Booking dengan status ' . $status . ' tidak dapat dibatalkan.'];
+        try {
+            Http::withHeaders(['Authorization' => $apiToken])
+                ->asForm()
+                ->post('https://api.fonnte.com/send', [
+                    'target'      => $noHpBersih,
+                    'message'     => $pesan,
+                    'countryCode' => '62',
+                    'token'       => $apiToken,
+                ]);
+        } catch (\Exception $e) {
+            Log::warning("Gagal kirim OTP WA ke {$noHpBersih}: " . $e->getMessage());
         }
 
-        // Add time-based validation if needed (e.g., max 24h before)
-        // For now, let's allow if status is 'menunggu' or 'dikonfirmasi'
-        
-        return ['allowed' => true, 'message' => ''];
+        Log::info("OTP {$otpCode} dikirim ke {$noHpBersih}");
+    }
+
+    // HELPER: Cek apakah tombol resend boleh aktif
+    private function checkCanResend(BookingFutsal $booking): bool
+    {
+        if ($booking->otp_blocked_until && now()->lt($booking->otp_blocked_until)) {
+            return false;
+        }
+        if ($booking->otp_sent_at) {
+            $detikSejak = now()->diffInSeconds($booking->otp_sent_at);
+            if ($detikSejak < 60) {
+                return false;
+            }
+        }
+        return true;
     }
 }

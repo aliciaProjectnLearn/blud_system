@@ -8,27 +8,47 @@ use App\Models\DokumentasiUnit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use App\Traits\Loggable;
 use Exception;
 
 class UnitController extends Controller
 {
+    use Loggable;
+
     // ────────────────────────────────────────────────────────────────
-    //  HELPER: Auto-generate kode_unit  →  UNT001, UNT002, dst.
+    //  HELPER: Auto-generate kode_unit berdasarkan kategori
     // ────────────────────────────────────────────────────────────────
-    private function generateKodeUnit(): string
+    public function getNewKode(Request $request)
     {
-        $last = Ruko::whereNotNull('kode_unit')
-            ->orderByRaw("CAST(SUBSTRING(kode_unit, 4) AS UNSIGNED) DESC")
+        $kategori_id = $request->kategori_id;
+        if (!$kategori_id) {
+            return response()->json(['kode' => $this->generateKodeUnit()]);
+        }
+
+        return response()->json(['kode' => $this->generateKodeUnit($kategori_id)]);
+    }
+
+    private function generateKodeUnit($kategori_id = null): string
+    {
+        if ($kategori_id) {
+            $kategori = \App\Models\Kategori::find($kategori_id);
+            $prefix = ($kategori && $kategori->prefix) ? $kategori->prefix : 'UNT';
+        } else {
+            $prefix = 'UNT';
+        }
+
+        $last = Ruko::where('kode_unit', 'LIKE', $prefix . '%')
+            ->orderByRaw("CAST(SUBSTRING(kode_unit, " . (strlen($prefix) + 1) . ") AS UNSIGNED) DESC")
             ->value('kode_unit');
 
         if ($last) {
-            $lastNumber = (int) substr($last, 3);
+            $lastNumber = (int) substr($last, strlen($prefix));
             $nextNumber = $lastNumber + 1;
         } else {
             $nextNumber = 1;
         }
 
-        return 'UNT' . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
+        return $prefix . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
     }
 
     // ────────────────────────────────────────────────────────────────
@@ -45,19 +65,23 @@ class UnitController extends Controller
         $uploadedPaths = [];
         $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
 
+        // Pastikan direktori ada
+        if (!Storage::disk('public')->exists('dokumentasi_unit')) {
+            Storage::disk('public')->makeDirectory('dokumentasi_unit');
+        }
+
         foreach ($files as $file) {
             if ($file->isValid()) {
-                // [OPTIMALISASI] Error checking pada proses upload
-                $path = $file->store('dokumentasi_unit', 'public');
+                // Simpan file ke disk 'public'
+                $path = Storage::disk('public')->putFile('dokumentasi_unit', $file);
                 
                 if (!$path) {
-                    throw new Exception("Gagal mengunggah file {$file->getClientOriginalName()}. Pastikan storage dapat ditulis.");
+                    throw new Exception("Gagal mengunggah file {$file->getClientOriginalName()}.");
                 }
                 
                 $uploadedPaths[] = $path;
                 
                 $ext = strtolower($file->getClientOriginalExtension());
-                // [OPTIMALISASI] Tipe dokumen disederhanakan: gambar vs dokumen biasa
                 $tipe = in_array($ext, $imageExtensions) ? 'gambar' : 'dokumen';
                 $namaAsli = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
 
@@ -67,6 +91,15 @@ class UnitController extends Controller
                     'tipe'          => $tipe,
                     'judul_dokumen' => $namaAsli,
                 ]);
+
+                // Update foto_ruko utama jika belum ada
+                $ruko = Ruko::find($rukoId);
+                if ($tipe === 'gambar' && (!$ruko->foto_ruko || !Storage::disk('public')->exists($ruko->foto_ruko))) {
+                    $ruko->update(['foto_ruko' => $path]);
+                }
+            } else {
+                $errorMsg = $file->getErrorMessage();
+                throw new Exception("File {$file->getClientOriginalName()} tidak valid: {$errorMsg}. Cek batas upload server (max_filesize).");
             }
         }
 
@@ -89,7 +122,7 @@ class UnitController extends Controller
         }
 
         $units      = $query->orderByRaw("CAST(SUBSTRING(kode_unit, 4) AS UNSIGNED) ASC")->paginate(10)->withQueryString();
-        $kategoris  = \App\Models\Kategori::where('tipe', 'kantin')->orderBy('nama')->get();
+        $kategoris = \App\Models\Kategori::where('tipe', 'kantin')->orderBy('nama')->get();
 
         return view('adminkantin.unit.index', compact('units', 'kategoris'));
     }
@@ -99,7 +132,7 @@ class UnitController extends Controller
     // ────────────────────────────────────────────────────────────────
     public function create()
     {
-        $kodeUnit  = $this->generateKodeUnit();
+        $kodeUnit  = null;
         $kategoris = \App\Models\Kategori::where('tipe', 'kantin')->orderBy('nama')->get();
 
         return view('adminkantin.unit.create', compact('kodeUnit', 'kategoris'));
@@ -114,8 +147,15 @@ class UnitController extends Controller
             'kode_unit'    => 'required|string|max:10|unique:ruko,kode_unit',
             'kategori_id'  => 'required|exists:kategori,id',
             'harga'        => 'required|numeric|min:0',
+            'ukuran_ruko'  => 'nullable|string|max:100',
+            'deskripsi'    => 'nullable|string',
+            'metode_pembayaran_unit' => 'required|in:1_termin,2_termin,fleksibel',
             'dokumen'      => 'nullable|array|max:10',
             'dokumen.*'    => 'file|mimes:jpg,jpeg,png,pdf|max:5120',
+        ], [
+            'dokumen.*.max'   => 'File yang Anda unggah melebihi batas ukuran maksimal (5MB).',
+            'dokumen.*.mimes' => 'Format file harus berupa JPG, PNG, atau PDF.',
+            'harga.required'  => 'Harga sewa wajib diisi.',
         ]);
 
         $uploadedPaths = [];
@@ -127,6 +167,9 @@ class UnitController extends Controller
                 'kode_unit'   => $validated['kode_unit'],
                 'kategori_id' => $validated['kategori_id'],
                 'harga'       => $validated['harga'],
+                'ukuran_ruko' => $validated['ukuran_ruko'],
+                'deskripsi'   => $validated['deskripsi'],
+                'metode_pembayaran_unit' => $validated['metode_pembayaran_unit'],
                 'status_unit' => 'kosong',
             ]);
 
@@ -138,7 +181,7 @@ class UnitController extends Controller
             DB::commit();
 
             return redirect()
-                ->route('adminkantin.unit.index')
+                ->route('admin.kantin.unit.index')
                 ->with('success', "Unit {$ruko->kode_unit} berhasil ditambahkan.");
 
         } catch (Exception $e) {
@@ -150,6 +193,8 @@ class UnitController extends Controller
                     Storage::disk('public')->delete($path);
                 }
             }
+
+            $this->function_log('Kantin', 'create', 'Admin Kantin menambahkan unit baru: ' . $request->kode_unit);
 
             return back()
                 ->with('error', 'Terjadi kesalahan sistem saat menyimpan data: ' . $e->getMessage())
@@ -185,11 +230,18 @@ class UnitController extends Controller
         $validated = $request->validate([
             'kategori_id'       => 'required|exists:kategori,id',
             'harga'             => 'required|numeric|min:0',
+            'ukuran_ruko'       => 'nullable|string|max:100',
+            'deskripsi'         => 'nullable|string',
+            'metode_pembayaran_unit' => 'required|in:1_termin,2_termin,fleksibel',
             'status_unit'       => 'required|in:terisi,kosong',
             'dokumen'           => 'nullable|array|max:10',
             'dokumen.*'         => 'file|mimes:jpg,jpeg,png,pdf|max:5120',
             'hapus_dokumen'     => 'nullable|array',
             'hapus_dokumen.*'   => 'integer|exists:dokumentasi_unit,id',
+        ], [
+            'dokumen.*.max'   => 'File yang Anda unggah melebihi batas ukuran maksimal (5MB).',
+            'dokumen.*.mimes' => 'Format file harus berupa JPG, PNG, atau PDF.',
+            'harga.required'  => 'Harga sewa wajib diisi.',
         ]);
 
         $uploadedPaths = [];
@@ -199,6 +251,9 @@ class UnitController extends Controller
             $unit->update([
                 'kategori_id' => $validated['kategori_id'],
                 'harga'       => $validated['harga'],
+                'ukuran_ruko' => $validated['ukuran_ruko'],
+                'deskripsi'   => $validated['deskripsi'],
+                'metode_pembayaran_unit' => $validated['metode_pembayaran_unit'],
                 'status_unit' => $validated['status_unit'],
             ]);
 
@@ -225,7 +280,7 @@ class UnitController extends Controller
             DB::commit();
 
             return redirect()
-                ->route('adminkantin.unit.index')
+                ->route('admin.kantin.unit.index')
                 ->with('success', "Unit {$unit->kode_unit} berhasil diperbarui.");
 
         } catch (Exception $e) {
@@ -272,7 +327,7 @@ class UnitController extends Controller
             DB::commit();
 
             return redirect()
-                ->route('adminkantin.unit.index')
+                ->route('admin.kantin.unit.index')
                 ->with('success', "Unit {$kode} berhasil dihapus.");
 
         } catch (Exception $e) {

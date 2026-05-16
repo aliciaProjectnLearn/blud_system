@@ -15,7 +15,6 @@ class Penyewa extends Model
         'user_id',
         'nama_usaha',
         'alamat',
-        'nik',
     ];
 
     /**

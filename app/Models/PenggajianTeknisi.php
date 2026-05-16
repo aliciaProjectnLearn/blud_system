@@ -1,0 +1,37 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class PenggajianTeknisi extends Model
+{
+    use HasFactory;
+
+    protected $table = 'penggajian_teknisi';
+
+    protected $fillable = [
+        'teknisi_id',
+        'booking_servis_id',
+        'booking_ac_id',
+        'nominal',
+        'status_bayar',
+        'tanggal_bayar'
+    ];
+
+    public function bookingAc()
+    {
+        return $this->belongsTo(BookingAc::class, 'booking_ac_id');
+    }
+
+    public function teknisi()
+    {
+        return $this->belongsTo(User::class, 'teknisi_id');
+    }
+
+    public function bookingServis()
+    {
+        return $this->belongsTo(BookingServis::class, 'booking_servis_id');
+    }
+}

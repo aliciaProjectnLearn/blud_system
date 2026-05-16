@@ -9,4 +9,5 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-Schedule::command('kantin:kirim-pengingat-termin2')->daily();
+Schedule::command('kantin:cancel-expired')->daily();
+Schedule::command('kantin:notifikasi-masa-sewa')->daily();

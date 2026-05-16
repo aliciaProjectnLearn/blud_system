@@ -41,20 +41,21 @@ class AuthController extends Controller
         if (Auth::attempt($credentials, $request->remember)) {
             $request->session()->regenerate();
 
+            // ✅ Tambah orderBy agar role utama konsisten,
+            //    dan ambil dari DB fresh (bukan cache object)
             $role = DB::table('roles_users')
                 ->join('roles', 'roles.id', '=', 'roles_users.role_id')
                 ->where('roles_users.user_id', auth()->id())
+                ->orderBy('roles.id', 'asc') // role dengan ID terkecil = role utama
                 ->value('roles.nama');
 
             $roleName = strtolower($role ?? '');
-            
-            // Redirect based on the NEW route structure (STEP 2)
+
             $dashboardRoute = route('home');
-            
+
             if ($roleName === 'superadmin') {
                 $dashboardRoute = route('admin.dashboard');
             } elseif (in_array($roleName, ['adminfutsal', 'adminkantin', 'adminac', 'adminservis'])) {
-                // Semua admin mengarah ke prefix admin.[sub]
                 $sub = str_replace('admin', '', $roleName);
                 if ($roleName === 'adminservis') $sub = 'servis';
                 $dashboardRoute = route("admin.$sub.dashboard");
@@ -64,13 +65,13 @@ class AuthController extends Controller
                 $dashboardRoute = route('teknisi.servis.dashboard');
             } elseif ($roleName === 'kasir') {
                 $dashboardRoute = route('kasir.dashboard');
+            } elseif ($roleName === 'kasirfutsal') {
+                $dashboardRoute = route('kasirfutsal.dashboard');
             } elseif ($roleName === 'pelanggan') {
-                // Pelanggan tidak seharusnya login via internal page
                 Auth::logout();
                 return redirect()->route('home')->with('error', 'Akses ditolak.');
             }
 
-            // Catat log login
             $this->function_log('Auth', 'login', 'User ' . Auth::user()->name . ' login');
 
             return redirect($dashboardRoute);

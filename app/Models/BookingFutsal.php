@@ -3,40 +3,49 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class BookingFutsal extends Model
 {
     protected $table = 'booking_futsal';
 
     protected $fillable = [
+        'access_token',
         'booking_id',
-        'user_id',
         'lapangan_id',
+        'nama_pemesan',
+        'no_hp',
         'start_datetime',
         'end_datetime',
-        'type',
         'jenis_pembayaran',
-        'access_token',
+        'status',
+        'catatan',
+        // OTP fields
+        'otp_code',
+        'otp_expired_at',
+        'otp_attempt',
+        'otp_blocked_until',
+        'otp_sent_at',
     ];
 
     protected $casts = [
-        'start_datetime' => 'datetime',
-        'end_datetime'   => 'datetime',
+        'start_datetime'   => 'datetime',
+        'end_datetime'     => 'datetime',
+        'otp_expired_at'   => 'datetime',
+        'otp_blocked_until'=> 'datetime',
+        'otp_sent_at'      => 'datetime',
     ];
 
-    // Tambah accessor untuk toleransi 10 menit (display only)
     public function getStartWithToleranceAttribute()
     {
         return $this->start_datetime->copy()->addMinutes(10)->format('H:i');
     }
 
-    // Hitung durasi dalam jam
     public function getDurasiJamAttribute()
     {
         return $this->start_datetime->diffInHours($this->end_datetime);
     }
 
-    // Hitung durasi dalam hari
     public function getDurasiHariAttribute()
     {
         return $this->start_datetime->diffInDays($this->end_datetime);
@@ -47,13 +56,25 @@ class BookingFutsal extends Model
         return $this->belongsTo(Booking::class, 'booking_id');
     }
 
-    public function user()
-    {
-        return $this->belongsTo(User::class, 'user_id');
-    }
+
 
     public function lapangan()
     {
         return $this->belongsTo(Lapangan::class, 'lapangan_id');
+    }
+
+    public function pembayaranFutsal()
+    {
+        return $this->hasOne(PembayaranFutsal::class, 'booking_id');
+    }
+
+    public static function generateToken()
+    {
+        return Str::random(32);
+    }
+
+    public function scopeByNoHp($query, $noHp)
+    {
+        return $query->where('no_hp', $noHp);
     }
 }

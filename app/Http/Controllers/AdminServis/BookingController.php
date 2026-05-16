@@ -4,18 +4,21 @@ namespace App\Http\Controllers\AdminServis;
 
 use App\Http\Controllers\Controller;
 use App\Models\BookingServis;
+use App\Traits\Loggable;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class BookingController extends Controller
 {
+    use Loggable;
+
     /**
      * Tampilkan semua booking dengan filter dan search.
      */
     public function index(Request $request)
     {
-        $query = BookingServis::with(['pelanggan', 'teknisi']);
+        $query = BookingServis::with(['pelanggan', 'teknisi', 'layananServis']);
 
         // Filter Tanggal
         if ($request->filled('tanggal')) {
@@ -39,7 +42,7 @@ class BookingController extends Controller
 
         // Hitung ketersediaan slot untuk tanggal yang difilter atau hari ini
         $tanggalSlot = $request->tanggal ?? now()->toDateString();
-        $slotUsage = BookingServis::whereDate('tanggal_booking', $tanggalSlot)
+        $slotUsage   = BookingServis::whereDate('tanggal_booking', $tanggalSlot)
             ->whereNotIn('status', ['batal', 'selesai'])
             ->select('jam_booking', DB::raw('count(*) as total'))
             ->groupBy('jam_booking')
@@ -54,64 +57,35 @@ class BookingController extends Controller
      */
     public function show($id)
     {
-        $booking = BookingServis::with(['pelanggan', 'teknisi', 'rincianServis'])->findOrFail($id);
-        
-        // Ambil daftar teknisi untuk dropdown assignment
-        $listTeknisi = User::whereHas('roles', function ($q) {
-            $q->where('nama', 'Teknisi')
-              ->orWhere('nama', 'like', 'Teknisi%');
-        })->get();
+        $booking = BookingServis::with(['pelanggan', 'rincianServis', 'layananServis', 'teknisi'])
+            ->findOrFail($id);
 
-        return view('adminservis.booking.show', compact('booking', 'listTeknisi'));
+        return view('adminservis.booking.show', compact('booking'));
     }
 
     /**
-     * Update status booking.
+     * Konfirmasi booking oleh Admin Servis.
      */
-    public function update(Request $request, $id)
+    public function konfirmasi($id)
     {
-        $request->validate([
-            'status' => 'required|in:menunggu,diproses,selesai,batal',
-        ]);
-
         $booking = BookingServis::findOrFail($id);
+        $booking->update(['status' => 'dikonfirmasi']);
 
-        if ($booking->status === 'batal') {
-            return back()->with('error', 'Booking yang sudah batal tidak bisa diubah statusnya.');
-        }
+        $this->function_log('Servis', 'konfirmasi', 'Admin Servis mengkonfirmasi booking: ' . $booking->kode_booking . ' atas nama ' . ($booking->nama_pemesan ?? '-'));
 
-        $booking->update([
-            'status' => $request->status,
-        ]);
-
-        return back()->with('success', 'Status booking berhasil diperbarui.');
+        return back()->with('success', 'Booking berhasil dikonfirmasi.');
     }
 
     /**
-     * Assign teknisi ke booking.
+     * Tolak booking oleh Admin Servis.
      */
-    public function assignTeknisi(Request $request, $id)
+    public function tolak(Request $request, $id)
     {
-        $request->validate([
-            'teknisi_id' => 'required|exists:users,id',
-        ]);
-
         $booking = BookingServis::findOrFail($id);
+        $booking->update(['status' => 'batal']);
 
-        if ($booking->status === 'batal') {
-            return back()->with('error', 'Tidak bisa assign teknisi ke booking yang sudah batal.');
-        }
+        $this->function_log('Servis', 'tolak', 'Admin Servis menolak booking: ' . $booking->kode_booking . ' atas nama ' . ($booking->nama_pemesan ?? '-'));
 
-        // Validasi role teknisi
-        $teknisi = User::findOrFail($request->teknisi_id);
-        if (!$teknisi->hasRole('Teknisi') && !$teknisi->hasRole('Teknisi Motor') && !$teknisi->hasRole('Teknisi Mobil')) {
-            return back()->with('error', 'User yang dipilih bukan teknisi.');
-        }
-
-        $booking->update([
-            'teknisi_id' => $request->teknisi_id,
-        ]);
-
-        return back()->with('success', 'Teknisi berhasil ditugaskan.');
+        return back()->with('success', 'Booking berhasil ditolak.');
     }
 }

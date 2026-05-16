@@ -68,6 +68,11 @@
             cursor: not-allowed;
             background: #f8f9fc;
         }
+
+        select.form-control {
+            max-width: 100%;
+            text-overflow: ellipsis;
+        }
     </style>
 @endpush
 
@@ -81,6 +86,33 @@
                         <p class="mb-0 opacity-75 small">Lengkapi data kendaraan dan pilih jadwal kedatangan Anda.</p>
                     </div>
                     <div class="card-body p-4">
+
+                        @if($errors->has('no_hp'))
+                            <div class="alert alert-danger d-flex align-items-start mb-4" style="border-radius: 12px;" role="alert">
+                                <i class="fas fa-times-circle fa-lg mr-3 mt-1 flex-shrink-0"></i>
+                                <div>
+                                    <strong>Booking Ditolak!</strong><br>
+                                    {{ $errors->first('no_hp') }}
+                                </div>
+                            </div>
+                        @elseif($bookingAktif ?? null)
+                            <div class="alert alert-warning d-flex align-items-start mb-4" style="border-radius: 12px;" role="alert">
+                                <i class="fas fa-exclamation-triangle fa-lg mr-3 mt-1 flex-shrink-0"></i>
+                                <div>
+                                    <strong>Booking Aktif Terdeteksi!</strong><br>
+                                    Kamu masih memiliki booking servis aktif dengan kode
+                                    <strong>{{ $bookingAktif->kode_booking }}</strong>
+                                    (Status: <span class="badge badge-warning">{{ strtoupper($bookingAktif->status) }}</span>).
+                                    Selesaikan booking tersebut sebelum membuat booking baru.
+                                    @if($bookingAktif->access_token)
+                                        <br><a href="{{ route('user.servis.token.show', $bookingAktif->access_token) }}" class="font-weight-bold">
+                                            <i class="fas fa-external-link-alt mr-1"></i>Lihat Detail Booking
+                                        </a>
+                                    @endif
+                                </div>
+                            </div>
+                        @endif
+
                         <div class="alert alert-light border d-flex align-items-center mb-4" style="border-radius: 12px;">
                             <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mr-3"
                                 style="width:50px; height:50px; flex-shrink:0;">
@@ -88,8 +120,7 @@
                             </div>
                             <div>
                                 <div class="text-xs text-uppercase font-weight-bold text-muted">Layanan Dipilih</div>
-                                <div class="h6 mb-0 font-weight-bold text-gray-800">{{ $layananTerpilih->nama_layanan }}
-                                </div>
+                                <div class="h6 mb-0 font-weight-bold text-gray-800">{{ $layananTerpilih->nama_layanan }}</div>
                             </div>
                         </div>
 
@@ -101,42 +132,46 @@
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label class="small font-weight-bold">Nama Lengkap</label>
-                                    <input type="text" name="nama" class="form-control" value="{{ Auth::user()->nama_lengkap ?? old('nama') }}" required placeholder="Nama Lengkap">
+                                    <input type="text" name="nama" class="form-control" value="{{ old('nama') }}" required placeholder="Nama Lengkap">
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="small font-weight-bold">Nomor WhatsApp</label>
-                                    <input type="text" name="no_hp" class="form-control" value="{{ Auth::user()->no_hp ?? old('no_hp') }}" required placeholder="0812...">
+                                    <input type="text" name="no_hp" class="form-control" value="{{ old('no_hp') }}" required placeholder="0812...">
                                 </div>
                             </div>
 
                             <div class="form-section-title">Informasi Kendaraan</div>
                             <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="small font-weight-bold">Merek</label>
-                                    <input type="text" name="merek_kendaraan" class="form-control" placeholder="Honda"
-                                        required>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="small font-weight-bold">Kategori Kendaraan</label>
-                                    <select name="tipe_kendaraan" class="form-control" required>
-                                        <option value="">-- Pilih --</option>
-                                        <option value="motor">Motor</option>
-                                        <option value="mobil">Mobil</option>
+                                <div class="col-md-4 mb-3">
+                                    <label class="small font-weight-bold">Merek Kendaraan</label>
+                                    <select name="merek_kendaraan_id" id="merek_kendaraan_id" class="form-control" required>
+                                        <option value="">-- Pilih Merek --</option>
+                                        @foreach($mereks as $m)
+                                            <option value="{{ $m->id }}" {{ old('merek_kendaraan_id') == $m->id ? 'selected' : '' }}>
+                                                {{ $m->nama }} ({{ ucfirst($m->tipe) }})
+                                            </option>
+                                        @endforeach
                                     </select>
                                 </div>
-                                <div class="col-md-6 mb-3">
+                                <div class="col-md-4 mb-3">
                                     <label class="small font-weight-bold">Model/Nama Kendaraan</label>
-                                    <input type="text" name="model_kendaraan" class="form-control"
-                                        placeholder="Contoh: Vario 150" required>
+                                    <select name="model_kendaraan_id" id="model_kendaraan_id" class="form-control" required disabled>
+                                        <option value="">-- Pilih Model --</option>
+                                    </select>
                                 </div>
-                                <div class="col-md-6 mb-3">
+                                <div class="col-md-4 mb-3">
                                     <label class="small font-weight-bold">Nomor Plat</label>
-                                    <input type="text" name="nomor_plat" class="form-control" placeholder="B 1234 ABC"
-                                        required>
+                                    <input type="text" name="nomor_plat" class="form-control" placeholder="B 1234 ABC" required
+                                        oninput="this.value = this.value.toUpperCase()">
                                 </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="small font-weight-bold">Tahun</label>
-                                    <input type="number" name="tahun_kendaraan" class="form-control" placeholder="2021">
+                                <div class="col-md-4 mb-3">
+                                    <label class="small font-weight-bold">Tahun Keluaran</label>
+                                    <select name="tahun_kendaraan" class="form-control" required>
+                                        <option value="">-- Pilih Tahun --</option>
+                                        @for($i = date('Y'); $i >= 1990; $i--)
+                                            <option value="{{ $i }}">{{ $i }}</option>
+                                        @endfor
+                                    </select>
                                 </div>
                             </div>
 
@@ -144,8 +179,7 @@
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label class="small font-weight-bold">Tanggal Booking</label>
-                                    <input type="date" id="tanggal_booking" name="tanggal_booking" class="form-control"
-                                        min="{{ date('Y-m-d') }}" required>
+                                    <input type="date" id="tanggal_booking" name="tanggal_booking" class="form-control" required>
                                 </div>
                                 <div class="col-md-12 mb-3">
                                     <label class="small font-weight-bold">Jam Kedatangan</label>
@@ -160,10 +194,10 @@
                                 </div>
                             </div>
 
-                            <div class="mt-4 pt-3 border-top d-flex justify-content-between">
+                            <div class="mt-4 pt-3 border-top d-flex flex-column-reverse flex-sm-row justify-content-between align-items-center">
                                 <a href="{{ route('user.servis.katalog') }}"
-                                    class="btn btn-link text-muted font-weight-bold">Batal</a>
-                                <button type="submit" class="btn btn-primary px-5 font-weight-bold shadow-sm"
+                                    class="btn btn-link text-muted font-weight-bold mt-2 mt-sm-0 w-100 w-sm-auto text-center">Batal</a>
+                                <button type="submit" class="btn btn-primary px-5 font-weight-bold shadow-sm w-100 w-sm-auto"
                                     style="border-radius:10px;">
                                     <i class="fas fa-check-circle mr-2"></i> Buat Janji Servis
                                 </button>
@@ -177,31 +211,80 @@
 
     @push('scripts')
         <script>
+            (function() {
+                let now = new Date();
+                let minDate;
+                if (now.getHours() >= 16) {
+                    let besok = new Date(now);
+                    besok.setDate(besok.getDate() + 1);
+                    minDate = besok.toISOString().split('T')[0];
+                } else {
+                    minDate = now.toISOString().split('T')[0];
+                }
+                $('#tanggal_booking').attr('min', minDate);
+            })();
+
             $('#tanggal_booking').on('change', function() {
                 let tgl = $(this).val();
                 let container = $('#slot-container');
-                container.html('<div class="spinner-border spinner-border-sm text-primary"></div> Memuat slot...');
+                container.html(
+                    '<div class="text-center py-3">' +
+                    '<span class="spinner-border spinner-border-sm text-primary mr-2"></span>' +
+                    'Memuat jadwal tersedia...</div>'
+                );
+                $('#selected_jam').val('');
 
                 $.ajax({
                     url: "{{ route('user.servis.slots') }}",
-                    data: {
-                        tanggal: tgl
-                    },
+                    data: { tanggal: tgl },
                     success: function(res) {
                         container.empty();
-                        res.forEach(function(s) {
-                            let disabledClass = s.tersedia ? '' : 'disabled';
-                            let info = s.tersedia ?
-                                `<small class="d-block text-xs text-success">${3-s.terisi} slot</small>` :
-                                '<small class="d-block text-xs text-danger">Penuh</small>';
+                        let slots = res.slots;
 
-                            container.append(`
-                        <div class="slot-item ${disabledClass}" data-jam="${s.jam}">
-                            <div class="font-weight-bold">${s.jam}</div>
-                            ${info}
-                        </div>
-                    `);
+                        if (slots.length === 0) {
+                            container.html('<div class="text-muted small">Tidak ada slot tersedia.</div>');
+                            return;
+                        }
+
+                        if (res.is_hari_ini && !res.ada_yang_tersedia) {
+                            container.html(
+                                '<div class="alert alert-warning py-2 px-3 small">' +
+                                '<i class="fas fa-clock mr-1"></i>' +
+                                'Semua jadwal untuk hari ini sudah tidak tersedia. ' +
+                                'Silakan pilih tanggal besok atau setelahnya.' +
+                                '</div>'
+                            );
+                            return;
+                        }
+
+                        slots.forEach(function(s) {
+                            let disabledClass = s.tersedia ? '' : 'disabled';
+                            let info = '';
+
+                            if (s.sudah_lewat) {
+                                info = '<small class="d-block text-xs text-muted">Sudah lewat</small>';
+                            } else if (!s.tersedia) {
+                                info = '<small class="d-block text-xs text-danger">Penuh</small>';
+                            } else {
+                                info = '<small class="d-block text-xs text-success">' +
+                                       (3 - s.terisi) + ' slot</small>';
+                            }
+
+                            container.append(
+                                '<div class="slot-item ' + disabledClass + '" data-jam="' + s.jam + '">' +
+                                '<div class="font-weight-bold">' + s.jam + '</div>' +
+                                info +
+                                '</div>'
+                            );
                         });
+                    },
+                    error: function() {
+                        container.html(
+                            '<div class="text-danger small">' +
+                            '<i class="fas fa-exclamation-circle mr-1"></i>' +
+                            'Gagal memuat jadwal. Silakan coba lagi.' +
+                            '</div>'
+                        );
                     }
                 });
             });
@@ -210,6 +293,34 @@
                 $('.slot-item').removeClass('active');
                 $(this).addClass('active');
                 $('#selected_jam').val($(this).data('jam'));
+            });
+
+            $('#merek_kendaraan_id').on('change', function() {
+                let merekId = $(this).val();
+                let modelSelect = $('#model_kendaraan_id');
+                modelSelect.empty().append('<option value="">-- Pilih Model --</option>').prop('disabled', true);
+
+                if (merekId) {
+                    modelSelect.append('<option value="">Memuat model...</option>');
+                    $.ajax({
+                        url: "{{ route('user.servis.kendaraan.model', ':id') }}".replace(':id', merekId),
+                        success: function(models) {
+                            modelSelect.empty().append('<option value="">-- Pilih Model --</option>');
+                            if (models && models.length > 0) {
+                                models.forEach(function(m) {
+                                    modelSelect.append('<option value="' + m.id + '">' + m.nama_model + '</option>');
+                                });
+                                modelSelect.prop('disabled', false);
+                            } else {
+                                modelSelect.append('<option value="">Tidak ada model tersedia</option>');
+                            }
+                        },
+                        error: function() {
+                            modelSelect.empty().append('<option value="">-- Pilih Model --</option>');
+                            alert('Gagal memuat model kendaraan. Silakan coba lagi.');
+                        }
+                    });
+                }
             });
         </script>
     @endpush

@@ -62,18 +62,18 @@
             @forelse ($laporan as $index => $item)
                 <tr>
                     <td class="text-center">{{ $index + 1 }}</td>
-                    <td>{{ $item->sewaRuko?->penyewa?->nama_usaha ?? '-' }}</td>
+                    <td>{{ $item->sewaRuko?->nama_penyewa ?? '-' }}</td>
                     <td class="text-center">{{ $item->sewaRuko?->ruko?->kode_unit ?? '-' }}</td>
                     <td>
                         @if($item->sewaRuko)
-                            {{ \Carbon\Carbon::parse($item->sewaRuko->tgl_mulai)->format('d/m/Y') }} - {{ \Carbon\Carbon::parse($item->sewaRuko->tgl_selesai)->format('d/m/Y') }}
+                            {{ \Carbon\Carbon::parse($item->sewaRuko->tanggal_mulai_sewa)->format('d/m/Y') }} - {{ \Carbon\Carbon::parse($item->sewaRuko->tanggal_selesai_sewa)->format('d/m/Y') }}
                         @else
                             -
                         @endif
                     </td>
-                    <td class="text-center">{{ $item->tgl_bayar ? \Carbon\Carbon::parse($item->tgl_bayar)->format('d/m/Y') : '-' }}</td>
+                    <td class="text-center">{{ $item->tanggal_bayar ? \Carbon\Carbon::parse($item->tanggal_bayar)->format('d/m/Y') : '-' }}</td>
                     <td class="text-right">Rp {{ number_format($item->jumlah_tagihan, 0, ',', '.') }}</td>
-                    <td class="text-center">{{ ucfirst($item->status) }}</td>
+                    <td class="text-center">{{ ucfirst($item->status_pembayaran) }}</td>
                 </tr>
             @empty
                 <tr>
@@ -108,10 +108,10 @@
             @forelse ($pemasukan as $index => $item)
                 <tr>
                     <td class="text-center">{{ $index + 1 }}</td>
-                    <td>{{ $item->sewaRuko?->penyewa?->nama_usaha ?? '-' }}</td>
+                    <td>{{ $item->sewaRuko?->nama_penyewa ?? '-' }}</td>
                     <td class="text-center">{{ $item->sewaRuko?->ruko?->kode_unit ?? '-' }}</td>
-                    <td class="text-center">{{ $item->tgl_bayar ? \Carbon\Carbon::parse($item->tgl_bayar)->format('d/m/Y') : '-' }}</td>
-                    <td class="text-center">{{ $item->termin }}</td>
+                    <td class="text-center">{{ $item->tanggal_bayar ? \Carbon\Carbon::parse($item->tanggal_bayar)->format('d/m/Y') : '-' }}</td>
+                    <td class="text-center">{{ $item->termin_ke }}</td>
                     <td class="text-right">Rp {{ number_format($item->jumlah_tagihan, 0, ',', '.') }}</td>
                 </tr>
             @empty
@@ -145,7 +145,7 @@
                     <td class="text-center">{{ $index + 1 }}</td>
                     <td class="text-center">{{ \Carbon\Carbon::parse($item->tanggal)->format('d/m/Y') }}</td>
                     <td>{{ $item->deskripsi }}</td>
-                    <td class="text-right">Rp {{ number_format($item->nominal, 0, ',', '.') }}</td>
+                    <td class="text-right">Rp {{ number_format($item->jumlah, 0, ',', '.') }}</td>
                 </tr>
             @empty
                 <tr>

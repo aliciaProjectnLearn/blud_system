@@ -14,79 +14,75 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        // Total pendapatan (pembayaran yang sudah verifikasi)
-        $totalPendapatan = PembayaranRuko::where('status', 'verifikasi')->sum('jumlah_tagihan');
+        // 1. Stats Cards
+        $totalTersedia = Ruko::where('status', 'tersedia')->count();
+        $totalDisewa = Ruko::where('status', 'disewa')->count();
+        $totalAktif = SewaRuko::where('status_sewa', 'aktif')->count();
+        $menungguVerifikasi = SewaRuko::where('status_sewa', 'pending')->count();
+        
+        $pendapatanBulanIni = PembayaranRuko::where('status_pembayaran', 'dibayar')
+            ->whereMonth('tanggal_bayar', now()->month)
+            ->whereYear('tanggal_bayar', now()->year)
+            ->sum('jumlah_tagihan');
 
-        // Total penyewa aktif
-        $totalPenyewa = SewaRuko::where('status', 'disetujui')->count();
-
-        // Total unit terisi & keseluruhan
-        $totalUnitTerisi = Ruko::where('status_unit', 'terisi')->count();
-        $totalUnit       = Ruko::count();
-
-        // Status pembayaran per termin
-        $statusTermin = [
-            'termin1_menunggu'   => PembayaranRuko::where('termin', 1)->where('status', 'menunggu')->count(),
-            'termin1_verifikasi' => PembayaranRuko::where('termin', 1)->where('status', 'verifikasi')->count(),
-            'termin1_dibatalkan' => PembayaranRuko::where('termin', 1)->where('status', 'dibatalkan')->count(),
-            'termin2_menunggu'   => PembayaranRuko::where('termin', 2)->where('status', 'menunggu')->count(),
-            'termin2_verifikasi' => PembayaranRuko::where('termin', 2)->where('status', 'verifikasi')->count(),
-            'termin2_dibatalkan' => PembayaranRuko::where('termin', 2)->where('status', 'dibatalkan')->count(),
-        ];
-
-        // Status pembayaran keseluruhan (untuk progress bar)
-        $statusVerifikasi = PembayaranRuko::where('status', 'verifikasi')->count();
-        $statusMenunggu   = PembayaranRuko::where('status', 'menunggu')->count();
-        $statusDibatalkan = PembayaranRuko::where('status', 'dibatalkan')->count();
-        $totalTransaksi   = PembayaranRuko::count();
-
-
-        // Transaksi terbaru
-        $transaksiTerbaru = PembayaranRuko::with(['sewaRuko.penyewa.user', 'sewaRuko.ruko.kategori'])
+        // 2. Tabel Transaksi Terbaru
+        $transaksiTerbaru = SewaRuko::with(['ruko', 'user'])
             ->latest()
             ->take(5)
             ->get();
 
-        // Pengingat Jatuh Tempo Termin 2 (H-30)
-        $pengingatTermin2 = PembayaranRuko::with(['sewaRuko.penyewa.user', 'sewaRuko.ruko'])
-            ->where('termin', 2)
-            ->where('status', 'menunggu')
+        // 3. Jatuh Tempo Termin Bulan Ini (Pending)
+        $jatuhTempoBulanIni = PembayaranRuko::with(['sewaRuko', 'sewaRuko.ruko'])
+            ->where('status_pembayaran', 'pending')
+            ->whereMonth('tgl_jatuh_tempo', now()->month)
+            ->whereYear('tgl_jatuh_tempo', now()->year)
+            ->whereHas('sewaRuko', function ($q) {
+                $q->whereNotIn('status_sewa', ['dibatalkan', 'ditolak']);
+            })
+            ->get();
+
+        // 4. Pengingat Jatuh Tempo Termin 2 (H-30) - Tetap dipertahankan untuk reminder WA
+        $pengingatTermin2 = PembayaranRuko::with(['sewaRuko.user', 'sewaRuko.ruko'])
+            ->where('termin_ke', 2)
+            ->where('status_pembayaran', 'pending')
             ->whereBetween('tgl_jatuh_tempo', [now()->startOfDay(), now()->addDays(30)->endOfDay()])
+            ->whereHas('sewaRuko', function ($q) {
+                $q->whereNotIn('status_sewa', ['dibatalkan', 'ditolak']);
+            })
             ->orderBy('tgl_jatuh_tempo', 'asc')
             ->get();
 
         return view('adminkantin.index', compact(
-            'totalPendapatan',
-            'totalPenyewa',
-            'totalUnitTerisi',
-            'totalUnit',
-            'statusTermin',
-            'statusVerifikasi',
-            'statusMenunggu',
-            'statusDibatalkan',
-            'totalTransaksi',
+            'totalTersedia',
+            'totalDisewa',
+            'totalAktif',
+            'menungguVerifikasi',
+            'pendapatanBulanIni',
             'transaksiTerbaru',
-            'pengingatTermin2',
+            'jatuhTempoBulanIni',
+            'pengingatTermin2'
         ));
     }
 
     public function kirimWaManual($id)
     {
-        $pembayaran = PembayaranRuko::with(['sewaRuko.penyewa.user', 'sewaRuko.ruko'])->findOrFail($id);
+        $pembayaran = PembayaranRuko::with(['sewaRuko.ruko'])->findOrFail($id);
         $sewa = $pembayaran->sewaRuko;
-        $user = $sewa->penyewa->user ?? null;
         $ruko = $sewa->ruko;
 
-        if (!$user || !$user->no_hp) {
+        // Gunakan snapshot columns agar data tetap akurat meskipun user mengubah profil
+        $noHp = $sewa->no_hp_snapshot;
+        $namaPenyewa = $sewa->nama_penyewa;
+
+        if (!$noHp) {
             return back()->with('error', 'Nomor HP penyewa tidak ditemukan.');
         }
 
-        $apiToken = env('FONNTE_TOKEN', 'YOUR_API_TOKEN_HERE');
-        if ($apiToken === 'YOUR_API_TOKEN_HERE') {
+        $apiToken = env('FONNTE_TOKEN');
+        if (!$apiToken) {
             return back()->with('error', 'Token Fonnte belum diatur di .env.');
         }
 
-        $namaPenyewa = $user->nama_lengkap ?? $user->name;
         $kodeUnit = $ruko->kode_unit ?? '-';
         $tglJatuhTempo = Carbon::parse($pembayaran->tgl_jatuh_tempo)->translatedFormat('d F Y');
         $nominal = number_format($pembayaran->jumlah_tagihan, 0, ',', '.');
@@ -101,14 +97,13 @@ class DashboardController extends Controller
             $response = Http::withHeaders([
                 'Authorization' => $apiToken,
             ])->post('https://api.fonnte.com/send', [
-                'target'      => $user->no_hp,
+                'target'      => $noHp,
                 'message'     => $pesan,
                 'countryCode' => '62',
             ]);
 
             if ($response->successful()) {
-                $sewa->update(['notifikasi_terkirim' => true]);
-                return back()->with('success', 'Pesan WhatsApp berhasil dikirim ke ' . $user->no_hp);
+                return back()->with('success', 'Pesan WhatsApp berhasil dikirim ke ' . $noHp);
             } else {
                 return back()->with('error', 'Gagal mengirim WA: ' . $response->body());
             }

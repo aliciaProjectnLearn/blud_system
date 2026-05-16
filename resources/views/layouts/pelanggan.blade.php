@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     
-    <title>BLUD Portal - @yield('title', 'Layanan')</title>
+    <title>OneBLUD - @yield('title', 'Layanan')</title>
 
     {{-- Font Awesome --}}
     <link href="{{ asset('assets/vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet" type="text/css">
@@ -75,7 +75,7 @@
                                     <path d="M12 2v20M2 12h20"/><path d="m6 6 12 12M18 6 6 18"/>
                                 </svg>
                             </div>
-                            <span class="font-weight-bold text-primary">BLUD <span class="d-none d-sm-inline">PORTAL</span></span>
+                            <span class="font-weight-bold text-primary">OneBLUD</span>
                         </a>
                         
                         <ul class="navbar-nav ml-auto">

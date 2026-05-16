@@ -10,10 +10,5 @@ class PengeluaranAc extends Model
     use HasFactory;
 
     protected $table = 'pengeluaran_ac';
-    protected $fillable = [
-        'deskripsi',
-        'nominal',
-        'tanggal',
-        'kategori',
-    ];
+    protected $fillable = ['nominal', 'deskripsi', 'tanggal', 'kategori'];
 }

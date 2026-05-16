@@ -34,24 +34,10 @@ class PembayaranController extends Controller
             return redirect()->route('teknisi.dashboard')->with('error', 'Pembayaran untuk pesanan ini sudah diverifikasi.');
         }
 
-        // Calculate total: Layanan price + (Spareparts prices if any)
-        // Usually, total is the sum of total_harga in pembayaran_ac, or calculated from services. 
-        // We'll calculate it from `layanan` and `detail_servis`.
-        $totalLayanan = $pekerjaan->layanan->harga_jasa ?? 0;
-
+        // Calculate total: Sum subtotal from all detail_servis records
+        $totalTagihan = $pekerjaan->detailServis->sum('subtotal');
         
-        // For AC, if there's no pre-calculated price in detail_servis, we use product prices.
-        // If detail_servis doesn't have prices recorded, we'll try to find matching product.
-        // Since detail_servis doesn't store price, we'll assume a basic logic:
-        $totalSparepart = 0;
-        foreach($pekerjaan->detailServis as $detail) {
-            if ($detail->item !== 'Tindakan Servis (Tanpa Sparepart)') {
-                $totalSparepart += $detail->subtotal;
-            }
-        }
-        
-        $totalTagihan = $totalLayanan + $totalSparepart;
-        
+        // Get common payment methods for technicians: Only Tunai and QRIS
         $metodePembayaran = TipePembayaran::whereRaw('LOWER(nama) LIKE ?', ['%tunai%'])
                                           ->orWhereRaw('LOWER(nama) LIKE ?', ['%qris%'])
                                           ->get();
@@ -106,38 +92,44 @@ class PembayaranController extends Controller
             
             $pembayaran->save();
 
+            // 🚀 Kirim WhatsApp Ucapan Terima Kasih
+            $this->sendThankYouNotification($pekerjaan);
+
             DB::commit();
 
-            // Send WA Notification
-            if (!empty($pekerjaan->no_hp)) {
-                $this->kirimWaFonnteSelesai($pekerjaan);
-            }
-
-            return redirect()->route('teknisi.dashboard')->with('success', 'Pembayaran berhasil dikonfirmasi dan notifikasi WA telah dikirim.');
+            return redirect()->route('teknisi.dashboard')->with('success', 'Pembayaran berhasil dikonfirmasi dan notifikasi terima kasih telah dikirim.');
         } catch (\Exception $e) {
             DB::rollback();
             return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
 
-    private function kirimWaFonnteSelesai($pekerjaan)
+    private function sendThankYouNotification($booking)
     {
-        try {
-            $pesan = "Halo {$pekerjaan->nama_pelanggan},\n\nTerima kasih telah melakukan Service AC bersama BLUD SMKN 1 Cirebon.\nPembayaran Anda untuk layanan *{$pekerjaan->layanan->nama}* telah kami terima (Lunas).\n\nSemoga layanan kami memuaskan. Jika ada kendala, jangan ragu untuk menghubungi kami kembali.\n\nCek kembali rincian layanan Anda di:\n" . route('user.ac.booking.detail', $pekerjaan->access_token) . "\n\nTerima Kasih!\n*BLUD SMKN 1 Cirebon*";
-            
-            $apiToken = env('FONNTE_TOKEN', 'YOUR_API_TOKEN_HERE'); 
+        $apiToken = env('FONNTE_TOKEN');
+        if (!$apiToken) return;
 
-            if ($apiToken !== 'YOUR_API_TOKEN_HERE') {
-                \Illuminate\Support\Facades\Http::withHeaders([
-                    'Authorization' => $apiToken,
-                ])->post('https://api.fonnte.com/send', [
-                    'target' => $pekerjaan->no_hp,
-                    'message' => $pesan,
-                    'countryCode' => '62',
-                ]);
-            }
+        $nama = $booking->nama_pelanggan ?? ($booking->user->nama_lengkap ?? 'Pelanggan');
+        $noHp = $booking->no_hp ?? ($booking->user->no_hp ?? null);
+
+        if (!$noHp) return;
+
+        $pesan = "*PEMBAYARAN BERHASIL!* ❄️✅\n\n";
+        $pesan .= "Halo *{$nama}*,\n\n";
+        $pesan .= "Terima kasih telah melakukan pembayaran untuk layanan AC kami. Pekerjaan telah selesai dikerjakan oleh teknisi kami.\n\n";
+        $pesan .= "Semoga layanan kami memuaskan. Jika ada keluhan kembali, jangan ragu untuk menghubungi kami.\n\n";
+        $pesan .= "Salam,\n*BLUD System*";
+
+        try {
+            \Illuminate\Support\Facades\Http::withHeaders([
+                'Authorization' => $apiToken,
+            ])->post('https://api.fonnte.com/send', [
+                'target' => $noHp,
+                'message' => $pesan,
+                'countryCode' => '62',
+            ]);
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Fonnte Error: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error("Fonnte Thank You Error: " . $e->getMessage());
         }
     }
 }
