@@ -50,24 +50,89 @@
                 <p class="lead">Booking teknisi berpengalaman untuk cuci AC, tambah freon, atau perbaikan komponen dengan harga transparan.</p>
                 <div class="d-flex gap-2">
                     <a href="#layanan-list" class="btn btn-light text-primary font-weight-bold shadow-sm">Lihat Layanan</a>
-                    @auth
-                    <a href="{{ route('user.ac.index') }}" class="btn btn-outline-light font-weight-bold">Dashboard Saya</a>
-                    @endauth
+                </div>
+                <i class="fas fa-snowflake hero-icon"></i>
+            </div>
+
+            {{-- Stats --}}
+            <div class="stats-bar-ac">
+                <div class="stat-item">
+                    <span class="stat-num">{{ $layanans->total() }}</span>
+                    <span class="stat-lbl">Layanan</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-num">{{ $kategoris->count() }}</span>
+                    <span class="stat-lbl">Kategori</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-num" style="color:#17a673">24/7</span>
+                    <span class="stat-lbl">Booking</span>
+                </div>
+            </div>
+
+            {{-- Grid Layanan --}}
+            <div id="layanan-list" class="row">
+                @forelse($layanans as $layanan)
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card service-card h-100 shadow-sm">
+                            <div class="card-body d-flex flex-column">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <h6 class="font-weight-bold mb-0 text-dark">{{ $layanan->nama ?? $layanan->nama_layanan }}</h6>
+                                    <span class="price-badge">Rp{{ number_format($layanan->harga_jasa ?? 0,0,',','.') }}</span>
+                                </div>
+                                <p class="service-desc">{{ $layanan->deskripsi ?? 'Pembersihan dan pengecekan komponen AC secara menyeluruh.' }}</p>
+                                <div class="small text-muted mb-4">
+                                    <i class="fas fa-tag mr-1"></i> {{ $layanan->kategori->nama ?? '-' }} | <i class="fas fa-bolt mr-1"></i> {{ $layanan->kapasitas_ac ?? '-' }}
+                                </div>
+                                <div class="mt-auto d-flex justify-content-between align-items-center">
+                                    <button class="btn btn-primary btn-sm btn-book px-4" data-id="{{ $layanan->id }}" data-name="{{ $layanan->nama ?? $layanan->nama_layanan }}">Booking</button>
+                                    <span class="badge badge-light border text-muted">Garansi 14 Hari</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @empty
+                    <div class="col-12 text-center py-5">
+                        <p class="text-muted">Layanan tidak ditemukan.</p>
+                    </div>
+                @endforelse
+            </div>
+
+            <div class="d-flex justify-content-center mt-3">
+                {{ $layanans->links() }}
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{{-- Modal Booking --}}
+<div class="modal fade" id="bookingModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Konfirmasi Booking</h5>
+                <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>
+            </div>
+            <form action="{{ route('user.ac.store') }}" method="POST">
+                @csrf
+                <input type="hidden" name="layanan_id" id="layanan_id">
+                <div class="modal-body">
+                    <div id="bookingErrors" class="alert alert-danger d-none"></div>
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label class="small font-weight-bold">Nama Lengkap</label>
-                                <input type="text" name="nama" class="form-control" value="{{ auth()->user()->nama_lengkap ?? '' }}" required placeholder="Contoh: Budi">
+                                <input type="text" name="nama" class="form-control" required placeholder="Contoh: Budi">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label class="small font-weight-bold">Nomor WhatsApp</label>
-                                <input type="text" name="no_hp" class="form-control" value="{{ auth()->user()->no_hp ?? '' }}" required placeholder="Contoh: 0812...">
+                                <input type="text" name="no_hp" class="form-control" required placeholder="Contoh: 0812...">
                             </div>
                         </div>
                     </div>
-
                     <div class="form-group">
                         <label class="small font-weight-bold">Layanan Dipilih</label>
                         <input type="text" id="layananName" class="form-control bg-light" readonly>
@@ -98,9 +163,6 @@
                         <label class="small font-weight-bold">Detail Keluhan</label>
                         <textarea name="detail_keluhan" class="form-control" rows="3" placeholder="Contoh: AC tidak dingin, berisik, atau ada air bocor..."></textarea>
                     </div>
-                    <div class="alert alert-info py-2 small mb-0 mt-2">
-                        <i class="fas fa-info-circle mr-2"></i> Link status booking akan dikirim ke nomor WhatsApp Anda.
-                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-light border btn-sm" data-dismiss="modal">Batal</button>
@@ -121,48 +183,12 @@
             $('#bookingErrors').addClass('d-none');
             $('#bookingModal').modal('show');
         });
-
-        $('#bookingForm').on('submit', function(e){
-            e.preventDefault();
-            const btn = $(this).find('button[type="submit"]');
-            btn.prop('disabled', true).text('Mengirim...');
-
-            $.post('{{ route("user.ac.store") }}', $(this).serialize())
-                .done(function(res){
-                    // Success response from store method is a redirect, 
-                    // but since this is AJAX, we handle the JSON response if it's there
-                    // or handle the redirect manually if the browser follows it.
-                    // Actually, Laravel's redirect in AJAX usually returns JSON with a 'redirect' key or similar.
-                    // But our controller returns a redirect object.
-                    
-                    $('#bookingModal').modal('hide');
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Berhasil!',
-                        text: 'Booking AC berhasil dibuat! Link akses sudah dikirim ke WhatsApp Anda.',
-                        confirmButtonText: 'OK',
-                        confirmButtonColor: '#4e73df'
-                    }).then((result) => {
-                        // Redirect to the dashboard or token page if provided in response
-                        if (res.redirect) {
-                            window.location.href = res.redirect;
-                        } else {
-                            window.location.href = "{{ route('user.ac.index') }}";
-                        }
-                    });
-                })
-                .fail(function(xhr){
-                    btn.prop('disabled', false).text('Buat Pesanan');
-                    let errors = xhr.responseJSON?.errors;
-                    let msg = 'Gagal membuat pesanan.';
-                    if (errors) {
-                        msg = Object.values(errors).flat().join('<br>');
-                    } else {
-                        msg = xhr.responseJSON?.message || msg;
-                    }
-                    $('#bookingErrors').removeClass('d-none').html(msg);
-                });
-        });
+        
+        // Menampilkan pesan error dari backend jika ada
+        @if($errors->any())
+            $('#bookingModal').modal('show');
+            $('#bookingErrors').removeClass('d-none').html('<ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>');
+        @endif
     });
 </script>
 @endpush
