@@ -63,6 +63,10 @@ class KantinController extends Controller
             'tanggal_mulai_sewa' => 'required|date|after_or_equal:' . now()->addDays(4)->toDateString(),
             'tipe_pembayaran' => 'required|in:1_termin,2_termin',
             'foto_ktp' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+            'nama_usaha' => 'required|string|max:255',
+            'jenis_usaha' => 'required|string|max:255',
+            'alamat' => 'required|string',
+            'catatan' => 'nullable|string'
         ]);
 
         // Cek no_hp: apakah masih punya sewa aktif?
@@ -113,14 +117,37 @@ class KantinController extends Controller
             // 1. Cek/Buat User (Revision: No Login Required)
             $user = User::where('no_hp', $request->no_hp)->first();
             if (!$user) {
+                $baseUsername = Str::slug($request->nama, '');
+                $username = $baseUsername;
+                $counter = 1;
+                while (User::where('username', $username)->exists()) {
+                    $username = $baseUsername . $counter;
+                    $counter++;
+                }
+
                 $user = User::create([
                     'name'         => $request->nama,
-                    'username'     => $request->nama,
+                    'username'     => $username,
                     'nama_lengkap' => $request->nama,
                     'email'        => $request->no_hp . '@example.com',
                     'no_hp'        => $request->no_hp,
                     'nik'          => $request->nik,
                     'password'     => bcrypt(Str::random(16)),
+                ]);
+            }
+            
+            // 1.5 Cek/Buat Penyewa
+            $penyewa = Penyewa::where('user_id', $user->id)->first();
+            if (!$penyewa) {
+                $penyewa = Penyewa::create([
+                    'user_id' => $user->id,
+                    'nama_usaha' => $request->nama_usaha . ' (' . $request->jenis_usaha . ')',
+                    'alamat' => $request->alamat,
+                ]);
+            } else {
+                $penyewa->update([
+                    'nama_usaha' => $request->nama_usaha . ' (' . $request->jenis_usaha . ')',
+                    'alamat' => $request->alamat,
                 ]);
             }
 
@@ -134,6 +161,7 @@ class KantinController extends Controller
 
             $sewa = SewaRuko::create([
                 'user_id' => $user->id,
+                'penyewa_id' => $penyewa->id,
                 'ruko_id' => $ruko->id,
                 'access_token' => $token,
                 'token_expired_at' => $tokenExpiredAt,
@@ -144,6 +172,7 @@ class KantinController extends Controller
                 'tanggal_mulai_sewa' => $tgl_mulai,
                 'tanggal_selesai_sewa' => $tgl_selesai,
                 'tipe_pembayaran' => $request->tipe_pembayaran,
+                'catatan' => $request->catatan,
             ]);
             
             // 3.1. Simpan Foto KTP

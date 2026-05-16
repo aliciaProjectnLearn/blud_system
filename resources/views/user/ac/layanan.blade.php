@@ -50,6 +50,9 @@
                 <p class="lead">Booking teknisi berpengalaman untuk cuci AC, tambah freon, atau perbaikan komponen dengan harga transparan.</p>
                 <div class="d-flex gap-2">
                     <a href="#layanan-list" class="btn btn-light text-primary font-weight-bold shadow-sm">Lihat Layanan</a>
+                    @auth
+                    <a href="{{ route('user.ac.index') }}" class="btn btn-outline-light font-weight-bold">Dashboard Saya</a>
+                    @endauth
                 </div>
                 <i class="fas fa-snowflake hero-icon"></i>
             </div>
@@ -123,13 +126,13 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label class="small font-weight-bold">Nama Lengkap</label>
-                                <input type="text" name="nama" class="form-control" required placeholder="Contoh: Budi">
+                                <input type="text" name="nama" class="form-control" value="{{ auth()->user()->nama_lengkap ?? '' }}" required placeholder="Contoh: Budi">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label class="small font-weight-bold">Nomor WhatsApp</label>
-                                <input type="text" name="no_hp" class="form-control" required placeholder="Contoh: 0812...">
+                                <input type="text" name="no_hp" class="form-control" value="{{ auth()->user()->no_hp ?? '' }}" required placeholder="Contoh: 0812...">
                             </div>
                         </div>
                     </div>
@@ -163,6 +166,9 @@
                         <label class="small font-weight-bold">Detail Keluhan</label>
                         <textarea name="detail_keluhan" class="form-control" rows="3" placeholder="Contoh: AC tidak dingin, berisik, atau ada air bocor..."></textarea>
                     </div>
+                    <div class="alert alert-info py-2 small mb-0 mt-2">
+                        <i class="fas fa-info-circle mr-2"></i> Link status booking akan dikirim ke nomor WhatsApp Anda.
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-light border btn-sm" data-dismiss="modal">Batal</button>
@@ -183,12 +189,41 @@
             $('#bookingErrors').addClass('d-none');
             $('#bookingModal').modal('show');
         });
-        
-        // Menampilkan pesan error dari backend jika ada
-        @if($errors->any())
-            $('#bookingModal').modal('show');
-            $('#bookingErrors').removeClass('d-none').html('<ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>');
-        @endif
+
+        $('#bookingForm').on('submit', function(e){
+            e.preventDefault();
+            const btn = $(this).find('button[type="submit"]');
+            btn.prop('disabled', true).text('Mengirim...');
+
+            $.post('{{ route("user.ac.store") }}', $(this).serialize())
+                .done(function(res){
+                    $('#bookingModal').modal('hide');
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: 'Booking AC berhasil dibuat! Link akses sudah dikirim ke WhatsApp Anda.',
+                        confirmButtonText: 'OK',
+                        confirmButtonColor: '#4e73df'
+                    }).then((result) => {
+                        if (res.redirect) {
+                            window.location.href = res.redirect;
+                        } else {
+                            window.location.href = "{{ route('user.ac.index') }}";
+                        }
+                    });
+                })
+                .fail(function(xhr){
+                    btn.prop('disabled', false).text('Buat Pesanan');
+                    let errors = xhr.responseJSON?.errors;
+                    let msg = 'Gagal membuat pesanan.';
+                    if (errors) {
+                        msg = Object.values(errors).flat().join('<br>');
+                    } else {
+                        msg = xhr.responseJSON?.message || msg;
+                    }
+                    $('#bookingErrors').removeClass('d-none').html(msg);
+                });
+        });
     });
 </script>
 @endpush
