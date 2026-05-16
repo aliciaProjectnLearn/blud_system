@@ -105,54 +105,6 @@ class TeknisiController extends Controller
         $this->function_log('AC', 'create', 'Admin AC menambahkan teknisi baru: ' . $request->name);
 
         return redirect()->route('admin.ac.teknisi.index')
-            ->with('success', 'Teknisi berhasil ditambahkan.');
-    }
-
-    public function edit($id)
-    {
-        $teknisi = User::whereHas('roles', function ($q) {
-            $q->where('nama', 'Teknisi');
-        })->findOrFail($id);
-
-        return view('adminac.teknisi.edit', compact('teknisi'));
-    }
-
-    public function update(Request $request, $id)
-    {
-        $teknisi = User::whereHas('roles', function ($q) {
-            $q->where('nama', 'Teknisi');
-        })->findOrFail($id);
-
-        $request->validate([
-            'name'         => 'required|string|max:255',
-            'nama_lengkap' => 'required|string|max:255',
-            'username'     => 'required|string|max:255|unique:users,username,' . $id,
-            'no_hp'        => 'required|string|max:20|unique:users,no_hp,' . $id,
-            'email'        => 'required|email|unique:users,email,' . $id,
-            'password'     => 'nullable|string|min:6',
-        ], [
-            'username.unique' => 'Username sudah digunakan akun lain.',
-            'email.unique'    => 'Email sudah digunakan akun lain.',
-            'no_hp.unique'    => 'No. HP sudah digunakan akun lain.',
-        ]);
-
-        $data = [
-            'name'         => $request->name,
-            'nama_lengkap' => $request->nama_lengkap,
-            'username'     => $request->username,
-            'no_hp'        => $request->no_hp,
-            'email'        => $request->email,
-        ];
-
-        if ($request->filled('password')) {
-            $data['password'] = Hash::make($request->password);
-        }
-
-        $teknisi->update($data);
-
-        $this->function_log('AC', 'update', 'Admin AC mengubah data teknisi: ' . $teknisi->name);
-
-        return redirect()->route('admin.ac.teknisi.index')
             ->with('success', 'Data teknisi berhasil diperbarui.');
     }
 
@@ -177,8 +129,11 @@ class TeknisiController extends Controller
         $teknisi->roles()->detach();
         $teknisi->delete();
 
+<<<<<<< HEAD
         $this->function_log('AC', 'delete', 'Admin AC menghapus teknisi: ' . $namaTeknisi);
 
+=======
+>>>>>>> 3886d7700505d81ff4e664390bc3a7c08460b8c6
         return redirect()->route('admin.ac.teknisi.index')
             ->with('success', 'Teknisi berhasil dihapus.');
     }

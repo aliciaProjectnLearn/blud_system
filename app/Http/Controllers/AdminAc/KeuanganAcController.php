@@ -19,14 +19,14 @@ class KeuanganAcController extends Controller
     public function index(Request $request)
     {
         // 1. Query Pemasukan dari pembayaran_ac
-        // Status di database untuk lunas adalah 'dibayar'
         $pemasukan = DB::table('pembayaran_ac')
             ->select(
                 DB::raw('COALESCE(tgl_bayar, created_at) as tanggal'),
                 DB::raw("'pemasukan' as tipe"),
                 DB::raw("CONCAT('Pembayaran Invoice: ', COALESCE(invoice_no, '-')) as deskripsi"),
                 'total_harga as nominal',
-                'status'
+                'status',
+                DB::raw("'-' as kategori")
             )
             ->where('status', 'dibayar');
 
@@ -57,7 +57,6 @@ class KeuanganAcController extends Controller
         $query = DB::query()->fromSub($pemasukan->unionAll($pengeluaran), 'keuangan')
                     ->orderBy('tanggal', 'desc');
 
-        // 5. Filter Tipe
         if ($request->filled('tipe')) {
             $query->where('tipe', $request->tipe);
         }
@@ -69,17 +68,28 @@ class KeuanganAcController extends Controller
         $totalPengeluaran = $transaksi->where('tipe', 'pengeluaran')->sum('nominal');
         $saldoAkhir = $totalPemasukan - $totalPengeluaran;
 
+        // --- Fitur Gaji Teknisi ---
+        $pekerjaanQuery = \App\Models\BookingAc::with(['teknisi', 'layanan'])
+            ->where('status', 'selesai')
+            ->where('status_gaji', 'belum_dibayar');
+
+        if ($request->filled('teknisi_id')) {
+            $pekerjaanQuery->where('teknisi_id', $request->teknisi_id);
+        }
+        
+        $pekerjaanBelumDibayar = $pekerjaanQuery->get();
+        $teknisis = \App\Models\User::whereIn('id', \App\Models\BookingAc::whereNotNull('teknisi_id')->distinct()->pluck('teknisi_id'))->get();
+
         return view('adminac.keuangan.index', compact(
             'transaksi', 
             'totalPemasukan', 
             'totalPengeluaran', 
-            'saldoAkhir'
+            'saldoAkhir',
+            'pekerjaanBelumDibayar',
+            'teknisis'
         ));
     }
 
-    /**
-     * Menyimpan data pengeluaran baru
-     */
     public function storePengeluaran(Request $request)
     {
         $request->validate([
@@ -160,6 +170,7 @@ class KeuanganAcController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Gagal: ' . $e->getMessage());
+
         }
     }
 }

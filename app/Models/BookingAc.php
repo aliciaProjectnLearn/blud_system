@@ -15,6 +15,8 @@ class BookingAc extends Model
         'no_hp',
         'teknisi_id',
         'layanan_id',
+        'nama_pelanggan',
+        'no_hp',
         'tgl_kunjungan',
         'alamat',
         'merek_ac',
@@ -22,6 +24,7 @@ class BookingAc extends Model
         'status',
         'foto_hasil',
         'access_token',
+        'foto_hasil',
     ];
 
     public function penggajian()

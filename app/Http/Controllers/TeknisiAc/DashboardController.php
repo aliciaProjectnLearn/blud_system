@@ -60,9 +60,6 @@ class DashboardController extends Controller
         return view('teknisiac.dashboard.show', compact('pekerjaan', 'produks', 'layanans'));
     }
 
-    /**
-     * Menyimpan detail servis dan menyelesaikan status pekerjaan.
-     */
     public function selesaikanPekerjaan(Request $request, $id)
     {
         $pekerjaan = BookingAc::findOrFail($id);
@@ -116,7 +113,6 @@ class DashboardController extends Controller
                     $qty = $request->quantity_produk[$key] ?? 1;
                     if ($produkId) {
                         $produk = \App\Models\Produk::findOrFail($produkId);
-
                         if ($produk->stok < $qty) {
                             throw new \Exception("Stok tidak mencukupi untuk item: {$produk->nama_produk}");
                         }
