@@ -352,21 +352,10 @@
 @endsection
 
 @push('scripts')
-=======
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-    tailwind.config = {
-        corePlugins: {
-            preflight: false,
-        }
-    }
-</script>
->>>>>>> 3886d7700505d81ff4e664390bc3a7c08460b8c6
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
 <script>
     document.addEventListener('alpine:init', () => {
-<<<<<<< HEAD
         Alpine.data('serviceManagement', () => ({
             layananRows: [{ id: Date.now(), val: "{{ $pekerjaan->layanan_id }}", locked: true, catatan: "", error: "", displayText: "{{ $pekerjaan->layanan->nama }} ({{ $pekerjaan->layanan->kapasitas_ac }})", harga: "{{ $pekerjaan->layanan->harga_jasa }}" }],
             sparepartRows: [],

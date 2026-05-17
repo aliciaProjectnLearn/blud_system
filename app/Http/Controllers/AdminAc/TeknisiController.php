@@ -129,11 +129,9 @@ class TeknisiController extends Controller
         $teknisi->roles()->detach();
         $teknisi->delete();
 
-<<<<<<< HEAD
         $this->function_log('AC', 'delete', 'Admin AC menghapus teknisi: ' . $namaTeknisi);
 
-=======
->>>>>>> 3886d7700505d81ff4e664390bc3a7c08460b8c6
+
         return redirect()->route('admin.ac.teknisi.index')
             ->with('success', 'Teknisi berhasil dihapus.');
     }

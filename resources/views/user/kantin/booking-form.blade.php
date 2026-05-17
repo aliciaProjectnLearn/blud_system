@@ -76,6 +76,21 @@
         </div>
         @endif
 
+        @if($errors->any())
+        <div class="alert alert-danger alert-dismissible fade show mb-4 border-0 shadow-sm" role="alert">
+            <i class="fas fa-exclamation-triangle mr-2"></i>
+            <strong>Terjadi Kesalahan:</strong>
+            <ul class="mb-0 mt-1 pl-3">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        @endif
+
         {{-- Alert untuk Error Real-time (AJAX) --}}
         <div id="ajaxErrorAlert" class="alert alert-danger alert-dismissible fade show mb-4 border-0 shadow-sm" role="alert" style="display:none;">
             <div class="d-flex">
@@ -210,7 +225,8 @@
                             <h5 class="section-title"><i class="fas fa-credit-card"></i> 4. Aturan & Skema Pembayaran</h5>
                             
                             <label class="mb-2">Pilih Skema Termin*</label>
-                            @if($ruko->metode_pembayaran_unit === 'fleksibel')
+                            @php $metode = $ruko->metode_pembayaran_unit ?? 'fleksibel'; @endphp
+                            @if($metode === 'fleksibel')
                                 <div class="row mb-4">
                                     <div class="col-md-6 mb-2">
                                         <input type="radio" name="tipe_pembayaran" value="1_termin" id="termin1" class="d-none" checked>
@@ -227,7 +243,7 @@
                                         </label>
                                     </div>
                                 </div>
-                            @elseif($ruko->metode_pembayaran_unit === '1_termin')
+                            @elseif($metode === '1_termin')
                                 <div class="alert alert-info border-0 shadow-sm mb-4">
                                     <div class="d-flex align-items-center">
                                         <div class="mr-3">
@@ -240,7 +256,7 @@
                                     </div>
                                     <input type="hidden" name="tipe_pembayaran" value="1_termin">
                                 </div>
-                            @elseif($ruko->metode_pembayaran_unit === '2_termin')
+                            @elseif($metode === '2_termin')
                                 <div class="alert alert-primary border-0 shadow-sm mb-4">
                                     <div class="d-flex align-items-center">
                                         <div class="mr-3">
@@ -257,7 +273,7 @@
 
                             <div class="row mb-2">
                                 {{-- Info Box Termin 1 --}}
-                                <div class="col-12 mt-2 info-termin {{ $ruko->metode_pembayaran_unit === '1_termin' || $ruko->metode_pembayaran_unit === 'fleksibel' ? 'active' : '' }}" id="info-termin1" style="{{ $ruko->metode_pembayaran_unit === '2_termin' ? 'display:none;' : '' }}">
+                                <div class="col-12 mt-2 info-termin {{ $metode === '1_termin' || $metode === 'fleksibel' ? 'active' : '' }}" id="info-termin1" style="{{ $metode === '2_termin' ? 'display:none;' : '' }}">
                                     <div class="bg-light p-3 rounded border-left-success">
                                         <div class="font-weight-bold text-success small mb-2"><i class="fas fa-check-circle mr-1"></i> Pembayaran Lunas di Awal</div>
                                         <div class="small text-muted mb-1">Total yang harus dibayar:</div>
@@ -268,7 +284,7 @@
                                 </div>
 
                                 {{-- Info Box Termin 2 --}}
-                                <div class="col-12 mt-2 info-termin {{ $ruko->metode_pembayaran_unit === '2_termin' ? 'active' : '' }}" id="info-termin2" style="{{ $ruko->metode_pembayaran_unit === '1_termin' || $ruko->metode_pembayaran_unit === 'fleksibel' ? 'display:none;' : '' }}">
+                                <div class="col-12 mt-2 info-termin {{ $metode === '2_termin' ? 'active' : '' }}" id="info-termin2" style="{{ $metode === '1_termin' || $metode === 'fleksibel' ? 'display:none;' : '' }}">
                                     <div class="bg-light p-3 rounded border-left-primary">
                                         <div class="font-weight-bold text-primary small mb-2"><i class="fas fa-calendar-check mr-1"></i> Pembayaran Dibagi 2 Tahap</div>
                                         <div class="row">
