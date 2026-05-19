@@ -210,7 +210,7 @@ class LayananAcTableSeeder extends Seeder
                 'harga_jasa' => 550000,
             ],
             [
-                'kategori_id' => $kategori->id,
+                'kategori_id' => $kategoriMap['BONGKAR / PASANG AC']->id,
                 'nama' => 'Bongkar AC',
                 'kapasitas_ac' => '1.5 - 2 PK',
                 'harga_jasa' => 350000,
@@ -218,13 +218,13 @@ class LayananAcTableSeeder extends Seeder
 
             // 🔹 Pasang
             [
-                'kategori_id' => $kategori->id,
+                'kategori_id' => $kategoriMap['BONGKAR / PASANG AC']->id,
                 'nama' => 'Pasang AC',
                 'kapasitas_ac' => '0.5 - 1 PK',
                 'harga_jasa' => 300000,
             ],
             [
-                'kategori_id' => $kategori->id,
+                'kategori_id' => $kategoriMap['BONGKAR / PASANG AC']->id,
                 'nama' => 'Pasang AC',
                 'kapasitas_ac' => '1.5 - 2 PK',
                 'harga_jasa' => 350000,
