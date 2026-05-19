@@ -461,8 +461,13 @@ $(document).ready(function() {
 
         // Toggle Info Termin Box
         $('.info-termin').removeClass('active');
-        if (tipe === '1_termin') $('#info-termin1').addClass('active');
-        else $('#info-termin2').addClass('active');
+        if (tipe === '1_termin') {
+            $('#info-termin1').addClass('active').show();
+            $('#info-termin2').hide();
+        } else {
+            $('#info-termin2').addClass('active').show();
+            $('#info-termin1').hide();
+        }
 
         // Default durasi 12 bulan jika tanggal belum lengkap
         let months = 12;
