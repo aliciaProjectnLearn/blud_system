@@ -17,10 +17,25 @@ class PembayaranController extends Controller
      */
     public function create($id)
     {
-        $pekerjaan = BookingAc::with(['user', 'layanan', 'detailServis', 'pembayaran'])->findOrFail($id);
+        // Cari pekerjaan berdasarkan booking_ac.id atau booking_ac.booking_id (mendukung kedua format)
+        $pekerjaan = BookingAc::with(['user', 'layanan', 'detailServis', 'pembayaran'])
+            ->where('teknisi_id', Auth::id())
+            ->where(function ($query) use ($id) {
+                $query->where('id', $id)
+                      ->orWhere('booking_id', $id);
+            })
+            ->first();
 
+        if (!$pekerjaan) {
+            $pekerjaan = BookingAc::with(['user', 'layanan', 'detailServis', 'pembayaran'])
+                ->where('id', $id)
+                ->orWhere('booking_id', $id)
+                ->firstOrFail();
+        }
+
+        $teknisi_id = (int)$pekerjaan->teknisi_id;
         // Validation: Booking must belong to the logged-in technician
-        if ($pekerjaan->teknisi_id !== Auth::id()) {
+        if ($teknisi_id !== Auth::id()) {
             abort(403, 'Akses ditolak.');
         }
 
@@ -50,9 +65,22 @@ class PembayaranController extends Controller
      */
     public function store(Request $request, $id)
     {
-        $pekerjaan = BookingAc::findOrFail($id);
+        // Cari pekerjaan berdasarkan booking_ac.id atau booking_ac.booking_id (mendukung kedua format)
+        $pekerjaan = BookingAc::where('teknisi_id', Auth::id())
+            ->where(function ($query) use ($id) {
+                $query->where('id', $id)
+                      ->orWhere('booking_id', $id);
+            })
+            ->first();
 
-        if ($pekerjaan->teknisi_id !== Auth::id() || $pekerjaan->status !== 'selesai') {
+        if (!$pekerjaan) {
+            $pekerjaan = BookingAc::where('id', $id)
+                ->orWhere('booking_id', $id)
+                ->firstOrFail();
+        }
+
+        $teknisi_id = (int)$pekerjaan->teknisi_id;
+        if ($teknisi_id !== Auth::id() || $pekerjaan->status !== 'selesai') {
             abort(403);
         }
 
@@ -66,7 +94,7 @@ class PembayaranController extends Controller
             DB::beginTransaction();
 
             // Find or create pembayaran_ac
-            $pembayaran = PembayaranAc::firstOrNew(['booking_id' => $id]);
+            $pembayaran = PembayaranAc::firstOrNew(['booking_id' => $pekerjaan->id]);
             
             if (!$pembayaran->exists) {
                 $pembayaran->invoice_no = PembayaranAc::generateInvoiceNo();
