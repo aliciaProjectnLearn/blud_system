@@ -142,7 +142,7 @@ class PembayaranKasirFutsalController extends Controller
 
             if ($noHp) {
                 try {
-                    $apiToken = env('FONNTE_TOKEN');
+                    $apiToken = config('services.fonnte.token');
                     
                     if ($pembayaran->jenis_transaksi === 'membership') {
                         // PESAN WA UNTUK MEMBERSHIP (gunakan $membershipForWa yang sudah diload)
@@ -260,7 +260,7 @@ class PembayaranKasirFutsalController extends Controller
             // Kirim notifikasi WA penolakan
             if ($noHp) {
                 try {
-                    $apiToken = env('FONNTE_TOKEN');
+                    $apiToken = config('services.fonnte.token');
                     $alasan = $request->alasan_tolak ?: 'Bukti pembayaran tidak valid atau tidak sesuai.';
                     $noHpFormatted = preg_replace('/[^0-9]/', '', $noHp);
 

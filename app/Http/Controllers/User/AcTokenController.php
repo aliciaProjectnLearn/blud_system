@@ -147,7 +147,7 @@ class AcTokenController extends Controller
             ]);
         }
 
-        $apiToken = env('FONNTE_TOKEN');
+        $apiToken = config('services.fonnte.token');
         if (!$apiToken) {
             Log::warning("Fonnte Token not found in .env. OTP: $code");
             return;
