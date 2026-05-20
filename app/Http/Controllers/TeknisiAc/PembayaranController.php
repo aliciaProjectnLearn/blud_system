@@ -106,7 +106,7 @@ class PembayaranController extends Controller
 
     private function sendThankYouNotification($booking)
     {
-        $apiToken = env('FONNTE_TOKEN');
+        $apiToken = config('services.fonnte.token');
         if (!$apiToken) return;
 
         $nama = $booking->nama_pelanggan ?? ($booking->user->nama_lengkap ?? 'Pelanggan');

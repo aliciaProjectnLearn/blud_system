@@ -34,12 +34,12 @@ use App\Http\Controllers\User\UserServisController;
 use App\Http\Controllers\User\CekBookingController;
 use App\Http\Controllers\User\OtpController;
 
-Route::get('/', [LandingController::class, 'index'])->name('home');
+Route::get('/', [LandingController::class, 'home'])->name('home');
 
 Route::prefix('user')->name('user.')->group(function () {
     Route::get('/', [LandingController::class, 'index'])->name('gateway');
 
-    // Fitur Cek Booking via Nomor HP (Poin 2)
+    // Fitur Cek Booking via Nomor HP 
     Route::post('/cek-booking/otp', [CekBookingController::class, 'requestOtp'])->name('cek-booking.otp')->middleware('throttle:10,1');
     Route::post('/cek-booking/verify', [CekBookingController::class, 'verifyOtp'])->name('cek-booking.verify')->middleware('throttle:10,1');
     
@@ -54,7 +54,7 @@ Route::prefix('user')->name('user.')->group(function () {
     
     Route::get('/cek-booking/riwayat', [CekBookingController::class, 'riwayat'])->name('cek.booking.riwayat');
     
-    // Token-Based Access (Detail, Pembatalan) — Riwayat dihapus (Poin 2)
+    // Token-Based Access (Detail, Pembatalan) — Riwayat dihapus 
     Route::get('/access/{token}', [App\Http\Controllers\User\TokenAccessController::class, 'show'])->name('token.show');
     // Route::get('/access/{token}/history', ...) — Dihapus per Poin 2
     Route::get('/access/{token}/cancel', [App\Http\Controllers\User\TokenAccessController::class, 'batalkan'])->name('token.batalkan');

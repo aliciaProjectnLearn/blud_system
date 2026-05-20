@@ -78,7 +78,7 @@ class DashboardController extends Controller
             return back()->with('error', 'Nomor HP penyewa tidak ditemukan.');
         }
 
-        $apiToken = env('FONNTE_TOKEN');
+        $apiToken = config('services.fonnte.token');
         if (!$apiToken) {
             return back()->with('error', 'Token Fonnte belum diatur di .env.');
         }

@@ -142,7 +142,7 @@ class KantinBookingController extends Controller
 
     private function sendWhatsAppNotification($sewa)
     {
-        $apiToken = env('FONNTE_TOKEN');
+        $apiToken = config('services.fonnte.token');
         if (!$apiToken) return;
 
         $link = route('user.kantin.sewa.token', ['token' => $sewa->access_token]);

@@ -132,7 +132,7 @@ class FutsalBookingController extends Controller
             ]);
 
             // Kirim Notifikasi WA
-            $apiToken = env('FONNTE_TOKEN');
+            $apiToken = config('services.fonnte.token');
             $noHp = preg_replace('/[^0-9]/', '', $user->no_hp);
             $namaPemesan = $request->nama_pemesan;
             $namaPaket = $paket->nama_paket;
@@ -235,7 +235,7 @@ class FutsalBookingController extends Controller
             $startDatetime = Carbon::parse($request->tanggal . ' ' . $slot->jam_mulai);
             $endDatetime = Carbon::parse($request->tanggal . ' ' . $slot->jam_selesai);
 
-            // 1. Check if it's already booked
+            // Check if it's already booked
             $isBooked = BookingFutsal::where('lapangan_id', $request->lapangan_id)
                 ->whereHas('booking', fn ($q) => $q->whereNotIn('status', ['dibatalkan']))
                 ->where(function($q) use ($startDatetime, $endDatetime) {
@@ -244,7 +244,7 @@ class FutsalBookingController extends Controller
                 })
                 ->exists();
 
-            // 2. Cek Jam Blokir dari database (menggantikan hardcode jam sekolah)
+            // Cek Jam Blokir dari database (menggantikan hardcode jam sekolah)
             $isSchoolHour = false;
             if ($pengaturanBlokir && $pengaturanBlokir->jam_blokir_aktif) {
                 $hariBlokir = explode(',', $pengaturanBlokir->hari_blokir ?? '');
@@ -328,7 +328,7 @@ class FutsalBookingController extends Controller
             return back()->withInput()->with('error', 'Anda masih memiliki booking aktif. Selesaikan atau batalkan dulu sebelum membuat booking baru.');
         }
 
-        // 3. Cek konflik jadwal di booking_futsal
+        // Cek konflik jadwal di booking_futsal
         $conflict = BookingFutsal::where('lapangan_id', $request->lapangan_id)
             ->where('status', '!=', 'dibatalkan')
             ->where(function($q) use ($start, $end) {
@@ -345,7 +345,7 @@ class FutsalBookingController extends Controller
         }
 
         if (!$isEvent) {
-            // 4. Cek jam operasional (Hanya untuk reguler)
+            // Cek jam operasional (Hanya untuk reguler)
             $hariIndo = Carbon::parse($request->tgl_main)->locale('id')->isoFormat('dddd');
             $jamOps = \App\Models\JamOperasionalLapangan::where('lapangan_id', $request->lapangan_id)
                 ->where('hari', ucfirst($hariIndo))
@@ -387,7 +387,7 @@ class FutsalBookingController extends Controller
             }
         }
 
-        // 5. Generate token unik
+        // Generate token unik
         do {
             $token = Str::random(32);
         } while (BookingFutsal::where('access_token', $token)->exists());
@@ -417,14 +417,14 @@ class FutsalBookingController extends Controller
             // Jika membership, potong kuota langsung dan set status dikonfirmasi
             $statusBooking = $isMembership ? 'dikonfirmasi' : 'menunggu';
             
-            // 6. Buat record di tabel booking terlebih dahulu
+            // Buat record di tabel booking terlebih dahulu
             $booking = Booking::create([
                 'user_id'      => $userId,
                 'status'       => $statusBooking,
                 'access_token' => $token,
             ]);
 
-            // 7. Buat BookingFutsal
+            //  Buat BookingFutsal
             $bookingFutsal = BookingFutsal::create([
                 'booking_id'       => $booking->id,
                 'lapangan_id'      => $request->lapangan_id,
@@ -486,8 +486,8 @@ class FutsalBookingController extends Controller
 
             DB::commit();
 
-            // 8. Kirim Notifikasi WA
-            $apiToken = env('FONNTE_TOKEN');
+            // Kirim Notifikasi WA
+            $apiToken = config('services.fonnte.token');
             $noHp = preg_replace('/[^0-9]/', '', $request->no_hp);
             $namaPemesan = $request->nama_pemesan;
             $namaLapangan = $lapangan->nama;
@@ -527,7 +527,7 @@ class FutsalBookingController extends Controller
                 \Log::warning('Gagal kirim WA booking: ' . $e->getMessage());
             }
 
-            // 9. Return redirect
+            // Return redirect
             return redirect()->route('user.futsal.landing')
                 ->with('success', 'Booking berhasil dibuat! 🎉 Kami telah mengirimkan link detail booking ke WhatsApp Anda. Klik link tersebut untuk mengakses informasi booking Anda.');
 
