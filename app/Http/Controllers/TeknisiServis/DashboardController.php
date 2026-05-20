@@ -99,9 +99,10 @@ class DashboardController extends Controller
     {
         $pekerjaan = BookingServis::with(['user', 'layananServis', 'rincianServis'])
             ->findOrFail($id);
+        $teknisi_id = (int)$pekerjaan->teknisi_id;
 
         // Validasi 403: hanya teknisi yang di-assign yang boleh lihat
-        if ($pekerjaan->teknisi_id !== Auth::id()) {
+        if ($teknisi_id !== Auth::id()) {
             abort(403, 'Anda tidak memiliki akses ke pekerjaan ini.');
         }
 
