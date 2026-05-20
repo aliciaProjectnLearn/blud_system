@@ -439,10 +439,10 @@
             @endif
 
             <div class="card-body d-flex flex-column">
-                <div class="d-flex align-items-start justify-content-between mb-2">
-                    <h6 class="card-title mb-0">{{ $lap->nama }}</h6>
+                <div class="mb-2">
+                    <h6 class="card-title mb-1">{{ $lap->nama }}</h6>
                     @if($lap->ukuran ?? $lap->spesifikasi ?? null)
-                    <span class="spek-badge ml-2 flex-shrink-0">
+                    <span class="spek-badge">
                         <i class="fas fa-ruler-combined"></i>
                         {{ $lap->ukuran ?? $lap->spesifikasi }}
                     </span>

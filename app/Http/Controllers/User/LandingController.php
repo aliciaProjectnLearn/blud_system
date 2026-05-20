@@ -9,9 +9,8 @@ use Illuminate\Support\Facades\Route;
 
 class LandingController extends Controller
 {
-    public function index()
+    public function home()
     {
-        // Jika sudah login, redirect ke dashboard sesuai role
         if (Auth::check()) {
             $roleName = strtolower(Auth::user()->roles->first()?->nama ?? '');
 
@@ -27,6 +26,11 @@ class LandingController extends Controller
             };
         }
 
+        return redirect()->route('user.gateway');
+    }
+
+    public function index()
+    {
         // Ambil testimoni yang ditampilkan (max 6)
         $testimoni = Testimoni::tampil()->latest()->take(6)->get();
 

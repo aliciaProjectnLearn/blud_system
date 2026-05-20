@@ -383,7 +383,7 @@ class UserServisController extends Controller
      */
     private function sendWhatsappOtp(string $noHp, string $otpCode): void
     {
-        $apiToken = env('FONNTE_TOKEN');
+        $apiToken = config('services.fonnte.token');
         if (!$apiToken) {
             $apiToken = config('services.fonnte.token');
         }

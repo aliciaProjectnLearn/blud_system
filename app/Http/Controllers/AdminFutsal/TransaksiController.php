@@ -80,7 +80,7 @@ class TransaksiController extends Controller
                     $noHp = $bookingFutsal->no_hp ?? null;
 
                     if ($noHp) {
-                        $apiToken = env('FONNTE_TOKEN');
+                        $apiToken = config('services.fonnte.token');
                         $namaPemesan = $bookingFutsal->nama_pemesan ?? 'Pelanggan';
                         $lapangan = $bookingFutsal->lapangan->nama ?? '-';
                         $tglMain = \Carbon\Carbon::parse($bookingFutsal->start_datetime)

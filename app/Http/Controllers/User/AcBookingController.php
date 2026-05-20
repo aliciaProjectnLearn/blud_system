@@ -138,7 +138,7 @@ class AcBookingController extends Controller
 
     private function sendBookingNotification($booking)
     {
-        $apiToken = env('FONNTE_TOKEN');
+        $apiToken = config('services.fonnte.token');
         if (!$apiToken || $apiToken === 'YOUR_API_TOKEN_HERE') {
             \Illuminate\Support\Facades\Log::warning("Fonnte Token tidak ditemukan atau masih default di .env. Notifikasi WA tidak terkirim.");
             return;
