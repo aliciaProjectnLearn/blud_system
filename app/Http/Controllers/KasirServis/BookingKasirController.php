@@ -554,7 +554,7 @@ class BookingKasirController extends Controller
         // Kirim WhatsApp
         try {
             $linkAkses = route('user.servis.token.show', $accessToken);
-            $fonnteToken = env('FONNTE_TOKEN');
+            $fonnteToken = config('services.fonnte.token');
 
             if ($fonnteToken) {
                 $tanggalFormat = \Carbon\Carbon::parse($request->tanggal_booking)->translatedFormat('d F Y');

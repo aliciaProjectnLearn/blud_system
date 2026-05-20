@@ -164,7 +164,7 @@ class UserServisController extends Controller
         // BUGFIX: gunakan route servis, bukan futsal
         try {
             $linkAkses = route('user.servis.token.show', $accessToken);
-            $fonnteToken = env('FONNTE_TOKEN');
+            $fonnteToken = config('services.fonnte.token');
 
             if ($fonnteToken) {
                 $linkAkses = route('user.servis.token.show', $accessToken);
