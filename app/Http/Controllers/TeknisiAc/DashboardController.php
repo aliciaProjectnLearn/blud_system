@@ -47,10 +47,26 @@ class DashboardController extends Controller
      */
     public function show($id)
     {
-        $pekerjaan = BookingAc::with(['layanan', 'detailServis'])->findOrFail($id);
+        // Cari pekerjaan berdasarkan booking_ac.id atau booking_ac.booking_id (mendukung kedua format)
+        $pekerjaan = BookingAc::with(['layanan', 'detailServis'])
+            ->where('teknisi_id', Auth::id())
+            ->where(function ($query) use ($id) {
+                $query->where('id', $id)
+                      ->orWhere('booking_id', $id);
+            })
+            ->first();
+
+        if (!$pekerjaan) {
+            $pekerjaan = BookingAc::with(['layanan', 'detailServis'])
+                ->where('id', $id)
+                ->orWhere('booking_id', $id)
+                ->firstOrFail();
+        }
+
+        $teknisi_id = (int)$pekerjaan->teknisi_id;
 
         // Validasi 403: Pastikan teknisi hanya bisa melihat pekerjaannya sendiri
-        if ($pekerjaan->teknisi_id !== Auth::id()) {
+        if ($teknisi_id !== Auth::id()) {
             abort(403, 'Anda tidak memiliki akses ke pekerjaan ini.');
         }
 
@@ -62,10 +78,23 @@ class DashboardController extends Controller
 
     public function selesaikanPekerjaan(Request $request, $id)
     {
-        $pekerjaan = BookingAc::findOrFail($id);
+        // Cari pekerjaan berdasarkan booking_ac.id atau booking_ac.booking_id (mendukung kedua format)
+        $pekerjaan = BookingAc::where('teknisi_id', Auth::id())
+            ->where(function ($query) use ($id) {
+                $query->where('id', $id)
+                      ->orWhere('booking_id', $id);
+            })
+            ->first();
 
+        if (!$pekerjaan) {
+            $pekerjaan = BookingAc::where('id', $id)
+                ->orWhere('booking_id', $id)
+                ->firstOrFail();
+        }
+
+        $teknisi_id = (int)$pekerjaan->teknisi_id;
         // Validasi akses
-        if ($pekerjaan->teknisi_id !== Auth::id()) {
+        if ($teknisi_id !== Auth::id()) {
             abort(403);
         }
 
