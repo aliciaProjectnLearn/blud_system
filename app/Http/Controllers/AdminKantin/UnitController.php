@@ -33,20 +33,13 @@ class UnitController extends Controller
         if ($kategori_id) {
             $kategori = \App\Models\Kategori::find($kategori_id);
             $prefix = ($kategori && $kategori->prefix) ? $kategori->prefix : 'UNT';
+            $count = Ruko::where('kategori_id', $kategori_id)->count();
         } else {
             $prefix = 'UNT';
+            $count = Ruko::count();
         }
 
-        $last = Ruko::where('kode_unit', 'LIKE', $prefix . '%')
-            ->orderByRaw("CAST(SUBSTRING(kode_unit, " . (strlen($prefix) + 1) . ") AS UNSIGNED) DESC")
-            ->value('kode_unit');
-
-        if ($last) {
-            $lastNumber = (int) substr($last, strlen($prefix));
-            $nextNumber = $lastNumber + 1;
-        } else {
-            $nextNumber = 1;
-        }
+        $nextNumber = $count + 1;
 
         return $prefix . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
     }

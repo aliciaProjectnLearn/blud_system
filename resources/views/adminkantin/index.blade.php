@@ -7,6 +7,29 @@
         <h1 class="h3 mb-0 text-gray-800">Dashboard Admin Kantin</h1>
     </div>
 
+    {{-- Alert Permohonan Baru --}}
+    @if($menungguVerifikasi > 0)
+    <div class="alert alert-warning shadow-sm border-left-warning alert-dismissible fade show mb-4" role="alert">
+        <div class="d-flex align-items-center">
+            <div class="mr-3">
+                <i class="fas fa-exclamation-circle fa-2x"></i>
+            </div>
+            <div>
+                <h6 class="font-weight-bold mb-1">Ada {{ $menungguVerifikasi }} Permohonan Baru!</h6>
+                <span>Terdapat pengajuan sewa unit yang menunggu untuk segera diverifikasi.</span>
+            </div>
+            <div class="ml-auto">
+                <a href="{{ route('admin.kantin.penyewaan.index', ['status' => 'pending']) }}" class="btn btn-warning shadow-sm font-weight-bold">
+                    <i class="fas fa-arrow-right mr-1"></i> Lihat Detail
+                </a>
+            </div>
+        </div>
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    @endif
+
     {{-- Card Ringkasan --}}
     <div class="row">
         <div class="col-xl-3 col-md-6 mb-4">
@@ -149,6 +172,10 @@
                                     <span class="badge badge-success px-3">Aktif</span>
                                 @elseif($t->status_sewa === 'pending')
                                     <span class="badge badge-warning px-3">Pending</span>
+                                @elseif($t->status_sewa === 'disetujui')
+                                    <span class="badge badge-info px-3">Disetujui</span>
+                                @elseif($t->status_sewa === 'ditolak')
+                                    <span class="badge badge-danger px-3">Ditolak</span>
                                 @elseif($t->status_sewa === 'selesai')
                                     <span class="badge badge-secondary px-3">Selesai</span>
                                 @else

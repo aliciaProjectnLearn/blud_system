@@ -441,6 +441,30 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
+    // Custom Validation Messages (Bahasa Indonesia)
+    const formInputs = document.querySelectorAll('#bookingForm input, #bookingForm select, #bookingForm textarea');
+    formInputs.forEach(input => {
+        input.addEventListener('invalid', function() {
+            if (this.validity.valueMissing) {
+                this.setCustomValidity('Peringatan: Kolom ini (* harus diisi) dan tidak boleh kosong.');
+            } else if (this.validity.typeMismatch) {
+                if (this.type === 'email') {
+                    this.setCustomValidity('Format email tidak valid, mohon periksa kembali.');
+                } else {
+                    this.setCustomValidity('Format input tidak sesuai.');
+                }
+            } else {
+                this.setCustomValidity('Isian tidak valid, mohon periksa kembali.');
+            }
+        });
+
+        const resetValidation = function() {
+            this.setCustomValidity('');
+        };
+        input.addEventListener('input', resetValidation);
+        input.addEventListener('change', resetValidation);
+    });
+
     let currentHarga = {{ $ruko->harga ?? 0 }};
 
     function updateEstimasi() {

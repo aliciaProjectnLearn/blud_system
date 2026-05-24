@@ -275,10 +275,13 @@
                             <br>
                             <small class="text-muted">
                                 {{ ucfirst(str_replace('_',' ',$dok->tipe_dokumen)) }}
-                                @if($dok->tipe_dokumen === 'mou_hardfile')
-                                    <span class="badge badge-success ml-1">Ditandatangani</span>
+                                @if(str_contains($dok->tipe_dokumen, 'kwitansi'))
+                                    <span class="badge badge-warning ml-1">Kwitansi</span>
                                 @endif
-                                @if($dok->tipe_dokumen === 'mou_sistem')
+                                @if($dok->tipe_dokumen === 'mou_hardfile' || $dok->tipe_dokumen === 'kwitansi_hardfile')
+                                    <span class="badge badge-success ml-1">Fisik (Scan)</span>
+                                @endif
+                                @if($dok->tipe_dokumen === 'mou_sistem' || $dok->tipe_dokumen === 'kwitansi_termin_1' || $dok->tipe_dokumen === 'kwitansi_termin_2')
                                     <span class="badge badge-info ml-1">Digital</span>
                                 @endif
                             </small>
@@ -347,22 +350,6 @@
                 @csrf
                 <div class="modal-body">
 
-                    {{-- Panduan Upload --}}
-                    <div class="alert alert-info mb-3">
-                        <h6 class="font-weight-bold">
-                            <i class="fas fa-info-circle mr-1"></i> Panduan Upload MOU Hardfile
-                        </h6>
-                        <ol class="mb-0 pl-3 small">
-                            <li>Pastikan MOU fisik sudah <strong>ditandatangani</strong> 
-                                oleh kedua pihak</li>
-                            <li>Scan atau foto dokumen dengan <strong>kualitas jelas</strong></li>
-                            <li>Format yang diterima: <strong>PDF, JPG, PNG</strong></li>
-                            <li>Ukuran maksimal: <strong>5MB</strong></li>
-                            <li>Dokumen ini akan bisa diakses oleh penyewa 
-                                melalui link token mereka</li>
-                        </ol>
-                    </div>
-
                     <input type="hidden" name="tipe_dokumen" value="mou_hardfile">
 
                     <div class="form-group">
@@ -380,9 +367,9 @@
                         </label>
                         <div class="custom-file">
                             <input type="file" class="custom-file-input" 
-                                   name="file_dokumen" id="fileDokumen"
+                                   name="file_dokumen"
                                    accept=".pdf,.jpg,.jpeg,.png" required>
-                            <label class="custom-file-label" for="fileDokumen">
+                            <label class="custom-file-label">
                                 Pilih file...
                             </label>
                         </div>
@@ -394,12 +381,6 @@
                         <textarea name="keterangan" class="form-control" rows="2"
                                   placeholder="Contoh: MOU asli sudah ditandatangani tanggal...">
                         </textarea>
-                    </div>
-
-                    {{-- Preview --}}
-                    <div id="preview-wrapper" class="d-none text-center mt-2">
-                        <img id="img-preview" src="" class="img-fluid rounded" 
-                             style="max-height:200px">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -413,6 +394,8 @@
         </div>
     </div>
 </div>
+
+
 @endsection
 
 @push('scripts')
@@ -462,8 +445,51 @@
     });
 
     function updateStatus(id, status) {
-        if(!confirm('Apakah anda yakin mengubah status menjadi: ' + status + '?')) return;
-        
+        let titleText = '';
+        let msg = '';
+        let confirmBtnText = '';
+        let confirmColor = '';
+
+        if (status === 'disetujui') {
+            titleText = 'Setujui Pengajuan?';
+            msg = 'Langkah selanjutnya: Setelah disetujui, Anda harus menggenerate MOU Digital atau mengunggah MOU fisik. Pelanggan akan menerima notifikasi untuk melanjutkan pembayaran.';
+            confirmBtnText = 'Ya, Setujui!';
+            confirmColor = '#28a745';
+        } else if (status === 'ditolak') {
+            titleText = 'Tolak Pengajuan?';
+            msg = 'Apakah Anda yakin ingin menolak pengajuan ini?';
+            confirmBtnText = 'Ya, Tolak!';
+            confirmColor = '#dc3545';
+        } else {
+            titleText = 'Konfirmasi';
+            msg = 'Apakah anda yakin mengubah status menjadi ' + status + '?';
+            confirmBtnText = 'Ya, Lanjutkan';
+            confirmColor = '#3085d6';
+        }
+
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: titleText,
+                text: msg,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: confirmColor,
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: confirmBtnText,
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    submitStatusForm(id, status);
+                }
+            });
+        } else {
+            if(confirm(titleText + '\\n' + msg)) {
+                submitStatusForm(id, status);
+            }
+        }
+    }
+
+    function submitStatusForm(id, status) {
         let form = document.createElement('form');
         form.method = 'POST';
         form.action = "{{ url('admin/kantin/penyewaan') }}/" + id;

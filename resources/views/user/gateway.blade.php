@@ -812,6 +812,7 @@
                     <div class="flex">
                         <span class="flex items-center px-3 bg-gray-100 border border-r-0 border-gray-300 rounded-l-xl text-sm font-bold text-gray-600">+62</span>
                         <input type="text" x-model="noHp"
+                               @input="noHp = noHp.replace(/\D/g, '').replace(/^0+/, '').replace(/^62/, '')"
                                @keyup.enter="kirimOtp()"
                                class="flex-1 border border-gray-300 rounded-r-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                placeholder="812xxxx"
