@@ -107,8 +107,8 @@ class CekBookingController extends Controller
         // Define models and their ACTUAL phone fields from migrations
         // Tables without phone columns will rely on user relation
         $models = [
-            BookingFutsal::class => [],
-            BookingAc::class => [],
+            BookingFutsal::class => ['no_hp'],
+            BookingAc::class => ['no_hp'],
             BookingServis::class => ['no_hp'],
             SewaRuko::class => ['no_hp_snapshot'],
             Booking::class => [],
@@ -119,8 +119,12 @@ class CekBookingController extends Controller
         foreach ($models as $modelClass => $fields) {
             $query = $modelClass::query();
             
-            // Eager loading
-            $query->with(['user']);
+            // Eager loading safely
+            if (method_exists(new $modelClass, 'user')) {
+                $query->with(['user']);
+            } elseif (method_exists(new $modelClass, 'booking')) {
+                $query->with(['booking.user']);
+            }
             
             // Check if model has booking relation before loading
             if ($modelClass !== Booking::class && method_exists(new $modelClass, 'booking')) {
@@ -132,6 +136,10 @@ class CekBookingController extends Controller
                 $query->with('ruko');
             } elseif ($modelClass === BookingServis::class) {
                 $query->with('layananServis');
+            } elseif ($modelClass === BookingAc::class) {
+                $query->with('layanan');
+            } elseif ($modelClass === BookingFutsal::class) {
+                $query->with('lapangan');
             }
             
             // Check direct fields or via User relationship
@@ -141,16 +149,25 @@ class CekBookingController extends Controller
                     $q->orWhere($field, $phone);
                     if (str_starts_with($phone, '62')) {
                         $q->orWhere($field, '0' . substr($phone, 2));
+                        $q->orWhere($field, '+' . $phone);
                     }
                 }
                 
                 // 2. Via User relationship
-                // Only if model has user relationship
                 if (method_exists(new $modelClass, 'user')) {
                     $q->orWhereHas('user', function($qu) use ($phone) {
                         $qu->where('no_hp', $phone);
                         if (str_starts_with($phone, '62')) {
                             $qu->orWhere('no_hp', '0' . substr($phone, 2));
+                            $qu->orWhere('no_hp', '+' . $phone);
+                        }
+                    });
+                } elseif (method_exists(new $modelClass, 'booking')) {
+                    $q->orWhereHas('booking.user', function($qu) use ($phone) {
+                        $qu->where('no_hp', $phone);
+                        if (str_starts_with($phone, '62')) {
+                            $qu->orWhere('no_hp', '0' . substr($phone, 2));
+                            $qu->orWhere('no_hp', '+' . $phone);
                         }
                     });
                 }
@@ -186,25 +203,114 @@ class CekBookingController extends Controller
      */
     private function getUnitName($booking)
     {
-        if ($booking instanceof BookingFutsal) return "Lapangan Futsal";
-        if ($booking instanceof BookingAc) return "Servis AC";
+        if ($booking instanceof BookingFutsal) {
+            return "Lapangan Futsal: " . ($booking->lapangan->nama ?? 'Lapangan');
+        }
+        if ($booking instanceof BookingAc) {
+            return "Servis AC: " . ($booking->layanan->nama ?? 'AC');
+        }
         if ($booking instanceof BookingServis) {
             $layanan = $booking->layananServis->nama ?? 'Servis Kendaraan';
             return "Servis {$layanan}";
         }
-        if ($booking instanceof SewaRuko) return "Sewa Ruko: " . ($booking->ruko->nama_ruko ?? 'Kantin');
+        if ($booking instanceof SewaRuko) {
+            return "Sewa Ruko: " . ($booking->ruko->nama_ruko ?? 'Kantin');
+        }
         return "Booking Umum";
     }
 
         public function kirimOtp(Request $request)
     {
-        // Delay buatan 0.8 - 1.5 detik agar response time konsisten (Anti-Timing Attack)
+        // [1] Honeypot check — field ini harusnya SELALU kosong (diisi hanya oleh bot)
+        if (!empty($request->input('hp_confirm'))) {
+            $this->logAktivitas($request->input('no_hp', ''), 'honeypot_detected', $request->ip());
+            // Silent drop: beri respons sukses palsu agar bot tidak tahu terdeteksi
+            usleep(rand(800000, 1500000));
+            return response()->json(['success' => true, 'message' => $this->genericMessage()], 200);
+        }
+
+        // [2] Anti-Timing Attack: delay konsisten agar semua response terasa sama
         usleep(rand(800000, 1500000));
 
-        // 1. Normalisasi Nomor HP
+        // [3] Normalisasi Nomor HP (format selalu: 628xxx)
+        $noHp = $this->normalizePhone($request->no_hp);
+
+        // [4] Rate Limit per Nomor HP (Maks 3 request per 2 menit)
+        $keyHpLimit = 'otp_limit_hp_' . $noHp;
+        $countHp = Cache::get($keyHpLimit, 0);
+        if ($countHp >= 3) {
+            return response()->json(['success' => true, 'message' => $this->genericMessage()], 200);
+        }
+
+        // [5] Rate Limit per IP Address (Maks 10 request per menit)
+        $keyIpLimit = 'otp_limit_ip_' . $request->ip();
+        $countIp = Cache::get($keyIpLimit, 0);
+        if ($countIp >= 10) {
+            return response()->json(['success' => true, 'message' => $this->genericMessage()], 200);
+        }
+
+        // Increment rate limit counters
+        Cache::put($keyHpLimit, $countHp + 1, now()->addMinutes(2));
+        Cache::put($keyIpLimit, $countIp + 1, now()->addMinutes(1));
+
+        // [6] Cari booking di SEMUA kategori (Kantin, Futsal, AC, Servis)
+        $bookings = $this->findAllBookingsByPhone($noHp);
+
+        if ($bookings->isNotEmpty()) {
+            $keyCooldown = 'otp_cooldown_' . $noHp;
+
+            if (Cache::has($keyCooldown)) {
+                // OTP sudah dikirim, masih dalam cooldown — jangan kirim ulang
+                $this->logAktivitas($noHp, 'otp_cooldown', $request->ip());
+            } else {
+                // Generate dan kirim OTP baru
+                $otp     = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+                $otpHash = hash('sha256', $otp . $noHp);
+
+                Cache::put('otp_hash_' . $noHp, $otpHash, now()->addMinutes(5));
+                Cache::put('otp_attempt_' . $noHp, 0, now()->addMinutes(5));
+                Cache::put($keyCooldown, true, now()->addMinutes(2));
+
+                $this->kirimWhatsapp($noHp, $otp);
+                $this->logAktivitas($noHp, 'otp_dikirim', $request->ip());
+            }
+        } else {
+            $this->logAktivitas($noHp, 'nomor_tidak_ada', $request->ip());
+        }
+
+        // [7] SELALU return pesan generik — tidak membocorkan apakah nomor terdaftar
+        return response()->json(['success' => true, 'message' => $this->genericMessage()], 200);
+    }
+
+    /**
+     * Pesan generik yang selalu sama untuk semua kondisi.
+     * Mengikuti pola Gmail/Apple: tidak mengkonfirmasi apakah nomor terdaftar.
+     */
+    private function genericMessage(): string
+    {
+        return 'Jika nomor WhatsApp Anda memiliki booking aktif di OneBLUD, kode OTP akan segera dikirim dalam beberapa saat. Periksa pesan WhatsApp Anda.';
+    }
+
+    /**
+     * Normalisasi nomor HP ke format internasional 628xxx.
+     * Digunakan di kirimOtp DAN verifikasi agar cache key selalu cocok.
+     */
+    private function normalizePhone(?string $raw): string
+    {
+        $clean = preg_replace('/[^0-9]/', '', $raw ?? '');
+        if (str_starts_with($clean, '620'))      return '62' . substr($clean, 3);
+        if (str_starts_with($clean, '0'))        return '62' . substr($clean, 1);
+        if (!str_starts_with($clean, '62'))      return '62' . $clean;
+        return $clean;
+    }
+
+    public function verifikasi(Request $request)
+    {
+        // Delay konsisten 0.5 - 1 detik
+        usleep(rand(500000, 1000000));
+
+        // Strict normalization identical to kirimOtp
         $rawNoHp = preg_replace('/[^0-9]/', '', $request->no_hp);
-        
-        // Fix common mistakes (e.g. 6208... -> 628...)
         if (str_starts_with($rawNoHp, '620')) {
             $noHp = '62' . substr($rawNoHp, 3);
         } elseif (str_starts_with($rawNoHp, '0')) {
@@ -215,59 +321,6 @@ class CekBookingController extends Controller
             $noHp = $rawNoHp;
         }
 
-        // 2. Rate Limit per Nomor HP (Maks 3 request per 2 menit)
-        $keyHpLimit = 'otp_limit_hp_' . $noHp;
-        $countHp = Cache::get($keyHpLimit, 0);
-        if ($countHp >= 3) {
-            return response()->json(['success' => true], 200);
-        }
-
-        // 3. Rate Limit per IP Address (Maks 10 request per menit)
-        $keyIpLimit = 'otp_limit_ip_' . $request->ip();
-        $countIp = Cache::get($keyIpLimit, 0);
-        if ($countIp >= 10) {
-            return response()->json(['success' => true], 200);
-        }
-
-        // Increment rate limits
-        Cache::put($keyHpLimit, $countHp + 1, now()->addMinutes(2));
-        Cache::put($keyIpLimit, $countIp + 1, now()->addMinutes(1));
-
-        // 4. Cari booking di SEMUA kategori (Kantin, Futsal, AC, Servis)
-        $bookings = $this->findAllBookingsByPhone($noHp);
-
-        if ($bookings->isNotEmpty()) {
-            // Cek Cooldown (Jarak antar pengiriman minimal 2 menit)
-            $keyCooldown = 'otp_cooldown_' . $noHp;
-            if (!Cache::has($keyCooldown)) {
-                $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-                
-                // Hash OTP sebelum disimpan (Security Best Practice)
-                $otpHash = hash('sha256', $otp . $noHp);
-                Cache::put('otp_hash_' . $noHp, $otpHash, now()->addMinutes(5));
-                Cache::put('otp_attempt_' . $noHp, 0, now()->addMinutes(5));
-                Cache::put($keyCooldown, true, now()->addMinutes(2));
-
-                $this->kirimWhatsapp($noHp, $otp);
-
-                // Log Aktivitas
-                $this->logAktivitas($noHp, 'otp_dikirim', $request->ip());
-            }
-        } else {
-            // Nomor tidak ditemukan di sistem
-            $this->logAktivitas($noHp, 'nomor_tidak_ada', $request->ip());
-        }
-
-        // SELALU return sukses agar tidak bisa membedakan nomor terdaftar atau tidak
-        return response()->json(['success' => true], 200);
-    }
-
-    public function verifikasi(Request $request)
-    {
-        // Delay konsisten 0.5 - 1 detik
-        usleep(rand(500000, 1000000));
-
-        $noHp = preg_replace('/[^0-9]/', '', $request->no_hp);
         $otp  = $request->otp;
 
         // 3. Batas Percobaan (Max 5x salah per nomor)
@@ -423,7 +476,7 @@ class CekBookingController extends Controller
             return;
         }
 
-        $pesan = "🔍 *Cek Booking BLUD Portal*\n\n" .
+        $pesan = "🔍 *Cek Booking OneBLUD*\n\n" .
                  "Kode OTP Anda: *{$otp}*\n\n" .
                  "Berlaku selama *5 menit*.\n" .
                  "Jangan bagikan kode ini kepada siapapun.";

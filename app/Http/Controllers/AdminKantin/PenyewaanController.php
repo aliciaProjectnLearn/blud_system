@@ -102,6 +102,13 @@ class PenyewaanController extends Controller
                 $this->generatePembayaranTermin($sewa);
             }
 
+            // Kirim Notifikasi WA saat verifikasi disetujui atau ditolak
+            if ($statusLama === 'pending' && $sewa->status_sewa === 'disetujui') {
+                $this->sendWhatsAppApproval($sewa);
+            } elseif ($statusLama === 'pending' && $sewa->status_sewa === 'ditolak') {
+                $this->sendWhatsAppRejection($sewa);
+            }
+
             $this->recalculateStatuses();
 
             DB::commit();
@@ -186,6 +193,36 @@ class PenyewaanController extends Controller
             \Illuminate\Support\Facades\Log::error('Gagal Kirim WA Approval: ' . $e->getMessage());
         }
     }
+
+    private function sendWhatsAppRejection($sewa)
+    {
+        $apiToken = config('services.fonnte.token');
+        if (!$apiToken) return;
+
+        $pesan = "Halo *{$sewa->nama_penyewa}* 👋\n\n";
+        $pesan .= "Mohon maaf, pengajuan sewa unit *{$sewa->ruko->kode_unit}* Anda telah *DITOLAK* oleh Admin.\n\n";
+        $pesan .= "Silakan hubungi Admin Kantin BLUD SMK untuk informasi lebih lanjut mengenai alasan penolakan atau untuk mengajukan penyewaan unit lainnya.\n\n";
+        $pesan .= "Terima kasih.\n";
+        $pesan .= "— Admin Kantin BLUD SMK";
+
+        $target = preg_replace('/[^0-9]/', '', $sewa->no_hp_snapshot);
+        if (str_starts_with($target, '0')) {
+            $target = '62' . substr($target, 1);
+        }
+
+        try {
+            \Illuminate\Support\Facades\Http::withHeaders([
+                'Authorization' => $apiToken,
+            ])->post('https://api.fonnte.com/send', [
+                'target'      => $target,
+                'message'     => $pesan,
+                'countryCode' => '62',
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Gagal Kirim WA Rejection: ' . $e->getMessage());
+        }
+    }
+
     public function destroy($id)
     {
         $sewa = SewaRuko::findOrFail($id);
@@ -212,7 +249,7 @@ class PenyewaanController extends Controller
                 $item->update(['status_sewa' => 'selesai']);
             }
 
-            if ($item->status_sewa === 'aktif') {
+            if (in_array($item->status_sewa, ['aktif', 'disetujui', 'pending', 'proses'])) {
                 $item->ruko->update(['status' => 'disewa']);
             } else {
                 $masihDisewa = SewaRuko::where('ruko_id', $item->ruko_id)
@@ -349,7 +386,7 @@ class PenyewaanController extends Controller
         $request->validate([
             'file_dokumen' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
             'nama_dokumen' => 'required|string|max:255',
-            'tipe_dokumen' => 'required|in:mou_hardfile,dokumen_lain',
+            'tipe_dokumen' => 'required|in:mou_hardfile,kwitansi_hardfile,dokumen_lain',
         ]);
 
         $sewa = SewaRuko::findOrFail($id);

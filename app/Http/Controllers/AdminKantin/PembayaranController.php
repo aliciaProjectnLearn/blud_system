@@ -105,12 +105,54 @@ class PembayaranController extends Controller
             // Auto-generate PDF Kwitansi after Lunas
             $this->generateKwitansiFile($pembayaran);
 
+            // Kirim Notifikasi WA
+            $this->sendWhatsAppPaymentSuccess($pembayaran);
+
             return redirect()->route('admin.kantin.pembayaran.show', $pembayaran)
                 ->with('success', "Pembayaran berhasil dikonfirmasi sebagai Lunas. No. Kwitansi: {$noKwitansi}");
 
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()->with('error', 'Gagal memproses pembayaran: ' . $e->getMessage());
+        }
+    }
+
+    private function sendWhatsAppPaymentSuccess(PembayaranRuko $pembayaran)
+    {
+        $apiToken = config('services.fonnte.token');
+        if (!$apiToken) return;
+
+        $sewa = $pembayaran->sewaRuko;
+        $link = route('user.kantin.sewa.detail', ['token' => $sewa->access_token]);
+        $nominal = number_format($pembayaran->jumlah_tagihan, 0, ',', '.');
+        
+        $pesan = "Halo *{$sewa->nama_penyewa}* 👋\n\n";
+        $pesan .= "Pembayaran Anda untuk unit *{$sewa->ruko->kode_unit}* (Termin {$pembayaran->termin_ke}) sebesar *Rp {$nominal}* telah *BERHASIL* diverifikasi.\n\n";
+        
+        if ($pembayaran->termin_ke == 1) {
+            $pesan .= "Status penyewaan Anda sekarang sudah *AKTIF* dan unit dapat digunakan.\n\n";
+        }
+
+        $pesan .= "Silakan klik link di bawah untuk melihat rincian penyewaan dan mengunduh kwitansi:\n";
+        $pesan .= "🔗 {$link}\n\n";
+        $pesan .= "Terima kasih.\n";
+        $pesan .= "— Admin Kantin BLUD SMK";
+
+        $target = preg_replace('/[^0-9]/', '', $sewa->no_hp_snapshot);
+        if (str_starts_with($target, '0')) {
+            $target = '62' . substr($target, 1);
+        }
+
+        try {
+            \Illuminate\Support\Facades\Http::withHeaders([
+                'Authorization' => $apiToken,
+            ])->post('https://api.fonnte.com/send', [
+                'target'      => $target,
+                'message'     => $pesan,
+                'countryCode' => '62',
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Gagal Kirim WA Payment Success: ' . $e->getMessage());
         }
     }
 
@@ -135,6 +177,21 @@ class PembayaranController extends Controller
         try {
             Storage::disk('public')->put($path, $pdf->output());
             $pembayaran->update(['path_kwitansi' => $path]);
+
+            // Tambahkan ke DokumenSewa agar muncul di list dokumen user
+            \App\Models\DokumenSewa::updateOrCreate(
+                [
+                    'sewa_ruko_id' => $pembayaran->sewa_ruko_id,
+                    'tipe_dokumen' => 'kwitansi_termin_' . $pembayaran->termin_ke,
+                ],
+                [
+                    'nama_dokumen' => 'Kwitansi Termin ' . $pembayaran->termin_ke . ' - ' . $pembayaran->no_kwitansi,
+                    'path_file'    => $path,
+                    'diunggah_oleh' => 'sistem',
+                    'keterangan'   => 'Kwitansi digenerate otomatis oleh sistem',
+                ]
+            );
+
             return $path;
         } catch (\Exception $e) {
             \Log::error("Gagal generate kwitansi ID {$pembayaran->id}: " . $e->getMessage());

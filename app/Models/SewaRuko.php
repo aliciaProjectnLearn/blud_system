@@ -43,6 +43,11 @@ class SewaRuko extends Model
         return $this->hasMany(PembayaranRuko::class, 'sewa_ruko_id');
     }
 
+    public function penyewa()
+    {
+        return $this->belongsTo(Penyewa::class, 'penyewa_id');
+    }
+
     public function dokumen()
     {
         return $this->hasMany(\App\Models\DokumenSewa::class, 'sewa_ruko_id');
