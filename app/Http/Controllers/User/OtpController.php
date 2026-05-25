@@ -11,21 +11,16 @@ use Illuminate\Support\Facades\Log;
 
 class OtpController extends Controller
 {
-    // Tampilkan form OTP
     public function form($token)
     {
         $sewa = SewaRuko::where('access_token', $token)->firstOrFail();
-
-        // Jika session sudah verified, langsung ke detail
+ 
         if (session('sewa_verified_' . $token)) {
             return redirect()->route('user.kantin.sewa.detail', $token);
         }
 
-        // Generate & kirim OTP baru (hanya jika belum ada OTP valid atau user minta kirim ulang)
-        // Namun instruksi task bilang "Generate & kirim OTP baru" saat akses halaman.
         $this->kirimOtp($sewa);
 
-        // Sensor nomor HP untuk tampilan
         $hp = $sewa->no_hp_snapshot;
         $hpSensor = substr($hp, 0, 4) . '****' . substr($hp, -4);
 

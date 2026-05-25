@@ -330,6 +330,11 @@
             return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0');
         }
 
+        // Auto-sanitize phone number input
+        inputHp?.addEventListener('input', function() {
+            this.value = this.value.replace(/\D/g,'').replace(/^0+/, '').replace(/^62/, '');
+        });
+
         // OTP box interaction
         otpBoxes.forEach((box, idx) => {
             box.addEventListener('input', function() {

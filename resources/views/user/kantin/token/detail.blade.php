@@ -71,6 +71,18 @@
                         <div class="step-name">Pembayaran<br>Termin 1</div>
                     </div>
 
+                    <!-- Step Ruko Siap Dihuni -->
+                    <div class="stepper-item {{ in_array($sewa->status_sewa, ['ditolak', 'dibatalkan']) ? 'disabled' : ($termin1 && $termin1->status_pembayaran === 'dibayar' ? 'completed' : '') }}">
+                        <div class="step-counter">
+                            @if($termin1 && $termin1->status_pembayaran === 'dibayar')
+                                <i class="fas fa-key"></i>
+                            @else
+                                <i class="fas fa-home text-muted"></i>
+                            @endif
+                        </div>
+                        <div class="step-name">Ruko Siap<br>Dihuni</div>
+                    </div>
+
                     <!-- Step 4 — hanya tampil jika 2 termin -->
                     @if($sewa->tipe_pembayaran === '2_termin')
                     @php $termin2 = $sewa->pembayaran->where('termin_ke', 2)->first(); @endphp

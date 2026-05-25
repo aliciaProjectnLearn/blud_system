@@ -52,7 +52,7 @@ return [
     |
     */
 
-    'url' => env('APP_URL', 'http://localhost'),
+    'url' => env('APP_URL', 'https://one-blud.nepertech.id'),
 
     /*
     |--------------------------------------------------------------------------
@@ -97,7 +97,7 @@ return [
 
     'cipher' => 'AES-256-CBC',
 
-    'key' => env('APP_KEY'),
+    'key' => env('APP_KEY', 'base64:7w1WxmxX6E2m7U/86MqxoTeOroVdsL4GNIdAejEKHCk='),
 
     'previous_keys' => [
         ...array_filter(

@@ -114,6 +114,33 @@ class SewaTokenController extends Controller
                 'keterangan' => 'User mengunggah bukti pembayaran untuk termin ke-' . $pembayaran->termin_ke,
                 'dilakukan_oleh' => $sewa->nama_penyewa,
             ]);
+
+            // Kirim notifikasi WA ke Admin Kantin
+            $adminKantin = \App\Models\User::whereHas('roles', function($q) {
+                $q->where('nama', 'Adminkantin');
+            })->first();
+
+            if ($adminKantin && $adminKantin->no_hp) {
+                $fonnteToken = env('FONNTE_TOKEN');
+                if ($fonnteToken) {
+                    $pesanAdmin = "🔔 *Notifikasi Pembayaran Baru (Kantin)*\n\n"
+                        . "Penyewa *{$sewa->nama_penyewa}* (Unit: *{$sewa->ruko->kode_unit}*) telah mengunggah bukti pembayaran untuk Termin ke-{$pembayaran->termin_ke}.\n\n"
+                        . "Silakan periksa dan verifikasi pembayaran di Dashboard Admin Kantin.\n"
+                        . url('/admin/kantin/pembayaran/' . $pembayaran->id);
+
+                    try {
+                        \Illuminate\Support\Facades\Http::withHeaders([
+                            'Authorization' => $fonnteToken,
+                        ])->post('https://api.fonnte.com/send', [
+                            'target'      => $adminKantin->no_hp,
+                            'message'     => $pesanAdmin,
+                            'countryCode' => '62',
+                        ]);
+                    } catch (\Exception $e) {
+                        \Illuminate\Support\Facades\Log::error("Gagal kirim WA ke Admin Kantin: " . $e->getMessage());
+                    }
+                }
+            }
         }
 
         return redirect()->route('user.kantin.sewa.detail', $token)->with('success', 'Bukti pembayaran berhasil diunggah.');

@@ -228,7 +228,7 @@
                         @if ($unit->dokumentasiUnit->count() > 0)
                             <div class="form-group row">
                                 <label class="col-sm-3 col-form-label font-weight-bold">
-                                    Dokumen Saat Ini
+                                    Dokumentasi UnitSaat Ini
                                 </label>
                                 <div class="col-sm-9">
                                     <div class="border rounded p-3 bg-light">
@@ -279,7 +279,7 @@
                         @endif
 
                         <div class="form-group row">
-                            <label class="col-sm-3 col-form-label font-weight-bold">Tambah Dokumen</label>
+                            <label class="col-sm-3 col-form-label font-weight-bold">Tambah Dokumentasi Unit</label>
                             <div class="col-sm-9">
                                 <div class="custom-file">
                                     <input type="file"
@@ -305,7 +305,8 @@
                             </div>
                         </div>
 
-                        {{-- ── Tombol Submit ── --}}
+                        <small class="text-danger"> *) Wajib diisi</small>
+                        {{-- ── Tombol Submit ── --}} 
                         <div class="form-group row mb-0">
                             <div class="col-sm-9 offset-sm-3">
                                 <button type="submit" class="btn btn-warning px-4">

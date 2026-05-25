@@ -261,6 +261,7 @@
                             </div>
                         </div>
 
+                        <small class="text-danger"> *) Wajib diisi</small>
                         {{-- ── Tombol Submit ── --}}
                         <div class="form-group row mb-0">
                             <div class="col-sm-9 offset-sm-3">
