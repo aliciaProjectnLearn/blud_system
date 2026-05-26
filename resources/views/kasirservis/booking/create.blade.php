@@ -68,6 +68,27 @@
             cursor: not-allowed;
             background: #f8f9fc;
         }
+
+        .slot-item.slot-error {
+            border-color: #e74a3b !important;
+            box-shadow: 0 0 0 2px rgba(231,74,59,0.2);
+        }
+
+        .required-star {
+            color: #e74a3b;
+            font-weight: bold;
+            margin-left: 2px;
+        }
+
+        .form-control.is-invalid-custom {
+            border-color: #e74a3b;
+            box-shadow: 0 0 0 0.2rem rgba(231,74,59,0.2);
+        }
+
+        #client-error-alert {
+            border-radius: 12px;
+            display: none;
+        }
     </style>
 @endpush
 
@@ -84,7 +105,11 @@
 
                         @if($errors->any())
                             <div class="alert alert-danger mb-4" style="border-radius: 12px;">
-                                <ul class="mb-0">
+                                <div class="d-flex align-items-center mb-1">
+                                    <i class="fas fa-exclamation-circle mr-2"></i>
+                                    <strong>Terdapat kesalahan, mohon periksa kembali:</strong>
+                                </div>
+                                <ul class="mb-0 pl-4">
                                     @foreach($errors->all() as $error)
                                         <li>{{ $error }}</li>
                                     @endforeach
@@ -92,25 +117,33 @@
                             </div>
                         @endif
 
+                        <div id="client-error-alert" class="alert alert-danger mb-4">
+                            <div class="d-flex align-items-center mb-1">
+                                <i class="fas fa-exclamation-circle mr-2"></i>
+                                <strong>Harap lengkapi semua field yang wajib diisi:</strong>
+                            </div>
+                            <ul id="client-error-list" class="mb-0 pl-4"></ul>
+                        </div>
+
                         <form action="{{ route('kasir.booking.store') }}" method="POST">
                             @csrf
 
                             <div class="form-section-title">Informasi Pribadi</div>
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label class="small font-weight-bold">Nama Lengkap</label>
-                                    <input type="text" name="nama" class="form-control" value="{{ old('nama') }}" required placeholder="Nama Lengkap">
+                                    <label class="small font-weight-bold">Nama Lengkap <span class="required-star">*</span></label>
+                                    <input type="text" name="nama" id="nama" class="form-control" value="{{ old('nama') }}" required placeholder="Nama Lengkap">
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <label class="small font-weight-bold">Nomor WhatsApp</label>
-                                    <input type="text" name="no_hp" class="form-control" value="{{ old('no_hp') }}" required placeholder="0812...">
+                                    <label class="small font-weight-bold">Nomor WhatsApp <span class="required-star">*</span></label>
+                                    <input type="text" name="no_hp" id="no_hp" class="form-control" value="{{ old('no_hp') }}" required placeholder="0812...">
                                 </div>
                             </div>
 
                             <div class="form-section-title">Informasi Kendaraan & Layanan</div>
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label class="small font-weight-bold">Pilihan Layanan</label>
+                                    <label class="small font-weight-bold">Pilihan Layanan <span class="required-star">*</span></label>
                                     <select name="layanan_servis_id" id="layanan_servis_id" class="form-control" required>
                                         <option value="">-- Pilih Layanan --</option>
                                         @foreach($layanans as $l)
@@ -121,7 +154,7 @@
                                     </select>
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <label class="small font-weight-bold">Merek Kendaraan</label>
+                                    <label class="small font-weight-bold">Merek Kendaraan <span class="required-star">*</span></label>
                                     <select name="merek_kendaraan_id" id="merek_kendaraan_id" class="form-control" required>
                                         <option value="">-- Pilih Merek --</option>
                                         @foreach($mereks as $m)
@@ -132,18 +165,18 @@
                                     </select>
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <label class="small font-weight-bold">Model/Nama Kendaraan</label>
+                                    <label class="small font-weight-bold">Model/Nama Kendaraan <span class="required-star">*</span></label>
                                     <select name="model_kendaraan_id" id="model_kendaraan_id" class="form-control" required disabled>
                                         <option value="">-- Pilih Model --</option>
                                     </select>
                                 </div>
                                 <div class="col-md-3 mb-3">
-                                    <label class="small font-weight-bold">Nomor Plat</label>
-                                    <input type="text" name="nomor_plat" class="form-control" placeholder="B 1234 ABC" required value="{{ old('nomor_plat') }}" style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()">
+                                    <label class="small font-weight-bold">Nomor Plat <span class="required-star">*</span></label>
+                                    <input type="text" name="nomor_plat" id="nomor_plat" class="form-control" placeholder="B 1234 ABC" required value="{{ old('nomor_plat') }}" style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase()">
                                 </div>
                                 <div class="col-md-3 mb-3">
-                                    <label class="small font-weight-bold">Tahun Keluaran</label>
-                                    <select name="tahun_kendaraan" class="form-control" required>
+                                    <label class="small font-weight-bold">Tahun Keluaran <span class="required-star">*</span></label>
+                                    <select name="tahun_kendaraan" id="tahun_kendaraan" class="form-control" required>
                                         <option value="">-- Tahun --</option>
                                         @for($i = date('Y'); $i >= 1990; $i--)
                                             <option value="{{ $i }}" {{ old('tahun_kendaraan') == $i ? 'selected' : '' }}>{{ $i }}</option>
@@ -155,19 +188,22 @@
                             <div class="form-section-title mt-4">Jadwal & Keluhan</div>
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label class="small font-weight-bold">Tanggal Booking</label>
+                                    <label class="small font-weight-bold">Tanggal Booking <span class="required-star">*</span></label>
                                     <input type="date" id="tanggal_booking" name="tanggal_booking" class="form-control" value="{{ old('tanggal_booking') }}" required>
                                 </div>
                                 <div class="col-md-12 mb-3">
-                                    <label class="small font-weight-bold">Jam Kedatangan</label>
+                                    <label class="small font-weight-bold">Jam Kedatangan <span class="required-star">*</span></label>
                                     <div id="slot-container" class="slot-grid">
                                         <div class="text-muted small">Pilih tanggal terlebih dahulu...</div>
                                     </div>
-                                    <input type="hidden" name="jam_booking" id="selected_jam" value="{{ old('jam_booking') }}" required>
+                                    <input type="hidden" name="jam_booking" id="selected_jam" value="{{ old('jam_booking') }}">
+                                    <div id="jam-error" class="text-danger small mt-1" style="display:none;">
+                                        <i class="fas fa-exclamation-circle mr-1"></i>Jam kedatangan wajib dipilih.
+                                    </div>
                                 </div>
                                 <div class="col-md-12 mb-3">
-                                    <label class="small font-weight-bold">Catatan Keluhan</label>
-                                    <textarea name="keluhan" class="form-control" rows="3" placeholder="Ceritakan masalah kendaraan..."></textarea>
+                                    <label class="small font-weight-bold">Catatan Keluhan <span class="required-star">*</span></label>
+                                    <textarea name="keluhan" id="keluhan" class="form-control" rows="3" placeholder="Ceritakan masalah kendaraan..." required></textarea>
                                 </div>
                             </div>
 
@@ -201,6 +237,86 @@
             }
             $('#tanggal_booking').attr('min', minDate);
         })();
+
+        // ===== VALIDASI FORM CLIENT-SIDE =====
+        $('form').on('submit', function(e) {
+            let errors = [];
+            let valid = true;
+
+            // Reset visual error state
+            $('.form-control').removeClass('is-invalid-custom');
+            $('#jam-error').hide();
+            $('#slot-container').removeClass('slot-error');
+
+            if (!$.trim($('#nama').val())) {
+                errors.push('Nama Lengkap wajib diisi.');
+                $('#nama').addClass('is-invalid-custom');
+                valid = false;
+            }
+            if (!$.trim($('#no_hp').val())) {
+                errors.push('Nomor WhatsApp wajib diisi.');
+                $('#no_hp').addClass('is-invalid-custom');
+                valid = false;
+            }
+            if (!$('#layanan_servis_id').val()) {
+                errors.push('Pilihan Layanan wajib dipilih.');
+                $('#layanan_servis_id').addClass('is-invalid-custom');
+                valid = false;
+            }
+            if (!$('#merek_kendaraan_id').val()) {
+                errors.push('Merek Kendaraan wajib dipilih.');
+                $('#merek_kendaraan_id').addClass('is-invalid-custom');
+                valid = false;
+            }
+            if (!$('#model_kendaraan_id').val()) {
+                errors.push('Model/Nama Kendaraan wajib dipilih.');
+                $('#model_kendaraan_id').addClass('is-invalid-custom');
+                valid = false;
+            }
+            if (!$.trim($('#nomor_plat').val())) {
+                errors.push('Nomor Plat wajib diisi.');
+                $('#nomor_plat').addClass('is-invalid-custom');
+                valid = false;
+            }
+            if (!$('#tahun_kendaraan').val()) {
+                errors.push('Tahun Keluaran wajib dipilih.');
+                $('#tahun_kendaraan').addClass('is-invalid-custom');
+                valid = false;
+            }
+            if (!$('#tanggal_booking').val()) {
+                errors.push('Tanggal Booking wajib diisi.');
+                $('#tanggal_booking').addClass('is-invalid-custom');
+                valid = false;
+            }
+            if (!$('#selected_jam').val()) {
+                errors.push('Jam Kedatangan wajib dipilih.');
+                $('#jam-error').show();
+                $('#slot-container').addClass('slot-error');
+                valid = false;
+            }
+            if (!$.trim($('#keluhan').val())) {
+                errors.push('Catatan Keluhan wajib diisi.');
+                $('#keluhan').addClass('is-invalid-custom');
+                valid = false;
+            }
+
+            if (!valid) {
+                e.preventDefault();
+                let list = $('#client-error-list');
+                list.empty();
+                $.each(errors, function(i, msg) {
+                    list.append('<li>' + msg + '</li>');
+                });
+                $('#client-error-alert').fadeIn(200);
+                $('html, body').animate({ scrollTop: $('#client-error-alert').offset().top - 20 }, 400);
+                return false;
+            }
+        });
+
+        // Hapus error visual saat field diperbaiki
+        $(document).on('input change', '.form-control', function() {
+            $(this).removeClass('is-invalid-custom');
+        });
 
         $('#tanggal_booking').on('change', function() {
             let tgl = $(this).val();
@@ -273,6 +389,9 @@
             $('.slot-item').removeClass('active');
             $(this).addClass('active');
             $('#selected_jam').val($(this).data('jam'));
+            // Hapus error jam saat slot dipilih
+            $('#jam-error').hide();
+            $('#slot-container').removeClass('slot-error');
         });
 
         // Simpan semua opsi original merek kendaraan
