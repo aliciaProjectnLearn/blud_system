@@ -44,8 +44,8 @@ class ServisKendaraanSeeder extends Seeder
                     'email' => 'kasir@bengkel.com',
                     'password' => Hash::make('password'),
                     'nama_lengkap' => 'Kasir',
-                    'no_hp' => '08999999999',
-                    'spesialisasi' => null, // Kasir tanpa spesialisasi
+                    'no_hp' => '082113104168',
+                    'spesialisasi' => null,
                     'created_at' => $now,
                     'updated_at' => $now
                 ]);

@@ -81,7 +81,7 @@ class UserServisController extends Controller
             'model_kendaraan_id' => 'required|exists:model_kendaraan,id',
             'nomor_plat'         => 'required|string|max:20',
             'tahun_kendaraan'    => 'required|digits:4|integer|min:1990|max:' . date('Y'),
-            'keluhan'            => 'nullable|string|max:500',
+            'keluhan'            => 'required|string|max:500',
             'tanggal_booking'    => 'required|date|after_or_equal:today',
             'jam_booking'        => 'required|in:' . implode(',', $this->generateJamSlot()),
         ]);
