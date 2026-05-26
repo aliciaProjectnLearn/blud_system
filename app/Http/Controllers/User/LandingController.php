@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
-use App\Models\Testimoni;
+use App\Models\Testimonial;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -31,8 +31,12 @@ class LandingController extends Controller
 
     public function index()
     {
-        // Ambil testimoni yang ditampilkan (max 6)
-        $testimoni = Testimoni::tampil()->latest()->take(6)->get();
+        // Ambil testimoni: 5 approved
+        $testimoni = Testimonial::with('user')
+            ->where('status', 'approved')
+            ->latest()
+            ->take(5)
+            ->get();
 
         return view('user.gateway', compact('testimoni'));
     }
