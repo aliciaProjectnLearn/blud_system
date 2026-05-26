@@ -63,5 +63,7 @@ class DatabaseSeeder extends Seeder
 
         // Kasir Futsal
         $this->call(KasirFutsalUserSeeder::class);
+
+        $this->call(TestimonialSeeder::class);
     }
 }
