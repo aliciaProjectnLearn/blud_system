@@ -65,5 +65,6 @@ class DatabaseSeeder extends Seeder
         $this->call(KasirFutsalUserSeeder::class);
 
         $this->call(TestimonialSeeder::class);
+        $this->call(LayananSeeder::class);
     }
 }
