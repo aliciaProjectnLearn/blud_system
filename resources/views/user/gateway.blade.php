@@ -16,6 +16,10 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Swiper CSS & JS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
     <style>
         * { font-family: 'Poppins', sans-serif; }
@@ -23,6 +27,20 @@
         body { background-color: #f8f9fc; -webkit-font-smoothing: antialiased; }
         .card-hover { transition: transform .25s, box-shadow .25s; cursor: pointer; }
         .card-hover:hover { transform: translateY(-6px); box-shadow: 0 12px 32px rgba(78,115,223,.15); }
+        .swiper-pagination-bullet-active { background-color: #4e73df !important; }
+        .testimonialSwiper .swiper-wrapper { align-items: stretch; }
+        .testimonialSwiper .swiper-slide { height: auto; opacity: 0; visibility: hidden; transition: all 0.5s ease; padding: 1rem 0; pointer-events: none; }
+        .testimonialSwiper .swiper-slide-active { opacity: 1; visibility: visible; pointer-events: auto; }
+        .testimonialSwiper .swiper-slide-next, .testimonialSwiper .swiper-slide-prev { opacity: 0.4; visibility: visible; pointer-events: auto; }
+        
+        @media (max-width: 767px) {
+            .swiper-button-prev, .swiper-button-next { display: none !important; }
+            .testimonialSwiper { padding-bottom: 2.5rem !important; padding-top: 1rem !important; }
+            .testimonialSwiper .swiper-pagination { bottom: 0 !important; }
+            .swiper-pagination-bullet { width: 6px; height: 6px; transition: all 0.3s; }
+            .swiper-pagination-bullet-active { width: 16px; border-radius: 4px; }
+        }
+        .swiper-button-next::after, .swiper-button-prev::after { display: none !important; content: '' !important; }
         .star { color: #f6c23e; }
         @media (max-width: 768px) {
             #home h1 { font-size: 1.8rem; }
@@ -367,7 +385,7 @@
         }
 
         /* Responsive Grids */
-        .grid-keunggulan, .grid-statistik {
+        .grid-keunggulan {
             display: grid;
             gap: 1.5rem;
         }
@@ -376,12 +394,6 @@
             .grid-keunggulan {
                 grid-template-columns: repeat(2, 1fr);
                 gap: 0.75rem;
-            }
-            .grid-statistik {
-                grid-template-columns: 1fr;
-                gap: 1.25rem;
-                max-width: 450px;
-                margin: 0 auto;
             }
             /* Specific overrides for Keunggulan cards */
             .grid-keunggulan .bg-white {
@@ -404,18 +416,6 @@
                 display: none; 
             }
 
-            /* Specific overrides for Statistik cards - Stacking for better readability */
-            .grid-statistik .bg-white {
-                padding: 2rem 1.5rem !important;
-            }
-            .grid-statistik .text-5xl {
-                font-size: 2.25rem !important;
-                margin-bottom: 0.5rem !important;
-            }
-            .grid-statistik p {
-                font-size: 0.95rem !important;
-            }
-
             /* Center last item if odd (for keunggulan) */
             .grid-keunggulan > div:last-child:nth-child(odd) {
                 grid-column: 1 / span 2;
@@ -427,7 +427,6 @@
         }
         @media (min-width: 769px) {
             .grid-keunggulan { grid-template-columns: repeat(3, 1fr); }
-            .grid-statistik { grid-template-columns: repeat(3, 1fr); }
         }
 
         @media (max-width: 991px) {
@@ -632,7 +631,7 @@
     </section>
 
     {{-- Keunggulan --}}
-    <section id="tentang" class="py-24">
+    <section id="tentang" class="py-12">
         <div class="max-w-7xl mx-auto px-6">
             <div class="text-center mb-16">
                 <h2 class="text-4xl font-bold mb-6" style="color:#4e73df;">Mengapa Memilih Kami?</h2>
@@ -655,54 +654,107 @@
                 </div>
                 @endforeach
             </div>
+        </div>
+    </section>
 
-            <div class="pt-16">
-                <div class="text-center mb-12">
-                    <h3 class="text-3xl font-bold mb-4" style="color:#4e73df;">Statistik Kredibilitas</h3>
-                    <p class="text-gray-600">Telah dipercaya oleh ratusan orang dengan ribuan testimoni positif.</p>
-                </div>
-                <div class="grid-statistik">
-                    @foreach([['500+','Masyarakat Terdaftar'],['1.500+','Transaksi Booking Berhasil'],['200+','Unit Ruko & Kantin Aktif']] as $s)
-                    <div class="bg-white p-10 rounded-2xl shadow-sm border-l-4 border-[#4e73df] hover:shadow-md hover:-translate-y-1 transition-all text-center">
-                        <div class="text-5xl font-black mb-4" style="color:#4e73df;">{{ $s[0] }}</div>
-                        <p class="font-bold" style="color:#4e73df;">{{ $s[1] }}</p>
+    {{-- Testimoni — Swiper Carousel --}}
+    @if($testimoni->isNotEmpty())
+    <section class="py-12 bg-[#f8f9fc]">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold mb-4" style="color:#4e73df;">Kata Mereka</h2>
+                <p class="text-gray-600 max-w-xl mx-auto">Lihat testimoni dari para pengguna layanan kami.</p>
+            </div>
+            
+            <div class="swiper testimonialSwiper relative px-0 md:px-14 pb-10 pt-4">
+                <div class="swiper-wrapper">
+                    @foreach($testimoni as $t)
+                    <div class="swiper-slide">
+                        <div class="bg-white rounded-2xl p-6 md:p-8 shadow-[0_4px_20px_rgba(0,0,0,0.05)] h-full flex flex-col border border-gray-50 relative group">
+                            @if($t->status === 'pending')
+                                <span class="absolute top-4 right-4 bg-yellow-50 text-yellow-600 border border-yellow-200 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Pending</span>
+                            @endif
+                            <div class="flex items-center gap-3 md:gap-4 mb-4">
+                                <div class="w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-white font-bold text-base flex-shrink-0 shadow-sm" style="background-color:#4e73df;">
+                                    {{ strtoupper(substr($t->user->name ?? 'U', 0, 1)) }}
+                                </div>
+                                <div>
+                                    <div class="font-bold text-gray-800 text-sm md:text-base leading-tight">{{ $t->user->name ?? 'Pengguna' }}</div>
+                                    <div class="text-[10px] md:text-xs text-gray-400 mt-1 font-semibold uppercase tracking-wider">Pelanggan</div>
+                                </div>
+                            </div>
+                            <div class="mb-3 md:mb-4">
+                                @for($i = 0; $i < $t->rating; $i++)<span class="text-yellow-400 text-sm md:text-base">★</span>@endfor
+                                @for($i = $t->rating; $i < 5; $i++)<span class="text-gray-200 text-sm md:text-base">★</span>@endfor
+                            </div>
+                            <p class="text-gray-600 text-[13px] md:text-sm leading-relaxed flex-grow line-clamp-3 mb-4 md:mb-6">"{{ $t->content }}"</p>
+                            <div class="mt-auto pt-3 md:pt-4 border-t border-gray-100 text-[10px] md:text-xs text-gray-400 font-medium uppercase tracking-wide">
+                                {{ \Carbon\Carbon::parse($t->created_at)->translatedFormat('d M Y') }}
+                            </div>
+                        </div>
                     </div>
                     @endforeach
                 </div>
+                
+                <!-- Swiper Pagination -->
+                <div class="swiper-pagination !bottom-0"></div>
+                
+                <!-- Swiper Navigation -->
+                <div class="swiper-button-prev group !w-12 !h-12 bg-white rounded-full shadow-[0_4px_15px_rgba(0,0,0,0.1)] border border-gray-100 !left-0 md:!left-2 flex items-center justify-center hover:bg-[#4e73df] transition-all">
+                    <svg class="w-5 h-5 text-[#4e73df] group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
+                </div>
+                <div class="swiper-button-next group !w-12 !h-12 bg-white rounded-full shadow-[0_4px_15px_rgba(0,0,0,0.1)] border border-gray-100 !right-0 md:!right-2 flex items-center justify-center hover:bg-[#4e73df] transition-all">
+                    <svg class="w-5 h-5 text-[#4e73df] group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
+                </div>
             </div>
         </div>
     </section>
 
-    {{-- Testimoni — hanya tampil jika ada data --}}
-    @if($testimoni->isNotEmpty())
-    <section class="py-24 bg-[#f8f9fc]">
-        <div class="max-w-7xl mx-auto px-6">
-            <div class="text-center mb-12">
-                <h2 class="text-4xl font-bold mb-4" style="color:#4e73df;">Kata Mereka</h2>
-                <p class="text-gray-600 max-w-xl mx-auto">Ribuan pengguna sudah merasakan kemudahan layanan BLUD Portal.</p>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                @foreach($testimoni as $t)
-                <div class="bg-white rounded-2xl p-6 shadow-sm border-l-4 border-[#4e73df] hover:shadow-md transition-shadow">
-                    <div class="flex items-center gap-3 mb-4">
-                        <div class="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0" style="background-color:#4e73df;">
-                            {{ strtoupper(substr($t->nama, 0, 1)) }}
-                        </div>
-                        <div>
-                            <div class="font-bold text-gray-800 text-sm">{{ $t->nama }}</div>
-                            <div class="text-xs text-gray-400">{{ $t->peran }}</div>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        @for($i = 0; $i < $t->bintang; $i++)<span class="star text-sm">★</span>@endfor
-                        @for($i = $t->bintang; $i < 5; $i++)<span class="text-gray-300 text-sm">★</span>@endfor
-                    </div>
-                    <p class="text-gray-600 text-sm leading-relaxed">"{{ $t->isi }}"</p>
-                </div>
-                @endforeach
-            </div>
-        </div>
-    </section>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if(typeof Swiper !== 'undefined') {
+                new Swiper('.testimonialSwiper', {
+                    effect: 'coverflow',
+                    grabCursor: true,
+                    centeredSlides: true,
+                    loop: true,
+                    coverflowEffect: {
+                        rotate: 0,
+                        stretch: 0,
+                        depth: 150,
+                        modifier: 1.5,
+                        slideShadows: false,
+                    },
+                    autoplay: {
+                        delay: 4000,
+                        disableOnInteraction: false,
+                    },
+                    pagination: {
+                        el: '.swiper-pagination',
+                        clickable: true,
+                    },
+                    navigation: {
+                        nextEl: '.swiper-button-next',
+                        prevEl: '.swiper-button-prev',
+                    },
+                    breakpoints: {
+                        320: {
+                            direction: 'horizontal',
+                            slidesPerView: 1.2,
+                        },
+                        768: {
+                            direction: 'horizontal',
+                            slidesPerView: 2,
+                        },
+                        1024: {
+                            direction: 'horizontal',
+                            slidesPerView: 3,
+                        }
+                    }
+                });
+            }
+        });
+    </script>
     @endif
 
     {{-- Footer --}}
