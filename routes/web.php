@@ -100,6 +100,7 @@ Route::prefix('user')->name('user.')->group(function () {
         Route::post('/sewa/{token}/upload-bukti', [\App\Http\Controllers\User\SewaTokenController::class, 'uploadBukti'])->name('sewa.upload');
         Route::get('/sewa/{token}/dokumen', [\App\Http\Controllers\User\SewaTokenController::class, 'dokumen'])->name('sewa.dokumen');
         Route::post('/sewa/{token}/batalkan', [\App\Http\Controllers\User\SewaTokenController::class, 'batalkan'])->name('sewa.batalkan');
+        Route::post('/sewa/{token}/testimoni', [\App\Http\Controllers\User\SewaTokenController::class, 'storeTestimoni'])->name('sewa.testimoni');
     });
 
     Route::prefix('ac')->name('ac.')->group(function () {

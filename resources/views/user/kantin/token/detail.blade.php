@@ -14,12 +14,23 @@
                     <div class="d-flex align-items-center gap-2">
                         <h5 class="m-0 font-weight-bold text-dark">Tahapan Sewa</h5>
                     </div>
-                    {{-- Tombol batal hanya jika status pending --}}
-                    @if($sewa->status_sewa === 'pending')
-                    <button class="btn btn-outline-danger btn-sm" data-toggle="modal" data-target="#modalBatal">
-                        Batalkan Pengajuan
-                    </button>
-                    @endif
+                    <div class="d-flex align-items-center" style="gap: 10px;">
+                        @if(!session('testimonial_submitted_' . $sewa->access_token))
+                        <button type="button" class="btn btn-primary btn-sm rounded-pill shadow-sm px-3 d-flex align-items-center" data-toggle="modal" data-target="#modalTestimoni" id="btnBeriTestimoni" style="gap: 5px;">
+                            <i class="fas fa-star text-warning"></i> Beri Testimoni
+                        </button>
+                        @else
+                        <button type="button" class="btn btn-secondary btn-sm rounded-pill shadow-sm px-3 d-flex align-items-center" disabled style="gap: 5px;">
+                            <i class="fas fa-check-circle text-white"></i> Testimoni Terkirim
+                        </button>
+                        @endif
+                        {{-- Tombol batal hanya jika status pending --}}
+                        @if($sewa->status_sewa === 'pending')
+                        <button class="btn btn-outline-danger btn-sm rounded-pill px-3" data-toggle="modal" data-target="#modalBatal">
+                            Batalkan
+                        </button>
+                        @endif
+                    </div>
                 </div>
 
                 {{-- Stepper --}}
@@ -353,6 +364,61 @@
         </div>
     </div>
 </div>
+
+{{-- Modal Testimoni --}}
+<div class="modal fade" id="modalTestimoni" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 1.25rem; overflow: hidden;">
+            <div class="modal-header border-0 pb-0 pt-4 px-4">
+                <h5 class="modal-title font-weight-bold text-dark">Beri Testimoni</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body pt-2 pb-4 px-4">
+                <p class="text-muted small mb-4">Bagaimana pengalaman Anda menggunakan layanan sewa kantin kami?</p>
+                
+                <form id="formTestimoni">
+                    @csrf
+                    {{-- Star Rating --}}
+                    <div class="form-group text-center mb-4">
+                        <div class="star-rating d-inline-flex flex-row-reverse justify-content-center">
+                            <input type="radio" id="star5" name="rating" value="5" required />
+                            <label for="star5" title="Sangat Memuaskan"><i class="fas fa-star"></i></label>
+                            
+                            <input type="radio" id="star4" name="rating" value="4" />
+                            <label for="star4" title="Bagus"><i class="fas fa-star"></i></label>
+                            
+                            <input type="radio" id="star3" name="rating" value="3" />
+                            <label for="star3" title="Cukup"><i class="fas fa-star"></i></label>
+                            
+                            <input type="radio" id="star2" name="rating" value="2" />
+                            <label for="star2" title="Kurang"><i class="fas fa-star"></i></label>
+                            
+                            <input type="radio" id="star1" name="rating" value="1" />
+                            <label for="star1" title="Buruk"><i class="fas fa-star"></i></label>
+                        </div>
+                        <div id="rating-label" class="text-primary font-weight-bold mt-2" style="height: 20px; font-size: 14px;"></div>
+                        <div class="invalid-feedback d-block mt-1" id="error-rating" style="display: none !important;"></div>
+                    </div>
+                    
+                    {{-- Textarea --}}
+                    <div class="form-group position-relative">
+                        <textarea class="form-control bg-light border-0" id="contentTestimoni" name="content" rows="4" placeholder="Bagikan pengalaman Anda menggunakan layanan kantin..." maxlength="300" style="border-radius: 1rem; padding: 1.25rem; resize: none; font-size: 14px;"></textarea>
+                        <div class="text-right mt-2">
+                            <small class="text-muted"><span id="charCount">0</span>/300 karakter</small>
+                        </div>
+                        <div class="invalid-feedback" id="error-content" style="padding-left: 0.5rem;"></div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-block rounded-pill py-2 font-weight-bold mt-4 shadow-sm transition-all" id="btnSubmitTestimoni">
+                        Kirim Testimoni
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('styles')
@@ -498,5 +564,161 @@
             width: 100%;
         }
     }
+    
+    /* Modal Testimoni Modern */
+    #modalTestimoni .modal-content {
+        background-color: #ffffff;
+    }
+    .star-rating {
+        position: relative;
+    }
+    .star-rating input {
+        display: none;
+    }
+    .star-rating label {
+        color: #e4e5e9;
+        font-size: 2.75rem;
+        padding: 0 0.3rem;
+        cursor: pointer;
+        transition: color 0.2s ease, transform 0.2s ease;
+    }
+    .star-rating label:hover,
+    .star-rating label:hover ~ label,
+    .star-rating input:checked ~ label {
+        color: #ffc107;
+    }
+    .star-rating label:hover {
+        transform: scale(1.15);
+    }
+    .star-rating input:checked + label {
+        animation: pop 0.3s ease;
+    }
+    @keyframes pop {
+        50% { transform: scale(1.25); }
+    }
+    #contentTestimoni:focus {
+        background-color: #fff !important;
+        box-shadow: 0 0 0 3px rgba(78, 115, 223, 0.2);
+        border: 1px solid #4e73df;
+        outline: none;
+    }
 </style>
+@endpush
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const starLabels = {
+        '1': 'Buruk',
+        '2': 'Kurang',
+        '3': 'Cukup',
+        '4': 'Bagus',
+        '5': 'Sangat Memuaskan'
+    };
+
+    const ratingInputs = document.querySelectorAll('input[name="rating"]');
+    const ratingLabel = document.getElementById('rating-label');
+    
+    ratingInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            ratingLabel.textContent = starLabels[this.value];
+            document.getElementById('error-rating').style.setProperty('display', 'none', 'important');
+        });
+        
+        const label = input.nextElementSibling;
+        label.addEventListener('mouseenter', function() {
+            ratingLabel.textContent = starLabels[input.value];
+        });
+        label.addEventListener('mouseleave', function() {
+            const checked = document.querySelector('input[name="rating"]:checked');
+            ratingLabel.textContent = checked ? starLabels[checked.value] : '';
+        });
+    });
+
+    const contentArea = document.getElementById('contentTestimoni');
+    const charCount = document.getElementById('charCount');
+    
+    contentArea.addEventListener('input', function() {
+        charCount.textContent = this.value.length;
+        this.classList.remove('is-invalid');
+        document.getElementById('error-content').textContent = '';
+    });
+
+    const formTestimoni = document.getElementById('formTestimoni');
+    if (formTestimoni) {
+        formTestimoni.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const rating = document.querySelector('input[name="rating"]:checked');
+            const content = contentArea.value.trim();
+            let isValid = true;
+            
+            if (!rating) {
+                document.getElementById('error-rating').textContent = 'Pilih rating bintang terlebih dahulu.';
+                document.getElementById('error-rating').style.setProperty('display', 'block', 'important');
+                isValid = false;
+            }
+            
+            if (content.length < 10) {
+                contentArea.classList.add('is-invalid');
+                document.getElementById('error-content').textContent = 'Testimoni minimal 10 karakter.';
+                isValid = false;
+            }
+            
+            if (!isValid) return;
+            
+            const btnSubmit = document.getElementById('btnSubmitTestimoni');
+            const originalText = btnSubmit.innerHTML;
+            btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span> Mengirim...';
+            btnSubmit.disabled = true;
+            
+            fetch("{{ route('user.kantin.sewa.testimoni', $sewa->access_token) }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    rating: rating.value,
+                    content: content
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    $('#modalTestimoni').modal('hide');
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: data.message,
+                        timer: 3000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        window.location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: data.message || 'Terjadi kesalahan.'
+                    });
+                }
+            })
+            .catch(error => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Terjadi kesalahan sistem.'
+                });
+            })
+            .finally(() => {
+                btnSubmit.innerHTML = originalText;
+                btnSubmit.disabled = false;
+            });
+        });
+    }
+});
+</script>
 @endpush
