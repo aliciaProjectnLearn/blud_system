@@ -38,6 +38,8 @@ class LandingController extends Controller
             ->take(5)
             ->get();
 
-        return view('user.gateway', compact('testimoni'));
+        $layanans = \App\Models\Layanan::all();
+
+        return view('user.gateway', compact('testimoni', 'layanans'));
     }
 }
