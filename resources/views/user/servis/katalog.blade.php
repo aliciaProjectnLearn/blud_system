@@ -259,6 +259,7 @@
             text-decoration: none;
         }
 
+
         /* ── Alert ── */
         .custom-alert {
             border-radius: 14px;
@@ -382,21 +383,35 @@
 
         </div>
 
-        {{-- LAYANAN --}}
-        <div class="section-label">Pilih Layanan</div>
-        <div class="section-sub">Temukan layanan yang sesuai untuk kendaraan Anda</div>
+        @php
+            $layananMotor = $layanans->filter(function($l) {
+                return in_array(strtolower($l->tipe_kendaraan), ['motor', 'keduanya']);
+            });
+            $layananMobil = $layanans->filter(function($l) {
+                return in_array(strtolower($l->tipe_kendaraan), ['mobil', 'keduanya']);
+            });
+        @endphp
 
-        <div class="row">
-            @foreach ($layanans as $l)
+        {{-- LAYANAN MOTOR --}}
+        <div class="d-flex align-items-center mb-2 mt-4">
+            <div class="stat-icon m-0 mr-3" style="width: 38px; height: 38px; border-radius: 10px;">
+                <i class="fas fa-motorcycle"></i>
+            </div>
+            <div>
+                <h3 class="section-label mb-0" style="font-size: 1.35rem; font-weight: 800;">Layanan Motor</h3>
+            </div>
+        </div>
+        <div class="section-sub">Perawatan terbaik untuk sepeda motor Anda</div>
+
+        <div class="row mb-5">
+            @forelse ($layananMotor as $l)
                 <div class="col-6 col-md-6 col-lg-4 mb-4">
                     <div class="layanan-card">
                         <div class="card-body d-flex flex-column">
 
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <span class="tipe-badge">{{ $l->tipe_kendaraan }}</span>
-
-                                <i
-                                    class="fas {{ strtolower($l->tipe_kendaraan) == 'motor' ? 'fa-motorcycle' : 'fa-car-side' }}"></i>
+                                <i class="fas fa-motorcycle"></i>
                             </div>
 
                             <div class="layanan-title">
@@ -410,7 +425,6 @@
                             <div class="card-footer-row">
                                 <div>
                                     <div class="price-label">Mulai dari</div>
-
                                     <div class="price-tag">
                                         Rp {{ number_format($l->harga_estimasi, 0, ',', '.') }}
                                     </div>
@@ -426,7 +440,66 @@
                         </div>
                     </div>
                 </div>
-            @endforeach
+            @empty
+                <div class="col-12 text-center py-4">
+                    <p class="text-muted mb-0">Belum ada layanan motor yang tersedia.</p>
+                </div>
+            @endforelse
+        </div>
+
+        {{-- LAYANAN MOBIL --}}
+        <div class="d-flex align-items-center mb-2 mt-4">
+            <div class="stat-icon m-0 mr-3" style="width: 38px; height: 38px; border-radius: 10px;">
+                <i class="fas fa-car-side"></i>
+            </div>
+            <div>
+                <h3 class="section-label mb-0" style="font-size: 1.35rem; font-weight: 800;">Layanan Mobil</h3>
+            </div>
+        </div>
+        <div class="section-sub">Perawatan terbaik untuk mobil Anda</div>
+
+        <div class="row">
+            @forelse ($layananMobil as $l)
+                <div class="col-6 col-md-6 col-lg-4 mb-4">
+                    <div class="layanan-card">
+                        <div class="card-body d-flex flex-column">
+
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="tipe-badge">{{ $l->tipe_kendaraan }}</span>
+                                <i class="fas fa-car-side"></i>
+                            </div>
+
+                            <div class="layanan-title">
+                                {{ $l->nama_layanan }}
+                            </div>
+
+                            <p class="layanan-desc flex-grow-1">
+                                {{ Str::limit($l->deskripsi, 100) }}
+                            </p>
+
+                            <div class="card-footer-row">
+                                <div>
+                                    <div class="price-label">Mulai dari</div>
+                                    <div class="price-tag">
+                                        Rp {{ number_format($l->harga_estimasi, 0, ',', '.') }}
+                                    </div>
+                                </div>
+
+                                <a href="{{ route('user.servis.booking', ['layanan_id' => $l->id]) }}"
+                                    class="btn-pilih">
+                                    Pilih
+                                    <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            @empty
+                <div class="col-12 text-center py-4">
+                    <p class="text-muted mb-0">Belum ada layanan mobil yang tersedia.</p>
+                </div>
+            @endforelse
         </div>
 
         {{-- ALERT SUCCESS --}}

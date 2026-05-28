@@ -157,6 +157,28 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Superadmin|Adm
     // Superadmin Routes
     Route::middleware(['role:Superadmin'])->group(function () {
         Route::get('/dashboard', [App\Http\Controllers\SuperAdmin\DashboardController::class, 'index'])->name('dashboard');
+        
+        // CMS Layanan
+        Route::prefix('cms')->name('cms.')->group(function () {
+            Route::get('layanan', [\App\Http\Controllers\SuperAdmin\LayananCmsController::class, 'index'])->name('layanan.index');
+            Route::get('layanan/create', [\App\Http\Controllers\SuperAdmin\LayananCmsController::class, 'create'])->name('layanan.create');
+            Route::post('layanan', [\App\Http\Controllers\SuperAdmin\LayananCmsController::class, 'store'])->name('layanan.store');
+            Route::post('layanan/urutan', [\App\Http\Controllers\SuperAdmin\LayananCmsController::class, 'updateUrutan'])->name('layanan.urutan');
+            Route::get('layanan/{id}/edit', [\App\Http\Controllers\SuperAdmin\LayananCmsController::class, 'edit'])->name('layanan.edit');
+            Route::put('layanan/{id}', [\App\Http\Controllers\SuperAdmin\LayananCmsController::class, 'update'])->name('layanan.update');
+            Route::delete('layanan/{id}', [\App\Http\Controllers\SuperAdmin\LayananCmsController::class, 'destroy'])->name('layanan.destroy');
+            Route::post('layanan/{id}/toggle', [\App\Http\Controllers\SuperAdmin\LayananCmsController::class, 'toggleActive'])->name('layanan.toggle');
+
+            // Editor Gateway
+            Route::get('gateway', [\App\Http\Controllers\SuperAdmin\GatewayCmsController::class, 'index'])->name('gateway.index');
+            Route::post('gateway/konten', [\App\Http\Controllers\SuperAdmin\GatewayCmsController::class, 'updateKonten'])->name('gateway.konten');
+            Route::post('gateway/keunggulan', [\App\Http\Controllers\SuperAdmin\GatewayCmsController::class, 'storeKeunggulan'])->name('gateway.keunggulan.store');
+            Route::put('gateway/keunggulan/{id}', [\App\Http\Controllers\SuperAdmin\GatewayCmsController::class, 'updateKeunggulan'])->name('gateway.keunggulan.update');
+            Route::delete('gateway/keunggulan/{id}', [\App\Http\Controllers\SuperAdmin\GatewayCmsController::class, 'destroyKeunggulan'])->name('gateway.keunggulan.destroy');
+            Route::post('gateway/keunggulan/{id}/toggle', [\App\Http\Controllers\SuperAdmin\GatewayCmsController::class, 'toggleKeunggulan'])->name('gateway.keunggulan.toggle');
+            Route::post('gateway/keunggulan/urutan', [\App\Http\Controllers\SuperAdmin\GatewayCmsController::class, 'updateUrutanKeunggulan'])->name('gateway.keunggulan.urutan');
+        });
+
         Route::resource('users', UserController::class);
         Route::get('/pelanggan', [UserController::class, 'indexPelanggan'])->name('users.pelanggan');
         Route::get('/transaksi', [TransaksiController::class, 'index'])->name('transaksi.index');
@@ -374,3 +396,37 @@ Route::middleware(['auth', 'role:kasirfutsal'])->prefix('kasir-futsal')->name('k
     Route::get('/laporan', [KasirFutsal\LaporanKasirFutsalController::class, 'index'])->name('laporan.index');
     Route::get('/laporan/pdf', [KasirFutsal\LaporanKasirFutsalController::class, 'exportPdf'])->name('laporan.pdf');
 });
+
+// ===== AUTO-GENERATED: Sewa Kamera =====
+// User Route
+Route::prefix('sewa-kamera')->name('user.sewa-kamera.')
+    ->group(function () {
+    Route::get('/', [App\Http\Controllers\User\SewaKameraController::class, 'index'])
+        ->name('index');
+});
+
+// Admin Route (pindahkan ke dalam group middleware yang sesuai di web.php):
+// Route::prefix('sewa-kamera')->name('admin.sewa-kamera.')
+//     ->group(function () {
+//     Route::get('/dashboard',
+//         [App\Http\Controllers\AdminSewaKamera\DashboardController::class, 'index'])
+//         ->name('dashboard');
+// });
+// ===== END AUTO-GENERATED: Sewa Kamera =====
+
+
+// ===== AUTO-GENERATED: Sewa Kamera =====
+// User Route
+Route::prefix('sewa-kamera')->name('user.sewa-kamera.')
+    ->group(function () {
+    Route::get('/', [App\Http\Controllers\User\SewaKameraController::class, 'index'])
+        ->name('index');
+});
+
+// Admin Route
+Route::middleware(['auth', 'role:Superadmin'])->prefix('admin/sewa-kamera')->name('admin.sewa-kamera.')
+    ->group(function () {
+    Route::get('/dashboard', [App\Http\Controllers\AdminSewaKamera\DashboardController::class, 'index'])
+        ->name('dashboard');
+});
+// ===== END AUTO-GENERATED: Sewa Kamera =====

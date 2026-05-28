@@ -166,10 +166,24 @@
             </a>
         </li>
 
-        <li class="nav-item {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
+        <li class="nav-item {{ request()->routeIs('admin.dashboard.monitoring') ? 'active' : '' }}">
             <a class="nav-link" href="{{ route('admin.dashboard.monitoring') }}">
                 <i class="fas fa-clipboard-list"></i>
                 <span>Log Aktivitas</span>
+            </a>
+        </li>
+
+        <li class="nav-item {{ request()->routeIs('admin.cms.layanan.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('admin.cms.layanan.index') }}">
+                <i class="fas fa-fw fa-th-large"></i>
+                <span>Kelola Layanan</span>
+            </a>
+        </li>
+
+        <li class="nav-item {{ request()->routeIs('admin.cms.gateway.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('admin.cms.gateway.index') }}">
+                <i class="fas fa-fw fa-paint-brush"></i>
+                <span>Editor Gateway</span>
             </a>
         </li>
     @endif
