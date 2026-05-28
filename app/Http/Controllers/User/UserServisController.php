@@ -227,7 +227,7 @@ class UserServisController extends Controller
         }
         // ─────────────────────────────────────────────────────────────────────────
 
-        return redirect()->route('home')->with([
+        return redirect()->route('user.gateway')->with([
             'booking_success' => true,
             'no_hp'           => $request->no_hp,
         ]);

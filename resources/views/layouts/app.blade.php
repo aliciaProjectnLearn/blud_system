@@ -207,6 +207,9 @@
     }
     </style>
 
+    {{-- AlpineJS --}}
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
     {{-- Custom CSS tambahan per halaman --}}
     @stack('styles')
 </head>
@@ -358,6 +361,17 @@
                 text: {{ Illuminate\Support\Js::from(session('success')) }},
                 timer: 2000,
                 showConfirmButton: false
+            })
+        </script>
+    @endif
+
+    @if (session('error'))
+        <script>
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal',
+                text: {{ Illuminate\Support\Js::from(session('error')) }},
+                confirmButtonColor: '#e74a3b'
             })
         </script>
     @endif

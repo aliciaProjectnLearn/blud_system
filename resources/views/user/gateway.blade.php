@@ -508,39 +508,31 @@
     <section id="home" class="hero-premium">
         <div class="container-custom">
             <div class="hero-text">
-                <div class="hero-eyebrow">SATU TEMPAT UNTUK SEMUA KEBUTUHAN</div>
-                <h1 class="hero-title">Booking Layanan Kapan Saja, Dari Mana Saja.</h1>
+                <div class="hero-eyebrow">{{ $cms['hero_eyebrow']->value ?? 'SATU TEMPAT UNTUK SEMUA KEBUTUHAN' }}</div>
+                <h1 class="hero-title">{{ $cms['hero_title']->value ?? 'Booking Layanan Kapan Saja, Dari Mana Saja.' }}</h1>
                 <p class="hero-description">
-                    Nikmati Kemudahan Dalam Melakukan Booking Online di Berbagai Layanan.
+                    {{ $cms['hero_subtitle']->value ?? 'Nikmati Kemudahan Dalam Melakukan Booking Online di Berbagai Layanan.' }}
                 </p>
                 <div class="flex flex-wrap gap-4 items-center">
                     <a href="#layanan" class="btn-hero">
-                        Jelajahi Layanan <i class="fas fa-arrow-right ml-2 text-xs"></i>
+                        {{ $cms['hero_cta_text']->value ?? 'Jelajahi Layanan' }} <i class="fas fa-arrow-right ml-2 text-xs"></i>
                     </a>
                 </div>
             </div>
             <div class="hero-image">
                 <div class="master-hub">
+                    @foreach($layanans->take(5) as $layanan)
                     <div class="hub-item">
-                        <i class="fas fa-futbol"></i>
-                        <span>Futsal</span>
+                        <svg class="text-white" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin: 0 auto 12px; display: block;">
+                            @if(\Illuminate\Support\Str::startsWith(trim($layanan->icon_svg), '<'))
+                                {!! $layanan->icon_svg !!}
+                            @else
+                                <path stroke-linecap="round" stroke-linejoin="round" d="{{ $layanan->icon_svg }}" />
+                            @endif
+                        </svg>
+                        <span>{{ Str::limit($layanan->nama_layanan, 8) }}</span>
                     </div>
-                    <div class="hub-item">
-                        <i class="fas fa-store"></i>
-                        <span>Kantin</span>
-                    </div>
-                    <div class="hub-item">
-                        <i class="fas fa-tools"></i>
-                        <span>Bengkel</span>
-                    </div>
-                    <div class="hub-item">
-                        <i class="fas fa-snowflake"></i>
-                        <span>AC</span>
-                    </div>
-                    <div class="hub-item">
-                        <i class="fas fa-code"></i>
-                        <span>Apps</span>
-                    </div>
+                    @endforeach
                 </div>
             </div>
         </div>
@@ -556,17 +548,25 @@
     <section id="layanan" class="py-24 bg-[#f8f9fc]">
         <div class="max-w-7xl mx-auto px-4">
             <div class="text-center mb-16">
-                <h2 class="text-4xl font-bold mb-6" style="color:#4e73df;">Layanan Kami</h2>
-                <p class="text-lg text-gray-600 max-w-2xl mx-auto">Temukan layanan yang sesuai dengan kebutuhan Anda</p>
+                <h2 class="text-4xl font-bold mb-6" style="color:#4e73df;">{{ $cms['layanan_heading']->value ?? 'Layanan Kami' }}</h2>
+                <p class="text-lg text-gray-600 max-w-2xl mx-auto">{{ $cms['layanan_subheading']->value ?? 'Temukan layanan yang sesuai dengan kebutuhan Anda' }}</p>
             </div>
             <div class="grid-layanan">
 
                 @foreach($layanans as $layanan)
-                <a href="{{ $layanan->route_name ? route($layanan->route_name) : $layanan->url }}" class="card-hover block bg-white p-6 rounded-2xl shadow-sm border-t-4 border-[#4e73df] text-center flex flex-col h-full no-underline">
+                <a href="{{ ($layanan->route_name && Route::has($layanan->route_name)) ? route($layanan->route_name) : ($layanan->url ?? '#') }}" class="card-hover block bg-white p-6 rounded-2xl shadow-sm border-t-4 border-[#4e73df] text-center flex flex-col h-full no-underline">
                     <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm" style="background-color:#4e73df;">
-                        <svg class="text-white" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            {!! $layanan->icon_svg !!}
-                        </svg>
+                        @if($layanan->icon_class)
+                            <i class="{{ $layanan->icon_class }} text-white" style="font-size: 1.75rem;"></i>
+                        @else
+                            <svg class="text-white" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                @if(\Illuminate\Support\Str::startsWith(trim($layanan->icon_svg), '<'))
+                                    {!! $layanan->icon_svg !!}
+                                @else
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="{{ $layanan->icon_svg }}" />
+                                @endif
+                            </svg>
+                        @endif
                     </div>
                     <h3 class="text-xl font-bold mb-3" style="color:#4e73df;">{{ $layanan->nama_layanan }}</h3>
                     <p class="text-gray-600 mb-6 leading-relaxed text-sm flex-grow">{{ $layanan->deskripsi }}</p>
@@ -584,23 +584,23 @@
     <section id="tentang" class="py-12">
         <div class="max-w-7xl mx-auto px-6">
             <div class="text-center mb-16">
-                <h2 class="text-4xl font-bold mb-6" style="color:#4e73df;">Mengapa Memilih Kami?</h2>
-                <p class="text-lg text-gray-600 max-w-2xl mx-auto">Kami berkomitmen memberikan layanan cepat, terintegrasi, dan transparan.</p>
+                <h2 class="text-4xl font-bold mb-6" style="color:#4e73df;">{{ $cms['keunggulan_heading']->value ?? 'Mengapa Memilih Kami?' }}</h2>
+                <p class="text-lg text-gray-600 max-w-2xl mx-auto">{{ $cms['keunggulan_subheading']->value ?? 'Kami berkomitmen memberikan layanan cepat, terintegrasi, dan transparan.' }}</p>
             </div>
             <div class="grid-keunggulan mb-24">
-                @foreach([
-                    ['path' => 'M13 2 3 14h9l-1 8 10-12h-9l1-8z', 'title' => 'Cepat & Sigap', 'desc' => 'Proses booking dan pengajuan yang efisien menghemat waktu Anda tanpa perlu antre panjang.'],
-                    ['path' => 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10', 'title' => 'Transparan', 'desc' => 'Informasi harga, ketersediaan, dan status 100% jelas, terbuka, dan dapat dipantau.'],
-                    ['path' => 'M12 2v20M2 12h20m-6-6-12 12M18 6 6 18', 'title' => 'Terintegrasi', 'desc' => 'Satu pintu akses untuk semua kebutuhan penyewaan dan layanan jasa Anda.'],
-                ] as $item)
+                @foreach($keunggulan as $item)
                 <div class="bg-white p-8 rounded-2xl shadow-sm border-l-4 border-[#4e73df] text-center flex flex-col h-full hover:shadow-md transition-shadow">
                     <div class="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm" style="background-color:#4e73df;">
                         <svg class="text-white" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="{{ $item['path'] }}"/>
+                            @if(\Illuminate\Support\Str::startsWith(trim($item->icon_svg), '<'))
+                                {!! $item->icon_svg !!}
+                            @else
+                                <path stroke-linecap="round" stroke-linejoin="round" d="{{ $item->icon_svg }}" />
+                            @endif
                         </svg>
                     </div>
-                    <h3 class="text-xl font-bold mb-3" style="color:#4e73df;">{{ $item['title'] }}</h3>
-                    <p class="text-gray-600 leading-relaxed flex-grow text-sm">{{ $item['desc'] }}</p>
+                    <h3 class="text-xl font-bold mb-3" style="color:#4e73df;">{{ $item->judul }}</h3>
+                    <p class="text-gray-600 leading-relaxed flex-grow text-sm">{{ $item->deskripsi }}</p>
                 </div>
                 @endforeach
             </div>
@@ -718,15 +718,19 @@
                                 <path d="M12 2v20M2 12h20"/><path d="m6 6 12 12M18 6 6 18"/>
                             </svg>
                         </div>
-                        <span class="font-bold text-2xl text-white">BLUD PORTAL</span>
+                        <span class="font-bold text-2xl text-white">{{ $cms['footer_brand']->value ?? 'BLUD PORTAL' }}</span>
                     </div>
-                    <p class="text-gray-300 leading-relaxed text-sm">Platform terintegrasi untuk layanan publik SMKN 1 Cirebon yang lebih baik dan efisien.</p>
+                    <p class="text-gray-300 leading-relaxed text-sm">{{ $cms['footer_tagline']->value ?? 'Platform terintegrasi untuk layanan publik SMKN 1 Cirebon yang lebih baik dan efisien.' }}</p>
                 </div>
                 <div>
                     <h4 class="font-bold text-white text-xl mb-6">Tautan Cepat</h4>
                     <ul class="space-y-3 text-sm">
-                        @foreach(['Kebijakan Privasi','Syarat & Ketentuan','Bantuan','FAQ'] as $link)
-                        <li><a href="#" class="text-gray-300 hover:text-white transition-colors">{{ $link }}</a></li>
+                        @foreach(['footer_link_1','footer_link_2','footer_link_3','footer_link_4'] as $key)
+                            @if(!empty($cms[$key]->value))
+                            <li><a href="#" class="text-gray-300 hover:text-white transition-colors">
+                                {{ $cms[$key]->value }}
+                            </a></li>
+                            @endif
                         @endforeach
                     </ul>
                 </div>
@@ -746,7 +750,7 @@
                 </div>
             </div>
             <div class="border-t border-blue-400 pt-8 text-center">
-                <p class="text-gray-300 text-sm">© {{ date('Y') }} BLUD SMKN 1 Cirebon. Semua hak dilindungi undang-undang.</p>
+                <p class="text-gray-300 text-sm">{{ $cms['footer_copyright']->value ?? '© ' . date('Y') . ' BLUD SMKN 1 Cirebon. Semua hak dilindungi undang-undang.' }}</p>
             </div>
         </div>
     </footer>
