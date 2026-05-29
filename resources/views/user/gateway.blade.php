@@ -591,13 +591,17 @@
                 @foreach($keunggulan as $item)
                 <div class="bg-white p-8 rounded-2xl shadow-sm border-l-4 border-[#4e73df] text-center flex flex-col h-full hover:shadow-md transition-shadow">
                     <div class="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm" style="background-color:#4e73df;">
-                        <svg class="text-white" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            @if(\Illuminate\Support\Str::startsWith(trim($item->icon_svg), '<'))
-                                {!! $item->icon_svg !!}
-                            @else
-                                <path stroke-linecap="round" stroke-linejoin="round" d="{{ $item->icon_svg }}" />
-                            @endif
-                        </svg>
+                        @if(\Illuminate\Support\Str::startsWith(trim($item->icon_svg), 'fa'))
+                            <i class="{{ $item->icon_svg }} text-white" style="font-size: 2.25rem;"></i>
+                        @else
+                            <svg class="text-white" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                @if(\Illuminate\Support\Str::startsWith(trim($item->icon_svg), '<'))
+                                    {!! $item->icon_svg !!}
+                                @else
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="{{ $item->icon_svg }}" />
+                                @endif
+                            </svg>
+                        @endif
                     </div>
                     <h3 class="text-xl font-bold mb-3" style="color:#4e73df;">{{ $item->judul }}</h3>
                     <p class="text-gray-600 leading-relaxed flex-grow text-sm">{{ $item->deskripsi }}</p>

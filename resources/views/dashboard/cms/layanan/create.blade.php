@@ -66,7 +66,7 @@
             <div class="form-row">
                 <div class="form-group col-md-6">
                     <label>Urutan</label>
-                    <input type="number" name="urutan" id="urutan" class="form-control" min="0" value="{{ old('urutan', 0) }}">
+                    <input type="number" name="urutan" id="urutan" class="form-control" min="0" value="{{ old('urutan', $nextUrutan ?? 0) }}">
                 </div>
                 <div class="form-group col-md-6">
                     <label class="d-block">Status Aktif</label>

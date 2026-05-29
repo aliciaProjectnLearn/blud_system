@@ -343,6 +343,13 @@
             $(this).toggleClass('collapsed');
         });
 
+        // Auto close alert notifications after 4 seconds
+        setTimeout(function() {
+            $('.alert-dismissible').fadeOut('slow', function() {
+                $(this).remove();
+            });
+        }, 4000);
+
     });
     </script>
 

@@ -430,3 +430,37 @@ Route::middleware(['auth', 'role:Superadmin'])->prefix('admin/sewa-kamera')->nam
         ->name('dashboard');
 });
 // ===== END AUTO-GENERATED: Sewa Kamera =====
+
+
+// ===== AUTO-GENERATED: Kolam Renang =====
+// User Route
+Route::prefix('kolam-renang')->name('user.kolam-renang.')
+    ->group(function () {
+    Route::get('/', [App\Http\Controllers\User\KolamRenangController::class, 'index'])
+        ->name('index');
+});
+
+// Admin Route
+Route::middleware(['auth', 'role:Superadmin'])->prefix('admin/kolam-renang')->name('admin.kolam-renang.')
+    ->group(function () {
+    Route::get('/dashboard', [App\Http\Controllers\AdminKolamRenang\DashboardController::class, 'index'])
+        ->name('dashboard');
+});
+// ===== END AUTO-GENERATED: Kolam Renang =====
+
+
+// ===== AUTO-GENERATED: Kolam Renang =====
+// User Route
+Route::prefix('kolam-renang')->name('user.kolam-renang.')
+    ->group(function () {
+    Route::get('/', [App\Http\Controllers\User\KolamRenangController::class, 'index'])
+        ->name('index');
+});
+
+// Admin Route
+Route::middleware(['auth', 'role:Superadmin'])->prefix('admin/kolam-renang')->name('admin.kolam-renang.')
+    ->group(function () {
+    Route::get('/dashboard', [App\Http\Controllers\AdminKolamRenang\DashboardController::class, 'index'])
+        ->name('dashboard');
+});
+// ===== END AUTO-GENERATED: Kolam Renang =====

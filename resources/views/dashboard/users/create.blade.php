@@ -65,12 +65,19 @@
                            class="form-control" autocomplete="new-password">
                 </div>
 
+                @if(isset($preSelectedRoleId) && $preSelectedRoleId)
+                <div class="alert alert-info py-2 px-3 mb-3">
+                    <i class="fas fa-info-circle mr-2"></i>
+                    Role <strong>{{ $preSelectedRoleNama }}</strong> sudah dipilih otomatis sesuai layanan yang baru dibuat.
+                </div>
+                @endif
+
                 <div class="form-group">
                     <label>Role <span class="text-danger">*</span></label>
-                    <select name="role" class="form-control @error('role') is-invalid @enderror">
+                    <select name="role" class="form-control @error('role') is-invalid @enderror" required>
                         <option value="">-- Pilih Role --</option>
                         @foreach($roles as $role)
-                            <option value="{{ $role->id }}" {{ old('role') == $role->id ? 'selected' : '' }}>
+                            <option value="{{ $role->id }}" {{ (old('role') == $role->id || (isset($preSelectedRoleId) && $preSelectedRoleId == $role->id)) ? 'selected' : '' }}>
                                 {{ $role->label }}
                             </option>
                         @endforeach

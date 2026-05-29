@@ -55,10 +55,28 @@ class AuthController extends Controller
 
             if ($roleName === 'superadmin') {
                 $dashboardRoute = route('admin.dashboard');
-            } elseif (in_array($roleName, ['adminfutsal', 'adminkantin', 'adminac', 'adminservis'])) {
-                $sub = str_replace('admin', '', $roleName);
-                if ($roleName === 'adminservis') $sub = 'servis';
-                $dashboardRoute = route("admin.$sub.dashboard");
+            } elseif (\Illuminate\Support\Str::startsWith($roleName, 'admin')) {
+                $roleNameRaw = $role ?? '';
+                if (\Illuminate\Support\Str::startsWith($roleNameRaw, 'Admin') && strlen($roleNameRaw) > 5) {
+                    $serviceStudly = substr($roleNameRaw, 5);
+                    $serviceSlug = \Illuminate\Support\Str::kebab($serviceStudly);
+                } else {
+                    $serviceSlug = str_replace('admin', '', $roleName);
+                    if ($roleName === 'adminservis') $serviceSlug = 'servis';
+                }
+
+                $routeCheckName = "admin.{$serviceSlug}.dashboard";
+                if (\Illuminate\Support\Facades\Route::has($routeCheckName)) {
+                    $dashboardRoute = route($routeCheckName);
+                } else {
+                    $sub = str_replace('admin', '', $roleName);
+                    if ($roleName === 'adminservis') $sub = 'servis';
+                    if (\Illuminate\Support\Facades\Route::has("admin.{$sub}.dashboard")) {
+                        $dashboardRoute = route("admin.{$sub}.dashboard");
+                    } else {
+                        $dashboardRoute = route('admin.dashboard');
+                    }
+                }
             } elseif ($roleName === 'teknisi') {
                 $dashboardRoute = route('teknisi.dashboard');
             } elseif (in_array($roleName, ['teknisi motor', 'teknisi mobil'])) {
