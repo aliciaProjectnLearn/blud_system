@@ -14,13 +14,29 @@ class LayananCmsController extends Controller
 {
     public function index()
     {
-        $layanans = Layanan::ordered()->get();
+        $layanans = Layanan::ordered()->get()->map(function($layanan) {
+            $slug      = Str::slug($layanan->nama_layanan);
+            $roleName  = 'Admin' . Str::studly($slug);
+            $role      = \App\Models\Role::where('nama', $roleName)->first();
+            
+            $layanan->role_id      = $role?->id;
+            $layanan->role_nama    = $roleName;
+            $layanan->jumlah_admin = $role 
+                ? \App\Models\User::whereHas('roles', function($q) use ($role) {
+                    $q->where('roles.id', $role->id);
+                  })->count()
+                : 0;
+            
+            return $layanan;
+        });
+
         return view('dashboard.cms.layanan.index', compact('layanans'));
     }
 
     public function create()
     {
-        return view('dashboard.cms.layanan.create');
+        $nextUrutan = Layanan::max('urutan') + 1;
+        return view('dashboard.cms.layanan.create', compact('nextUrutan'));
     }
 
     public function edit($id)
@@ -57,6 +73,8 @@ class LayananCmsController extends Controller
         try {
             DB::beginTransaction();
 
+            $nextUrutan = Layanan::max('urutan') + 1;
+
             $layanan = Layanan::create([
                 'nama_layanan' => $request->nama_layanan,
                 'deskripsi'    => $request->deskripsi,
@@ -65,18 +83,31 @@ class LayananCmsController extends Controller
                 'route_name'   => $routeName,
                 'url'          => $request->url,
                 'is_active'    => $request->has('is_active') ? true : false,
-                'urutan'       => $request->urutan ?? 0,
+                'urutan'       => $request->urutan ?: $nextUrutan,
             ]);
 
             // Auto-generate files
             $this->generateLayananFiles($slug, $request->nama_layanan);
+
+            // Generate nama role dari nama layanan
+            // Contoh: "Kolam Renang" → "AdminKolamRenang"
+            $roleName = 'Admin' . Str::studly($slug);
+
+            // Buat role baru jika belum ada
+            $role = \App\Models\Role::firstOrCreate(
+                ['nama' => $roleName]
+            );
 
             DB::commit();
 
             return redirect()
                 ->route('admin.cms.layanan.index')
                 ->with('success', "Layanan '{$request->nama_layanan}' berhasil ditambahkan. File controller & view telah di-generate.")
-                ->with('generated_files', $this->getGeneratedFilesList($slug));
+                ->with('generated_files', $this->getGeneratedFilesList($slug))
+                ->with('new_layanan_nama', $request->nama_layanan)
+                ->with('new_role_id', $role->id)
+                ->with('new_role_nama', $roleName)
+                ->with('show_create_admin_prompt', true);
 
         } catch (\Exception $e) {
             DB::rollBack();

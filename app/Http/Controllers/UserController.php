@@ -49,13 +49,21 @@ class UserController extends Controller
         return view('dashboard.users.pelanggan', compact('users', 'search'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
         $roles = Role::whereNotIn('nama', ['pelanggan', 'Pelanggan', 'user', 'User'])
             ->orderBy('nama')
             ->get();
 
-        return view('dashboard.users.create', compact('roles'));
+        // Pre-fill role jika datang dari CMS layanan
+        $preSelectedRoleId   = $request->query('role_id');
+        $preSelectedRoleNama = $request->query('role_nama');
+
+        return view('dashboard.users.create', compact(
+            'roles', 
+            'preSelectedRoleId', 
+            'preSelectedRoleNama'
+        ));
     }
 
     public function store(Request $request)
@@ -86,6 +94,80 @@ class UserController extends Controller
 
                 $user->roles()->attach($request->role);
             });
+
+            // Auto-generate files for the dynamic admin if missing
+            $role = Role::find($request->role);
+            if ($role && \Illuminate\Support\Str::startsWith($role->nama, 'Admin') && !in_array(strtolower($role->nama), ['superadmin', 'adminfutsal', 'adminkantin', 'adminac', 'adminservis'])) {
+                $serviceStudly = substr($role->nama, 5);
+                $serviceSlug = \Illuminate\Support\Str::kebab($serviceStudly);
+                
+                $layanan = \App\Models\Layanan::where('route_name', "user.{$serviceSlug}.index")->first();
+                $namaLayanan = $layanan ? $layanan->nama_layanan : \Illuminate\Support\Str::title(str_replace('-', ' ', $serviceSlug));
+                
+                $adminControllerDir  = app_path("Http/Controllers/Admin{$serviceStudly}");
+                $adminControllerPath = "{$adminControllerDir}/DashboardController.php";
+                
+                if (!is_dir($adminControllerDir)) {
+                    \Illuminate\Support\Facades\File::makeDirectory($adminControllerDir, 0755, true);
+                }
+                if (!file_exists($adminControllerPath)) {
+                    $adminControllerContent = '<?php' . PHP_EOL . PHP_EOL
+                        . "namespace App\Http\Controllers\Admin{$serviceStudly};" . PHP_EOL . PHP_EOL
+                        . 'use App\Http\Controllers\Controller;' . PHP_EOL
+                        . 'use Illuminate\Http\Request;' . PHP_EOL . PHP_EOL
+                        . 'class DashboardController extends Controller' . PHP_EOL
+                        . '{' . PHP_EOL
+                        . '    public function index()' . PHP_EOL
+                        . '    {' . PHP_EOL
+                        . "        return view('admin{$serviceSlug}.index');" . PHP_EOL
+                        . '    }' . PHP_EOL
+                        . '}' . PHP_EOL;
+                    \Illuminate\Support\Facades\File::put($adminControllerPath, $adminControllerContent);
+                }
+                
+                $adminViewDir  = resource_path("views/admin{$serviceSlug}");
+                $adminViewPath = "{$adminViewDir}/index.blade.php";
+                if (!is_dir($adminViewDir)) {
+                    \Illuminate\Support\Facades\File::makeDirectory($adminViewDir, 0755, true);
+                }
+                if (!file_exists($adminViewPath)) {
+                    $adminViewContent = "@extends('layouts.app')" . PHP_EOL . PHP_EOL
+                        . "@section('title', 'Dashboard {$namaLayanan}')" . PHP_EOL . PHP_EOL
+                        . "@section('content')" . PHP_EOL
+                        . '<div class="d-sm-flex align-items-center justify-content-between mb-4">' . PHP_EOL
+                        . "    <h1 class=\"h3 mb-0 text-gray-800\">Dashboard {$namaLayanan}</h1>" . PHP_EOL
+                        . '</div>' . PHP_EOL
+                        . '<div class="alert alert-info">' . PHP_EOL
+                        . '    Modul ini belum dikonfigurasi. Silakan hubungi developer.' . PHP_EOL
+                        . '</div>' . PHP_EOL
+                        . '@endsection' . PHP_EOL;
+                    \Illuminate\Support\Facades\File::put($adminViewPath, $adminViewContent);
+                }
+
+                // Check routes in web.php
+                $webPhpPath = base_path('routes/web.php');
+                if (file_exists($webPhpPath)) {
+                    $webContent = \Illuminate\Support\Facades\File::get($webPhpPath);
+                    if (!str_contains($webContent, "admin/{$serviceSlug}")) {
+                        $routeBlock = PHP_EOL . PHP_EOL
+                            . "// ===== AUTO-GENERATED: {$namaLayanan} =====" . PHP_EOL
+                            . '// User Route' . PHP_EOL
+                            . "Route::prefix('{$serviceSlug}')->name('user.{$serviceSlug}.')" . PHP_EOL
+                            . "    ->group(function () {" . PHP_EOL
+                            . "    Route::get('/', [App\\Http\\Controllers\\User\\{$serviceStudly}Controller::class, 'index'])" . PHP_EOL
+                            . "        ->name('index');" . PHP_EOL
+                            . '});' . PHP_EOL . PHP_EOL
+                            . '// Admin Route' . PHP_EOL
+                            . "Route::middleware(['auth', 'role:Superadmin'])->prefix('admin/{$serviceSlug}')->name('admin.{$serviceSlug}.')" . PHP_EOL
+                            . "    ->group(function () {" . PHP_EOL
+                            . "    Route::get('/dashboard', [App\\Http\\Controllers\\Admin{$serviceStudly}\\DashboardController::class, 'index'])" . PHP_EOL
+                            . "        ->name('dashboard');" . PHP_EOL
+                            . '});' . PHP_EOL
+                            . "// ===== END AUTO-GENERATED: {$namaLayanan} =====" . PHP_EOL;
+                        \Illuminate\Support\Facades\File::append($webPhpPath, $routeBlock);
+                    }
+                }
+            }
 
             $this->function_log('User', 'create', 'Super Admin menambahkan user baru: ' . $request->nama_lengkap);
 

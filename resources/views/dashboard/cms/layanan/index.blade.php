@@ -51,6 +51,7 @@
                         <th>Nama Layanan</th>
                         <th>Deskripsi</th>
                         <th width="10%">Status</th>
+                        <th width="15%">Admin</th>
                         <th width="15%">Aksi</th>
                     </tr>
                 </thead>
@@ -68,6 +69,18 @@
                             </span>
                         </td>
                         <td class="text-center align-middle">
+                            @if($layanan->jumlah_admin > 0)
+                                <span class="badge badge-success">
+                                    {{ $layanan->jumlah_admin }} admin
+                                </span>
+                            @else
+                                <a href="{{ route('admin.users.create') }}?role_id={{ $layanan->role_id }}&role_nama={{ urlencode($layanan->role_nama) }}"
+                                   class="btn btn-xs btn-outline-primary">
+                                    <i class="fas fa-user-plus mr-1"></i> Buat Admin
+                                </a>
+                            @endif
+                        </td>
+                        <td class="text-center align-middle">
                             <a href="{{ route('admin.cms.layanan.edit', $layanan->id) }}" class="btn btn-sm btn-warning">
                                 <i class="fas fa-edit"></i>
                             </a>
@@ -80,7 +93,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="5" class="text-center">Belum ada data layanan</td>
+                        <td colspan="6" class="text-center">Belum ada data layanan</td>
                     </tr>
                     @endforelse
                 </tbody>
@@ -192,4 +205,26 @@
         }
     });
 </script>
+
+@if(session('show_create_admin_prompt'))
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    Swal.fire({
+        icon: 'success',
+        title: 'Layanan Berhasil Dibuat!',
+        html: `Layanan <strong>{{ session('new_layanan_nama') }}</strong> telah berhasil ditambahkan.<br><br>Role <code>{{ session('new_role_nama') }}</code> otomatis dibuat.<br><br>Apakah Anda ingin membuat akun admin untuk layanan ini sekarang?`,
+        showCancelButton: true,
+        confirmButtonColor: '#4e73df',
+        cancelButtonColor: '#858796',
+        confirmButtonText: '<i class="fas fa-user-plus mr-1"></i> Ya, Buat Admin',
+        cancelButtonText: 'Nanti Saja',
+        allowOutsideClick: false,
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = '{{ route("admin.users.create") }}?role_id={{ session("new_role_id") }}&role_nama={{ urlencode(session("new_role_nama")) }}';
+        }
+    });
+});
+</script>
+@endif
 @endpush

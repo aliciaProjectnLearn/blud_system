@@ -15,8 +15,12 @@ class GatewayCmsController extends Controller
     {
         $cms = CmsGateway::orderBy('urutan')->get()->groupBy('grup');
         $keunggulan = CmsKeunggulan::ordered()->get();
+        $nextUrutan = CmsKeunggulan::max('urutan') + 1;
+        if (!$nextUrutan) {
+            $nextUrutan = 1;
+        }
         
-        return view('dashboard.cms.gateway.index', compact('cms', 'keunggulan'));
+        return view('dashboard.cms.gateway.index', compact('cms', 'keunggulan', 'nextUrutan'));
     }
 
     public function updateKonten(Request $request)
@@ -50,11 +54,12 @@ class GatewayCmsController extends Controller
         ]);
 
         try {
+            $nextUrutan = CmsKeunggulan::max('urutan') + 1;
             CmsKeunggulan::create([
                 'judul'     => $request->judul,
                 'deskripsi' => $request->deskripsi,
                 'icon_svg'  => $request->icon_svg,
-                'urutan'    => $request->urutan ?? 0,
+                'urutan'    => $request->urutan ?? ($nextUrutan ?: 1),
                 'is_active' => $request->has('is_active'),
             ]);
 
@@ -81,7 +86,7 @@ class GatewayCmsController extends Controller
                 'judul'     => $request->judul,
                 'deskripsi' => $request->deskripsi,
                 'icon_svg'  => $request->icon_svg,
-                'urutan'    => $request->urutan ?? 0,
+                'urutan'    => $request->urutan ?? $keunggulan->urutan ?? 0,
                 'is_active' => $request->has('is_active'),
             ]);
 

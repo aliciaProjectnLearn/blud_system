@@ -7,6 +7,34 @@
     .sortable-ghost { opacity: 0.4; }
     .drag-handle { cursor: grab; }
     .drag-handle:active { cursor: grabbing; }
+    .icon-box {
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 10px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .icon-box:hover {
+        background-color: #f8f9fc;
+    }
+    .icon-box.selected {
+        border-color: #4e73df;
+        background-color: #eaecf4;
+        box-shadow: 0 0 0 0.2rem rgba(78,115,223,.25);
+    }
+    .icon-box i {
+        font-size: 1.5rem;
+        margin-bottom: 5px;
+        color: #5a5c69;
+    }
+    .icon-box.selected i {
+        color: #4e73df;
+    }
+    .icon-box .icon-name {
+        font-size: 0.7rem;
+        word-break: break-all;
+    }
 </style>
 @endpush
 
@@ -69,7 +97,7 @@
         <div class="card shadow mb-4">
             <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
                 <h6 class="m-0 font-weight-bold text-primary">Daftar Keunggulan</h6>
-                <button type="button" class="btn btn-sm btn-primary shadow-sm" x-data @click="$dispatch('open-modal', 'keunggulan-modal'); document.getElementById('keunggulan-form').reset(); document.getElementById('keunggulan-form').action = '{{ route('admin.cms.gateway.keunggulan.store') }}'; document.getElementById('keunggulan-method').value = 'POST'; document.getElementById('keunggulan-modal-title').innerText = 'Tambah Keunggulan';">
+                <button type="button" class="btn btn-sm btn-primary shadow-sm" x-data @click="window.initAddKeunggulan()">
                     <i class="fas fa-plus fa-sm text-white-50"></i> Tambah Keunggulan
                 </button>
             </div>
@@ -152,15 +180,29 @@
             </div>
 
             <div class="form-group">
-                <label>Icon SVG Path <span class="text-danger">*</span></label>
-                <textarea name="icon_svg" id="icon_svg" class="form-control" rows="2" placeholder="M13 2 3 14h9l-1 8 10-12h-9l1-8z" required></textarea>
-                <small class="form-text text-muted">Ambil path dari heroicons.com</small>
+                <label>Pilih Icon (FontAwesome 5) <span class="text-danger">*</span></label>
+                <input type="hidden" name="icon_svg" id="icon_svg" value="" required>
+                
+                <div class="mb-2">
+                    <input type="text" id="search_icon" class="form-control" placeholder="Cari icon...">
+                </div>
+
+                <div class="icon-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; max-height: 250px; overflow-y: auto; padding: 10px; border: 1px solid #e3e6f0; border-radius: 5px;">
+                    <!-- Icons injected via JS -->
+                </div>
+
+                <div class="mt-3 p-3 border rounded text-center">
+                    <p class="mb-2 text-muted">Preview Icon Terpilih:</p>
+                    <div id="icon-preview-container" class="d-inline-block p-3 rounded bg-light">
+                        <i id="icon-preview" class="fas fa-question-circle" style="font-size: 3rem; color: #4e73df;"></i>
+                    </div>
+                </div>
             </div>
 
             <div class="form-row">
                 <div class="form-group col-md-6">
                     <label>Urutan</label>
-                    <input type="number" name="urutan" id="urutan" class="form-control" min="0" value="0">
+                    <input type="number" name="urutan" id="urutan" class="form-control" min="0" value="{{ $nextUrutan }}">
                 </div>
                 <div class="form-group col-md-6">
                     <label class="d-block">Status Aktif</label>
@@ -218,11 +260,31 @@
                 
                 document.getElementById('judul').value = this.dataset.judul;
                 document.getElementById('deskripsi').value = this.dataset.deskripsi;
-                document.getElementById('icon_svg').value = this.dataset.iconsvg;
+                
+                const iconVal = this.dataset.iconsvg;
+                document.getElementById('icon_svg').value = iconVal;
                 document.getElementById('urutan').value = this.dataset.urutan;
                 document.getElementById('is_active').checked = this.dataset.active == "1";
                 
+                // Highlight correct icon in grid if it exists
+                document.querySelectorAll('.icon-box').forEach(box => {
+                    const boxIcon = box.dataset.icon;
+                    if (boxIcon === iconVal) {
+                        box.classList.add('selected');
+                    } else {
+                        box.classList.remove('selected');
+                    }
+                });
+                window.updateIconPreview(iconVal);
+                
                 window.dispatchEvent(new CustomEvent('open-modal', { detail: 'keunggulan-modal' }));
+                
+                setTimeout(() => {
+                    const formEl = document.getElementById('keunggulan-form');
+                    if (formEl) {
+                        formEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }, 100);
             });
         });
 
@@ -256,6 +318,111 @@
                 .catch(error => console.error('Error:', error));
             });
         });
+
+        // Icons configuration and helpers
+        const icons = [
+            'fas fa-futbol', 'fas fa-tools', 'fas fa-snowflake', 'fas fa-store', 
+            'fas fa-car', 'fas fa-motorcycle', 'fas fa-graduation-cap', 'fas fa-hospital',
+            'fas fa-dumbbell', 'fas fa-swimming-pool', 'fas fa-basketball-ball',
+            'fas fa-book', 'fas fa-music', 'fas fa-camera', 'fas fa-coffee', 'fas fa-utensils',
+            'fas fa-shopping-cart', 'fas fa-laptop', 'fas fa-desktop', 'fas fa-mobile-alt',
+            'fas fa-wifi', 'fas fa-gamepad', 'fas fa-paint-brush', 'fas fa-cut', 'fas fa-tshirt',
+            'fas fa-shoe-prints', 'fas fa-bicycle', 'fas fa-bus', 'fas fa-plane', 'fas fa-ship',
+            'fas fa-bolt', 'fas fa-fire', 'fas fa-leaf', 'fas fa-recycle', 'fas fa-flask',
+            'fas fa-stethoscope', 'fas fa-heartbeat', 'fas fa-baby', 'fas fa-dog', 'fas fa-cat',
+            'fas fa-user-shield', 'fas fa-lock', 'fas fa-key', 'fas fa-shield-alt',
+            'fas fa-check-circle', 'fas fa-info-circle', 'fas fa-exclamation-triangle',
+            'fas fa-thumbs-up', 'fas fa-heart', 'fas fa-star', 'fas fa-eye', 'fas fa-clock',
+            'fas fa-map-marker-alt', 'fas fa-phone', 'fas fa-envelope', 'fas fa-globe'
+        ];
+
+        window.updateIconPreview = function(value) {
+            const previewContainer = document.getElementById('icon-preview-container');
+            if (!previewContainer) return;
+            
+            if (!value) {
+                previewContainer.innerHTML = '<i id="icon-preview" class="fas fa-question-circle" style="font-size: 3rem; color: #4e73df;"></i>';
+                return;
+            }
+
+            if (value.trim().startsWith('<')) {
+                previewContainer.innerHTML = `<div id="icon-preview" style="width: 3rem; height: 3rem; color: #4e73df; display: flex; align-items: center; justify-content: center;">${value}</div>`;
+            } else if (value.trim().match(/^[M|m|L|l|H|h|V|v|C|c|S|s|Q|q|T|t|A|a|Z|z|0-9\s,\.\-]+$/)) {
+                previewContainer.innerHTML = `
+                    <svg id="icon-preview" class="text-primary" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="${value}" />
+                    </svg>
+                `;
+            } else {
+                previewContainer.innerHTML = `<i id="icon-preview" class="${value}" style="font-size: 3rem; color: #4e73df;"></i>`;
+            }
+        };
+
+        window.initAddKeunggulan = function() {
+            const form = document.getElementById('keunggulan-form');
+            if(form) {
+                form.reset();
+                form.action = '{{ route('admin.cms.gateway.keunggulan.store') }}';
+            }
+            const methodEl = document.getElementById('keunggulan-method');
+            if(methodEl) methodEl.value = 'POST';
+            
+            const titleEl = document.getElementById('keunggulan-modal-title');
+            if(titleEl) titleEl.innerText = 'Tambah Keunggulan';
+            
+            const iconInput = document.getElementById('icon_svg');
+            if(iconInput) iconInput.value = '';
+            
+            const urutanInput = document.getElementById('urutan');
+            if(urutanInput) urutanInput.value = '{{ $nextUrutan }}';
+            
+            document.querySelectorAll('.icon-box').forEach(box => box.classList.remove('selected'));
+            window.updateIconPreview('');
+            
+            window.dispatchEvent(new CustomEvent('open-modal', { detail: 'keunggulan-modal' }));
+
+            setTimeout(() => {
+                const formEl = document.getElementById('keunggulan-form');
+                if (formEl) {
+                    formEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }, 100);
+        };
+
+        const grid = document.querySelector('.icon-grid');
+        const inputIcon = document.getElementById('icon_svg');
+        const searchInput = document.getElementById('search_icon');
+
+        function renderIcons(filter = '') {
+            if(!grid) return;
+            grid.innerHTML = '';
+            icons.filter(icon => icon.includes(filter.toLowerCase())).forEach(icon => {
+                const div = document.createElement('div');
+                div.className = 'icon-box' + (inputIcon && inputIcon.value === icon ? ' selected' : '');
+                div.dataset.icon = icon;
+                div.innerHTML = `
+                    <i class="${icon}"></i>
+                    <div class="icon-name">${icon.replace('fas ', '').replace('fab ', '').replace('far ', '')}</div>
+                `;
+                div.addEventListener('click', () => {
+                    document.querySelectorAll('.icon-box').forEach(b => b.classList.remove('selected'));
+                    div.classList.add('selected');
+                    if(inputIcon) {
+                        inputIcon.value = icon;
+                    }
+                    window.updateIconPreview(icon);
+                });
+                grid.appendChild(div);
+            });
+        }
+
+        renderIcons();
+
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                renderIcons(this.value);
+            });
+        }
 
         // Sortable JS untuk Keunggulan
         const tbody = document.getElementById('keunggulan-list');
