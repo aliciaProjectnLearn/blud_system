@@ -118,13 +118,38 @@ class BookingController extends Controller
 
                     // Mencatat log respon berhasil/tidaknya API
                     Log::info('Notifikasi WA Teknisi: ' . $response->body());
+
+                    // --- Notifikasi ke Pelanggan ---
+                    $noHpPelanggan = $booking->no_hp ?? ($booking->user->no_hp ?? null);
+                    $namaPelanggan = $booking->nama_pelanggan ?? ($booking->user->nama_lengkap ?? 'Pelanggan');
+
+                    if ($noHpPelanggan) {
+                        $pesanPelanggan = "*BOOKING SERVIS AC DIKONFIRMASI* ✅\n\n";
+                        $pesanPelanggan .= "Halo *{$namaPelanggan}*,\n";
+                        $pesanPelanggan .= "Booking layanan AC Anda telah kami setujui dan teknisi telah ditugaskan. Berikut rinciannya:\n\n";
+                        $pesanPelanggan .= "🧑‍🔧 *Nama Teknisi*: {$teknisi->name}\n";
+                        $pesanPelanggan .= "📞 *No. HP Teknisi*: {$teknisi->no_hp}\n";
+                        $pesanPelanggan .= "📅 *Jadwal Kunjungan*: " . \Carbon\Carbon::parse($booking->tgl_kunjungan)->translatedFormat('d F Y') . "\n\n";
+                        $pesanPelanggan .= "Teknisi kami akan menuju lokasi Anda sesuai jadwal. Anda dapat menghubungi teknisi jika diperlukan.\n\n";
+                        $pesanPelanggan .= "Terima kasih telah menggunakan layanan kami! 🙏";
+
+                        $responsePelanggan = Http::withHeaders([
+                            'Authorization' => $apiToken,
+                        ])->post('https://api.fonnte.com/send', [
+                            'target' => $noHpPelanggan,
+                            'message' => $pesanPelanggan,
+                            'countryCode' => '62',
+                        ]);
+
+                        Log::info('Notifikasi WA Pelanggan: ' . $responsePelanggan->body());
+                    }
                 } else {
                     Log::warning('Token Fonnte belum diatur di .env. Pesan WA urung dikirim.');
                 }
             }
         } catch (\Exception $e) {
             // Kita tidak ingin sistem error/gagal cuma karena koneksi ke WA error
-            Log::error('Gagal mengirim WA ke teknisi: ' . $e->getMessage());
+            Log::error('Gagal mengirim WA ke teknisi/pelanggan: ' . $e->getMessage());
         }
 
         return back()->with('success', 'Booking berhasil di-approve dan teknisi ditugaskan (Notifikasi WA terkirim/diproses).');
