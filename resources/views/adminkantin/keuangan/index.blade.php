@@ -72,35 +72,6 @@
         </div>
     </div>
 
-    {{-- Filter --}}
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Filter Transaksi</h6>
-        </div>
-        <div class="card-body">
-            <form action="{{ route('admin.kantin.keuangan.index') }}" method="GET" class="form-inline">
-                <div class="form-group mb-2 mr-3">
-                    <label for="tanggal_mulai" class="mr-2">Dari</label>
-                    <input type="date" class="form-control" id="tanggal_mulai" name="tanggal_mulai" value="{{ request('tanggal_mulai') }}">
-                </div>
-                <div class="form-group mb-2 mr-3">
-                    <label for="tanggal_selesai" class="mr-2">Sampai</label>
-                    <input type="date" class="form-control" id="tanggal_selesai" name="tanggal_selesai" value="{{ request('tanggal_selesai') }}">
-                </div>
-                <div class="form-group mb-2 mr-3">
-                    <label for="tipe" class="mr-2">Tipe</label>
-                    <select name="tipe" id="tipe" class="form-control">
-                        <option value="">Semua</option>
-                        <option value="pemasukan" {{ request('tipe') == 'pemasukan' ? 'selected' : '' }}>Pemasukan</option>
-                        <option value="pengeluaran" {{ request('tipe') == 'pengeluaran' ? 'selected' : '' }}>Pengeluaran</option>
-                    </select>
-                </div>
-                <button type="submit" class="btn btn-primary mb-2">Filter</button>
-                <a href="{{ route('admin.kantin.keuangan.index') }}" class="btn btn-secondary mb-2 ml-2">Reset</a>
-            </form>
-        </div>
-    </div>
-
     {{-- Ringkasan Pemasukan Bulanan --}}
     <div class="card shadow mb-4">
         <div class="card-header py-3">
@@ -135,6 +106,45 @@
             </div>
         </div>
     </div>
+    {{-- Filter --}}
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Filter Transaksi</h6>
+        </div>
+        <div class="card-body d-flex justify-content-between flex-wrap align-items-center">
+            <form action="{{ route('admin.kantin.keuangan.index') }}" method="GET" class="form-inline mb-2">
+                <div class="form-group mr-3">
+                    <label for="tanggal_mulai" class="mr-2">Dari</label>
+                    <input type="date" class="form-control" id="tanggal_mulai" name="tanggal_mulai" value="{{ request('tanggal_mulai') }}">
+                </div>
+                <div class="form-group mr-3">
+                    <label for="tanggal_selesai" class="mr-2">Sampai</label>
+                    <input type="date" class="form-control" id="tanggal_selesai" name="tanggal_selesai" value="{{ request('tanggal_selesai') }}">
+                </div>
+                <div class="form-group mr-3">
+                    <label for="tipe" class="mr-2">Tipe</label>
+                    <select name="tipe" id="tipe" class="form-control">
+                        <option value="">Semua</option>
+                        <option value="pemasukan" {{ request('tipe') == 'pemasukan' ? 'selected' : '' }}>Pemasukan</option>
+                        <option value="pengeluaran" {{ request('tipe') == 'pengeluaran' ? 'selected' : '' }}>Pengeluaran</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary mr-2">Filter</button>
+                <a href="{{ route('admin.kantin.keuangan.index') }}" class="btn btn-secondary">Reset</a>
+            </form>
+            
+            <div class="mb-2">
+                <a href="{{ route('admin.kantin.keuangan.export.pdf', request()->query()) }}" class="btn btn-danger shadow-sm mr-2">
+                    <i class="fas fa-file-pdf fa-sm text-white-50"></i> Export PDF
+                </a>
+                <a href="{{ route('admin.kantin.keuangan.export.excel', request()->query()) }}" class="btn btn-success shadow-sm">
+                    <i class="fas fa-file-excel fa-sm text-white-50"></i> Export Excel
+                </a>
+            </div>
+        </div>
+    </div>
+
+    
 
     {{-- Tabel Transaksi --}}
     <div class="card shadow mb-4">

@@ -10,21 +10,12 @@ use Illuminate\Support\Carbon;
 
 class KeuanganController extends Controller
 {
-    public function index(Request $request)
+    private function getTransaksiData(Request $request)
     {
         $tanggalMulai = $request->tanggal_mulai;
         $tanggalSelesai = $request->tanggal_selesai;
         $tipeFilter = $request->tipe;
 
-        // 1. Pemasukan (Grouped by Month for Summary)
-        $pemasukanGrouped = PembayaranRuko::where('status_pembayaran', 'dibayar')
-            ->selectRaw('MONTH(tanggal_bayar) as bulan, YEAR(tanggal_bayar) as tahun, SUM(jumlah_tagihan) as total')
-            ->groupBy('tahun', 'bulan')
-            ->orderBy('tahun', 'desc')
-            ->orderBy('bulan', 'desc')
-            ->get();
-
-        // 2. Query Detail Transaksi untuk Tabel
         // Pemasukan Detail
         $queryPemasukan = PembayaranRuko::where('status_pembayaran', 'dibayar');
         if ($tanggalMulai) {
@@ -68,7 +59,19 @@ class KeuanganController extends Controller
         if ($tipeFilter) {
             $transaksi = $transaksi->where('tipe', $tipeFilter);
         }
-        $transaksi = $transaksi->sortByDesc('tanggal')->values();
+        return $transaksi->sortByDesc('tanggal')->values();
+    }
+
+    public function index(Request $request)
+    {
+        $pemasukanGrouped = PembayaranRuko::where('status_pembayaran', 'dibayar')
+            ->selectRaw('MONTH(tanggal_bayar) as bulan, YEAR(tanggal_bayar) as tahun, SUM(jumlah_tagihan) as total')
+            ->groupBy('tahun', 'bulan')
+            ->orderBy('tahun', 'desc')
+            ->orderBy('bulan', 'desc')
+            ->get();
+
+        $transaksi = $this->getTransaksiData($request);
 
         // 3. Hitung Totals Keseluruhan (Bukan hanya filter)
         $totalPemasukan = PembayaranRuko::where('status_pembayaran', 'dibayar')->sum('jumlah_tagihan');
@@ -96,5 +99,21 @@ class KeuanganController extends Controller
         PengeluaranKantin::create($request->all());
 
         return redirect()->back()->with('success', 'Pengeluaran berhasil dicatat.');
+    }
+
+    public function exportPdf(Request $request)
+    {
+        $transaksi = $this->getTransaksiData($request);
+        $totalPemasukan = $transaksi->where('tipe', 'pemasukan')->sum('nominal');
+        $totalPengeluaran = $transaksi->where('tipe', 'pengeluaran')->sum('nominal');
+        $saldoAkhir = $totalPemasukan - $totalPengeluaran;
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('adminkantin.keuangan.pdf', compact('transaksi', 'totalPemasukan', 'totalPengeluaran', 'saldoAkhir', 'request'));
+        return $pdf->download('laporan_keuangan_kantin_' . date('Ymd_His') . '.pdf');
+    }
+
+    public function exportExcel(Request $request)
+    {
+        return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\LaporanKeuanganExport($request), 'laporan_keuangan_kantin_' . date('Ymd_His') . '.xlsx');
     }
 }

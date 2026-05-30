@@ -409,8 +409,29 @@
     function aktifkan(id) { updateStatus(id, 'aktif'); }
 
     function hapusDokumen(id) {
-        if(!confirm('Apakah anda yakin ingin menghapus dokumen ini?')) return;
-        
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: 'Hapus Dokumen?',
+                text: 'Apakah anda yakin ingin menghapus dokumen ini?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    submitDeleteDokumenForm(id);
+                }
+            });
+        } else {
+            if(confirm('Apakah anda yakin ingin menghapus dokumen ini?')) {
+                submitDeleteDokumenForm(id);
+            }
+        }
+    }
+
+    function submitDeleteDokumenForm(id) {
         let form = document.createElement('form');
         form.method = 'POST';
         form.action = "{{ url('admin/kantin/dokumen') }}/" + id;
