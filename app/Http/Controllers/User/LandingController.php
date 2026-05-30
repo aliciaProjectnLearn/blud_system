@@ -38,8 +38,15 @@ class LandingController extends Controller
             ->take(5)
             ->get();
 
-        $layanans = \App\Models\Layanan::all();
+        $layanans = \App\Models\Layanan::active()->ordered()->get();
 
-        return view('user.gateway', compact('testimoni', 'layanans'));
+        // Data CMS gateway
+        $cms = \App\Models\CmsGateway::orderBy('urutan')
+            ->get()
+            ->keyBy('key');
+
+        $keunggulan = \App\Models\CmsKeunggulan::active()->ordered()->get();
+
+        return view('user.gateway', compact('testimoni', 'layanans', 'cms', 'keunggulan'));
     }
 }

@@ -124,14 +124,14 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label class="small font-weight-bold">Nama Lengkap</label>
-                                <input type="text" name="nama" class="form-control" value="{{ auth()->user()->nama_lengkap ?? '' }}" required placeholder="Contoh: Budi">
+                                <label class="small font-weight-bold">Nama Lengkap <span class="text-danger">*</span></label>
+                                <input type="text" name="nama" class="form-control" value="{{ auth()->user()->nama_lengkap ?? '' }}" required placeholder="Contoh: Budi" oninvalid="this.setCustomValidity('Harap isi kolom ini')" oninput="this.setCustomValidity('')">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label class="small font-weight-bold">Nomor WhatsApp</label>
-                                <input type="text" name="no_hp" class="form-control" value="{{ auth()->user()->no_hp ?? '' }}" required placeholder="Contoh: 0812...">
+                                <label class="small font-weight-bold">Nomor WhatsApp <span class="text-danger">*</span></label>
+                                <input type="text" name="no_hp" class="form-control" value="{{ auth()->user()->no_hp ?? '' }}" required placeholder="Contoh: 0812..." oninvalid="this.setCustomValidity('Harap isi kolom ini')" oninput="this.setCustomValidity('')">
                             </div>
                         </div>
                     </div>
@@ -140,12 +140,12 @@
                         <input type="text" id="layananName" class="form-control bg-light" readonly>
                     </div>
                     <div class="form-group">
-                        <label class="small font-weight-bold">Tanggal Kunjungan</label>
-                        <input type="date" name="tgl_kunjungan" class="form-control" required min="{{ date('Y-m-d') }}">
+                        <label class="small font-weight-bold">Tanggal Kunjungan <span class="text-danger">*</span></label>
+                        <input type="date" name="tgl_kunjungan" class="form-control" required min="{{ date('Y-m-d') }}" oninvalid="this.setCustomValidity('Harap isi kolom ini')" oninput="this.setCustomValidity('')">
                     </div>
                     <div class="form-group">
-                        <label class="small font-weight-bold">Alamat Lengkap</label>
-                        <textarea name="alamat" class="form-control" rows="2" required placeholder="Contoh: Jl. Merpati No. 123..."></textarea>
+                        <label class="small font-weight-bold">Alamat Lengkap <span class="text-danger">*</span></label>
+                        <textarea name="alamat" class="form-control" rows="2" required placeholder="Contoh: Jl. Merpati No. 123..." oninvalid="this.setCustomValidity('Harap isi kolom ini')" oninput="this.setCustomValidity('')"></textarea>
                     </div>
                     <div class="row">
                         <div class="col-12 col-md-6 mb-3 mb-md-0">

@@ -66,5 +66,7 @@ class DatabaseSeeder extends Seeder
 
         $this->call(TestimonialSeeder::class);
         $this->call(LayananSeeder::class);
+        $this->call(CmsGatewaySeeder::class);
+        $this->call(CmsKeunggulanSeeder::class);
     }
 }

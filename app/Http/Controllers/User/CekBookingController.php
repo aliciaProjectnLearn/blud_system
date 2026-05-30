@@ -420,9 +420,9 @@ class CekBookingController extends Controller
             } elseif ($b instanceof BookingServis) {
                 $status = $b->status;
                 $category = 'Servis Kendaraan';
-                $date = $b->tanggal_servis;
-                $time = $b->jam_servis;
-                $detailUrl = route('user.servis.sukses', ['token' => $b->access_token]);
+                $date = $b->tanggal_booking;
+                $time = $b->jam_booking;
+                $detailUrl = route('user.servis.token.show', ['token' => $b->access_token]);
             } elseif ($b instanceof SewaRuko) {
                 $status = $b->status_sewa;
                 $category = 'Kantin';
