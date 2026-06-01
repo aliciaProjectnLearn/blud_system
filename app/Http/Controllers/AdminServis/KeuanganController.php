@@ -11,10 +11,13 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\LaporanKeuanganServisExport;
 
 class KeuanganController extends Controller
 {
-    public function index(Request $request)
+    private function getTransaksiData(Request $request)
     {
         $startDate = $request->input('start_date');
         $endDate = $request->input('end_date');
@@ -34,10 +37,6 @@ class KeuanganController extends Controller
                 Carbon::parse($endDate)->endOfDay()
             ]);
         }
-
-        $totalPemasukan = $queryPemasukan->sum('total_biaya');
-        $totalPengeluaran = $queryPengeluaran->sum('jumlah');
-        $saldoAkhir = $totalPemasukan - $totalPengeluaran;
 
         $transaksi = collect();
 
@@ -65,7 +64,35 @@ class KeuanganController extends Controller
             $transaksi = $transaksi->merge($pengeluaranData);
         }
 
-        $transaksi = $transaksi->sortByDesc('tanggal')->values();
+        return $transaksi->sortByDesc('tanggal')->values();
+    }
+
+    public function index(Request $request)
+    {
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+        $tipe = $request->input('tipe');
+
+        $queryPemasukan = PembayaranServis::query();
+        $queryPengeluaran = PengeluaranServis::query();
+
+        if ($startDate && $endDate) {
+            $queryPemasukan->whereBetween('tanggal_bayar', [
+                Carbon::parse($startDate)->startOfDay(),
+                Carbon::parse($endDate)->endOfDay()
+            ]);
+            
+            $queryPengeluaran->whereBetween('tanggal', [
+                Carbon::parse($startDate)->startOfDay(),
+                Carbon::parse($endDate)->endOfDay()
+            ]);
+        }
+
+        $totalPemasukan = $queryPemasukan->sum('total_biaya');
+        $totalPengeluaran = $queryPengeluaran->sum('jumlah');
+        $saldoAkhir = $totalPemasukan - $totalPengeluaran;
+
+        $transaksi = $this->getTransaksiData($request);
 
         $teknisiList = User::whereHas('roles', function ($q) {
             $q->where('nama', 'Teknisi Mobil')->orWhere('nama', 'Teknisi Motor');
@@ -136,5 +163,21 @@ class KeuanganController extends Controller
             ->get();
 
         return response()->json($bookings);
+    }
+
+    public function exportPdf(Request $request)
+    {
+        $transaksi = $this->getTransaksiData($request);
+        $totalPemasukan = $transaksi->where('tipe', 'pemasukan')->sum('nominal');
+        $totalPengeluaran = $transaksi->where('tipe', 'pengeluaran')->sum('nominal');
+        $saldoAkhir = $totalPemasukan - $totalPengeluaran;
+
+        $pdf = Pdf::loadView('adminservis.keuangan.pdf', compact('transaksi', 'totalPemasukan', 'totalPengeluaran', 'saldoAkhir', 'request'));
+        return $pdf->download('laporan_keuangan_servis_' . date('Ymd_His') . '.pdf');
+    }
+
+    public function exportExcel(Request $request)
+    {
+        return Excel::download(new LaporanKeuanganServisExport($request), 'laporan_keuangan_servis_' . date('Ymd_His') . '.xlsx');
     }
 }
