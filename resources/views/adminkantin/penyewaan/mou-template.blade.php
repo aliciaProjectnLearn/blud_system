@@ -4,7 +4,7 @@
     <title>MOU Penyewaan - {{ $sewa->ruko->kode_unit }}</title>
     <style>
         body { font-family: sans-serif; font-size: 11pt; line-height: 1.5; color: #333; }
-        .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #000; padding-bottom: 10px; }
+        .header { text-align: center; margin-bottom: 30px; padding-bottom: 10px; }
         .title { font-size: 16pt; font-weight: bold; margin-bottom: 5px; text-transform: uppercase; }
         .mou-number { font-size: 12pt; }
         .section { margin-top: 20px; }
@@ -23,6 +23,25 @@
     </style>
 </head>
 <body>
+    <div class="kop-surat" style="margin-bottom: 20px;">
+        <table style="width: 100%; border-bottom: 3px solid #000; margin-bottom: 2px;">
+            <tr>
+                <td style="width: 15%; text-align: center; vertical-align: middle; padding-bottom: 10px;">
+                    <img src="{{ asset('img/logo_smk.png') }}" style="width: 90px;" alt="Logo">
+                </td>
+                <td style="width: 85%; text-align: center; line-height: 1.3; padding-bottom: 10px;">
+                    <div style="font-size: 14pt;">PEMERINTAH DAERAH PROVINSI JAWA BARAT</div>
+                    <div style="font-size: 14pt;">DINAS PENDIDIKAN</div>
+                    <div style="font-size: 14pt;">CABANG DINAS PENDIDIKAN WILAYAH X</div>
+                    <div style="font-size: 18pt; font-weight: bold; margin: 3px 0;">SMK NEGERI 1 CIREBON</div>
+                    <div style="font-size: 10pt;">Jl. Perjuangan By Pass Sunyaragi Telp. (0231) 480202 Kota Cirebon 45132</div>
+                    <div style="font-size: 10pt;">Website : http://www.smkn1-cirebon.sch.id E-mail : info@smkn1-cirebon.sch.id</div>
+                </td>
+            </tr>
+        </table>
+        <div style="border-bottom: 1px solid #000; margin-bottom: 20px;"></div>
+    </div>
+
     <div class="header">
         <div class="title">SURAT PERJANJIAN SEWA MENYEWA (MOU)</div>
         <div class="mou-number">KANTIN BLUD SYSTEM</div>
