@@ -102,8 +102,8 @@
         <div class="card-header py-3">
             <h6 class="m-0 font-weight-bold text-primary">Filter Data</h6>
         </div>
-        <div class="card-body">
-            <form action="{{ route('admin.servis.keuangan.index') }}" method="GET" class="form-inline">
+        <div class="card-body d-flex justify-content-between flex-wrap align-items-center">
+            <form action="{{ route('admin.servis.keuangan.index') }}" method="GET" class="form-inline mb-2">
                 <div class="form-group mb-2 mr-sm-2">
                     <label for="start_date" class="mr-2">Mulai</label>
                     <input type="date" class="form-control" name="start_date" id="start_date" value="{{ request('start_date') }}">
@@ -124,8 +124,17 @@
                 <a href="{{ route('admin.servis.keuangan.index') }}" class="btn btn-secondary mb-2"><i class="fas fa-sync"></i> Reset</a>
             </form>
 
+            <div class="mb-2">
+                <a href="{{ route('admin.servis.keuangan.export.pdf', request()->query()) }}" class="btn btn-danger shadow-sm mr-2">
+                    <i class="fas fa-file-pdf fa-sm text-white-50"></i> Export PDF
+                </a>
+                <a href="{{ route('admin.servis.keuangan.export.excel', request()->query()) }}" class="btn btn-success shadow-sm">
+                    <i class="fas fa-file-excel fa-sm text-white-50"></i> Export Excel
+                </a>
+            </div>
+
             @if(request('start_date') && request('end_date'))
-                <div class="alert alert-info mt-3 mb-0">
+                <div class="alert alert-info mt-3 mb-0 w-100">
                     <i class="fas fa-info-circle"></i> Menampilkan data untuk periode: <strong>{{ \Carbon\Carbon::parse(request('start_date'))->translatedFormat('d F Y') }}</strong> sampai <strong>{{ \Carbon\Carbon::parse(request('end_date'))->translatedFormat('d F Y') }}</strong>
                 </div>
             @endif
