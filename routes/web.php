@@ -252,6 +252,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Superadmin|Adm
         Route::get('laporan/export-excel', [\App\Http\Controllers\AdminKantin\LaporanController::class, 'exportExcel'])->name('laporan.export.excel');
         Route::get('keuangan', [\App\Http\Controllers\AdminKantin\KeuanganController::class, 'index'])->name('keuangan.index');
         Route::post('keuangan', [\App\Http\Controllers\AdminKantin\KeuanganController::class, 'store'])->name('keuangan.store');
+        Route::get('keuangan/export-pdf', [\App\Http\Controllers\AdminKantin\KeuanganController::class, 'exportPdf'])->name('keuangan.export.pdf');
+        Route::get('keuangan/export-excel', [\App\Http\Controllers\AdminKantin\KeuanganController::class, 'exportExcel'])->name('keuangan.export.excel');
 
         // Audit Log
         Route::get('audit', [\App\Http\Controllers\AdminKantin\AuditLogController::class, 'index'])->name('audit.index');

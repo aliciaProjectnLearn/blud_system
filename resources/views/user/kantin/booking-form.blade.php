@@ -325,8 +325,31 @@
                     <div class="card overflow-hidden">
                         <div id="unit-photo-container">
                             @if($ruko)
-                                <img src="{{ $ruko->dokumentasiUnit->first() ? asset('storage/' . str_replace('\\','/',$ruko->dokumentasiUnit->first()->file)) : asset('assets/img/no-image.png') }}" 
-                                     class="card-img-top" alt="Foto Unit" style="height: 200px; object-fit: cover;">
+                                @php
+                                    $dokumentasi = $ruko->dokumentasiUnit;
+                                    $hasDokumentasi = $dokumentasi->count() > 0;
+                                    $firstPhoto = $hasDokumentasi ? $dokumentasi->first()->file : null;
+                                @endphp
+                                @if($hasDokumentasi)
+                                    <div class="position-relative" style="cursor: pointer;" data-toggle="modal" data-target="#galleryModal">
+                                        <img src="{{ asset('storage/' . str_replace('\\', '/', $firstPhoto)) }}" 
+                                             class="card-img-top" alt="Foto Unit" style="height: 200px; object-fit: cover;">
+                                        @if($dokumentasi->count() > 1)
+                                            <div class="position-absolute d-flex justify-content-center align-items-center shadow-sm" 
+                                                 style="bottom: 10px; right: 10px; background: rgba(0,0,0,0.7); color: white; border-radius: 20px; padding: 4px 12px; font-size: 0.85rem;">
+                                                <i class="fas fa-images mr-1"></i> +{{ $dokumentasi->count() - 1 }} Foto
+                                            </div>
+                                        @endif
+                                        <div class="position-absolute w-100 h-100 d-flex justify-content-center align-items-center" 
+                                             style="top: 0; left: 0; background: rgba(0,0,0,0.3); opacity: 0; transition: opacity 0.2s;" 
+                                             onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0">
+                                            <i class="fas fa-search-plus fa-3x text-white"></i>
+                                        </div>
+                                    </div>
+                                @else
+                                    <img src="{{ asset('assets/img/no-image.png') }}" 
+                                         class="card-img-top" alt="Foto Unit" style="height: 200px; object-fit: cover;">
+                                @endif
                             @else
                                 <div class="bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
                                     <i class="fas fa-store fa-3x text-gray-200"></i>
@@ -436,6 +459,51 @@
         </div>
     </div>
 </div>
+
+@if(isset($hasDokumentasi) && $hasDokumentasi)
+<!-- Gallery Modal -->
+<div class="modal fade" id="galleryModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content bg-transparent border-0">
+            <div class="modal-header border-0 pb-0 justify-content-end">
+                <button type="button" class="close text-white shadow-none" data-dismiss="modal" aria-label="Close" style="opacity: 1; text-shadow: 0 1px 3px rgba(0,0,0,0.8);">
+                    <i class="fas fa-times fa-lg"></i>
+                </button>
+            </div>
+            <div class="modal-body p-0 text-center">
+                <div id="unitGalleryCarousel" class="carousel slide" data-ride="carousel">
+                    <div class="carousel-inner rounded shadow-lg" style="background: rgba(0,0,0,0.9);">
+                        @foreach($dokumentasi as $index => $doc)
+                            <div class="carousel-item {{ $index === 0 ? 'active' : '' }}" style="height: 80vh;">
+                                <img src="{{ asset('storage/' . str_replace('\\', '/', $doc->file)) }}" class="d-block w-100 h-100" alt="Dokumentasi Unit" style="object-fit: contain;">
+                            </div>
+                        @endforeach
+                    </div>
+                    @if($dokumentasi->count() > 1)
+                        <a class="carousel-control-prev" href="#unitGalleryCarousel" role="button" data-slide="prev" style="width: 15%; opacity: 1;">
+                            <div style="background: rgba(0,0,0,0.5); border-radius: 50%; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
+                                <span class="carousel-control-prev-icon" aria-hidden="true" style="width: 2rem; height: 2rem;"></span>
+                            </div>
+                            <span class="sr-only">Previous</span>
+                        </a>
+                        <a class="carousel-control-next" href="#unitGalleryCarousel" role="button" data-slide="next" style="width: 15%; opacity: 1;">
+                            <div style="background: rgba(0,0,0,0.5); border-radius: 50%; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
+                                <span class="carousel-control-next-icon" aria-hidden="true" style="width: 2rem; height: 2rem;"></span>
+                            </div>
+                            <span class="sr-only">Next</span>
+                        </a>
+                        <ol class="carousel-indicators mb-2">
+                            @foreach($dokumentasi as $index => $doc)
+                                <li data-target="#unitGalleryCarousel" data-slide-to="{{ $index }}" class="{{ $index === 0 ? 'active' : '' }}"></li>
+                            @endforeach
+                        </ol>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
 @endsection
 
 @push('scripts')
