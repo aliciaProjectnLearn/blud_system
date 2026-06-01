@@ -309,6 +309,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Superadmin|Adm
         Route::resource('produk', \App\Http\Controllers\AdminServis\ProdukController::class)->except(['create', 'show', 'edit']);
         Route::get('/keuangan', [\App\Http\Controllers\AdminServis\KeuanganController::class, 'index'])->name('keuangan.index');
         Route::post('/keuangan/pengeluaran', [\App\Http\Controllers\AdminServis\KeuanganController::class, 'store'])->name('keuangan.store');
+        Route::get('/keuangan/export-pdf', [\App\Http\Controllers\AdminServis\KeuanganController::class, 'exportPdf'])->name('keuangan.export.pdf');
+        Route::get('/keuangan/export-excel', [\App\Http\Controllers\AdminServis\KeuanganController::class, 'exportExcel'])->name('keuangan.export.excel');
         Route::get('/keuangan/unpaid-pekerjaan/{teknisi_id}', [\App\Http\Controllers\AdminServis\KeuanganController::class, 'getUnpaidPekerjaan'])->name('keuangan.unpaid');
         Route::resource('teknisi', \App\Http\Controllers\AdminServis\TeknisiController::class);
         Route::patch('/teknisi/{id}/toggle-status', [\App\Http\Controllers\AdminServis\TeknisiController::class, 'toggleStatus'])->name('teknisi.toggle-status');
