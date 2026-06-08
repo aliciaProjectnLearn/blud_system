@@ -36,6 +36,55 @@
     .service-desc { color:#4a5568; font-size: 0.88rem; line-height: 1.5; height: 65px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
 
     .gap-2 { gap: 0.5rem; }
+
+    /* Search Bar AC */
+    .search-input-group {
+        border-radius: 50px;
+        overflow: hidden;
+        border: 1px solid #cbd5e0;
+        background: #fff;
+        transition: all 0.3s ease;
+    }
+    .search-input-group:focus-within {
+        box-shadow: 0 8px 25px rgba(78, 115, 223, 0.15) !important;
+        border-color: #4e73df;
+    }
+    .search-input-group .form-control {
+        border: none;
+        height: 48px;
+        font-size: 0.95rem;
+    }
+    .search-input-group .form-control:focus {
+        box-shadow: none;
+    }
+    .search-input-group .input-group-text {
+        border: none;
+        font-size: 1.05rem;
+        padding-left: 20px;
+        background: transparent;
+    }
+    .search-input-group .btn-primary {
+        border-radius: 0 50px 50px 0;
+        padding-right: 25px;
+        padding-left: 25px;
+        font-weight: 600;
+        background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+        border: none;
+    }
+    .search-input-group .btn-primary:hover {
+        background: linear-gradient(135deg, #224abe 0%, #1a3a9c 100%);
+    }
+    .search-input-group .btn-reset-search {
+        border: none;
+        background: transparent;
+        color: #a0aec0;
+        padding: 0 15px;
+        font-size: 1.1rem;
+        transition: color 0.2s;
+    }
+    .search-input-group .btn-reset-search:hover {
+        color: #e74a3b;
+    }
 </style>
 @endpush
 
@@ -70,6 +119,30 @@
                 <div class="stat-item">
                     <span class="stat-num" style="color:#17a673">24/7</span>
                     <span class="stat-lbl">Booking</span>
+                </div>
+            </div>
+
+            {{-- Search Bar --}}
+            <div class="row mb-4 justify-content-center">
+                <div class="col-md-8 col-lg-6">
+                    <form action="{{ route('user.ac.layanan') }}" method="GET">
+                        <div class="input-group search-input-group shadow-sm">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text text-muted">
+                                    <i class="fas fa-search"></i>
+                                </span>
+                            </div>
+                            <input type="text" name="search" class="form-control pl-1" placeholder="Cari layanan (misal: Cuci AC, Freon, Bongkar)..." value="{{ request('search') }}">
+                            @if(request('search'))
+                                <a href="{{ route('user.ac.layanan') }}" class="btn-reset-search d-flex align-items-center justify-content-center" title="Reset Pencarian">
+                                    <i class="fas fa-times-circle"></i>
+                                </a>
+                            @endif
+                            <div class="input-group-append">
+                                <button class="btn btn-primary" type="submit">Cari</button>
+                            </div>
+                        </div>
+                    </form>
                 </div>
             </div>
 
@@ -116,7 +189,7 @@
                 <h5 class="modal-title">Konfirmasi Booking</h5>
                 <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>
             </div>
-            <form action="{{ route('user.ac.store') }}" method="POST">
+            <form id="bookingForm" action="{{ route('user.ac.store') }}" method="POST">
                 @csrf
                 <input type="hidden" name="layanan_id" id="layanan_id">
                 <div class="modal-body">
@@ -150,20 +223,20 @@
                     <div class="row">
                         <div class="col-12 col-md-6 mb-3 mb-md-0">
                             <div class="form-group mb-0">
-                                <label class="small font-weight-bold">Merek AC</label>
-                                <input type="text" name="merek_ac" class="form-control" placeholder="LG, Samsung, dll">
+                                <label class="small font-weight-bold">Merek AC <span class="text-danger">*</span></label>
+                                <input type="text" name="merek_ac" class="form-control" required placeholder="LG, Samsung, dll" oninvalid="this.setCustomValidity('Harap isi kolom ini')" oninput="this.setCustomValidity('')">
                             </div>
                         </div>
                         <div class="col-12 col-md-6">
                             <div class="form-group mb-0">
-                                <label class="small font-weight-bold">Jumlah Unit</label>
-                                <input type="number" name="jumlah_unit" class="form-control" value="1" min="1">
+                                <label class="small font-weight-bold">Jumlah Unit <span class="text-danger">*</span></label>
+                                <input type="number" name="jumlah_unit" class="form-control" value="1" min="1" required oninvalid="this.setCustomValidity('Harap isi kolom ini')" oninput="this.setCustomValidity('')">
                             </div>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="small font-weight-bold">Detail Keluhan</label>
-                        <textarea name="detail_keluhan" class="form-control" rows="3" placeholder="Contoh: AC tidak dingin, berisik, atau ada air bocor..."></textarea>
+                        <label class="small font-weight-bold">Detail Keluhan <span class="text-danger">*</span></label>
+                        <textarea name="detail_keluhan" class="form-control" rows="3" required placeholder="Contoh: AC tidak dingin, berisik, atau ada air bocor..." oninvalid="this.setCustomValidity('Harap isi kolom ini')" oninput="this.setCustomValidity('')"></textarea>
                     </div>
                     <div class="alert alert-info py-2 small mb-0 mt-2">
                         <i class="fas fa-info-circle mr-2"></i> Link status booking akan dikirim ke nomor WhatsApp Anda.

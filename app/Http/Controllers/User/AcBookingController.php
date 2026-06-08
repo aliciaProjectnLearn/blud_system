@@ -73,8 +73,9 @@ class AcBookingController extends Controller
             'layanan_id'      => 'required|exists:layanan_ac,id',
             'tgl_kunjungan'   => 'required|date|after_or_equal:today',
             'alamat'          => 'required|string|max:255',
-            'merek_ac'        => 'nullable|string|max:100',
-            'detail_keluhan'  => 'nullable|string',
+            'merek_ac'        => 'required|string|max:100',
+            'detail_keluhan'  => 'required|string',
+            'jumlah_unit'     => 'required|integer|min:1',
         ]);
 
         // [1] PEMBATASAN BOOKING AKTIF
@@ -171,9 +172,21 @@ class AcBookingController extends Controller
         }
     }
 
-    public function layanan()
+    public function layanan(Request $request)
     {
-        $layanans = LayananAc::with('kategori')->paginate(12);
+        $search = $request->query('search');
+        $query = LayananAc::with('kategori');
+
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('nama', 'like', "%{$search}%")
+                  ->orWhereHas('kategori', function($qk) use ($search) {
+                      $qk->where('nama', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $layanans = $query->paginate(12)->withQueryString();
         
         // Ambil semua kategori yang terkait dengan Layanan AC
         $kategoris = Kategori::whereHas('layananAc')->get();
