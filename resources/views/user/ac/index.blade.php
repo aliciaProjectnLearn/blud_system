@@ -214,42 +214,42 @@
                     
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="small font-weight-bold text-dark text-uppercase">Nama Lengkap</label>
-                            <input type="text" name="nama" class="form-control form-control-lg bg-light border-0 shadow-sm" value="{{ auth()->user()->nama_lengkap ?? '' }}" required placeholder="Contoh: Budi Santoso">
+                            <label class="small font-weight-bold text-dark text-uppercase">Nama Lengkap <span class="text-danger">*</span></label>
+                            <input type="text" name="nama" class="form-control form-control-lg bg-light border-0 shadow-sm" value="{{ auth()->user()->nama_lengkap ?? '' }}" required placeholder="Contoh: Budi Santoso" oninvalid="this.setCustomValidity('Harap isi kolom ini')" oninput="this.setCustomValidity('')">
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="small font-weight-bold text-dark text-uppercase">Nomor WhatsApp (Aktif)</label>
-                            <input type="text" name="no_hp" class="form-control form-control-lg bg-light border-0 shadow-sm" value="{{ auth()->user()->no_hp ?? '' }}" required placeholder="Contoh: 08123456789">
+                            <label class="small font-weight-bold text-dark text-uppercase">Nomor WhatsApp (Aktif) <span class="text-danger">*</span></label>
+                            <input type="text" name="no_hp" class="form-control form-control-lg bg-light border-0 shadow-sm" value="{{ auth()->user()->no_hp ?? '' }}" required placeholder="Contoh: 08123456789" oninvalid="this.setCustomValidity('Harap isi kolom ini')" oninput="this.setCustomValidity('')">
                             <small class="text-muted">Link status booking akan dikirim ke nomor ini.</small>
                         </div>
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="small font-weight-bold text-dark text-uppercase">Pilih Layanan</label>
-                            <select name="layanan_id" id="layanan_id" class="form-control form-control-lg bg-light border-0 shadow-sm" required>
+                            <label class="small font-weight-bold text-dark text-uppercase">Pilih Layanan <span class="text-danger">*</span></label>
+                            <select name="layanan_id" id="layanan_id" class="form-control form-control-lg bg-light border-0 shadow-sm" required oninvalid="this.setCustomValidity('Harap isi kolom ini')" oninput="this.setCustomValidity('')">
                                 <option value="">-- Pilih Layanan --</option>
                             </select>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="small font-weight-bold text-dark text-uppercase">Tanggal Kunjungan</label>
-                            <input type="date" name="tgl_kunjungan" class="form-control form-control-lg bg-light border-0 shadow-sm" required min="{{ date('Y-m-d') }}">
+                            <label class="small font-weight-bold text-dark text-uppercase">Tanggal Kunjungan <span class="text-danger">*</span></label>
+                            <input type="date" name="tgl_kunjungan" class="form-control form-control-lg bg-light border-0 shadow-sm" required min="{{ date('Y-m-d') }}" oninvalid="this.setCustomValidity('Harap isi kolom ini')" oninput="this.setCustomValidity('')">
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label class="small font-weight-bold text-dark text-uppercase">Alamat Lengkap</label>
-                        <textarea name="alamat" class="form-control bg-light border-0 shadow-sm" rows="2" required placeholder="Jl. Merpati No. 123, Kel. Sukamaju, Kec. Cilodong..."></textarea>
+                        <label class="small font-weight-bold text-dark text-uppercase">Alamat Lengkap <span class="text-danger">*</span></label>
+                        <textarea name="alamat" class="form-control bg-light border-0 shadow-sm" rows="2" required placeholder="Jl. Merpati No. 123, Kel. Sukamaju, Kec. Cilodong..." oninvalid="this.setCustomValidity('Harap isi kolom ini')" oninput="this.setCustomValidity('')"></textarea>
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="small font-weight-bold text-dark text-uppercase">Merek AC (Opsional)</label>
-                            <input type="text" name="merek_ac" class="form-control bg-light border-0 shadow-sm" placeholder="Contoh: Sharp, LG, Samsung">
+                            <label class="small font-weight-bold text-dark text-uppercase">Merek AC <span class="text-danger">*</span></label>
+                            <input type="text" name="merek_ac" class="form-control bg-light border-0 shadow-sm" required placeholder="Contoh: Sharp, LG, Samsung" oninvalid="this.setCustomValidity('Harap isi kolom ini')" oninput="this.setCustomValidity('')">
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="small font-weight-bold text-dark text-uppercase">Detail Keluhan (Opsional)</label>
-                            <textarea name="detail_keluhan" class="form-control bg-light border-0 shadow-sm" rows="1" placeholder="Contoh: AC tidak dingin / Berisik"></textarea>
+                            <label class="small font-weight-bold text-dark text-uppercase">Detail Keluhan <span class="text-danger">*</span></label>
+                            <textarea name="detail_keluhan" class="form-control bg-light border-0 shadow-sm" rows="1" required placeholder="Contoh: AC tidak dingin / Berisik" oninvalid="this.setCustomValidity('Harap isi kolom ini')" oninput="this.setCustomValidity('')"></textarea>
                         </div>
                     </div>
 
