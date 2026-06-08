@@ -17,13 +17,13 @@ class BookingController extends Controller
     {
         $status = $request->status;
 
-        $bookings = BookingAc::with(['user', 'layanan', 'teknisi'])
+        $bookings = BookingAc::with(['user', 'layanan', 'teknisi', 'detailServis', 'pembayaran'])
             ->when($status, fn($q) => $q->where('status', $status))
             ->orderBy('created_at', 'desc')
             ->paginate(10)
             ->withQueryString();
 
-        $statusList = ['menunggu', 'proses', 'selesai'];
+        $statusList = ['menunggu', 'proses', 'selesai', 'dibatalkan'];
 
         $teknisiTersedia = User::whereHas('roles', fn($q) => $q->where('nama', 'Teknisi'))
         ->whereNotIn('id', function ($q) {
@@ -167,5 +167,70 @@ class BookingController extends Controller
         $booking->update(['status' => 'selesai']);
 
         return back()->with('success', 'Booking berhasil diselesaikan.');
+    }
+
+    // ── Cancel/Reject Booking (menunggu/proses → dibatalkan) ──
+    public function cancel($id)
+    {
+        $booking = BookingAc::findOrFail($id);
+
+        if (!in_array($booking->status, ['menunggu', 'proses'])) {
+            return back()->with('error', 'Booking tidak dapat dibatalkan.');
+        }
+
+        DB::beginTransaction();
+        try {
+            $booking->update([
+                'status' => 'dibatalkan',
+            ]);
+
+            if ($booking->booking) {
+                $booking->booking->update([
+                    'status' => 'dibatalkan',
+                ]);
+            }
+
+            DB::commit();
+
+            // Send WhatsApp Notification on cancellation
+            try {
+                $noHpPelanggan = $booking->no_hp ?? ($booking->user->no_hp ?? null);
+                $namaPelanggan = $booking->nama_pelanggan ?? ($booking->user->nama_lengkap ?? 'Pelanggan');
+
+                if ($noHpPelanggan) {
+                    $link = route('user.ac.token.show', $booking->access_token);
+                    $pesanPelanggan = "*BOOKING SERVIS AC DIBATALKAN/DITOLAK* ❌\n\n";
+                    $pesanPelanggan .= "Halo *{$namaPelanggan}*,\n";
+                    $pesanPelanggan .= "Kami ingin menginformasikan bahwa booking layanan AC Anda telah dibatalkan atau ditolak oleh Admin:\n\n";
+                    $pesanPelanggan .= "🔧 *Layanan AC*: " . ($booking->layanan->nama ?? '-') . "\n";
+                    $pesanPelanggan .= "📅 *Rencana Kunjungan*: " . \Carbon\Carbon::parse($booking->tgl_kunjungan)->translatedFormat('d F Y') . "\n\n";
+                    $pesanPelanggan .= "Anda dapat memantau detail status pembatalan melalui link berikut:\n";
+                    $pesanPelanggan .= "🔗 {$link}\n\n";
+                    $pesanPelanggan .= "Mohon maaf atas ketidaknyamanannya. Silakan lakukan booking ulang jika diperlukan.\n\n";
+                    $pesanPelanggan .= "Terima kasih. 🙏";
+
+                    $apiToken = env('FONNTE_TOKEN', 'YOUR_API_TOKEN_HERE'); 
+
+                    if ($apiToken !== 'YOUR_API_TOKEN_HERE') {
+                        $response = Http::withHeaders([
+                            'Authorization' => $apiToken,
+                        ])->post('https://api.fonnte.com/send', [
+                            'target' => $noHpPelanggan,
+                            'message' => $pesanPelanggan,
+                            'countryCode' => '62',
+                        ]);
+
+                        Log::info('Notifikasi Batal WA Pelanggan: ' . $response->body());
+                    }
+                }
+            } catch (\Exception $e) {
+                Log::error('Gagal mengirim WA pembatalan ke pelanggan: ' . $e->getMessage());
+            }
+
+            return back()->with('success', 'Booking berhasil dibatalkan/ditolak.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Gagal membatalkan booking: ' . $e->getMessage());
+        }
     }
 }

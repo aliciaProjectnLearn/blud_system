@@ -37,7 +37,8 @@ class KeuanganAcController extends Controller
                 DB::raw("'pengeluaran' as tipe"),
                 DB::raw("CONCAT('[', COALESCE(kategori, 'Umum'), '] ', deskripsi) as deskripsi"),
                 'nominal',
-                DB::raw("'dibayar' as status")
+                DB::raw("'dibayar' as status"),
+                'kategori'
             );
 
         // 3. Filter Tanggal & Kategori
@@ -154,6 +155,9 @@ class KeuanganAcController extends Controller
                         'status_bayar' => 'dibayar',
                         'tanggal_bayar' => now(),
                     ]);
+
+                    // Update status gaji pada tabel booking
+                    $booking->update(['status_gaji' => 'dibayar']);
 
                     // Catat ke Pengeluaran AC agar masuk ke laporan keuangan
                     PengeluaranAc::create([

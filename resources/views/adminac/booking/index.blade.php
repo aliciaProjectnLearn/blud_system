@@ -87,6 +87,7 @@
                                         'menunggu' => 'warning',
                                         'proses'   => 'info',
                                         'selesai'  => 'success',
+                                        'dibatalkan' => 'danger',
                                         default    => 'secondary',
                                     };
                                 @endphp
@@ -114,9 +115,33 @@
                                         <i class="fas fa-check-double"></i>
                                     </button>
                                 @endif
+
+                                {{-- Tombol Batalkan / Tolak (hanya jika menunggu atau proses) --}}
+                                @if(in_array($b->status, ['menunggu', 'proses']))
+                                    <button type="button" class="btn btn-danger btn-circle btn-sm" 
+                                        title="{{ $b->status === 'menunggu' ? 'Tolak' : 'Batalkan' }}"
+                                        data-toggle="modal" data-target="#cancelModal{{ $b->id }}">
+                                        <i class="fas fa-ban"></i>
+                                    </button>
+                                @endif
                             </td>
                         </tr>
 
+                        @empty
+                        <tr>
+                            <td colspan="8" class="text-center text-muted">Belum ada data booking.</td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+            {{ $bookings->links() }}
+        </div>
+    </div>
+
+
+    {{-- Modals --}}
+    @foreach($bookings as $b)
                         {{-- Modal Detail --}}
                         <div class="modal fade" id="detailModal{{ $b->id }}" tabindex="-1" role="dialog" aria-hidden="true">
                             <div class="modal-dialog modal-lg" role="document">
@@ -187,28 +212,83 @@
                                             </div>
 
                                             <div class="col-md-5">
-                                                @if($b->status === 'selesai' && $b->foto_hasil)
-                                                    <div class="card border-0 shadow-sm rounded-lg h-100">
-                                                        <div class="card-body text-center d-flex flex-column">
-                                                            <h6 class="text-success font-weight-bold mb-3 border-bottom pb-2 text-left">
+                                                @if($b->status === 'selesai')
+                                                    {{-- Card Dokumentasi Hasil --}}
+                                                    <div class="card border-0 shadow-sm rounded-lg mb-3">
+                                                        <div class="card-body text-center p-3">
+                                                            <h6 class="text-success font-weight-bold mb-2 border-bottom pb-2 text-left">
                                                                 <i class="fas fa-camera mr-1"></i> Dokumentasi Hasil
                                                             </h6>
-                                                            <div class="flex-grow-1 d-flex align-items-center justify-content-center bg-dark rounded overflow-hidden shadow-sm" style="min-height: 200px;">
-                                                                <a href="{{ asset('uploads/ac/hasil/' . $b->foto_hasil) }}" target="_blank">
-                                                                    <img src="{{ asset('uploads/ac/hasil/' . $b->foto_hasil) }}" 
-                                                                         class="img-fluid rounded hover-zoom" 
-                                                                         alt="Hasil Pengerjaan" 
-                                                                         style="max-height: 350px; transition: transform .3s ease;">
-                                                                </a>
-                                                            </div>
-                                                            <p class="mt-2 text-muted small italic">Klik gambar untuk memperbesar</p>
+                                                            @if($b->foto_hasil)
+                                                                <div class="d-flex align-items-center justify-content-center bg-dark rounded overflow-hidden shadow-sm" style="min-height: 150px;">
+                                                                    <a href="{{ asset('uploads/ac/hasil/' . $b->foto_hasil) }}" target="_blank">
+                                                                        <img src="{{ asset('uploads/ac/hasil/' . $b->foto_hasil) }}" 
+                                                                             class="img-fluid rounded hover-zoom" 
+                                                                             alt="Hasil Pengerjaan" 
+                                                                             style="max-height: 180px; transition: transform .3s ease;">
+                                                                    </a>
+                                                                </div>
+                                                                <p class="mt-1 text-muted small italic mb-0">Klik gambar untuk memperbesar</p>
+                                                            @else
+                                                                <p class="text-muted small my-3">Tidak ada dokumentasi foto</p>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+
+                                                    {{-- Card Detail Rincian Biaya --}}
+                                                    <div class="card border-0 shadow-sm rounded-lg">
+                                                        <div class="card-body p-3">
+                                                            <h6 class="text-primary font-weight-bold mb-2 border-bottom pb-2">
+                                                                <i class="fas fa-receipt mr-1"></i> Rincian Pembayaran
+                                                            </h6>
+                                                            @if($b->detailServis->count() > 0)
+                                                                <div class="table-responsive" style="max-height: 200px; overflow-y: auto;">
+                                                                    <table class="table table-sm table-hover border-bottom mb-2" style="font-size: 0.8rem;">
+                                                                        <thead>
+                                                                            <tr class="bg-light">
+                                                                                <th>Item</th>
+                                                                                <th class="text-center">Qty</th>
+                                                                                <th class="text-right">Total</th>
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody>
+                                                                            @foreach($b->detailServis as $detail)
+                                                                            <tr>
+                                                                                <td class="align-middle">
+                                                                                    <strong>{{ $detail->item }}</strong>
+                                                                                    @if($detail->catatan)
+                                                                                        <br><small class="text-muted">{{ $detail->catatan }}</small>
+                                                                                    @endif
+                                                                                </td>
+                                                                                <td class="text-center align-middle">{{ $detail->quantity }}</td>
+                                                                                <td class="text-right align-middle font-weight-bold">Rp {{ number_format($detail->subtotal, 0, ',', '.') }}</td>
+                                                                            </tr>
+                                                                            @endforeach
+                                                                        </tbody>
+                                                                    </table>
+                                                                </div>
+                                                                <div class="d-flex justify-content-between font-weight-bold p-2 bg-light rounded" style="font-size: 0.9rem;">
+                                                                    <span>Total Tagihan:</span>
+                                                                    <span class="text-primary">Rp {{ number_format($b->pembayaran->total_harga ?? $b->detailServis->sum('subtotal'), 0, ',', '.') }}</span>
+                                                                </div>
+                                                                <div class="mt-2 d-flex justify-content-between align-items-center" style="font-size: 0.85rem;">
+                                                                    <span>Status Bayar:</span>
+                                                                    @if(($b->pembayaran->status ?? 'belum_dibayar') === 'dibayar')
+                                                                        <span class="badge badge-success px-3 py-1 rounded-pill">Lunas</span>
+                                                                    @else
+                                                                        <span class="badge badge-warning px-3 py-1 rounded-pill">Belum Bayar</span>
+                                                                    @endif
+                                                                </div>
+                                                            @else
+                                                                <p class="text-muted small text-center my-3">Belum ada rincian biaya dari teknisi.</p>
+                                                            @endif
                                                         </div>
                                                     </div>
                                                 @else
                                                     <div class="card border-0 shadow-sm rounded-lg h-100 bg-white d-flex align-items-center justify-content-center p-5">
                                                         <div class="text-center opacity-50">
                                                             <i class="fas fa-images fa-3x text-light mb-3"></i>
-                                                            <p class="text-muted small">Belum ada dokumentasi foto</p>
+                                                            <p class="text-muted small">Belum ada dokumentasi & rincian pembayaran</p>
                                                         </div>
                                                     </div>
                                                 @endif
@@ -300,17 +380,39 @@
                         </div>
                         @endif
 
-                        @empty
-                        <tr>
-                            <td colspan="8" class="text-center text-muted">Belum ada data booking.</td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-            {{ $bookings->links() }}
-        </div>
-    </div>
+                        {{-- Modal Batalkan / Tolak --}}
+                        @if(in_array($b->status, ['menunggu', 'proses']))
+                        <div class="modal fade" id="cancelModal{{ $b->id }}" tabindex="-1" role="dialog" aria-hidden="true">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header bg-danger text-white">
+                                        <h5 class="modal-title"><i class="fas fa-ban"></i> {{ $b->status === 'menunggu' ? 'Tolak Booking' : 'Batalkan Booking' }}</h5>
+                                        <button class="close text-white" type="button" data-dismiss="modal">
+                                            <span>&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body text-left">
+                                        <p>Apakah Anda yakin ingin {{ $b->status === 'menunggu' ? 'menolak' : 'membatalkan' }} booking ini?</p>
+                                        <p><strong>Pelanggan:</strong> {{ $b->nama_pelanggan ?? ($b->user->name ?? '-') }}</p>
+                                        <p><strong>Layanan:</strong> {{ $b->layanan->nama ?? '-' }}</p>
+                                        @if($b->teknisi)
+                                            <p><strong>Teknisi:</strong> {{ $b->teknisi->name }}</p>
+                                        @endif
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button class="btn btn-secondary" type="button" data-dismiss="modal">Batal</button>
+                                        <form action="{{ route('admin.ac.booking.cancel', $b->id) }}" method="POST">
+                                            @csrf
+                                            @method('PATCH')
+                                            <button type="submit" class="btn btn-danger">{{ $b->status === 'menunggu' ? 'Ya, Tolak' : 'Ya, Batalkan' }}</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+
+    @endforeach
 
 </div>
 @endsection
