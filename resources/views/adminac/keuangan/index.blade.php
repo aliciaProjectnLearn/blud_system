@@ -203,13 +203,14 @@
                             <td>{{ $pekerjaan->layanan->nama ?? '-' }}</td>
                             <td><span class="badge badge-success">Selesai</span></td>
                             <td>
-                                <form action="{{ route('admin.ac.keuangan.bayarGaji', $pekerjaan->id) }}" method="POST" class="form-inline">
+                                <form action="{{ route('admin.ac.keuangan.payroll.store') }}" method="POST" class="form-inline">
                                     @csrf
+                                    <input type="hidden" name="booking_id[]" value="{{ $pekerjaan->id }}">
                                     <div class="input-group input-group-sm">
                                         <div class="input-group-prepend">
                                             <span class="input-group-text">Rp</span>
                                         </div>
-                                        <input type="number" name="nominal_gaji" class="form-control" placeholder="Nominal Gaji" required min="1000">
+                                        <input type="number" name="nominal[]" class="form-control" placeholder="Nominal Gaji" required min="1000">
                                         <div class="input-group-append">
                                             <button type="submit" class="btn btn-primary" onclick="return confirm('Bayar gaji teknisi ini dan catat pengeluaran?')">Bayar</button>
                                         </div>

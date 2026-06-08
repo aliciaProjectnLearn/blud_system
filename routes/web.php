@@ -113,10 +113,8 @@ Route::prefix('user')->name('user.')->group(function () {
         Route::get('/booking/{token}/otp', [App\Http\Controllers\User\AcTokenController::class, 'otpForm'])->name('token.otp');
         Route::post('/booking/{token}/otp', [App\Http\Controllers\User\AcTokenController::class, 'verifyOtp'])->name('token.otp.verify');
         Route::post('/booking/{token}/resend', [App\Http\Controllers\User\AcTokenController::class, 'resendOtp'])->name('token.otp.resend');
-      
-        // Token Based Access
-        Route::get('/booking/{token}', [App\Http\Controllers\User\AcTokenController::class, 'show'])->name('token.show');
         Route::get('/booking/{token}/history', [App\Http\Controllers\User\AcTokenController::class, 'riwayat'])->name('token.riwayat');
+        Route::post('/booking/{token}/testimoni', [App\Http\Controllers\User\AcTokenController::class, 'storeTestimoni'])->name('token.testimoni');
 
     });
 
@@ -187,6 +185,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Superadmin|Adm
         Route::get('/rekap-keuangan', [RekapKeuanganController::class, 'index'])->name('dashboard.rekap-keuangan');
         Route::get('/pembagian-pendapatan', [PembagianPendapatanController::class, 'index'])->name('dashboard.pembagian-pendapatan');
         Route::put('/pembagian-pendapatan', [PembagianPendapatanController::class, 'updateKonfigurasi'])->name('dashboard.pembagian-pendapatan.update');
+        
+        // Manajemen Testimoni
+        Route::get('testimonial', [\App\Http\Controllers\SuperAdmin\TestimonialController::class, 'index'])->name('testimonial.index');
+        Route::patch('testimonial/{id}/status', [\App\Http\Controllers\SuperAdmin\TestimonialController::class, 'updateStatus'])->name('testimonial.updateStatus');
     });
 
     // Admin Futsal
@@ -275,6 +277,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Superadmin|Adm
         Route::get('booking', [AdminAcBookingController::class, 'index'])->name('booking.index');
         Route::post('booking/{id}/approve', [AdminAcBookingController::class, 'approve'])->name('booking.approve');
         Route::patch('booking/{id}/selesai', [AdminAcBookingController::class, 'selesai'])->name('booking.selesai');
+        Route::patch('booking/{id}/cancel', [AdminAcBookingController::class, 'cancel'])->name('booking.cancel');
         Route::get('booking-teknisi-tersedia', [AdminAcBookingController::class, 'teknisiTersedia'])->name('booking.teknisi_tersedia');
         Route::get('transaksi/histori', [AdminAcTransaksiController::class, 'history'])->name('transaksi.history');
         Route::resource('transaksi', AdminAcTransaksiController::class);
