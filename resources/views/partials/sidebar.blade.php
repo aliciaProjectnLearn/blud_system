@@ -173,6 +173,13 @@
             </a>
         </li>
 
+        <li class="nav-item {{ request()->routeIs('admin.testimonial.*') ? 'active' : '' }}">
+            <a class="nav-link" href="{{ route('admin.testimonial.index') }}">
+                <i class="fas fa-fw fa-star"></i>
+                <span>Manajemen Testimoni</span>
+            </a>
+        </li>
+
         <li class="nav-item {{ request()->routeIs('admin.cms.layanan.*') ? 'active' : '' }}">
             <a class="nav-link" href="{{ route('admin.cms.layanan.index') }}">
                 <i class="fas fa-fw fa-th-large"></i>

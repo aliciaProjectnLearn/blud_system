@@ -17,9 +17,9 @@ class AcTokenController extends Controller
         $booking = BookingAc::with(['layanan', 'booking', 'pembayaran', 'teknisi', 'detailServis'])
             ->where('access_token', $token)->firstOrFail();
 
-        // Jika booking sudah selesai, ditolak, atau dibatalkan, link tidak aktif lagi
+        // Jika booking sudah selesai atau ditolak, link tidak aktif lagi (tetapi 'dibatalkan' dibolehkan agar bisa melihat status batalnya)
         $status = $booking->booking->status ?? 'N/A';
-        if (in_array($status, ['selesai', 'ditolak', 'dibatalkan'])) {
+        if (in_array($status, ['selesai', 'ditolak'])) {
             return view('user.token.expired', ['status' => $status]);
         }
 
@@ -153,7 +153,7 @@ class AcTokenController extends Controller
             return;
         }
 
-        $pesan = "*KODE OTP AKSES BOOKING* 🔒\n\n";
+        $pesan = "*KODE OTP AKSES BOOKING* \n\n";
         $pesan .= "Kode OTP Anda adalah: *{$code}*\n\n";
         $pesan .= "Kode ini berlaku selama 3 menit. Jangan berikan kode ini kepada siapa pun.\n\n";
         $pesan .= "BLUD System";
@@ -168,6 +168,56 @@ class AcTokenController extends Controller
             ]);
         } catch (\Exception $e) {
             Log::error("Fonnte OTP Error: " . $e->getMessage());
+        }
+    }
+
+    public function storeTestimoni(Request $request, $token)
+    {
+        $booking = BookingAc::where('access_token', $token)->first();
+
+        if (!$booking) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Token tidak valid atau tidak ditemukan.'
+            ], 404);
+        }
+
+        if (session('testimonial_submitted_' . $token)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda sudah memberikan testimoni untuk transaksi ini.'
+            ], 422);
+        }
+
+        $request->validate([
+            'rating' => 'required|integer|min:1|max:5',
+            'content' => 'required|string|min:10|max:300',
+        ], [
+            'rating.required' => 'Pilih rating bintang terlebih dahulu.',
+            'content.required' => 'Isi testimoni tidak boleh kosong.',
+            'content.min' => 'Testimoni minimal 10 karakter.',
+            'content.max' => 'Testimoni maksimal 300 karakter.'
+        ]);
+
+        try {
+            \App\Models\Testimonial::create([
+                'user_id' => $booking->user_id,
+                'rating' => $request->rating,
+                'content' => $request->content,
+                'status' => 'pending'
+            ]);
+
+            session()->put('testimonial_submitted_' . $token, true);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Testimoni berhasil dikirim. Terima kasih atas masukan Anda!'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat menyimpan testimoni: ' . $e->getMessage()
+            ], 500);
         }
     }
 }
